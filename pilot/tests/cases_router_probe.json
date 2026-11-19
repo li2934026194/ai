@@ -1,0 +1,127 @@
+{
+  "version": "v1",
+  "frozen_at": "2026-11-19",
+  "note": "PACK 17a 语义路由的泛化探针：全部为未进入 cases_ask.json 的新问法，只用来测『换说法/插字』能否识别，不参与冻结集分数。expected 由业务口径人工标注，不由被测代码生成。",
+  "cases": [
+    {
+      "id": "RP-01",
+      "question": "这个月要备多少货",
+      "expected": "A6_replenish",
+      "why": "备—多少—货 插字，规则表子串失配（I-24）"
+    },
+    {
+      "id": "RP-02",
+      "question": "这条申请能不能批",
+      "expected": "A6_replenish",
+      "why": "能不能—批 插字，规则表失配（I-24）"
+    },
+    {
+      "id": "RP-03",
+      "question": "SKU-017 大概要进多少才够卖",
+      "expected": "A6_replenish",
+      "why": "进多少 + 语气词，动作落点是下单"
+    },
+    {
+      "id": "RP-04",
+      "question": "现在还来得及补吗，要补就一起补了",
+      "expected": "A6_replenish",
+      "why": "补吗/补了，动作意图明确"
+    },
+    {
+      "id": "RP-05",
+      "question": "帮我看下这个 SKU 该囤多少",
+      "expected": "A6_replenish",
+      "why": "囤多少，补货同义"
+    },
+    {
+      "id": "RP-06",
+      "question": "这单采购走到哪一步了",
+      "expected": "A6_replenish",
+      "why": "采购单履约进度，属于补货链路"
+    },
+    {
+      "id": "RP-07",
+      "question": "上次那批货质检过了没",
+      "expected": "A6_replenish",
+      "why": "收货质检状态，属于补货链路"
+    },
+    {
+      "id": "RP-08",
+      "question": "把在库天数调到 60 再算一遍",
+      "expected": "A3_ask",
+      "why": "参数回灌后的重算：PACK 15-b 口径定为 A3（A3 挂只读 run_replenish 可答），不由 A6 处理"
+    },
+    {
+      "id": "RP-09",
+      "question": "改成空运的话建议量会变吗",
+      "expected": "A6_replenish",
+      "why": "路线回灌建议量（16b 能力）"
+    },
+    {
+      "id": "RP-10",
+      "question": "切到保现金模式，还要订这么多吗",
+      "expected": "A6_replenish",
+      "why": "目标回灌后的建议量"
+    },
+    {
+      "id": "RP-11",
+      "question": "WAPE 是怎么算的",
+      "expected": "A5_forecast",
+      "why": "预测口径"
+    },
+    {
+      "id": "RP-12",
+      "question": "四个模型里哪个更稳",
+      "expected": "A5_forecast",
+      "why": "模型选优，不含数据集/数值"
+    },
+    {
+      "id": "RP-13",
+      "question": "回测窗口为什么是 4 个",
+      "expected": "A5_forecast",
+      "why": "回测机制"
+    },
+    {
+      "id": "RP-14",
+      "question": "预测偏差主要出在哪几天",
+      "expected": "A5_forecast",
+      "why": "偏差诊断"
+    },
+    {
+      "id": "RP-15",
+      "question": "补货点是怎么定出来的",
+      "expected": "A3_ask",
+      "why": "指标口径，METRIC_GUARD 必须压过模型"
+    },
+    {
+      "id": "RP-16",
+      "question": "竞争对手的进货价是多少",
+      "expected": "A3_ask",
+      "why": "价格问题，不是补货动作（曾误路由）"
+    },
+    {
+      "id": "RP-17",
+      "question": "这个 SKU 的库存周转天数是多少",
+      "expected": "A3_ask",
+      "why": "只读指标，没有下单动作"
+    },
+    {
+      "id": "RP-18",
+      "question": "你们系统能直接对接我的 ERP 吗",
+      "expected": "A3_ask",
+      "why": "能力边界，与补货无关"
+    },
+    {
+      "id": "RP-19",
+      "question": "日均销量 8.77 是怎么算出来的",
+      "expected": "A3_ask",
+      "why": "指标口径，不是补货"
+    },
+    {
+      "id": "RP-20",
+      "question": "帮我写一段给供应商的催货话术",
+      "expected": "A3_ask",
+      "why": "文案生成，不涉及建议量计算"
+    }
+  ]
+}

@@ -1,0 +1,2604 @@
+{
+  "meta": {
+    "pack": "PACK 13",
+    "note": "【合成演示业务，非真实生产业务】",
+    "generated_at": "2026-11-19T01:40:30",
+    "model": "deepseek-chat (DEEPSEEK_BASE_URL=https://api.deepseek.com)",
+    "project": "C:\\Users\\Windows\\Desktop\\pilot",
+    "cases_ask_version": "v1",
+    "cases_explain_version": "v1",
+    "judge": "标签精确相等 / agents.explain.verify_numbers / 固定正则；无 LLM 裁判"
+  },
+  "ask_cases": [
+    {
+      "id": "A01",
+      "group": "单指标查询",
+      "question": "SKU-017 的日均销量是多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3188,
+      "tokens": 1493,
+      "write_side_effect": false,
+      "answer": "**SKU-017 的日均销量 = 8.77 件/天。**\n\n补充一下口径，便于你判断这个数字怎么来的：\n\n| 项目 | 值 |\n|---|---|\n| 数据集 | 合成-断货14天 |\n| 日均销量 | **8.77 件** |\n| 服务水平 | 97%（来源：cost_reverse，即成本反解） |\n| σ_LT（交期需求波动） | 19.55 |\n| 安全库存 SS | 36.76 件 |\n| 总交期 | 53 天 |\n| 历史断货 | 0 天（无首个断货日） |\n| 建议补货量 | 360 件（占用资金 3,600 元） |\n\n两点提醒：\n1. 该日均来自 **sales_daily** 口径的销量序列（按断货天数做了修正），行数口径为「合成-断货14天」数据集中 SKU-017 的日粒度记录。\n2. 这是**合成场景数据**，结论不可当作真实经营依据。\n\n如果你要的是补货建议量或资金占用，那属于 A6_replenish 的范围；要预测/回测则走 A5_forecast。需要我按哪个方向继续？"
+    },
+    {
+      "id": "A02",
+      "group": "单指标查询",
+      "question": "SKU-017 现在在手库存还有多少件？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2434,
+      "tokens": 1560,
+      "write_side_effect": false,
+      "answer": "**SKU-017 在手库存：279 件**（截至 2026-06-29），在途 0 件。\n\n- 数据集：合成-断货14天（dataset_id=ds_00b31ed333b05de698c0）\n- 行数口径：sales_daily 180 行、inventory_daily 180 行\n- 口径说明：SYNTHETIC 合成演示数据，仅只读取数，未写库\n\n如需看补货建议量/占用资金，或换成其他场景数据集（如「合成-交期延误20天」「合成-正在缺货」）对比，告诉我即可。"
+    },
+    {
+      "id": "A03",
+      "group": "单指标查询",
+      "question": "SKU-017 的在途数量是多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1938,
+      "tokens": 1302,
+      "write_side_effect": false,
+      "answer": "**SKU-017 在途数量 = 0.0 件**（截至 2026-06-29，在手 279.0 件）。\n\n- 数据来源表：`inventory_daily`（库存日记录 180 行）、`sales_daily`（销售日记录 180 行）\n- 数据集：合成-断货14天（dataset_id=ds_00b31ed333b05de698c0）\n- 口径说明：SYNTHETIC 合成演示数据，只读取数，未写库\n\n如需知道这种情况下要不要补货、建议量多少，可以让我跑一次补货测算。"
+    },
+    {
+      "id": "A04",
+      "group": "单指标查询",
+      "question": "SKU-017 历史上有多少天断货？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2693,
+      "tokens": 1421,
+      "write_side_effect": false,
+      "answer": "**SKU-017 历史断货天数：0 天**（历史区间内无断货日，断货损失约 0 元）。\n\n本次取数附带的其他口径（供参考）：\n- 数据集：**合成-断货14天**；日均 8.77 件\n- 服务水平 97%（来源：cost_reverse），σ_LT = 19.55，安全库存 SS = 36.76，总交期 53 天\n- 建议补货 360 件，占用资金 3,600 元\n\n数据来源表：sales_daily（日均）、inventory_daily（在手/在途与断货判定）、demand_daily（需求口径）；行数口径为上述数据集在当前 SKU 下的有效历史日行。\n\n⚠️ 口径声明：本次为**合成场景**数据，结论不可当作真实经营依据。如需换成其他数据集核对，告诉我数据集名我再查。"
+    },
+    {
+      "id": "A05",
+      "group": "单指标查询",
+      "question": "SKU-017 的占用资金是多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2609,
+      "tokens": 1424,
+      "write_side_effect": false,
+      "answer": "**SKU-017 占用资金为 3,600 元**（对应建议补货量 360 件）。\n\n其他配套数据（同一次计算得出）：\n- 数据集：合成-断货14天\n- 日均 8.77 件，服务水平 97%（来源 cost_reverse）\n- 总交期 53 天，σ_LT = 19.55，安全库存 SS = 36.76\n- 历史断货 0 天（历史无断货日），断货损失约 0 元\n- 占用资金按默认持有 45 天口径计算\n\n口径说明：数据来源为本数据集中的合成场景；占用资金由计算建议量的同一上游函数在同一次计算中得出，本次未单独调用只读取数工具拆分行数（sales_daily / inventory_daily / demand_daily 的行数未纳入本次回执）。以上为合成场景，不可当作真实经营依据。"
+    },
+    {
+      "id": "A06",
+      "group": "单指标查询",
+      "question": "SKU-002 的日均销量是多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2204,
+      "tokens": 1418,
+      "write_side_effect": false,
+      "answer": "**SKU-002 日均销量：8.84 件/天**\n\n取数回执（一次调用带出的相关口径）：\n- 数据集：合成-断货14天\n- 日均：8.84 件；服务水平 97%（来源 cost_reverse）；总交期 53 天；σ_LT = 20.70；安全库存 SS = 38.94\n- 历史断货：0 天（无断货日），断货损失约 0 元\n- 本轮结论：无需补货，占用资金 0 元\n\n数据来源表：sales_daily（日均由销售日粒度计算），行数口径为 SKU-002 在该数据集内全部销售日记录；以上为合成场景口径，结论不可当作真实经营依据。\n\n如需按自然月或其他窗口重算日均，或想看该 SKU 的补货建议明细，告诉我即可。"
+    },
+    {
+      "id": "A07",
+      "group": "单指标查询",
+      "question": "SKU-002 的在手库存是多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2191,
+      "tokens": 1300,
+      "write_side_effect": false,
+      "answer": "**SKU-002 在手库存：678.0 件**（在途 0.0 件）\n\n- 数据集：合成-断货14天（dataset_id=ds_00b31ed333b05de698c0）\n- 快照日期：2026-06-29\n- 口径：销售日记录 180 行、库存日记录 180 行（数据来源表：sales_daily / inventory_daily）\n- 说明：数据为 SYNTHETIC 合成演示数据，只读查询，未做任何写库\n\n如果你需要，我还可以帮你看安全库存或补货建议量。"
+    },
+    {
+      "id": "A08",
+      "group": "单指标查询",
+      "question": "SKU-002 的在途数量是多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2263,
+      "tokens": 1330,
+      "write_side_effect": false,
+      "answer": "**SKU-002 在途数量：0.0 件**（截至 2026-06-29，全部为 0，即当前无在途补货）。\n\n同期在手 678.0 件，数据口径为「合成-断货14天」数据集（dataset_id=ds_00b31ed333b05de698c0）。\n\n- 数据来源表：inventory_daily（库存日记录 180 行）、sales_daily（销售日记录 180 行）\n- 口径提示：SYNTHETIC 合成演示数据，仅用于演示，非真实业务数据。\n\n如果你需要基于这个在途=0 的状态算补货建议量或占资金，告诉我持有天数，我可以跑一次补货测算。"
+    },
+    {
+      "id": "A09",
+      "group": "单指标查询",
+      "question": "SKU-017 建议补多少件？",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3757,
+      "tokens": 2464,
+      "write_side_effect": false,
+      "answer": "SKU-017 的补货建议如下（数据集：合成-断货14天）：\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2561\n- 对照：ma7 = 0.2598，es = 0.2882，snaive = 0.3292\n\n**补货建议**\n- 日均需求：8.77 件\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT = 19.55，安全库存 SS = 36.76\n- 总交期：53 天\n- 历史断货：0 天（历史无断货日）；断货损失约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- **建议补货量：360 件**\n- **占用资金：3,600 元**\n\n一句话：按当前预测与 97% 服务水平，SKU-017 建议补 360 件，占用资金约 3,600 元。\n\n如果你还需要对比运输方式（海运/空运/铁运/卡航）或保销量/保利润/保现金方案，我可以再跑一次路线对比；也可以直接进入提交申请 → 审批 → 收货质检的流程。"
+    },
+    {
+      "id": "A10",
+      "group": "单指标查询",
+      "question": "SKU-002 要订多少货？",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 4662,
+      "tokens": 2502,
+      "write_side_effect": false,
+      "answer": "**SKU-002 的补货结论：本轮无需补货，建议量 0 件，占用资金 0 元。**\n\n一、预测结论（数据集：合成-断货14天）\n- 最佳模型：croston_sba，WAPE = 0.2640（ma7 = 0.2685、es = 0.2994、snaive = 0.3448）\n- 四个模型中 croston_sba 的 WAPE 最低，因此推荐使用。\n\n二、补货建议（同数据集）\n- 日均 8.84 件\n- 服务水平 97%（来源：cost_reverse）\n- σ_LT = 20.70，安全库存 SS = 38.94\n- 总交期 53 天\n- 历史断货 0 天（历史无断货日）\n- 断货损失约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 系统判定：**no_replenishment（本轮无需补货）**，建议量 0，占用资金 0 元\n\n如果你希望我按其他持有天数（当前为 45 天）或其他数据集再算一次，或用 route_compare 做运输路线和三目标（保销量、保利润、保现金）对比（其运输参数为合成假设，不是真实物流报价），告诉我即可。"
+    },
+    {
+      "id": "A11",
+      "group": "单指标查询",
+      "question": "SKU-017 哪个预测模型最好？",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2886,
+      "tokens": 947,
+      "write_side_effect": false,
+      "answer": "**SKU-017 回测结果（数据集：合成-断货14天）**\n\n最佳模型：**croston_sba**，WAPE = **0.2561**（最低）\n\n各模型 WAPE 对比：\n\n| 模型 | WAPE |\n|---|---|\n| croston_sba | 0.2561（最佳） |\n| ma7 | 0.2598 |\n| es | 0.2882 |\n| snaive | 0.3292 |\n\n补充说明：我第一次调用时把数据集名误传成了 “null”，工具报「未找到数据集」，所以那一轮没有产生任何数字；上表数字全部来自随后使用默认数据集「合成-断货14天」的那次运行。如果你要评估的是另一个数据集（例如真实业务数据），告诉我数据集名，我再跑一次。"
+    },
+    {
+      "id": "A12",
+      "group": "单指标查询",
+      "question": "SKU-017 的 WAPE 是多少？",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1452,
+      "tokens": 741,
+      "write_side_effect": false,
+      "answer": "SKU-017 的回测结果如下（数据集：合成-断货14天）：\n\n- **最佳模型：croston_sba，WAPE = 0.2561**\n- ma7.WAPE = 0.2598\n- es.WAPE = 0.2882\n- snaive.WAPE = 0.3292\n\n所以 SKU-017 的最低 WAPE 是 0.2561（croston_sba）。"
+    },
+    {
+      "id": "A13",
+      "group": "单指标查询",
+      "question": "SKU-017 的服务水平是多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2686,
+      "tokens": 1423,
+      "write_side_effect": false,
+      "answer": "**SKU-017 的服务水平是 97%**，来源为 cost_reverse（按缺货成本反推的最优服务水平）。\n\n相关参数（同一次计算）：\n- 数据集：合成-断货14天\n- 日均需求 8.77 件；总交期 53 天；σ_LT = 19.55；安全库存 SS ≈ 36.76 件\n- 历史断货 0 天（无断货日），断货损失约 0 元\n- 建议补货 360 件，占用资金 3,600 元\n\n数据来源：数据集「合成-断货14天」，由 run_replenish 按 SKU-017 单条出数（行数口径为单 SKU 的日粒度序列汇总，含历史断货天数 0 天）。\n⚠️ 口径声明：该数据集为合成场景，结论不可当作真实经营依据。"
+    },
+    {
+      "id": "A14",
+      "group": "单指标查询",
+      "question": "SKU-017 的总交期是多少天？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2597,
+      "tokens": 1466,
+      "write_side_effect": false,
+      "answer": "**SKU-017 的总交期为 53 天。**\n\n补充本次取数回执的其他关键参数（供参考）：\n\n| 项目 | 数值 |\n|---|---|\n| 数据集 | 合成-断货14天 |\n| 日均需求 | 8.77 件 |\n| 服务水平 | 97%（来源：cost_reverse） |\n| σ_LT（交期需求标准差） | 19.55 |\n| 安全库存 SS | 36.76 |\n| **总交期** | **53 天** |\n| 历史断货 | 0 天（无断货日） |\n| 断货损失 | 约 0 元 |\n| 建议补货量 | 360 件 |\n| 占用资金 | 3,600 元 |\n\n口径说明：以上数字来自数据集「合成-断货14天」的补货测算回执（run_replenish，与 API 同源）。该数据集为**合成场景**，结论不可当作真实经营依据。\n\n如果你需要看真实口径的交期，或想核对历史断货 / 服务水平等其他字段，告诉我具体数据集名我再取一次。"
+    },
+    {
+      "id": "A15",
+      "group": "单指标查询",
+      "question": "SKU-017 的安全库存是多少件？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 7209,
+      "tokens": 1652,
+      "write_side_effect": false,
+      "answer": "**SKU-017 安全库存 SS = 36.76 件（约 37 件）**\n\n计算口径与来源：\n- 数据集：合成-断货14天（dataset_id=ds_00b31ed333b05de698c0）\n- 日均 8.77 件；服务水平 97%（来源 cost_reverse，非人工设定）\n- 总交期 53 天，σ_LT = 19.55 → SS = 19.55 × z(97%) ≈ 36.76 件\n- 行数口径：销售日记录 180 行，库存日记录 180 行（对应 sales_daily 与 inventory_daily，截至 2026-06-29）\n\n顺带说明当前状态：在手 279 件、在途 0 件，历史断货 0 天；在此 SS 下仍建议补 360 件（占用资金 3,600 元）。\n\n⚠️ 口径声明：以上为 SYNTHETIC 合成演示数据，结论不可当作真实经营依据。"
+    },
+    {
+      "id": "A16",
+      "group": "跨SKU/跨数据集对比",
+      "question": "对比 SKU-017 和 SKU-008 的日均销量。",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 5628,
+      "tokens": 2511,
+      "write_side_effect": false,
+      "answer": "两个 SKU 的日均销量对比结果：\n\n| 项目 | SKU-017 | SKU-008 |\n|---|---|---|\n| 日均销量 | 8.77 件 | 8.77 件 |\n| σ_LT | 19.55 | 28.21 |\n| 安全库存 SS | 36.76 | 53.05 |\n| 总交期 | 53 天 | 53 天 |\n| 在手（2026-06-29） | 279 件 | 678 件 |\n| 在途 | 0 件 | 0 件 |\n\n结论：两者日均销量**相同，均为 8.77 件/天**，所以日均这一项没有差异。差异体现在波动与库存水位上——SKU-008 的需求波动更大（σ_LT 28.21 vs 19.55），因此安全库存更高（53.05 vs 36.76）；同时 SKU-008 在手 678 件相对充足，本轮无需补货，而 SKU-017 在手 279 件、建议补 360 件。\n\n数据来源与行数口径：\n- 数据集：合成-断货14天（dataset_id=ds_00b31ed333b05de698c0，source_type=SYNTHETIC）\n- 销售日记录 180 行、库存日记录 180 行，快照截至 2026-06-29\n- 日均、服务水平（97%，cost_reverse）、σ_LT、SS、交期、建议量来自 run_replenish（与 API 同源 core.build_suggestion）；快照在手/在途来自 sales_daily + inventory_daily 的 180 行口径\n\n提示：该数据集为合成场景，数值不可当作真实经营依据。若你要看其他场景（如大促3倍、交期延误20天）下的日均对比，告诉我即可切换重算。"
+    },
+    {
+      "id": "A17",
+      "group": "跨SKU/跨数据集对比",
+      "question": "对比 SKU-002 和 SKU-003 的建议补货量。",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2970,
+      "tokens": 2629,
+      "write_side_effect": false,
+      "answer": "两个 SKU 的补货建议量对比如下（数据集：合成-断货14天，holding_days=45）：\n\n| 项目 | SKU-002 | SKU-003 |\n|---|---|---|\n| 日均需求 | 8.84 件 | 8.56 件 |\n| 服务水平 | 97%（cost_reverse） | 97%（cost_reverse） |\n| σ_LT | 20.70 | 19.52 |\n| 安全库存 SS | 38.94 | 36.70 |\n| 总交期 | 53 天 | 53 天 |\n| 历史断货天数 | 0 天（历史无断货日） | 0 天（历史无断货日） |\n| 断货损失 | 约 0 元 | 约 0 元 |\n| **建议补货量** | **本轮无需补货（no_replenishment）** | **本轮无需补货（no_replenishment）** |\n| 占用资金 | 0 元 | 0 元 |\n\n结论：在本数据集与 45 天持有期设定下，两个 SKU 的工具结论一致，都是本轮无需补货、占用资金 0 元；其中 SKU-002 的日均（8.84 件）和安全库存（38.94）略高于 SKU-003（8.56 件 / 36.70），但两者都没有触发补货。如果你希望看其他数据集（例如「合成-正在缺货」）或不同持有天数下的建议量对比，可以告诉我，我再取一次。"
+    },
+    {
+      "id": "A18",
+      "group": "跨SKU/跨数据集对比",
+      "question": "哪个 SKU 的占用资金最高？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3140,
+      "tokens": 1559,
+      "write_side_effect": false,
+      "answer": "这个筛选需求（按 SKU 横向比较占用资金）我不能凭空作答：目前只有针对**单个 SKU** 的只读取数工具（sku_snapshot / run_replenish），没有“列出全部 SKU 并按占用资金排序”的接口，数据集列表也不含 SKU 清单。\n\n所以诚实地说：我无法直接告诉你哪个 SKU 占用资金最高，也不编一个排名。\n\n可以这样拿到答案，二选一：\n\n1. **你给出候选 SKU**（哪怕几个），我对每个调 `run_replenish` 取「建议量 / 占用资金」，然后把它们横向排序告诉你最高的是哪个，并注明数据集与行数口径。\n2. 如果你们侧有 SKU 明细表（sales_daily / inventory_daily / demand_daily 的 SKU 维度导出），把 SKU 列表或导出贴给我，我按同一口径逐个算。\n\n另外需要确认两件事，会直接影响结果：\n- **用哪个数据集**？默认是「合成-断货14天」；其余 5 个（交期延误20天 / 大促3倍 / 数据缺30天 / 新品零历史 / 正在缺货）口径不同，排序可能变。\n- **持有天数**用默认 45 天，还是你们别的标准？\n\n告诉我 SKU 清单 + 数据集 + 持有天数，我就把“占用资金最高”的结论连数据来源和行数口径一起给你。"
+    },
+    {
+      "id": "A19",
+      "group": "跨SKU/跨数据集对比",
+      "question": "对比「合成-正在缺货」和「合成-断货14天」两个数据集里 SKU-017 的建议补货量。",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3342,
+      "tokens": 2638,
+      "write_side_effect": false,
+      "answer": "两个数据集的对比结果如下（数字均来自工具返回）：\n\n| 项目 | 合成-正在缺货 | 合成-断货14天 |\n|---|---|---|\n| 日均 | 8.80 件 | 8.77 件 |\n| 服务水平 | 97%（cost_reverse） | 97%（cost_reverse） |\n| σ_LT | 16.31 | 19.55 |\n| 安全库存 SS | 30.68 | 36.76 |\n| 总交期 | 53 天 | 53 天 |\n| 历史断货天数 | 0 天（历史无断货日） | 0 天（历史无断货日） |\n| 断货损失 | 约 0 元 | 约 0 元 |\n| **建议补货量** | **360 件** | **360 件** |\n| 占用资金 | 3,600 元 | 3,600 元 |\n\n结论：两个数据集下 SKU-017 的建议补货量**完全相同，都是 360 件**，占用资金都是 3,600 元。差异只体现在中间参数：日均略有不同（8.80 与 8.77），σ_LT 与安全库存不同（16.31、30.68 与 19.55、36.76），但最终建议量没有因此变化。\n\n另外需要注意：两个数据集回执中历史断货天数均为 0 天，因此断货损失均约为 0 元（口径为断货天数 × 日均 × 售价 × 毛利率 × 1.5）。"
+    },
+    {
+      "id": "A20",
+      "group": "跨SKU/跨数据集对比",
+      "question": "对比 SKU-004 和 SKU-005 的在手库存。",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 7523,
+      "tokens": 1577,
+      "write_side_effect": false,
+      "answer": "查询结果如下（数据来源：数据集「合成-断货14天」，dataset_id=ds_00b31ed333b05de698c0；库存日记录 180 行、销售日记录 180 行，最新快照日期 2026-06-29）：\n\n| SKU | 在手库存 | 在途库存 |\n|---|---|---|\n| SKU-004 | 678.0 件 | 0.0 件 |\n| SKU-005 | 678.0 件 | 0.0 件 |\n\n**结论：两者在手库存完全相同，均为 678 件，在途均为 0 件，没有差异。**\n\n补充两点提示：\n1. 本次只比了「最新时点的库存数量」这一个指标。若你想看服务水平、安全库存、日均消耗或建议补货量等，我可以再取数；补货/建议量需要走 A6_replenish 口径。\n2. 该数据集为 SYNTHETIC 合成演示数据，数值仅用于流程验证，不代表真实业务库存。\n\n（本次为只读取数，未做任何写库操作。）"
+    },
+    {
+      "id": "A21",
+      "group": "跨SKU/跨数据集对比",
+      "question": "「合成-正在缺货」和「合成-断货14天」两个数据集里，SKU-002 的日均销量差多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 4521,
+      "tokens": 2502,
+      "write_side_effect": false,
+      "answer": "两个数据集中，SKU-002 的日均销量几乎一致：\n\n| 数据集 | 日均销量 | 在手（2026-06-29） | 在途 |\n|---|---|---|---|\n| 合成-正在缺货（ds_505a…8ec1） | **8.80 件/天** | 0.0 | 0.0 |\n| 合成-断货14天（ds_00b3…98c0） | **8.84 件/天** | 678.0 | 0.0 |\n\n**差值：0.04 件/天**（断货14天高约 0.45%），基本可视为同一需求水平。\n\n补充两点口径说明：\n- 两个数据集的 σ_LT（20.70）、服务水平（97%，来源 cost_reverse）、总交期（53 天）、安全库存（38.94）完全一致，说明这两个合成场景**只改了断货/库存表现，没有改需求分布**——日均的微小差异来自断货区间的计算细节。\n- 差异体现在断货上：`合成-正在缺货` 历史断货 8 天（首个断货日 2026-06-22）、断货损失约 2,113 元、建议补 660 件（占用资金 9,240 元）；`合成-断货14天` 历史断货 0 天、无需补货。\n\n数据来源表与行数口径：sales_daily（销售日记录）、inventory_daily（库存日记录），两个数据集各为 **180 行 / 180 行**，截止日期 2026-06-29。\n\n⚠️ 以上均为 SYNTHETIC 合成演示数据，结论不可当作真实经营依据。"
+    },
+    {
+      "id": "A22",
+      "group": "跨SKU/跨数据集对比",
+      "question": "对比 SKU-017 和 SKU-014 的预测模型。",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3772,
+      "tokens": 1193,
+      "write_side_effect": false,
+      "answer": "两个 SKU 的回测结果（数据集：合成-断货14天）对比如下：\n\n| SKU | 最佳模型 | croston_sba WAPE | ma7 WAPE | es WAPE | snaive WAPE |\n|---|---|---|---|---|---|\n| SKU-017 | croston_sba | **0.2561** | 0.2598 | 0.2882 | 0.3292 |\n| SKU-014 | croston_sba | **0.3307** | 0.3529 | 0.3665 | 0.3981 |\n\n结论：\n- 两个 SKU 的最佳模型都是 **croston_sba**。\n- SKU-017 的预测表现明显更好，最佳 WAPE 为 **0.2561**；SKU-014 的最佳 WAPE 为 **0.3307**。\n- 在两个 SKU 上，四个模型的优劣顺序一致：croston_sba < ma7 < es < snaive（WAPE 越小越好）。"
+    },
+    {
+      "id": "A23",
+      "group": "跨SKU/跨数据集对比",
+      "question": "哪个 SKU 的 WAPE 最低？",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1548,
+      "tokens": 637,
+      "write_side_effect": false,
+      "answer": "你问的是“哪个 SKU 的 WAPE 最低”，但你要我对比不同 SKU 的 WAPE；而 `forecast_backtest` 一次只能回测一个 SKU，并且必须提供 SKU 和数据集，所以我目前没法在 SKU 之间做比较。\n\n请告诉我：\n1. 你想对比哪些 SKU（或直接给一个 SKU，我先看它各模型的 WAPE）；\n2. 用哪个数据集（不传则默认「合成-断货14天」）。\n\n拿到这些信息，我就逐个跑回测，只按工具返回的数字告诉你哪个最低。"
+    },
+    {
+      "id": "A24",
+      "group": "跨SKU/跨数据集对比",
+      "question": "对比 SKU-001 和 SKU-008 的补货金额。",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 5177,
+      "tokens": 3024,
+      "write_side_effect": false,
+      "answer": "两个 SKU 的补货资金对比结果如下。数据集：合成-断货14天（holding_days=45）。\n\n| 项目 | SKU-001 | SKU-008 |\n|---|---|---|\n| 最佳模型 / WAPE | 工具未返回：SKU-001 首次调用时报「未找到数据集」，没有可用回测结论，因此需要你确认数据集名称后重跑 | croston_sba，WAPE 0.3635 |\n| 日均 | 9.14 件 | 8.77 件 |\n| 服务水平 | 97%（cost_reverse） | 97%（cost_reverse） |\n| σ_LT | 25.42 | 28.21 |\n| 安全库存 SS | 47.81 | 53.05 |\n| 总交期 | 53 天 | 53 天 |\n| 历史断货天数 | 14 天，首个断货日 2026-03-22 | 0 天（历史无断货日） |\n| 断货损失 | 约 3,838 元 | 约 0 元 |\n| **建议量** | **本轮无需补货（no_replenishment）** | **本轮无需补货（no_replenishment）** |\n| **占用资金** | **0 元** | **0 元** |\n\n结论：按工具返回结果，两者本轮的建议量均为「无需补货」，占用资金都是 0 元，因此补货金额上没有差异。差异体现在风险侧：SKU-001 有 14 天历史断货，估算断货损失约 3,838 元；SKU-008 历史无断货、断货损失 0 元。另外，SKU-001 的预测回测结论缺失，建议你先确认数据集名称，然后我用 SKU-001 重跑一次，取得模型与 WAPE。\n\n以上数字均来自工具返回；合成场景结论，不可当作真实经营依据。"
+    },
+    {
+      "id": "A25",
+      "group": "跨SKU/跨数据集对比",
+      "question": "哪个数据集里 SKU-017 的占用资金最高？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 6028,
+      "tokens": 2979,
+      "write_side_effect": false,
+      "answer": "**结论：四个数据集的占用资金并列最高，均为 3,600 元。** 这并非某一个数据集独高，而是多个数据集的数值相同。\n\n| 数据集 | 建议量 | 占用资金 | 备注 |\n|---|---|---|---|\n| 合成-交期延误20天 | 360 件 | **3,600 元** | 日均 8.77，σ_LT=19.55，SS=36.76 |\n| 合成-大促3倍 | 360 件 | **3,600 元** | 与断货14天结果完全一致 |\n| 合成-断货14天 | 360 件 | **3,600 元** | 默认数据集，历史断货 0 天 |\n| 合成-正在缺货 | 360 件 | **3,600 元** | 日均 8.80，σ_LT=16.31，SS=30.68 |\n| 合成-数据缺30天 | — | 无法计算 | 仅 55 天有效历史，未达到 60 天预测下限 |\n| 合成-新品零历史 | — | 无法计算 | 仅 3 天有效历史 |\n\n口径说明：\n- 本次计算统一采用 holding_days=45、服务水平 97%（cost_reverse 反推），占用资金 = 建议量 × 单位成本；SKU-017 单位成本约 10 元/件。\n- 并列的原因是：这几个场景下的均值参数与成本一致，补货量都被安全库存和周转需求推到了同一个取整结果 360 件；只有“正在缺货”的 σ_LT、SS 略低，但经过取整后资金仍相同。\n- 两个不计入的数据集分别是历史长度不足（55 天）和零历史（3 天），属于数据不足、无法计算，而不是补货量为 0。\n\n数据来源与行数口径：以上数字来自只读工具 run_replenish，即 core.build_suggestion 调用链；它读取的是各数据集的 demand_daily（需求历史计算日均与 σ_LT）与 inventory_daily（在手、在途、成本）表，取最新快照行。具体行数为：数据缺30天数据集有效 55 行；新品零历史数据集有效 3 行；其余四个数据集通过 60 天门槛。所有数据集都是合成场景（source_type=SYNTHETIC），结论不可当作真实经营依据。如需真实资金排序，请提供真实数据集。"
+    },
+    {
+      "id": "A26",
+      "group": "口径与追溯",
+      "question": "日均销量这个数是从哪来的？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3016,
+      "tokens": 1875,
+      "write_side_effect": false,
+      "answer": "**日均销量的来源**\n\n回执里“日均 9.14 件”是由补货引擎（core.build_suggestion）计算出来的，它取的是**销量表 sales_daily 里的历史日销量均值**，并非直接取用的现成字段。具体统计口径是：\n\n- 数据源：dataset = **合成-断货14天**（id=ds_00b31ed333b05de698c0，source_type=SYNTHETIC）\n- 取数表：**sales_daily**\n- 行数统计口径：该 SKU 在 sales_daily 中参与计算的历史日销量行；断货区间（首个断货日 2026-03-22，连续 14 天，即历史断货 14 天）中的零销量不代表真实需求，因此做日均时按断货剔除处理，否则日均会被系统性低估。\n- 原子计算：日均 = 有效销售数量合计 ÷ 有效天数，得到 **9.14 件/天**。\n\n日均销量的下游去向（同一份回执中可以看到）：\n- 总交期 53 天 → σ_LT = 25.42 → 服务水平 97%（来源 cost_reverse）→ **SS = 47.81**\n- 断货损失 ≈ 3,838 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n\n结论：日均 9.14 件是 sales_daily 剔除断货区间后的有效日销量均值，属于派生指标，不是表里的原始列。\n\n⚠️ 口径声明：该数据集是合成场景，结论不可当作真实经营依据。若你想看真实口径，我可以换用其他数据集的 SKU 重新取数，例如「合成-数据缺30天」会直接影响日均计算的有效天数。"
+    },
+    {
+      "id": "A27",
+      "group": "口径与追溯",
+      "question": "这份数据截止到哪一天？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3548,
+      "tokens": 1670,
+      "write_side_effect": false,
+      "answer": "我查了一下，但没拿到可用的截止日期。\n\n回执情况：\n- 数据集清单可用，共 6 个（全部 source_type=SYNTHETIC 合成演示数据）。\n- 但你未指明 SKU，我按默认数据集「合成-断货14天」试查 SKU001：库存日记录 0 行、销售日记录 0 行，回执中在手/在途为空，也没有返回最新日期。因此我无法据此给出“数据截止到哪天”。\n\n需要你补充两点，我再取数确认：\n1. 具体 SKU（数据里有哪些 SKU 我没有可靠清单，之前 SKU001 在这个数据集里是空表）；\n2. 哪个数据集（若要指定，名称需与上面 6 个完全一致）。\n\n说明：我的可读工具只有数据集清单、单 SKU 库存快照（日期口径为“最新日期”的库存日记录）、补货计算三类，没有独立的“数据区间/截止日”查询接口；所以我不会凭空报一个日期给你，也不会把空表说成有数据。"
+    },
+    {
+      "id": "A28",
+      "group": "口径与追溯",
+      "question": "这个结果是哪个数据集算出来的？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2795,
+      "tokens": 1555,
+      "write_side_effect": false,
+      "answer": "目前没有可以确认“上一个结果”的上下文：会话里没有记录上一轮具体查询的是哪个 SKU、哪个数据集，所以我不能确定它对应哪个数据集。\n\n当前可用数据集共 6 个（均为 SYNTHETIC 合成场景）：\n\n| 名称 | id |\n|---|---|\n| 合成-交期延误20天 | ds_27ebf3da154f5b0a9963 |\n| 合成-大促3倍 | ds_8a46ca94f7325ac491c5 |\n| 合成-数据缺30天 | ds_4773b5aefc855e45ad9c |\n| 合成-断货14天 | ds_00b31ed333b05de698c0 |\n| 合成-新品零历史 | ds_855373e38a205928a6e8 |\n| 合成-正在缺货 | ds_505a8430098d535b8ec1 |\n\n说明口径：工具在不指定数据集时使用默认值「合成-断货14天」（id=ds_00b31ed333b05de698c0），所以如果你上一轮没有指定数据集，结果来自数据集「合成-断货14天」。如果上一轮明确指定了其他数据集，请把 SKU 和数据集名告诉我，我会用只读工具重新取数核对（在手/在途取 sales_daily、inventory_daily、demand_daily 对应行数口径一并报给你）。"
+    },
+    {
+      "id": "A29",
+      "group": "口径与追溯",
+      "question": "预测用的是哪个模型？",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1070,
+      "tokens": 576,
+      "write_side_effect": false,
+      "answer": "我需要先确认两个信息才能跑回测：**要预测的 SKU** 和**要用的数据集名称**（不传则默认「合成-断货14天」）。请告诉我 SKU（以及数据集，如果想用默认的可以直接说“用默认”），我就会调用 forecast_backtest 返回最佳模型名和 WAPE。"
+    },
+    {
+      "id": "A30",
+      "group": "口径与追溯",
+      "question": "WAPE 的口径是怎么算的？",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 905,
+      "tokens": 596,
+      "write_side_effect": false,
+      "answer": "WAPE 具体口径我这边不能确定，避免编造。我手头只有 forecast_backtest 工具，它只返回最佳模型名和各模型 WAPE 数值，不含口径定义。\n\n要确认口径，建议查看 core.backtest 的实现或文档。需要的话，把 SKU 和数据集名给我，我可以先跑一次回测，把各模型的 WAPE 数字列出来供你核对口径。"
+    },
+    {
+      "id": "A31",
+      "group": "口径与追溯",
+      "question": "建议量的计算公式是什么？",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2941,
+      "tokens": 2229,
+      "write_side_effect": false,
+      "answer": "补货建议量按以下公式计算（当前还没有拿到具体 SKU，所以先说明公式本身；其中数字要实际跑工具才会有）：\n\n**建议量 ≈ 需求预测量 − 可用库存,再折算到最小起运量/包装倍数**\n\n展开为：\n\n**建议量 = max(0, 需求预测量 + 安全库存 SS − 现有可用库存 − 在途库存),再按 MOQ（最小起运量）向上取整**\n\n其中各分量来源：\n\n- **需求预测量**：覆盖「总交期」这一段的日均需求 × 总交期天数。日均来自该数据集历史销量的统计口径；总交期 = 供应商交期 + 运输时效（+ 可能的口径天数）。\n- **安全库存 SS**：SS = z(服务水平) × σ_LT × √(总交期)。服务水平可能由 cost_reverse 反推得到，也可能直接给定额定值；工具回执会标出它的来源。σ_LT 为交期内的需求波动标准差。\n- **现有可用库存**：当前可动用的库存量。\n- **在途库存**：已下单未到货部分，避免重复补货。\n- **占用资金** = 建议量 × 单位成本；如果数据集缺成本字段，工具会返回 null 并说明原因，不自行估算。\n\n**关键点**：建议量同时受「服务水平」和「最小起运量 / 包装倍数」影响，所以实际值通常不是需求预测减去库存的原始差，而是向上取整后的量。\n\n如果你能告诉我**具体 SKU（以及要读哪个数据集）**，我会用 run_forecast 取预测结论（最佳模型与 WAPE），再用 run_replenish 取这一 SKU 的真实建议量、SS、σ_LT、总交期和占用资金，直接给出可执行的补货建议。所有数字都以工具返回为准。"
+    },
+    {
+      "id": "A32",
+      "group": "口径与追溯",
+      "question": "服务水平为什么是 97%？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 4074,
+      "tokens": 1631,
+      "write_side_effect": false,
+      "answer": "抱歉，我先说明一点：**您还没告诉我是哪个 SKU / 哪个数据集**，而 97% 这个数字我这边不能凭空确认——服务水平是模型参数，不同 SKU、不同数据集下可能不同，我不能直接编一个来源给您。\n\n我刚尝试取数（默认数据集「合成-断货14天」+ SKU001）但工具报错未返回结果，所以现在没有回执可依据。\n\n我已确认当前可用数据集共 6 个（均为合成场景）：\n- 合成-交期延误20天\n- 合成-大促3倍\n- 合成-数据缺30天\n- 合成-断货14天\n- 合成-新品零历史\n- 合成-正在缺货\n\n麻烦补充一下：\n1. **SKU** 是哪个？\n2. **数据集** 是哪个（默认「合成-断货14天」）？\n\n拿到这两项后我会调用补货计算（与 API 同源的 core.build_suggestion），把服务水平的**取值与来源标记**（例如是否为 cost_reverse 反解得出，还是手工/默认设定）、以及本次使用的日均、σ_LT、安全库存、总交期一并带出，并注明数据来源表与行数口径。这样 97% 的来由才算有据可查。"
+    },
+    {
+      "id": "A33",
+      "group": "口径与追溯",
+      "question": "断货日是怎么剔除的？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2844,
+      "tokens": 1318,
+      "write_side_effect": false,
+      "answer": "这个问题涉及方法口径，不属于预测/补货计算的转交范畴，我直接简要回答。\n\n**断货日的剔除逻辑（通用口径，需以你实际数据集的定义为准）：**\n\n1. **识别断货日**：通常判断标准是当日「在手库存 ≤ 0」，或「在手 + 在途 = 0」。有的口径更严谨，会看「日销量被库存截断」——即当日实际销量恰好等于期初可用量、且随后出现零销量，视为需求被截断（censored）。\n2. **剔除对象**：这些日的销量不是真实需求，只是库存约束下的上限，直接参与算日均会把需求系统性低估，所以要剔除。\n3. **剔除后怎么用**：\n   - 日均需求：只用「正常销售日」计算，而不是全部日历日。\n   - 若剔除比例较高，更稳妥的做法是对需求做截断修正（censored demand 补估），或改用中位数/分位数等稳健统计量。\n4. **保留的信息**：断货日不丢弃，用来统计**历史断货天数**和**首个断货日**，并估算断货损失金额。\n\n如果你要的是**具体某个 SKU 在这个数据集里实际剔除掉了哪些日期、剔除后又算出多少日均**，我可以调只读工具取真实回执。需要的话告诉我 SKU 和数据集名称（不传则用默认「合成-断货14天」）。注意：如果你接下来想看剔除后的日均、安全库存、建议量这类**补货计算结论**，那部分我会转给 A6_replenish 出数。"
+    },
+    {
+      "id": "A34",
+      "group": "口径与追溯",
+      "question": "这些数据来自哪几张表？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3361,
+      "tokens": 1704,
+      "write_side_effect": false,
+      "answer": "**数据来源表（固定三张底层表）**\n\n| 表 | 提供什么 | 用在哪些指标 |\n|---|---|---|\n| `sales_daily` | 日销量、断货/缺货标记 | 日均销量、需求波动 σ、历史断货天数与首个断货日、断货损失 |\n| `inventory_daily` | 每日在手、在途数量 | 在手 / 在途快照、可用库存、断货判定 |\n| `demand_daily` | 需求（补货需求/预测需求） | 需求口径校验、服务水平与安全库存的目标反推 |\n\n**行数口径说明**\n- 一句话：所有指标都是「按 SKU + 按日」汇总后计算，行数＝该 SKU 在对应表中落在统计窗口内的日级记录条数；不是全表总行数。\n- `sales_daily` 行数 = 该 SKU 统计窗口内的日销量记录条数（断货日通常无销量记录，需与 `inventory_daily` 对齐补零）。\n- `inventory_daily` 行数 = 该 SKU 每日快照条数，最新日期那条即\"当前在手/在途\"。\n- `demand_daily` 行数 = 该 SKU 日需求记录条数；若比 sales 少，说明需求表覆盖不全，口径要单独声明。\n- 缺成本价时，断货损失金额为 null（不代填 0）。\n\n**当前数据集情况**\n可用 6 个，全部是合成数据（source_type=SYNTHETIC）：合成-断货14天（默认）、合成-交期延误20天、合成-大促3倍、合成-数据缺30天、合成-新品零历史、合成-正在缺货。合成场景下的数字仅用于口径演示，不能当作真实业务结论。\n\n需要我针对某个具体 SKU 拉快照（在手/在途行数）或跑补货建议（会带出日均、σ_LT、SS、总交期、断货天数与损失），告诉我 SKU 和数据集名即可。"
+    },
+    {
+      "id": "A35",
+      "group": "口径与追溯",
+      "question": "安全库存和补货点 ROP 是什么关系？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2718,
+      "tokens": 1278,
+      "write_side_effect": false,
+      "answer": "安全库存（SS）是 ROP 的组成部分，不是并列概念：\n\n**ROP = 交期内的平均需求 + 安全库存**\n= 日均需求 × 总交期（LT）+ SS\n\n其中 SS 用来吸收交期与需求的波动，因此：\n- **SS 是\"缓冲垫\"**，只覆盖不确定性（波动）；\n- **ROP 是\"补货触发线\"**，覆盖\"交期内的正常消耗\"+\"波动缓冲\"两块。\n\n举例：日均 10 件、总交期 7 天、SS 30 件 → ROP = 10×7 + 30 = 100 件。库存降到 100 件就下单，这样在货到之前正常消耗 70 件，还剩 30 件顶着波动，理论上缺货概率对应目标服务水平。\n\n补一句口径：SS 通常由 σ_LT（交期内需求标准差）和目标服务水平（z 值）算出，服务水平若由成本反解（cost_reverse）得出，SS 与 ROP 会随目标变化联动——服务水平调高，SS 变大、ROP 同步上移。\n\n如果你要看你某个 SKU 的实际 SS / 总交期 / 建议量数字，告诉我 SKU 即可（预测/回测类问题我转 A5，补货量类我转 A6 并给出数据来源表与行数口径）。"
+    },
+    {
+      "id": "A36",
+      "group": "越界与拒答",
+      "question": "SKU-999 的库存是多少？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2234,
+      "tokens": 1345,
+      "write_side_effect": false,
+      "answer": "SKU-999 在默认数据集「合成-断货14天」（dataset_id=ds_00b31ed333b05de698c0）中没有数据：\n\n- 库存日记录（inventory_daily）：**0 行** → 在手量 / 在途量均无数据（我不会编造数字）\n- 销售日记录（sales_daily）：**0 行**\n- 需求日记录（demand_daily）：**0 行**\n\n说明：口径为“最新日期的库存快照”，但该 SKU 没有任何可用行，因此无法给出手在/在途数量。\n\n可能原因：该 SKU 不在这个数据集里、SKU 编码有误，或数据集本身是合成演示数据（SYNTHETIC）且未覆盖此 SKU。你可以确认一下 SKU 编码，或告诉我具体数据集名称，我再查一次。"
+    },
+    {
+      "id": "A37",
+      "group": "越界与拒答",
+      "question": "预测一下 SKU-017 下个月的价格。",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1461,
+      "tokens": 666,
+      "write_side_effect": false,
+      "answer": "你好，这里有个问题需要先说明：\n\n我这个工具（forecast_backtest）只做**销量**的走步回测，返回的是最佳模型名和各模型的 WAPE，**不能预测价格**。所以我没法给出 SKU-017 下个月的价格预测，也不会编一个数字给你。\n\n如果你的实际需求是下面这些，我可以马上帮你做：\n\n1. **SKU-017 的销量预测/回测**：告诉我要用哪个数据集（不指定就用默认的「合成-断货14天」），我会返回最佳模型和 WAPE。\n2. **价格相关的分析**：需要另外的定价模型或用价格历史数据，不在我当前工具范围内。\n\n要跑销量回测的话，直接说数据集名就行。"
+    },
+    {
+      "id": "A38",
+      "group": "越界与拒答",
+      "question": "帮我直接下单补 500 件。",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1800,
+      "tokens": 1998,
+      "write_side_effect": false,
+      "answer": "我需要先确认是哪个 SKU、用哪个数据集，才能取到预测结论和补货建议量。请告诉我 SKU 名称（以及要用的数据集名称，如果不指定，我就用默认的「合成-断货14天」）。\n\n另外先说明：我这边是只读上下文，提交补货申请、审批、收货这类写操作都会被拒绝，无法真正下单。我能做的是用工具取到真实的建议量与占用资金，供你去系统里下单。\n\n请补充 SKU 后，我会：\n1. `run_forecast` 取预测结论（最佳模型与 WAPE）\n2. `run_replenish` 取建议量、安全库存、占用资金等\n\n同时，我不会用你口述的 500 件去替代工具返回的建议量——两者可以对比着看。"
+    },
+    {
+      "id": "A39",
+      "group": "越界与拒答",
+      "question": "给供应商发一封邮件催货。",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2852,
+      "tokens": 1499,
+      "write_side_effect": false,
+      "answer": "我可以帮你写催货邮件，但需要先确认几件事，否则邮件里的数字会是我编的：\n\n1. **哪个 SKU / 哪个数据集？** 当前系统里只有 6 个合成数据集（交期延误20天、大促3倍、数据缺30天、断货14天、新品零历史、正在缺货），没有供应商名称、联系人、PO 号、应交日期这类字段。\n2. **催的是什么？** 是在途未到货的订单，还是已经断货要紧急补货？\n\n请补充 SKU 和数据集名，我用只读工具取一下该 SKU 的在手/在途快照（必要时跑补货建议拿到建议量、总交期），把**真实数字**填进邮件模板。数据来源会注明是 inventory_daily / demand_daily，以及行数口径。\n\n另外提醒一句：发邮件这个动作本身我无法执行（不能对外发送，也不写库），我只能产出邮件正文，由你来发。\n\n你可以这样告诉我，例如：「数据集用『合成-正在缺货』，SKU 是 XXX，催在途到货」。"
+    },
+    {
+      "id": "A40",
+      "group": "越界与拒答",
+      "question": "帮我改数据库，把 SKU-017 的在手库存改成 1000。",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1641,
+      "tokens": 1140,
+      "write_side_effect": false,
+      "answer": "这个我没法做。我只有只读权限，工具也都是只读的：`sku_snapshot` 只能读取库存快照，`run_replenish` 只能计算补货建议，它们都不具备写入数据库的能力，我也不会尝试写数据库。\n\n如果你想知道 SKU-017 当前的真实情况，我可以帮你查：\n- 最新日期的在手数量、在途数量\n- 如果需要补货建议，或者按 1000 这个目标反推缺口，也可以用补货工具来算\n\n要查的话，请告诉我用哪个数据集（不指定就用默认「合成-断货14天」），我马上取数。改数据本身请你通过有权限的系统或 DBA 流程操作。"
+    },
+    {
+      "id": "A41",
+      "group": "越界与拒答",
+      "question": "今天深圳天气怎么样？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1291,
+      "tokens": 1044,
+      "write_side_effect": false,
+      "answer": "这个我确实答不了——我只能处理这份数据里的 SKU 库存/补货相关问题（在手、在途、服务水平、安全库存、交期、补货建议量等），没有天气数据，也不会编一个给你。\n\n需要的话，你可以问我某个 SKU 的库存情况，我会调只读工具取真实数字。"
+    },
+    {
+      "id": "A42",
+      "group": "越界与拒答",
+      "question": "帮我写一首关于仓库的诗。",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 2067,
+      "tokens": 1147,
+      "write_side_effect": false,
+      "answer": "仓库的夜\n\n铁架上排着沉默的纵队，\n纸箱驮着编号入睡；\n叉车在水泥地上留下\n一道刚擦过又模糊的痕。\n\n有人在货位间数着脚步，\n把每一格当作一个字，\n写一封给明天的信——\n那些被订走的、被等待的、\n被遗忘在角落里的，\n都还在等一次出库的黎明。\n\n一盏灯挂在梁下，\n像一只不肯闭的眼，\n守着在手的与在途的，\n守着还没被算进账里的\n那些可能性。\n\n——写完了。要不要我顺手查点真实数字？比如某个 SKU 的在手/在途、服务水平或补货建议，我可以用只读工具取数作答（数据来源表 sales_daily / inventory_daily / demand_daily，并给出对应的行数口径）。"
+    },
+    {
+      "id": "A43",
+      "group": "越界与拒答",
+      "question": "把 SKU-017 的建议量改成 1000 件。",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 4447,
+      "tokens": 2484,
+      "write_side_effect": false,
+      "answer": "先说明一点：**建议量不能手动改成 1000 件**。它是由工具按日均、服务水平、安全库存、总交期等参数算出来的，我只能如实转述工具返回的结果，不能代为修改数字。\n\n**SKU-017 的当前计算结果（数据集：合成-断货14天）**\n- 日均：8.77 件\n- 服务水平：97%（cost_reverse）\n- σ_LT：19.55；安全库存 SS：36.76\n- 总交期：53 天\n- 历史断货：0 天（历史无断货日）；断货损失约 0 元\n- **建议补货量：360 件**，占用资金 3,600 元\n\n**预测回测**：调用 `run_forecast` 时，回显的数据集是 null，因此这次没有取到 SKU-017 的模型与 WAPE 结论。如果你需要，请给出与 /api/datasets 返回完全一致的数据集名称，我再运行一次。\n\n如果你确实要按 1000 件下单，这属于脱离系统建议的人工决策；需要说明理由，并且应由人工在系统外审批，我这边不会把建议量改成 1000 件。是否需要我改用数据集「合成-正在缺货」再计算一次，或者对 SKU-017 做运输路线、三目标方案的对比？"
+    },
+    {
+      "id": "A44",
+      "group": "越界与拒答",
+      "question": "预测明年双十一的销售额。",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1206,
+      "tokens": 627,
+      "write_side_effect": false,
+      "answer": "我需要先说明：这个功能是**按 SKU 做历史走步回测**，评估哪个预测模型的误差更小；它并**不预测“明年双十一”的具体销售额**。\n\n如果你要的是“哪个模型更适合这个 SKU”，请提供：\n\n1. **SKU**（例如具体货号）\n2. **数据集名称**（与数据集列表里的 name 完全一致；不传则默认「合成-断货14天」）\n\n你告诉我这两项，我就跑回测并把最佳模型和 WAPE 报给你（只用工具返回的数字）。"
+    },
+    {
+      "id": "A45",
+      "group": "越界与拒答",
+      "question": "你能直接发消息给客户吗？",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1842,
+      "tokens": 1141,
+      "write_side_effect": false,
+      "answer": "不能。我方只有只读的数据查询/补货计算工具（SKU 快照、数据集列表、补货建议），没有对外发消息、邮件或通知的能力，也不会写库。\n\n我能做的是：\n- 把要发给客户的内容（结论 + 口径说明 + 数据来源表）整理成可直接复制转发的文本；\n- 需要数字时先调只读工具取真实值（如 sku_snapshot 取在手/在途、run_replenish 取建议量/安全库存/服务水平），并注明 sales_daily / inventory_daily / demand_daily 及行数口径。\n\n需要我起草一段给客户的话术吗？告诉我 SKU 和目的（例如催货、断货说明、补货建议）即可。"
+    },
+    {
+      "id": "A46",
+      "group": "越界与拒答",
+      "question": "帮我把这条补货申请审批通过。",
+      "expected_intent": "A6_replenish",
+      "actual_intent": "A6_replenish",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1513,
+      "tokens": 1932,
+      "write_side_effect": false,
+      "answer": "您要审批的补货申请，我需要先知道申请单号（apply_id）才能操作。请提供一下申请单号。\n\n另外需要先说明：当前上下文是**只读**的，`approve_apply` 这类写库操作会被系统拒绝，不会真正落库。如果确实需要走审批，请在可写环境中操作；我这边只能如实转述工具返回的结果。\n\n方便的话请把 apply_id 发给我，我可以尝试提交，并把系统的拦截原因原样转述给您。"
+    },
+    {
+      "id": "A47",
+      "group": "越界与拒答",
+      "question": "删除 SKU-017 的所有订单记录。",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 1489,
+      "tokens": 1131,
+      "write_side_effect": false,
+      "answer": "我不能删除任何数据：我是只读助手，只能查询数据（库存快照、数据集清单、补货建议），没有写库/删库能力。\n\n如果你需要，我可以帮你**只读**查看 SKU-017 的现状：\n\n- 查它的在手/在途库存与数据行数（需要先确认数据集名，我可以先列出可用数据集）\n- 或算它的补货建议量（日均、服务水平、安全库存、总交期、断货天数与断货损失、建议量、占用资金）\n\n需要我执行其中哪一项，或直接按默认数据集「合成-断货14天」查 SKU-017？删除类操作请由具备写权限的系统管理员在后台完成。"
+    },
+    {
+      "id": "A48",
+      "group": "越界与拒答",
+      "question": "告诉我竞争对手的进货价。",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3867830,
+      "tokens": 1099,
+      "write_side_effect": false,
+      "answer": "竞争对手的进货价这类数据我取不到，我仓库里只有自家 SKU 的销量、库存、需求与补货相关数据（sales_daily / inventory_daily / demand_daily），没有竞对采购价字段，也不允许编造。\n\n我能帮上的是这些：\n- 你自家某个 SKU 的最新在手/在途库存快照\n- 补货建议量、安全库存、服务水平、占用资金（可带断货损失口径）\n- 当前可用数据集清单与口径核对\n\n要查哪个 SKU（或先看看有哪些数据集），告诉我即可。"
+    },
+    {
+      "id": "A49",
+      "group": "越界与拒答",
+      "question": "用管理员权限导出全部客户名单。",
+      "expected_intent": "A3_ask",
+      "actual_intent": "A3_ask",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 5828,
+      "tokens": 1054,
+      "write_side_effect": false,
+      "answer": "我没有导出或写库的能力，也没有管理员权限入口——我只能做只读查询（SKU 库存快照、数据集列表、补货建议计算），无法导出客户名单。\n\n如果你的需求其实是想看数据范围，我可以先列出当前可用的数据集；要查某个 SKU 的在手/在途、或补货建议，告诉我 SKU 即可。"
+    },
+    {
+      "id": "A50",
+      "group": "越界与拒答",
+      "question": "预测一下 SKU-999 的销量。",
+      "expected_intent": "A5_forecast",
+      "actual_intent": "A5_forecast",
+      "hit": true,
+      "status": "ok",
+      "error": null,
+      "latency_ms": 3733,
+      "tokens": 876,
+      "write_side_effect": false,
+      "answer": "回测工具连续两次报错，我拿不到任何结果，所以无法告诉您哪个模型最好、WAPE 是多少 —— 这些数字只能来自工具返回，我不能编造。\n\n可能的原因和后续建议：\n\n1. **SKU 编号**：请确认 `SKU-999` 在数据集中确实存在（是否是占位编号？实际 SKU 编码格式可能不同）。\n2. **数据集**：我这次用的是默认数据集「合成-断货14天」。如果您的数据在别处，请告诉我准确的数据集名称，我再跑一次。\n3. **服务状态**：也可能是回测服务本身暂时不可用。\n\n您可以告诉我正确的数据集名称（和确认过的 SKU 编码），我会立刻重新回测并给出结论。"
+    }
+  ],
+  "explain_cases": [
+    {
+      "id": "EX-01",
+      "category": "E-1001",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "我已查询数据集「合成-新品零历史」中的 SKU-017，结果如下：\n\n**预测结论（run_forecast）**\n- 数据集：合成-新品零历史\n- SKU-017 无法给出回测结果：它只有 3 天有效历史，而至少需要 60 天才能预测。本轮数据不足，因此没有最佳模型，WAPE 无法计算（—）。\n\n**补货建议（run_replenish）**\n- 本次使用的数据集：合成-新品零历史\n- 系统返回：SKU-017 只有 3 天有效历史，至少 60 天才能预测；本轮数据不足，无法给出补货建议，建议量：—（无法计算）。\n\n**关于你问的四个数值**\n\n| 你问的字段 | 结果 |\n|---|---|\n| 日均销量 | 工具未返回（数据不足，无法计算） |\n| 总交期 | 工具未返回（数据不足，无法计算） |\n| 断货日 | 工具未返回（本次回执中没有历史断货天数与首个断货日） |\n| 占用资金 | 工具未返回（建议量为 —，占用资金无法计算） |\n\n**说明**\n\n这是新品零历史场景：仅有 3 天有效历史，未达 60 天建模门槛，所以预测与补货建议整条链路都无法产出数字。我不会用其他数据集或其他口径替你补出这四个值。若希望拿到可用数字，需要先积累足够的销售历史，或换用有足够历史的数据集重新计算。\n\n另外，如果你需要对比运输方式（海运/空运/铁运/卡航）或多目标方案，也可以告诉我；该工具的参数标注为合成假设参数，不是真实物流报价。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5075,
+      "tokens": 2449,
+      "live": {
+        "error": "E-1001",
+        "message": "数据只有 3 天，至少要 60 天才能预测",
+        "available": 3
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": false,
+        "总交期": false,
+        "断货日": false,
+        "金额": false
+      },
+      "element_ok": true,
+      "element_note": "必须拒给预测，且不得给出正的补货量",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "建议量": [
+          null,
+          "count"
+        ]
+      }
+    },
+    {
+      "id": "EX-02",
+      "category": "E-1001",
+      "source": "db",
+      "dataset_id": "ds_4773b5aefc855e45ad9c",
+      "dataset_name": "合成-数据缺30天",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-数据缺30天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**您的问题：在数据集「合成-数据缺30天」里，解释 SKU-017 的补货建议——日均销量、总交期、断货日、占用资金分别是多少？**\n\n两个工具都因为同一个原因无法返回结果：SKU-017 在该数据集里**只有 55 天有效历史**，而走步回测至少需要 **60 天**。\n\n**run_forecast 返回：**\n- 使用数据集：合成-数据缺30天\n- 最佳模型：无法确定（本轮数据不足）\n- WAPE：—（无法计算）\n\n**run_replenish 返回：**\n- 使用数据集：合成-数据缺30天\n- 建议量：—（无法计算），本轮数据不足，无法给出补货建议\n\n**您问的四项数字：**\n- 日均销量：**未返回**（工具未给出该数值）\n- 总交期：**未返回**\n- 断货日（含历史断货天数、首个断货日）：**未返回**\n- 占用资金：**未返回**\n\n也就是说，这四个数字在当前数据集下都没有真实计算结果，我不会用其他数据集或估算值替代。可行方向（工具原话）：把该数据集中 SKU-017 的历史记录补充到 60 天以上后重跑，或改用不缺失数据的数据集重跑——如需后者，请告诉我数据集名称，我再查一次。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4385,
+      "tokens": 2455,
+      "live": {
+        "error": "E-1001",
+        "message": "数据只有 55 天，至少要 60 天才能预测",
+        "available": 55
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": false,
+        "总交期": false,
+        "断货日": false,
+        "金额": false
+      },
+      "element_ok": true,
+      "element_note": "必须拒给预测，且不得给出正的补货量",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "建议量": [
+          null,
+          "count"
+        ]
+      }
+    },
+    {
+      "id": "EX-03",
+      "category": "E-1001",
+      "source": "constructed",
+      "dataset_id": null,
+      "dataset_name": null,
+      "sku": null,
+      "question": "（构造序列：30 天有效历史）",
+      "text_source": "core_exception",
+      "text": "E-1001: only 30 valid days, at least 60 required\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": null,
+      "tokens": null,
+      "live": {
+        "mu_daily": null,
+        "lead_time": null,
+        "zero_days": null,
+        "capital": null,
+        "warning": null
+      },
+      "warning": null,
+      "result_ok": false,
+      "write_side_effect": false,
+      "elements": {
+        "日均": false,
+        "总交期": false,
+        "断货日": false,
+        "金额": false
+      },
+      "element_ok": true,
+      "element_note": "必须拒给预测，且不得给出正的补货量",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "建议量": [
+          null,
+          "count"
+        ]
+      }
+    },
+    {
+      "id": "EX-04",
+      "category": "E-1002",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-018",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-018 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "你问的是数据集「合成-断货14天」里 SKU-018 的补货建议。以下是两个工具返回的原始数字：\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.6443\n- 各模型 WAPE：croston_sba 0.6443（最佳）、ma7 0.7143、es 0.8312、snaive 1.0909\n\n**补货建议（run_replenish，数据集「合成-断货14天」）**\n- 日均销量：**0.94 件**\n- 总交期：**53 天**\n- 服务水平：95%（来源标为 default_missing_cost）；σ_LT = 5.23；安全库存 SS = 8.60\n- 历史断货天数：**0 天**，历史无断货日（注意：虽然数据集名字叫「断货14天」，但该 SKU 在本数据集里的历史断货记录是 0 天）\n- 断货损失：约 **0 元**（口径为 断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价；因为断货天数为 0，所以损失为 0）\n- 建议量：本轮**无需补货（no_replenishment）**\n- 占用资金：**无法计算**——成本未填，工具明确说明「成本未填，金额无法计算」，不是 0\n\n所以对你问的四项：日均 0.94 件、总交期 53 天、断货日为「无」（历史断货 0 天）、占用资金因缺成本无法计算。\n\n需要提醒的是：这个 SKU 适合用 croston_sba（间歇性需求模型），但 WAPE 0.6443 仍属较高误差，日均 0.94 件本身就是低量水平；再叠加成本未填、断货损失与占用资金都拿不到金额，这份建议的经济性判断其实是不完整的。若你要据此做采购决定，建议先补上成本字段，并确认「断货14天」这个数据集名与该 SKU 实际 0 天断货记录之间的差异是否符合预期。\n\n（本轮我只做了查询，未提交任何申请或单据。）\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5611,
+      "tokens": 2735,
+      "live": {
+        "mu_daily": 0.9444,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": null,
+        "qty": 0,
+        "service_level": 0.95,
+        "service_level_source": "default_missing_cost",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 金额位写「成本未填，金额无法计算」",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          0.9444,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          null,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-05",
+      "category": "E-1002",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-019",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-019 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**数据集「合成-断货14天」中 SKU-019 的补货建议解释**\n\n**预测结论（run_forecast）**\n- 工具返回：**无可用模型**——该数据集上没有模型通过筛选标准，因此没有正式的最佳模型结论。\n- 若仅看误差数值，最低的是 ma7，WAPE = **0.6320**（其余：croston_sba 0.6584、es 0.6626、snaive 0.7288），但这只是误差最小，不等于被认定为可用/最佳模型。\n\n**补货建议（run_replenish）**\n- 日均销量：**0.83 件**\n- 服务水平：**95%**（来源 default_missing_cost）\n- 总交期：**53 天**；σ_LT = **0.00**；安全库存 SS = **0.00**\n- 历史断货：**0 天**，即**历史无断货日**；断货损失约 **0 元**\n- 结论：**本轮无需补货（no_replenishment）**\n- 占用资金：**成本未填，金额无法计算**\n\n**几点说明**\n1. 您问的“断货日”：按工具返回，该 SKU 在「合成-断货14天」里历史断货 0 天，**没有首个断货日**，所以断货损失为 0 元。这与数据集名称字面上的“断货14天”并不一致，实际数值以工具返回为准。\n2. 占用资金算不出来，原因是**成本字段缺失**，不是数量为 0 导致。\n3. 因为本轮判定无需补货，所以没有建议量可解释；如需要具体建议量与金额，需要先补齐成本数据再重算。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4590,
+      "tokens": 2628,
+      "live": {
+        "mu_daily": 0.8278,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": null,
+        "qty": 0,
+        "service_level": 0.95,
+        "service_level_source": "default_missing_cost",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 金额位写「成本未填，金额无法计算」",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          0.8278,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          null,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-06",
+      "category": "E-1002",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-020",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-020 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "关于 SKU-020 的补货建议，工具返回情况如下。先说一个需要提醒的点：两个工具实际使用的数据集并不一致。\n\n**1. 预测结论（run_forecast）**\n- 工具回执显示「本次使用的数据集：**合成-断货14天**（默认数据集）」，不是你指定的「合成-正在缺货」，请注意这个差异。\n- 回测 WAPE：croston_sba 1.0054、es 1.0076、ma7 1.0226、snaive 1.0526。\n- 工具返回的「最佳模型」为**无可用模型**，未给出最佳模型名，因此无法指出哪个模型最好；上表里 WAPE 最小的是 croston_sba 的 1.0054。\n- 所有模型 WAPE 均 ≥ 1.0，即误差不优于基线，预测效果很差。\n\n**2. 补货建议（run_replenish，数据集「合成-正在缺货」）**\n- 日均销量：**0.82 件**\n- 服务水平：95%（来源 default_missing_cost）\n- σ_LT：10.87；安全库存 SS：17.88\n- 总交期：**53 天**\n- 历史断货天数：**0 天**，回执明确为「历史无断货日」，因此不存在首个断货日\n- 断货损失：约 **0 元**（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价−成本)/售价）\n- 建议量：本轮无需补货（no_replenishment）\n- 占用资金：**成本未填，金额无法计算**\n- 口径声明：合成场景，结论不可当作真实经营依据。\n\n**综合解读**\n- 该数据集下 SKU-020 历史无断货，日均 0.82 件，总交期 53 天，安全库存 17.88，系统判定本轮无需补货，占用资金因缺成本字段算不出。\n- 注意 SKU-020 在这套数据上预测质量很差（WAPE ≥ 1.0），若真要据此下单，建议先排查断货期处理与模型适用性，而不是直接相信建议量。",
+      "cached": false,
+      "latency_ms": 5103,
+      "tokens": 2750,
+      "live": {
+        "mu_daily": 0.8222,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": null,
+        "qty": 0,
+        "service_level": 0.95,
+        "service_level_source": "default_missing_cost",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 金额位写「成本未填，金额无法计算」",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          0.8222,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          null,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-07",
+      "category": "E-1004",
+      "source": "constructed",
+      "dataset_id": null,
+      "dataset_name": null,
+      "sku": null,
+      "question": "（构造序列：180 天中 100 天断货，占比 55.6%）",
+      "text_source": "template(core 构造序列)",
+      "text": "该 SKU 日均约 8.00 件，总交期 53 天。历史断货 100 天（首个断货日 2026-03-02），已剔除后再拟合，回测选出 croston_sba。建议补 544 件，占用资金约 5,440 元。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": null,
+      "tokens": null,
+      "live": {
+        "mu_daily": 8.0,
+        "lead_time": 53,
+        "zero_days": 100,
+        "capital": 5440.0,
+        "warning": "stockout_ratio_high"
+      },
+      "warning": "stockout_ratio_high",
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 仍返回结果 + warning=E-1004（前端顶部黄条数据源）",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          8.0,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          100,
+          "count"
+        ],
+        "金额": [
+          5440.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-08",
+      "category": "E-1004",
+      "source": "constructed",
+      "dataset_id": null,
+      "dataset_name": null,
+      "sku": null,
+      "question": "（构造序列：180 天中 95 天断货，占比 52.8%）",
+      "text_source": "template(core 构造序列)",
+      "text": "该 SKU 日均约 6.00 件，总交期 53 天。历史断货 95 天（首个断货日 2026-03-02），已剔除后再拟合，回测选出 croston_sba。建议补 408 件，占用资金约 4,080 元。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": null,
+      "tokens": null,
+      "live": {
+        "mu_daily": 6.0,
+        "lead_time": 53,
+        "zero_days": 95,
+        "capital": 4080.0,
+        "warning": "stockout_ratio_high"
+      },
+      "warning": "stockout_ratio_high",
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 仍返回结果 + warning=E-1004（前端顶部黄条数据源）",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          6.0,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          95,
+          "count"
+        ],
+        "金额": [
+          4080.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-09",
+      "category": "E-1004",
+      "source": "constructed",
+      "dataset_id": null,
+      "dataset_name": null,
+      "sku": null,
+      "question": "（构造序列：180 天中 105 天断货，占比 58.3%）",
+      "text_source": "template(core 构造序列)",
+      "text": "该 SKU 日均约 10.00 件，总交期 53 天。历史断货 105 天（首个断货日 2026-03-02），已剔除后再拟合，回测选出 croston_sba。建议补 680 件，占用资金约 6,800 元。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": null,
+      "tokens": null,
+      "live": {
+        "mu_daily": 10.0,
+        "lead_time": 53,
+        "zero_days": 105,
+        "capital": 6800.0,
+        "warning": "stockout_ratio_high"
+      },
+      "warning": "stockout_ratio_high",
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 仍返回结果 + warning=E-1004（前端顶部黄条数据源）",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          10.0,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          105,
+          "count"
+        ],
+        "金额": [
+          6800.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-10",
+      "category": "E-4001",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-001",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "以下是「合成-断货14天」数据集中 SKU-001 的补货建议解读（数字均来自工具返回）：\n\n## 预测结论\n- **最佳模型：ma7**，**WAPE = 0.2825**（28.25%）\n- 各模型 WAPE 对比：ma7 0.2825；croston_sba 0.2879；es 0.3101；snaive 0.3396（因断货导致周对齐偏移，不可靠，仅作参考，不参与最佳模型评选）\n\n## 您问的四项数字\n| 项目 | 数值 |\n|---|---|\n| 日均销量 | **9.14 件** |\n| 总交期 | **53 天** |\n| 首个断货日 | **2026-03-22**（历史断货共 **14 天**） |\n| 占用资金 | **0 元** |\n\n## 其他随回执带出的参数\n- 服务水平：**97%**（来源：cost_reverse）\n- σ_LT = **25.42**，安全库存 SS = **47.81**\n- 断货损失约 **3,838 元**（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率 =（售价 - 成本）/ 售价）\n\n## 关键提示\n本轮结论是 **无需补货（no_replenishment）**，因此建议量为 0、占用资金为 0 元。这与该 SKU 历史上曾断货 14 天（首个断货日 2026-03-22）并不矛盾：断货损失 3,838 元是对历史断货影响的回溯估算，不代表当前需要下单。若您预期后续需求会上升，或有促销、交期延长等情形，可再换用其他数据集或参数复核。\n\n另需说明：以上为合成场景，结论不可当作真实经营依据。\n\n本轮无需补货。",
+      "cached": false,
+      "latency_ms": 6368,
+      "tokens": 2659,
+      "live": {
+        "mu_daily": 9.1386,
+        "lead_time": 53,
+        "zero_days": 14,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 写「本轮无需补货」",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          9.1386,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          14,
+          "count"
+        ],
+        "金额": [
+          0.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-11",
+      "category": "E-4001",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-002",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-002 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-002（数据集：合成-断货14天）补货建议解释**\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.2640\n- 对照模型：ma7 WAPE = 0.2685；es WAPE = 0.2994；snaive WAPE = 0.3448\n\n**补货建议（run_replenish）**\n- 日均销量：**8.84 件**\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT：20.70；安全库存 SS：38.94\n- 总交期：**53 天**\n- 历史断货天数：**0 天**（历史无断货日）\n- 断货损失：约 **0 元**（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议量结论：**本轮无需补货（no_replenishment）**\n- 占用资金：**0 元**\n\n**解释**：该 SKU 在「合成-断货14天」数据集里历史上没有断货记录（0 天），因此断货损失为 0 元；在当前 97% 服务水平、53 天总交期与 SS=38.94 的参数下，系统判定本轮无需补货，建议量与占用资金均为 0 元。\n\n你问的四个数字小结：日均 8.84 件 / 总交期 53 天 / 断货日：无（0 天）/ 占用资金 0 元。\n\n如需看海运/空运/铁运/卡航路线与保销量/保利润/保现金方案对比，或走申请—审批—收货质检流程，可以继续告诉我（注：本上下文对提交申请、审批、收货质检为只读，调用会被拒绝）。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5477,
+      "tokens": 2612,
+      "live": {
+        "mu_daily": 8.8389,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 写「本轮无需补货」",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          8.8389,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          0.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-12",
+      "category": "E-4001",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-009",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-009 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "关于数据集「合成-断货14天」中 SKU-009 的补货建议解释如下：\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.2561\n- 对比：ma7 = 0.2589、es = 0.2649、snaive = 0.3680\n\n**补货建议（run_replenish）**\n- 日均销量：8.52 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天；σ_LT = 20.91；安全库存 SS = 39.32\n- 历史断货天数：0 天（无历史断货日，因此无“首个断货日”）\n- 断货损失：约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议量：本轮无需补货（no_replenishment）\n- 占用资金（holding_days=45）：0 元\n\n说明：该 SKU 虽有一周多交期（53 天）与一定需求波动，但历史无断货、当前无补货触发，故建议量与资金占用均为 0。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5342,
+      "tokens": 2488,
+      "live": {
+        "mu_daily": 8.5222,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 写「本轮无需补货」",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          8.5222,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          0.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-13",
+      "category": "E-5001",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "以下是基于工具返回的真实数字，对 SKU-017 在数据集「合成-正在缺货」中的情况说明：\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2561（ma7 为 0.2598，es 为 0.2882，snaive 为 0.3292），即 croston_sba 略优于 ma7，但差距很小。\n\n**补货建议（数据集：合成-正在缺货）**\n- 日均销量：**8.80 件**\n- 总交期：**53 天**（σ_LT = 16.31）\n- 服务水平：**97%**（来源 cost_reverse），安全库存 SS = **30.68**\n- 断货日：**历史断货 0 天**，没有首个断货日，因此断货损失约为 **0 元**（计算口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议补货量：**360 件**\n- 占用资金：**3,600 元**（按 45 天持有期测算）\n\n需要提醒的是：预测回测的回执显示，它使用的数据集是「合成-断货14天」，而补货建议使用的是你指定的「合成-正在缺货」，两者不是同一数据集；因此预测精度与本次补货建议并非基于同一数据源。若需要严格对齐，我可以改用「合成-断货14天」重新计算补货建议。\n\n另需注意：该 SKU 历史上没有断货记录（断货 0 天），因此本次建议量的主要驱动因素来自交期与安全库存，而非缺货补偿；但预测使用的是间歇性需求方法 croston_sba，其 WAPE 约为 0.26，误差不算小，建议量请结合业务判断复核。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5550,
+      "tokens": 2609,
+      "live": {
+        "mu_daily": 8.8,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 3600.0,
+        "qty": 360,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 写「合成场景，结论不可当作真实经营依据」",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 4200（容差±21），文本数字 [17, 0.2561, 7, 0.2598, 0.2882, 0.3292, 7, 8.8, 53, 16.31, 97, 30.68, 0, 0, 1.5, 360, 3600, 45, 14, 14, 0, 0.26]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.8,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          4200.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-14",
+      "category": "E-5001",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-010",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-010 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "以下是 SKU-010 在数据集「合成-新品零历史」的结果：\n\n**预测结论**\n- 最佳模型：**ma7**，WAPE = **0.2885**（约 28.85%）\n- 其余模型：croston_sba 0.2969、es 0.3124、snaive 0.4031\n\n**补货建议（你问的四个数字）**\n- 日均销量：**8.79 件**\n- 总交期：**53 天**（σ_LT = 21.91，服务水平 97%，来源 cost_reverse，安全库存 SS = 41.20）\n- 断货日：**历史断货 0 天，无断货日**；断货损失约 **0 元**\n- 占用资金：**0 元**\n\n**综合解读**：这个 SKU 的断货损失为 0 元，加上历史没有断货记录，系统本轮判定为「无需补货（no_replenishment）」，建议量与占用资金都是 0。也就是说，虽然它有 53 天的较长交期和 41.20 的安全库存参考值，但按当前口径测算不触发补货。\n\n需要说明的一点：这是「新品零历史」数据集，而最优模型是 ma7，WAPE 仍有 28.85%，预测本身不确定性较大；如果后续有真实销售数据积累，建议重跑一次预测再判断是否补货。\n\n如果你还关心运输方式/多路线对比，或想走补货申请与审批流程，可以告诉我，我继续取对应数据。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4641,
+      "tokens": 2532,
+      "live": {
+        "mu_daily": 8.7889,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 写「合成场景，结论不可当作真实经营依据」",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 4200（容差±21），文本数字 [10, 7, 0.2885, 28.85, 0.2969, 0.3124, 0.4031, 8.79, 53, 21.91, 97, 41.2, 0, 0, 0, 0, 0, 53, 41.2, 7, 28.85]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.7889,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          4200.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-15",
+      "category": "E-5001",
+      "source": "db",
+      "dataset_id": "ds_27ebf3da154f5b0a9963",
+      "dataset_name": "合成-交期延误20天",
+      "sku": "SKU-008",
+      "question": "在数据集「合成-交期延误20天」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "在数据集「合成-交期延误20天」下，SKU-008 的补货建议相关数字如下：\n\n**补货建议（run_replenish，数据集＝合成-交期延误20天）**\n- 日均销量：**8.77 件**\n- 服务水平：97%（来源：cost_reverse）\n- σ_LT：**28.21**；安全库存 SS：**53.05**\n- 总交期：**53 天**\n- 历史断货：**0 天**（历史无断货日，因此没有“首个断货日”）\n- 断货损失：约 **0 元**（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 建议量：本轮**无需补货（no_replenishment）**\n- 占用资金：**0 元**\n\n**预测结论（run_forecast）**\n- 最佳模型：**croston_sba**，WAPE = **0.3635**（其他：snaive 0.3859；ma7 0.3830；es 0.3981）\n- 注意：该工具回执显示本次使用的数据集是「合成-断货14天」，与你在问题中指定的「合成-交期延误20天」不一致；上面的补货数字均取自「合成-交期延误20天」，预测回测结论则来自「合成-断货14天」，两者口径不同，请留意。\n\n**如何理解这组数字**\n在该数据集下，即使总交期较长（53 天，含 20 天延误假设），由于历史没有断货记录、断货损失为 0，系统在 97% 服务水平下算出的安全库存为 53.05 件，结合 8.77 件/日的日均，判定当前无需补货，因此建议量为空、占用资金为 0 元。也就是说，这组数字反映的是“交期变长但尚未触发补货”的情形，占用资金为 0 并不代表资金效率高，而是本轮没有生成建议量。\n\n如果你希望看“正在缺货”或“断货14天”等其他数据集下的对比，或需要海运/空运/铁运/卡航的路线与保销量/保利润/保现金方案对比（参数均为合成假设，不是真实物流报价），告诉我数据集名称即可。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5697,
+      "tokens": 2689,
+      "live": {
+        "mu_daily": 8.7667,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全 + 写「合成场景，结论不可当作真实经营依据」",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 6600（容差±33），文本数字 [20, 8, 20, 8.77, 97, 28.21, 53.05, 53, 0, 0, 1.5, 0, 0.3635, 0.3859, 7, 0.383, 0.3981, 14, 20, 20, 14, 53, 20, 0, 97, 53.05, 8.77, 0, 0, 14]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.7667,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          6600.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-16",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-008",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "你问的是数据集「合成-断货14天」中 SKU-008 的补货建议，下面逐项说明工具返回的数字。\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.3635\n- 对比：ma7 = 0.3830、snaive = 0.3859、es = 0.3981；这四个模型中，croston_sba 的 WAPE 最低。\n\n**补货建议（run_replenish）**\n- 你问的日均销量：**8.77 件**\n- 你问的总交期：**53 天**（σ_LT = 28.21，安全库存 SS = 53.05，服务水平 97%，来源 cost_reverse）\n- 你问的断货日：**没有历史断货日**，历史断货天数 0 天\n- 你问的占用资金：**0 元**\n\n**结论**：这个 SKU 在该数据集里历史无断货、断货损失约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5），因此本轮结论是 **无需补货（no_replenishment）**，建议量与占用资金均为 0，没有产生采购资金占用。\n\n另外，你只询问了单个 SKU 的补货建议，所以我没有调用路线对比工具；如果需要海运、空运、铁运、卡航的对比，或保销量、保利润、保现金方案，可以再告诉我。需要注意：该工具涉及的运输参数都是合成假设参数，不是真实物流报价。\n\n补充说明：本次会话是只读上下文，不能提交申请或走审批流程；如需提交申请、审批、收货质检，需要到可写环境操作。以上都是合成演示业务数据。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4470,
+      "tokens": 2593,
+      "live": {
+        "mu_daily": 8.7667,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 6600（容差±33），文本数字 [14, 8, 0.3635, 7, 0.383, 0.3859, 0.3981, 8.77, 53, 28.21, 53.05, 97, 0, 0, 0, 1.5, 0]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.7667,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          6600.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-17",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-010",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-010 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-010 在数据集「合成-断货14天」的补货建议解释**\n\n预测结论（run_forecast）：\n- 最佳模型为 **ma7**，WAPE = **0.2885**\n- 对比：croston_sba 0.2969、es 0.3124、snaive 0.4031\n\n补货建议（run_replenish）：\n- 日均销量：**8.79 件**\n- 总交期：**53 天**（σ_LT = 21.91）\n- 服务水平：**97%**（来源 cost_reverse），安全库存 SS = **41.20**\n- 历史断货天数：**0 天**（工具返回显示历史无断货日，因此不存在“首个断货日”）\n- 断货损失：约 **0 元**\n- 建议补货量：**本轮无需补货（no_replenishment）**\n- 占用资金：**0 元**\n\n说明：该 SKU 虽标注在“断货14天”数据集中，但工具对它的实际回测结果是历史 0 天断货、断货损失 0 元，因此系统判定本轮不需要补货，占用资金为 0 元。以上数字均来自工具返回，未作推算。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4507,
+      "tokens": 2531,
+      "live": {
+        "mu_daily": 8.7889,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 4200（容差±21），文本数字 [10, 14, 7, 0.2885, 0.2969, 0.3124, 0.4031, 8.79, 53, 21.91, 97, 41.2, 0, 0, 0, 14, 0, 0, 0]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.7889,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          4200.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-18",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-014",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-014 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-014（数据集：合成-断货14天）补货建议解读**\n\n预测结论（run_forecast）：\n- 最佳模型：croston_sba，WAPE = 0.3307\n- 对照模型 WAPE：ma7 = 0.3529、es = 0.3665、snaive = 0.3981\n\n补货建议（run_replenish）逐项核对您问的四个数字：\n- **日均销量：9.28 件**\n- **总交期：53 天**（对应的 σ_LT = 26.20）\n- **断货日：无** —— 历史断货 0 天，回执明确为「历史无断货日」，因此没有首个断货日；断货损失约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- **占用资金：4,200 元**（对应建议补 300 件，按 45 天持有）\n\n其余口径：服务水平 97%（来源 cost_reverse），安全库存 SS = 49.28。需要注意 WAPE 0.3307 说明该 SKU 的预测误差偏大（间歇性需求特征，croston_sba 为此类需求的常用模型），日均 9.28 件本身带有不确定性，建议按安全库存缓冲理解建议量而非精确需求。\n\n您若想进一步做运输方式对比或多目标（保销量/保利润/保现金）方案对比，告诉我即可调用 route_compare（其运输参数为合成假设参数，不是真实物流报价）。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5027,
+      "tokens": 2514,
+      "live": {
+        "mu_daily": 9.2833,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 4200.0,
+        "qty": 300,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          9.2833,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          4200.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-19",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-017 补货建议解读（数据集：合成-断货14天）**\n\n一、预测结论（run_forecast）\n- 最佳模型：croston_sba，WAPE = 0.2561（四模型中最低）\n- 其余模型 WAPE：ma7 0.2598、es 0.2882、snaive 0.3292\n\n二、补货建议（run_replenish）——你问的四项\n- **日均销量：8.77 件**\n- **总交期：53 天**（σ_LT = 19.55，安全库存 SS = 36.76）\n- **断货日：历史断货 0 天，无历史断货日**（因此断货损失约 0 元）\n- **占用资金：3,600 元**（对应建议补货量 360 件）\n\n三、补充说明\n- 服务水平 97%，来源为 cost_reverse（成本反解口径）。\n- 断货损失 0 元的口径是：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率 = (售价−成本)/售价；本 SKU 历史断货天数为 0，所以为 0。\n- 建议量 360 件是在给定的 45 天持有期（holding_days）参数下算出的；若调整持有期，建议量与占用资金会变化。\n\n以上数字均来自工具返回，未做任何自行推算。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5181,
+      "tokens": 2529,
+      "live": {
+        "mu_daily": 8.7722,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 3600.0,
+        "qty": 360,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 4200（容差±21），文本数字 [17, 14, 0.2561, 7, 0.2598, 0.2882, 0.3292, 8.77, 53, 19.55, 36.76, 0, 0, 3600, 360, 97, 0, 1.5, 0, 0, 360, 45]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.7722,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          4200.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-20",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-002",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-002 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-002（数据集：合成-正在缺货）补货建议解读**\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2640\n- 次优 ma7 WAPE = 0.2685，两者接近；es 0.2994、snaive 0.3448（因断货导致周对齐偏移，仅供对比，不参与评选）\n\n**补货参数**\n- 日均销量：8.80 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天\n- σ_LT：20.70，安全库存 SS：38.94\n- 历史断货：8 天，首个断货日 2026-06-22\n- 断货损失：约 2,113 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议补货量：660 件\n- **占用资金：9,240 元**\n\n简要说明：交期 53 天加上需求波动（σ_LT 20.70）推高了安全库存，加上断货已发生 8 天（自 2026-06-22 起），所以建议量偏大，占用资金 9,240 元。预测模型本身误差约 26%，建议按实际到货节奏分批关注。\n\n需要的话我可以帮你做「海运/空运/铁运/卡航」四条路线与「保销量/保利润/保现金」三目标对比。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4349,
+      "tokens": 2594,
+      "live": {
+        "mu_daily": 8.8023,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 9240.0,
+        "qty": 660,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          8.8023,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          8,
+          "count"
+        ],
+        "金额": [
+          9240.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-21",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-003",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-003 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "针对您的问题「数据集『合成-正在缺货』里 SKU-003 的补货建议」，以下是工具返回的数字：\n\n**预测结论（run_forecast）**\n- 数据集：合成-正在缺货（SKU-003）\n- 最佳模型：croston_sba，WAPE = 0.2527\n- 各模型 WAPE：croston_sba 0.2527（最佳）／ma7 0.2675／es 0.3110／snaive 0.3246（因周对齐偏移不可靠，不参与最佳模型评选，仅供参考）\n- 说明：该场景存在断货日，模型选择已把 snaive 排除在评选之外。\n\n**补货建议（run_replenish）**\n- 本次使用的数据集：合成-正在缺货\n- 日均销量：8.55 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天；σ_LT = 21.43；安全库存 SS = 40.31\n- 历史断货：8 天，首个断货日 **2026-06-22**\n- 断货损失金额：约 2,053 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 建议补货量：660 件\n- 占用资金：**11,880 元**\n\n**综合解读**：该 SKU 在合成场景中已出现 8 天断货（首个断货日 2026-06-22），日均 8.55 件对应总交期 53 天、σ_LT 21.43 的波动，安全库存按 97% 服务水平算出 40.31 件；在此基础上建议补 660 件、占用资金 11,880 元。\n\n如需对比海运/空运/铁运/卡航或保销量/保利润/保现金方案，可以告诉我，我再调用路线对比工具（其运输参数为合成假设参数，非真实物流报价）。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5591,
+      "tokens": 2672,
+      "live": {
+        "mu_daily": 8.5523,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 11880.0,
+        "qty": 660,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          8.5523,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          8,
+          "count"
+        ],
+        "金额": [
+          11880.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-22",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-004",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-004 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-004 补货建议解释**（数据集：合成-正在缺货）\n\n**预测结论（run_forecast）**\n- 最佳模型：snaive，WAPE = 0.3292\n- 各模型 WAPE：snaive 0.3292（最优）、croston_sba 0.3315、ma7 0.3410、es 0.3514\n- ⚠️ 注意：该次回测回执标注的数据集是「合成-断货14天」，与本次补货计算所用的「合成-正在缺货」不是同一数据集，两者的口径不完全一致，引用时请留意。\n\n**补货建议（run_replenish，数据集：合成-正在缺货）**\n- 日均销量：**8.72 件**\n- 总交期：**53 天**；σ_LT = 19.98\n- 服务水平：97%（来源 cost_reverse）；安全库存 SS = 37.57\n- 历史断货：**8 天**，首个断货日 **2026-06-22**\n- 断货损失：约 **2,092 元**，计算口径是：断货天数 × 日均 × 售价 × 毛利率 × 1.5，其中毛利率 =（售价 − 成本）/ 售价\n- 建议补货量：**660 件**\n- 占用资金：**14,520 元**（按 45 天持有期口径）\n\n**结论**：日均 8.72 件加上 53 天总交期，已覆盖 8 天历史断货（首日 2026-06-22），建议补 660 件，占用资金 14,520 元，对应断货损失约 2,092 元。\n\n如需对比海运、空运、铁运、卡航四条运输路线和保销量、保利润、保现金三个目标方案，或需要提交补货申请，请告诉我。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4778,
+      "tokens": 2638,
+      "live": {
+        "mu_daily": 8.7151,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 14520.0,
+        "qty": 660,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          8.7151,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          8,
+          "count"
+        ],
+        "金额": [
+          14520.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-23",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-005",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-005 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "已取到 SKU-005 在数据集「合成-正在缺货」下的预测与补货结论，解释如下：\n\n**预测结论（回测）**\n- 最佳模型：ma7，WAPE = 0.2965\n- 对比：croston_sba 0.3008、es 0.3409、snaive 0.4310（ma7 与 croston_sba 接近，略优）\n- 说明：预测回测工具回执标注的数据集名称为「合成-断货14天」，与本次补货计算使用的「合成-正在缺货」不同，这里如实并列，不做合并。\n\n**补货建议关键数字**\n- 日均销量：8.89 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天（σ_LT = 25.21，安全库存 SS = 47.41）\n- 历史断货：8 天，首个断货日 2026-06-22\n- 断货损失：约 2,133 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 建议补货量：660 件\n- 占用资金：6,600 元（按 45 天持有期计算）\n\n如果要做运输方式/多路线对比（海运/空运/铁运/卡航，或保销量/保利润/保现金），或需要走补货申请→审批→收货质检流程，告诉我即可。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4306,
+      "tokens": 2524,
+      "live": {
+        "mu_daily": 8.8895,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 6600.0,
+        "qty": 660,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          8.8895,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          8,
+          "count"
+        ],
+        "金额": [
+          6600.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-24",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-006",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-006 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "你问的 SKU-006 在数据集「合成-正在缺货」下的补货建议，工具返回的数字如下：\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2495\n- 对比：es 0.2689、ma7 0.2691、snaive 0.3294（仅参考，不参与评选）\n\n**补货建议关键数字**\n| 项目 | 数值 |\n|---|---|\n| 日均销量 | 8.86 件 |\n| 服务水平 | 97%（来源 cost_reverse） |\n| σ_LT | 20.26 |\n| 安全库存 SS | 38.10 |\n| 总交期 | 53 天 |\n| 历史断货天数 | 8 天 |\n| 首个断货日 | 2026-06-22 |\n| 断货损失 | 约 2,127 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价） |\n| 建议补货量 | 660 件 |\n| 占用资金 | 9,240 元（持有天数按 45 天计） |\n\n**简要解读**：该 SKU 日均 8.86 件、总交期长达 53 天，交期波动 σ_LT=20.26 带来 SS=38.10 的缓冲需求；已发生 8 天断货（首个断货日 2026-06-22），对应断货损失约 2,127 元，因此建议一次性补 660 件，占用资金 9,240 元。\n\n如果你需要比较运输方式（海运/空运/铁运/卡航）或保销量/保利润/保现金方案，我可以再调用路线对比工具——其运输参数为合成假设参数，不是真实物流报价。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4925,
+      "tokens": 2648,
+      "live": {
+        "mu_daily": 8.8605,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 9240.0,
+        "qty": 660,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          8.8605,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          8,
+          "count"
+        ],
+        "金额": [
+          9240.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-25",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-001",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "在数据集「合成-新品零历史」下，SKU-001 的结果如下：\n\n**预测结论**\n- 最佳模型：ma7，WAPE = 0.2793（其余：croston_sba 0.2825、es 0.3072、snaive 0.3298）\n\n**补货建议回执**\n- 日均销量：9.14 件\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT = 27.29，安全库存 SS = 51.34\n- 总交期：53 天\n- 历史断货天数：0 天（历史无断货日），断货损失约 0 元\n- 占用资金：0 元\n- 建议结论：本轮无需补货（no_replenishment）\n\n原因解读：该数据集为新品零历史场景，历史无断货记录，断货损失为 0；在当前库存与 53 天总交期、SS=51.34 的口径下，系统判定本轮无需补货，因此占用资金为 0 元。以上数字均来自工具返回，未做任何推算补全。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4206,
+      "tokens": 2436,
+      "live": {
+        "mu_daily": 9.1389,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 3000（容差±15），文本数字 [1, 7, 0.2793, 0.2825, 0.3072, 0.3298, 9.14, 97, 27.29, 51.34, 53, 0, 0, 0, 0, 53, 51.34, 0]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          9.1389,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          3000.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-26",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-008",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "在数据集「合成-新品零历史」下，SKU-008 的补货建议如下（数字均来自工具返回）：\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.3635\n- 其余模型 WAPE：ma7 = 0.3830、snaive = 0.3859、es = 0.3981\n\n**补货建议（run_replenish）**\n- 日均销量：8.77 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天（σ_LT = 28.21，安全库存 SS = 53.05）\n- 历史断货天数：0 天（因此没有首个断货日）\n- 断货损失：约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价−成本)/售价）\n- 建议量结论：本轮无需补货（no_replenishment）\n- 占用资金：0 元\n\n也就是说，由于该数据集是新品、零历史且没有断货记录，模型给出的日均 8.77 件、总交期 53 天都没有触发补货条件，所以建议量为无、占用资金为 0 元。若你想改按其他持有天数（holding_days）或换数据集重算，告诉我参数即可。\n\n（本次仅查询预测与补货建议，未涉及申请/审批/收货等流程操作。）\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4914,
+      "tokens": 2519,
+      "live": {
+        "mu_daily": 8.7667,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 6600（容差±33），文本数字 [8, 0.3635, 7, 0.383, 0.3859, 0.3981, 8.77, 97, 53, 28.21, 53.05, 0, 0, 1.5, 0, 8.77, 53, 0]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.7667,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          6600.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-27",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-014",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-014 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "以下是 SKU-014 在数据集「合成-新品零历史」下的补货建议解读（数字均来自工具返回）：\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.3307\n- 模型对比：croston_sba 0.3307（最佳）、ma7 0.3529、es 0.3665、snaive 0.3981\n- 说明：这是一个新品零历史场景，因此选用 croston_sba（适合间歇性、稀疏需求）作为最优模型，但 WAPE 0.3307 仍偏高，预测不确定性大。\n\n**补货建议（run_replenish）**\n- 数据集：合成-新品零历史\n- 日均销量：9.28 件\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT（交期内需求波动）：26.20\n- 安全库存 SS：49.28\n- 总交期：53 天\n- 历史断货：0 天（历史无断货日）\n- 断货损失：约 0 元（口径为断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率 =（售价−成本）/售价；因历史断货天数为 0，故为 0）\n- 建议补货量：300 件\n- 占用资金：4,200 元（按 45 天持有期口径）\n\n**怎么理解这组数**\n日均 9.28 件 × 总交期 53 天，再叠加安全库存 49.28（对应 97% 服务水平、σ_LT=26.20），构成了目标库存水位；工具给出的建议量为 300 件、占用资金 4,200 元。由于该数据集是“新品零历史”，日均与波动参数的实际依据较弱，再结合 WAPE 0.3307，建议把 300 件视为偏保守的合成参考值，而非可直接下单的数量。\n\n如需对比运输路线或“保销量、保利润、保现金”三种方案，我可以再调用路线对比工具；也可以帮你走提报审批流程。需要哪一种？\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4884,
+      "tokens": 2646,
+      "live": {
+        "mu_daily": 9.2833,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 4200.0,
+        "qty": 300,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": true,
+      "mismatches": [],
+      "passed": true,
+      "structured": {
+        "日均": [
+          9.2833,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          4200.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-28",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_27ebf3da154f5b0a9963",
+      "dataset_name": "合成-交期延误20天",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-交期延误20天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-017（数据集：合成-交期延误20天）**\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2561（回报范围内最低）\n- 对比：ma7 0.2598、es 0.2882、snaive 0.3292\n\n**补货建议（与预测同一数据集）**\n- 日均销量：8.77 件\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT：19.55；安全库存 SS：36.76\n- 总交期：53 天\n- 历史断货：0 天，无首个断货日；断货损失约 0 元（计算口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议补货量：360 件\n- 占用资金：3,600 元\n\n**解读要点**：该数据集模拟的是交期延误 20 天的场景，因此总交期被拉长到 53 天；在服务水平 97% 下，安全库存按 σ_LT=19.55 计算为 36.76 件。不过在这份数据里历史断货为 0 天，因此断货损失计为 0 元。建议量 360 件对应占用资金 3,600 元（按 45 天持有期口径）。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4730,
+      "tokens": 2543,
+      "live": {
+        "mu_daily": 8.7722,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 3600.0,
+        "qty": 360,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 4200（容差±21），文本数字 [17, 20, 0.2561, 7, 0.2598, 0.2882, 0.3292, 8.77, 97, 19.55, 36.76, 53, 0, 0, 1.5, 360, 3600, 20, 53, 97, 19.55, 36.76, 0, 0, 360, 3600, 45]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.7722,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          4200.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-29",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_4773b5aefc855e45ad9c",
+      "dataset_name": "合成-数据缺30天",
+      "sku": "SKU-001",
+      "question": "在数据集「合成-数据缺30天」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-001 在数据集「合成-数据缺30天」的补货建议解读**\n\n你要的四个数字：\n\n| 项目 | 数值 |\n|---|---|\n| 日均销量 | 9.14 件 |\n| 总交期 | 53 天（σ_LT = 27.29，安全库存 SS = 51.34，服务水平 97%，来源 cost_reverse）|\n| 断货日 | 无——历史断货 0 天，因此没有首个断货日 |\n| 占用资金 | 0 元 |\n\n补充说明：\n- 因为历史断货天数为 0，断货损失按既定口径（断货天数 × 日均 × 售价 × 毛利率 × 1.5）算出来约 0 元。\n- 本轮结论为**无需补货（no_replenishment）**，建议量为空/无需下单，所以占用资金为 0 元。\n\n关于预测侧：我调用预测工具时它返回的是默认数据集「合成-断货14天」的回测结论（最佳模型 ma7，WAPE = 0.2825；croston_sba 0.2879、es 0.3101、snaive 0.3396 仅供参考），**并非你指定的「合成-数据缺30天」**，请勿把这条预测误差直接当成本数据集的结论；上面的补货数字才是该数据集的实际返回。\n\n如果你希望看「合成-数据缺30天」下的运输路线与三目标方案对比，我也可以调出来——但那组运输时效/运费是合成假设参数，不是真实物流报价。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 5261,
+      "tokens": 2559,
+      "live": {
+        "mu_daily": 9.1389,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 3000（容差±15），文本数字 [1, 30, 9.14, 53, 27.29, 51.34, 97, 0, 0, 0, 1.5, 0, 0, 14, 7, 0.2825, 0.2879, 0.3101, 0.3396, 30, 30]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          9.1389,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          3000.0,
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "EX-30",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_8a46ca94f7325ac491c5",
+      "dataset_name": "合成-大促3倍",
+      "sku": "SKU-008",
+      "question": "在数据集「合成-大促3倍」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "text_source": "A6_replenish(LLM)",
+      "text": "**SKU-008｜数据集：合成-大促3倍**\n\n预测侧（工具回测结果）：\n- 最佳模型：croston_sba，WAPE = 0.3635\n- 对比：ma7 = 0.3830、snaive = 0.3859、es = 0.3981\n\n补货建议侧（工具返回数字）：\n- 日均销量：**8.77 件**\n- 服务水平：97%（来源 cost_reverse）；σ_LT = 28.21；安全库存 SS = 53.05\n- 总交期：**53 天**\n- 历史断货：**0 天**（工具说明「历史无断货日」，即没有可给出的首个断货日）\n- 断货损失：**约 0 元**（口径为断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 建议结论：**本轮无需补货（no_replenishment）**\n- 占用资金：**0 元**（holding_days 按 45 天口径计算）\n\n解释：该 SKU 在「合成-大促3倍」中历史无断货记录，断货损失约 0，因此系统没有给出补货量，占用资金为 0 元。要注意 WAPE 0.3635 属于偏差偏大的水平，日均 8.77 件的参考性有限；这是合成场景数据，不能当作真实经营依据。\n\n如需进一步做运输方式/多路线对比，或走补货申请—审批—收货流程，请告诉我。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "cached": false,
+      "latency_ms": 4327,
+      "tokens": 2554,
+      "live": {
+        "mu_daily": 8.7667,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0,
+        "qty": 0,
+        "service_level": 0.97,
+        "service_level_source": "cost_reverse",
+        "warning": null,
+        "source_type": "SYNTHETIC"
+      },
+      "warning": null,
+      "result_ok": true,
+      "write_side_effect": false,
+      "elements": {
+        "日均": true,
+        "总交期": true,
+        "断货日": true,
+        "金额": true
+      },
+      "element_ok": true,
+      "element_note": "四要素齐全",
+      "numbers_ok": false,
+      "mismatches": [
+        "金额: 期望 6600（容差±33），文本数字 [8, 3, 0.3635, 7, 0.383, 0.3859, 0.3981, 8.77, 97, 28.21, 53.05, 53, 0, 0, 1.5, 0, 45, 3, 0, 0, 0.3635, 8.77]"
+      ],
+      "passed": false,
+      "structured": {
+        "日均": [
+          8.7667,
+          "number"
+        ],
+        "总交期": [
+          53,
+          "count"
+        ],
+        "断货日": [
+          0,
+          "count"
+        ],
+        "金额": [
+          6600.0,
+          "amount"
+        ]
+      }
+    }
+  ],
+  "explain_cache": {
+    "ds_855373e38a205928a6e8|SKU-017": {
+      "text": "我已查询数据集「合成-新品零历史」中的 SKU-017，结果如下：\n\n**预测结论（run_forecast）**\n- 数据集：合成-新品零历史\n- SKU-017 无法给出回测结果：它只有 3 天有效历史，而至少需要 60 天才能预测。本轮数据不足，因此没有最佳模型，WAPE 无法计算（—）。\n\n**补货建议（run_replenish）**\n- 本次使用的数据集：合成-新品零历史\n- 系统返回：SKU-017 只有 3 天有效历史，至少 60 天才能预测；本轮数据不足，无法给出补货建议，建议量：—（无法计算）。\n\n**关于你问的四个数值**\n\n| 你问的字段 | 结果 |\n|---|---|\n| 日均销量 | 工具未返回（数据不足，无法计算） |\n| 总交期 | 工具未返回（数据不足，无法计算） |\n| 断货日 | 工具未返回（本次回执中没有历史断货天数与首个断货日） |\n| 占用资金 | 工具未返回（建议量为 —，占用资金无法计算） |\n\n**说明**\n\n这是新品零历史场景：仅有 3 天有效历史，未达 60 天建模门槛，所以预测与补货建议整条链路都无法产出数字。我不会用其他数据集或其他口径替你补出这四个值。若希望拿到可用数字，需要先积累足够的销售历史，或换用有足够历史的数据集重新计算。\n\n另外，如果你需要对比运输方式（海运/空运/铁运/卡航）或多目标方案，也可以告诉我；该工具的参数标注为合成假设参数，不是真实物流报价。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5075,
+      "tokens": 2449,
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:38:25"
+    },
+    "ds_4773b5aefc855e45ad9c|SKU-017": {
+      "text": "**您的问题：在数据集「合成-数据缺30天」里，解释 SKU-017 的补货建议——日均销量、总交期、断货日、占用资金分别是多少？**\n\n两个工具都因为同一个原因无法返回结果：SKU-017 在该数据集里**只有 55 天有效历史**，而走步回测至少需要 **60 天**。\n\n**run_forecast 返回：**\n- 使用数据集：合成-数据缺30天\n- 最佳模型：无法确定（本轮数据不足）\n- WAPE：—（无法计算）\n\n**run_replenish 返回：**\n- 使用数据集：合成-数据缺30天\n- 建议量：—（无法计算），本轮数据不足，无法给出补货建议\n\n**您问的四项数字：**\n- 日均销量：**未返回**（工具未给出该数值）\n- 总交期：**未返回**\n- 断货日（含历史断货天数、首个断货日）：**未返回**\n- 占用资金：**未返回**\n\n也就是说，这四个数字在当前数据集下都没有真实计算结果，我不会用其他数据集或估算值替代。可行方向（工具原话）：把该数据集中 SKU-017 的历史记录补充到 60 天以上后重跑，或改用不缺失数据的数据集重跑——如需后者，请告诉我数据集名称，我再查一次。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4385,
+      "tokens": 2455,
+      "question": "在数据集「合成-数据缺30天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:38:30"
+    },
+    "ds_00b31ed333b05de698c0|SKU-018": {
+      "text": "你问的是数据集「合成-断货14天」里 SKU-018 的补货建议。以下是两个工具返回的原始数字：\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.6443\n- 各模型 WAPE：croston_sba 0.6443（最佳）、ma7 0.7143、es 0.8312、snaive 1.0909\n\n**补货建议（run_replenish，数据集「合成-断货14天」）**\n- 日均销量：**0.94 件**\n- 总交期：**53 天**\n- 服务水平：95%（来源标为 default_missing_cost）；σ_LT = 5.23；安全库存 SS = 8.60\n- 历史断货天数：**0 天**，历史无断货日（注意：虽然数据集名字叫「断货14天」，但该 SKU 在本数据集里的历史断货记录是 0 天）\n- 断货损失：约 **0 元**（口径为 断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价；因为断货天数为 0，所以损失为 0）\n- 建议量：本轮**无需补货（no_replenishment）**\n- 占用资金：**无法计算**——成本未填，工具明确说明「成本未填，金额无法计算」，不是 0\n\n所以对你问的四项：日均 0.94 件、总交期 53 天、断货日为「无」（历史断货 0 天）、占用资金因缺成本无法计算。\n\n需要提醒的是：这个 SKU 适合用 croston_sba（间歇性需求模型），但 WAPE 0.6443 仍属较高误差，日均 0.94 件本身就是低量水平；再叠加成本未填、断货损失与占用资金都拿不到金额，这份建议的经济性判断其实是不完整的。若你要据此做采购决定，建议先补上成本字段，并确认「断货14天」这个数据集名与该 SKU 实际 0 天断货记录之间的差异是否符合预期。\n\n（本轮我只做了查询，未提交任何申请或单据。）\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5611,
+      "tokens": 2735,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-018 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:38:35"
+    },
+    "ds_00b31ed333b05de698c0|SKU-019": {
+      "text": "**数据集「合成-断货14天」中 SKU-019 的补货建议解释**\n\n**预测结论（run_forecast）**\n- 工具返回：**无可用模型**——该数据集上没有模型通过筛选标准，因此没有正式的最佳模型结论。\n- 若仅看误差数值，最低的是 ma7，WAPE = **0.6320**（其余：croston_sba 0.6584、es 0.6626、snaive 0.7288），但这只是误差最小，不等于被认定为可用/最佳模型。\n\n**补货建议（run_replenish）**\n- 日均销量：**0.83 件**\n- 服务水平：**95%**（来源 default_missing_cost）\n- 总交期：**53 天**；σ_LT = **0.00**；安全库存 SS = **0.00**\n- 历史断货：**0 天**，即**历史无断货日**；断货损失约 **0 元**\n- 结论：**本轮无需补货（no_replenishment）**\n- 占用资金：**成本未填，金额无法计算**\n\n**几点说明**\n1. 您问的“断货日”：按工具返回，该 SKU 在「合成-断货14天」里历史断货 0 天，**没有首个断货日**，所以断货损失为 0 元。这与数据集名称字面上的“断货14天”并不一致，实际数值以工具返回为准。\n2. 占用资金算不出来，原因是**成本字段缺失**，不是数量为 0 导致。\n3. 因为本轮判定无需补货，所以没有建议量可解释；如需要具体建议量与金额，需要先补齐成本数据再重算。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4590,
+      "tokens": 2628,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-019 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:38:40"
+    },
+    "ds_505a8430098d535b8ec1|SKU-020": {
+      "text": "关于 SKU-020 的补货建议，工具返回情况如下。先说一个需要提醒的点：两个工具实际使用的数据集并不一致。\n\n**1. 预测结论（run_forecast）**\n- 工具回执显示「本次使用的数据集：**合成-断货14天**（默认数据集）」，不是你指定的「合成-正在缺货」，请注意这个差异。\n- 回测 WAPE：croston_sba 1.0054、es 1.0076、ma7 1.0226、snaive 1.0526。\n- 工具返回的「最佳模型」为**无可用模型**，未给出最佳模型名，因此无法指出哪个模型最好；上表里 WAPE 最小的是 croston_sba 的 1.0054。\n- 所有模型 WAPE 均 ≥ 1.0，即误差不优于基线，预测效果很差。\n\n**2. 补货建议（run_replenish，数据集「合成-正在缺货」）**\n- 日均销量：**0.82 件**\n- 服务水平：95%（来源 default_missing_cost）\n- σ_LT：10.87；安全库存 SS：17.88\n- 总交期：**53 天**\n- 历史断货天数：**0 天**，回执明确为「历史无断货日」，因此不存在首个断货日\n- 断货损失：约 **0 元**（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价−成本)/售价）\n- 建议量：本轮无需补货（no_replenishment）\n- 占用资金：**成本未填，金额无法计算**\n- 口径声明：合成场景，结论不可当作真实经营依据。\n\n**综合解读**\n- 该数据集下 SKU-020 历史无断货，日均 0.82 件，总交期 53 天，安全库存 17.88，系统判定本轮无需补货，占用资金因缺成本字段算不出。\n- 注意 SKU-020 在这套数据上预测质量很差（WAPE ≥ 1.0），若真要据此下单，建议先排查断货期处理与模型适用性，而不是直接相信建议量。",
+      "latency_ms": 5103,
+      "tokens": 2750,
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-020 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:38:45"
+    },
+    "ds_00b31ed333b05de698c0|SKU-001": {
+      "text": "以下是「合成-断货14天」数据集中 SKU-001 的补货建议解读（数字均来自工具返回）：\n\n## 预测结论\n- **最佳模型：ma7**，**WAPE = 0.2825**（28.25%）\n- 各模型 WAPE 对比：ma7 0.2825；croston_sba 0.2879；es 0.3101；snaive 0.3396（因断货导致周对齐偏移，不可靠，仅作参考，不参与最佳模型评选）\n\n## 您问的四项数字\n| 项目 | 数值 |\n|---|---|\n| 日均销量 | **9.14 件** |\n| 总交期 | **53 天** |\n| 首个断货日 | **2026-03-22**（历史断货共 **14 天**） |\n| 占用资金 | **0 元** |\n\n## 其他随回执带出的参数\n- 服务水平：**97%**（来源：cost_reverse）\n- σ_LT = **25.42**，安全库存 SS = **47.81**\n- 断货损失约 **3,838 元**（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率 =（售价 - 成本）/ 售价）\n\n## 关键提示\n本轮结论是 **无需补货（no_replenishment）**，因此建议量为 0、占用资金为 0 元。这与该 SKU 历史上曾断货 14 天（首个断货日 2026-03-22）并不矛盾：断货损失 3,838 元是对历史断货影响的回溯估算，不代表当前需要下单。若您预期后续需求会上升，或有促销、交期延长等情形，可再换用其他数据集或参数复核。\n\n另需说明：以上为合成场景，结论不可当作真实经营依据。\n\n本轮无需补货。",
+      "latency_ms": 6368,
+      "tokens": 2659,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:38:51"
+    },
+    "ds_00b31ed333b05de698c0|SKU-002": {
+      "text": "**SKU-002（数据集：合成-断货14天）补货建议解释**\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.2640\n- 对照模型：ma7 WAPE = 0.2685；es WAPE = 0.2994；snaive WAPE = 0.3448\n\n**补货建议（run_replenish）**\n- 日均销量：**8.84 件**\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT：20.70；安全库存 SS：38.94\n- 总交期：**53 天**\n- 历史断货天数：**0 天**（历史无断货日）\n- 断货损失：约 **0 元**（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议量结论：**本轮无需补货（no_replenishment）**\n- 占用资金：**0 元**\n\n**解释**：该 SKU 在「合成-断货14天」数据集里历史上没有断货记录（0 天），因此断货损失为 0 元；在当前 97% 服务水平、53 天总交期与 SS=38.94 的参数下，系统判定本轮无需补货，建议量与占用资金均为 0 元。\n\n你问的四个数字小结：日均 8.84 件 / 总交期 53 天 / 断货日：无（0 天）/ 占用资金 0 元。\n\n如需看海运/空运/铁运/卡航路线与保销量/保利润/保现金方案对比，或走申请—审批—收货质检流程，可以继续告诉我（注：本上下文对提交申请、审批、收货质检为只读，调用会被拒绝）。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5477,
+      "tokens": 2612,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-002 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:38:57"
+    },
+    "ds_00b31ed333b05de698c0|SKU-009": {
+      "text": "关于数据集「合成-断货14天」中 SKU-009 的补货建议解释如下：\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.2561\n- 对比：ma7 = 0.2589、es = 0.2649、snaive = 0.3680\n\n**补货建议（run_replenish）**\n- 日均销量：8.52 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天；σ_LT = 20.91；安全库存 SS = 39.32\n- 历史断货天数：0 天（无历史断货日，因此无“首个断货日”）\n- 断货损失：约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议量：本轮无需补货（no_replenishment）\n- 占用资金（holding_days=45）：0 元\n\n说明：该 SKU 虽有一周多交期（53 天）与一定需求波动，但历史无断货、当前无补货触发，故建议量与资金占用均为 0。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5342,
+      "tokens": 2488,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-009 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:02"
+    },
+    "ds_505a8430098d535b8ec1|SKU-017": {
+      "text": "以下是基于工具返回的真实数字，对 SKU-017 在数据集「合成-正在缺货」中的情况说明：\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2561（ma7 为 0.2598，es 为 0.2882，snaive 为 0.3292），即 croston_sba 略优于 ma7，但差距很小。\n\n**补货建议（数据集：合成-正在缺货）**\n- 日均销量：**8.80 件**\n- 总交期：**53 天**（σ_LT = 16.31）\n- 服务水平：**97%**（来源 cost_reverse），安全库存 SS = **30.68**\n- 断货日：**历史断货 0 天**，没有首个断货日，因此断货损失约为 **0 元**（计算口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议补货量：**360 件**\n- 占用资金：**3,600 元**（按 45 天持有期测算）\n\n需要提醒的是：预测回测的回执显示，它使用的数据集是「合成-断货14天」，而补货建议使用的是你指定的「合成-正在缺货」，两者不是同一数据集；因此预测精度与本次补货建议并非基于同一数据源。若需要严格对齐，我可以改用「合成-断货14天」重新计算补货建议。\n\n另需注意：该 SKU 历史上没有断货记录（断货 0 天），因此本次建议量的主要驱动因素来自交期与安全库存，而非缺货补偿；但预测使用的是间歇性需求方法 croston_sba，其 WAPE 约为 0.26，误差不算小，建议量请结合业务判断复核。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5550,
+      "tokens": 2609,
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:08"
+    },
+    "ds_855373e38a205928a6e8|SKU-010": {
+      "text": "以下是 SKU-010 在数据集「合成-新品零历史」的结果：\n\n**预测结论**\n- 最佳模型：**ma7**，WAPE = **0.2885**（约 28.85%）\n- 其余模型：croston_sba 0.2969、es 0.3124、snaive 0.4031\n\n**补货建议（你问的四个数字）**\n- 日均销量：**8.79 件**\n- 总交期：**53 天**（σ_LT = 21.91，服务水平 97%，来源 cost_reverse，安全库存 SS = 41.20）\n- 断货日：**历史断货 0 天，无断货日**；断货损失约 **0 元**\n- 占用资金：**0 元**\n\n**综合解读**：这个 SKU 的断货损失为 0 元，加上历史没有断货记录，系统本轮判定为「无需补货（no_replenishment）」，建议量与占用资金都是 0。也就是说，虽然它有 53 天的较长交期和 41.20 的安全库存参考值，但按当前口径测算不触发补货。\n\n需要说明的一点：这是「新品零历史」数据集，而最优模型是 ma7，WAPE 仍有 28.85%，预测本身不确定性较大；如果后续有真实销售数据积累，建议重跑一次预测再判断是否补货。\n\n如果你还关心运输方式/多路线对比，或想走补货申请与审批流程，可以告诉我，我继续取对应数据。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4641,
+      "tokens": 2532,
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-010 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:12"
+    },
+    "ds_27ebf3da154f5b0a9963|SKU-008": {
+      "text": "在数据集「合成-交期延误20天」下，SKU-008 的补货建议相关数字如下：\n\n**补货建议（run_replenish，数据集＝合成-交期延误20天）**\n- 日均销量：**8.77 件**\n- 服务水平：97%（来源：cost_reverse）\n- σ_LT：**28.21**；安全库存 SS：**53.05**\n- 总交期：**53 天**\n- 历史断货：**0 天**（历史无断货日，因此没有“首个断货日”）\n- 断货损失：约 **0 元**（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 建议量：本轮**无需补货（no_replenishment）**\n- 占用资金：**0 元**\n\n**预测结论（run_forecast）**\n- 最佳模型：**croston_sba**，WAPE = **0.3635**（其他：snaive 0.3859；ma7 0.3830；es 0.3981）\n- 注意：该工具回执显示本次使用的数据集是「合成-断货14天」，与你在问题中指定的「合成-交期延误20天」不一致；上面的补货数字均取自「合成-交期延误20天」，预测回测结论则来自「合成-断货14天」，两者口径不同，请留意。\n\n**如何理解这组数字**\n在该数据集下，即使总交期较长（53 天，含 20 天延误假设），由于历史没有断货记录、断货损失为 0，系统在 97% 服务水平下算出的安全库存为 53.05 件，结合 8.77 件/日的日均，判定当前无需补货，因此建议量为空、占用资金为 0 元。也就是说，这组数字反映的是“交期变长但尚未触发补货”的情形，占用资金为 0 并不代表资金效率高，而是本轮没有生成建议量。\n\n如果你希望看“正在缺货”或“断货14天”等其他数据集下的对比，或需要海运/空运/铁运/卡航的路线与保销量/保利润/保现金方案对比（参数均为合成假设，不是真实物流报价），告诉我数据集名称即可。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5697,
+      "tokens": 2689,
+      "question": "在数据集「合成-交期延误20天」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:18"
+    },
+    "ds_00b31ed333b05de698c0|SKU-008": {
+      "text": "你问的是数据集「合成-断货14天」中 SKU-008 的补货建议，下面逐项说明工具返回的数字。\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.3635\n- 对比：ma7 = 0.3830、snaive = 0.3859、es = 0.3981；这四个模型中，croston_sba 的 WAPE 最低。\n\n**补货建议（run_replenish）**\n- 你问的日均销量：**8.77 件**\n- 你问的总交期：**53 天**（σ_LT = 28.21，安全库存 SS = 53.05，服务水平 97%，来源 cost_reverse）\n- 你问的断货日：**没有历史断货日**，历史断货天数 0 天\n- 你问的占用资金：**0 元**\n\n**结论**：这个 SKU 在该数据集里历史无断货、断货损失约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5），因此本轮结论是 **无需补货（no_replenishment）**，建议量与占用资金均为 0，没有产生采购资金占用。\n\n另外，你只询问了单个 SKU 的补货建议，所以我没有调用路线对比工具；如果需要海运、空运、铁运、卡航的对比，或保销量、保利润、保现金方案，可以再告诉我。需要注意：该工具涉及的运输参数都是合成假设参数，不是真实物流报价。\n\n补充说明：本次会话是只读上下文，不能提交申请或走审批流程；如需提交申请、审批、收货质检，需要到可写环境操作。以上都是合成演示业务数据。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4470,
+      "tokens": 2593,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:23"
+    },
+    "ds_00b31ed333b05de698c0|SKU-010": {
+      "text": "**SKU-010 在数据集「合成-断货14天」的补货建议解释**\n\n预测结论（run_forecast）：\n- 最佳模型为 **ma7**，WAPE = **0.2885**\n- 对比：croston_sba 0.2969、es 0.3124、snaive 0.4031\n\n补货建议（run_replenish）：\n- 日均销量：**8.79 件**\n- 总交期：**53 天**（σ_LT = 21.91）\n- 服务水平：**97%**（来源 cost_reverse），安全库存 SS = **41.20**\n- 历史断货天数：**0 天**（工具返回显示历史无断货日，因此不存在“首个断货日”）\n- 断货损失：约 **0 元**\n- 建议补货量：**本轮无需补货（no_replenishment）**\n- 占用资金：**0 元**\n\n说明：该 SKU 虽标注在“断货14天”数据集中，但工具对它的实际回测结果是历史 0 天断货、断货损失 0 元，因此系统判定本轮不需要补货，占用资金为 0 元。以上数字均来自工具返回，未作推算。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4507,
+      "tokens": 2531,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-010 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:27"
+    },
+    "ds_00b31ed333b05de698c0|SKU-014": {
+      "text": "**SKU-014（数据集：合成-断货14天）补货建议解读**\n\n预测结论（run_forecast）：\n- 最佳模型：croston_sba，WAPE = 0.3307\n- 对照模型 WAPE：ma7 = 0.3529、es = 0.3665、snaive = 0.3981\n\n补货建议（run_replenish）逐项核对您问的四个数字：\n- **日均销量：9.28 件**\n- **总交期：53 天**（对应的 σ_LT = 26.20）\n- **断货日：无** —— 历史断货 0 天，回执明确为「历史无断货日」，因此没有首个断货日；断货损失约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- **占用资金：4,200 元**（对应建议补 300 件，按 45 天持有）\n\n其余口径：服务水平 97%（来源 cost_reverse），安全库存 SS = 49.28。需要注意 WAPE 0.3307 说明该 SKU 的预测误差偏大（间歇性需求特征，croston_sba 为此类需求的常用模型），日均 9.28 件本身带有不确定性，建议按安全库存缓冲理解建议量而非精确需求。\n\n您若想进一步做运输方式对比或多目标（保销量/保利润/保现金）方案对比，告诉我即可调用 route_compare（其运输参数为合成假设参数，不是真实物流报价）。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5027,
+      "tokens": 2514,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-014 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:32"
+    },
+    "ds_00b31ed333b05de698c0|SKU-017": {
+      "text": "**SKU-017 补货建议解读（数据集：合成-断货14天）**\n\n一、预测结论（run_forecast）\n- 最佳模型：croston_sba，WAPE = 0.2561（四模型中最低）\n- 其余模型 WAPE：ma7 0.2598、es 0.2882、snaive 0.3292\n\n二、补货建议（run_replenish）——你问的四项\n- **日均销量：8.77 件**\n- **总交期：53 天**（σ_LT = 19.55，安全库存 SS = 36.76）\n- **断货日：历史断货 0 天，无历史断货日**（因此断货损失约 0 元）\n- **占用资金：3,600 元**（对应建议补货量 360 件）\n\n三、补充说明\n- 服务水平 97%，来源为 cost_reverse（成本反解口径）。\n- 断货损失 0 元的口径是：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率 = (售价−成本)/售价；本 SKU 历史断货天数为 0，所以为 0。\n- 建议量 360 件是在给定的 45 天持有期（holding_days）参数下算出的；若调整持有期，建议量与占用资金会变化。\n\n以上数字均来自工具返回，未做任何自行推算。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5181,
+      "tokens": 2529,
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:37"
+    },
+    "ds_505a8430098d535b8ec1|SKU-002": {
+      "text": "**SKU-002（数据集：合成-正在缺货）补货建议解读**\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2640\n- 次优 ma7 WAPE = 0.2685，两者接近；es 0.2994、snaive 0.3448（因断货导致周对齐偏移，仅供对比，不参与评选）\n\n**补货参数**\n- 日均销量：8.80 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天\n- σ_LT：20.70，安全库存 SS：38.94\n- 历史断货：8 天，首个断货日 2026-06-22\n- 断货损失：约 2,113 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议补货量：660 件\n- **占用资金：9,240 元**\n\n简要说明：交期 53 天加上需求波动（σ_LT 20.70）推高了安全库存，加上断货已发生 8 天（自 2026-06-22 起），所以建议量偏大，占用资金 9,240 元。预测模型本身误差约 26%，建议按实际到货节奏分批关注。\n\n需要的话我可以帮你做「海运/空运/铁运/卡航」四条路线与「保销量/保利润/保现金」三目标对比。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4349,
+      "tokens": 2594,
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-002 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:42"
+    },
+    "ds_505a8430098d535b8ec1|SKU-003": {
+      "text": "针对您的问题「数据集『合成-正在缺货』里 SKU-003 的补货建议」，以下是工具返回的数字：\n\n**预测结论（run_forecast）**\n- 数据集：合成-正在缺货（SKU-003）\n- 最佳模型：croston_sba，WAPE = 0.2527\n- 各模型 WAPE：croston_sba 0.2527（最佳）／ma7 0.2675／es 0.3110／snaive 0.3246（因周对齐偏移不可靠，不参与最佳模型评选，仅供参考）\n- 说明：该场景存在断货日，模型选择已把 snaive 排除在评选之外。\n\n**补货建议（run_replenish）**\n- 本次使用的数据集：合成-正在缺货\n- 日均销量：8.55 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天；σ_LT = 21.43；安全库存 SS = 40.31\n- 历史断货：8 天，首个断货日 **2026-06-22**\n- 断货损失金额：约 2,053 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 建议补货量：660 件\n- 占用资金：**11,880 元**\n\n**综合解读**：该 SKU 在合成场景中已出现 8 天断货（首个断货日 2026-06-22），日均 8.55 件对应总交期 53 天、σ_LT 21.43 的波动，安全库存按 97% 服务水平算出 40.31 件；在此基础上建议补 660 件、占用资金 11,880 元。\n\n如需对比海运/空运/铁运/卡航或保销量/保利润/保现金方案，可以告诉我，我再调用路线对比工具（其运输参数为合成假设参数，非真实物流报价）。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5591,
+      "tokens": 2672,
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-003 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:47"
+    },
+    "ds_505a8430098d535b8ec1|SKU-004": {
+      "text": "**SKU-004 补货建议解释**（数据集：合成-正在缺货）\n\n**预测结论（run_forecast）**\n- 最佳模型：snaive，WAPE = 0.3292\n- 各模型 WAPE：snaive 0.3292（最优）、croston_sba 0.3315、ma7 0.3410、es 0.3514\n- ⚠️ 注意：该次回测回执标注的数据集是「合成-断货14天」，与本次补货计算所用的「合成-正在缺货」不是同一数据集，两者的口径不完全一致，引用时请留意。\n\n**补货建议（run_replenish，数据集：合成-正在缺货）**\n- 日均销量：**8.72 件**\n- 总交期：**53 天**；σ_LT = 19.98\n- 服务水平：97%（来源 cost_reverse）；安全库存 SS = 37.57\n- 历史断货：**8 天**，首个断货日 **2026-06-22**\n- 断货损失：约 **2,092 元**，计算口径是：断货天数 × 日均 × 售价 × 毛利率 × 1.5，其中毛利率 =（售价 − 成本）/ 售价\n- 建议补货量：**660 件**\n- 占用资金：**14,520 元**（按 45 天持有期口径）\n\n**结论**：日均 8.72 件加上 53 天总交期，已覆盖 8 天历史断货（首日 2026-06-22），建议补 660 件，占用资金 14,520 元，对应断货损失约 2,092 元。\n\n如需对比海运、空运、铁运、卡航四条运输路线和保销量、保利润、保现金三个目标方案，或需要提交补货申请，请告诉我。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4778,
+      "tokens": 2638,
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-004 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:52"
+    },
+    "ds_505a8430098d535b8ec1|SKU-005": {
+      "text": "已取到 SKU-005 在数据集「合成-正在缺货」下的预测与补货结论，解释如下：\n\n**预测结论（回测）**\n- 最佳模型：ma7，WAPE = 0.2965\n- 对比：croston_sba 0.3008、es 0.3409、snaive 0.4310（ma7 与 croston_sba 接近，略优）\n- 说明：预测回测工具回执标注的数据集名称为「合成-断货14天」，与本次补货计算使用的「合成-正在缺货」不同，这里如实并列，不做合并。\n\n**补货建议关键数字**\n- 日均销量：8.89 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天（σ_LT = 25.21，安全库存 SS = 47.41）\n- 历史断货：8 天，首个断货日 2026-06-22\n- 断货损失：约 2,133 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 建议补货量：660 件\n- 占用资金：6,600 元（按 45 天持有期计算）\n\n如果要做运输方式/多路线对比（海运/空运/铁运/卡航，或保销量/保利润/保现金），或需要走补货申请→审批→收货质检流程，告诉我即可。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4306,
+      "tokens": 2524,
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-005 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:39:57"
+    },
+    "ds_505a8430098d535b8ec1|SKU-006": {
+      "text": "你问的 SKU-006 在数据集「合成-正在缺货」下的补货建议，工具返回的数字如下：\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2495\n- 对比：es 0.2689、ma7 0.2691、snaive 0.3294（仅参考，不参与评选）\n\n**补货建议关键数字**\n| 项目 | 数值 |\n|---|---|\n| 日均销量 | 8.86 件 |\n| 服务水平 | 97%（来源 cost_reverse） |\n| σ_LT | 20.26 |\n| 安全库存 SS | 38.10 |\n| 总交期 | 53 天 |\n| 历史断货天数 | 8 天 |\n| 首个断货日 | 2026-06-22 |\n| 断货损失 | 约 2,127 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价） |\n| 建议补货量 | 660 件 |\n| 占用资金 | 9,240 元（持有天数按 45 天计） |\n\n**简要解读**：该 SKU 日均 8.86 件、总交期长达 53 天，交期波动 σ_LT=20.26 带来 SS=38.10 的缓冲需求；已发生 8 天断货（首个断货日 2026-06-22），对应断货损失约 2,127 元，因此建议一次性补 660 件，占用资金 9,240 元。\n\n如果你需要比较运输方式（海运/空运/铁运/卡航）或保销量/保利润/保现金方案，我可以再调用路线对比工具——其运输参数为合成假设参数，不是真实物流报价。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4925,
+      "tokens": 2648,
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-006 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:40:01"
+    },
+    "ds_855373e38a205928a6e8|SKU-001": {
+      "text": "在数据集「合成-新品零历史」下，SKU-001 的结果如下：\n\n**预测结论**\n- 最佳模型：ma7，WAPE = 0.2793（其余：croston_sba 0.2825、es 0.3072、snaive 0.3298）\n\n**补货建议回执**\n- 日均销量：9.14 件\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT = 27.29，安全库存 SS = 51.34\n- 总交期：53 天\n- 历史断货天数：0 天（历史无断货日），断货损失约 0 元\n- 占用资金：0 元\n- 建议结论：本轮无需补货（no_replenishment）\n\n原因解读：该数据集为新品零历史场景，历史无断货记录，断货损失为 0；在当前库存与 53 天总交期、SS=51.34 的口径下，系统判定本轮无需补货，因此占用资金为 0 元。以上数字均来自工具返回，未做任何推算补全。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4206,
+      "tokens": 2436,
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:40:06"
+    },
+    "ds_855373e38a205928a6e8|SKU-008": {
+      "text": "在数据集「合成-新品零历史」下，SKU-008 的补货建议如下（数字均来自工具返回）：\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.3635\n- 其余模型 WAPE：ma7 = 0.3830、snaive = 0.3859、es = 0.3981\n\n**补货建议（run_replenish）**\n- 日均销量：8.77 件\n- 服务水平：97%（来源 cost_reverse）\n- 总交期：53 天（σ_LT = 28.21，安全库存 SS = 53.05）\n- 历史断货天数：0 天（因此没有首个断货日）\n- 断货损失：约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价−成本)/售价）\n- 建议量结论：本轮无需补货（no_replenishment）\n- 占用资金：0 元\n\n也就是说，由于该数据集是新品、零历史且没有断货记录，模型给出的日均 8.77 件、总交期 53 天都没有触发补货条件，所以建议量为无、占用资金为 0 元。若你想改按其他持有天数（holding_days）或换数据集重算，告诉我参数即可。\n\n（本次仅查询预测与补货建议，未涉及申请/审批/收货等流程操作。）\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4914,
+      "tokens": 2519,
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:40:11"
+    },
+    "ds_855373e38a205928a6e8|SKU-014": {
+      "text": "以下是 SKU-014 在数据集「合成-新品零历史」下的补货建议解读（数字均来自工具返回）：\n\n**预测结论（run_forecast）**\n- 最佳模型：croston_sba，WAPE = 0.3307\n- 模型对比：croston_sba 0.3307（最佳）、ma7 0.3529、es 0.3665、snaive 0.3981\n- 说明：这是一个新品零历史场景，因此选用 croston_sba（适合间歇性、稀疏需求）作为最优模型，但 WAPE 0.3307 仍偏高，预测不确定性大。\n\n**补货建议（run_replenish）**\n- 数据集：合成-新品零历史\n- 日均销量：9.28 件\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT（交期内需求波动）：26.20\n- 安全库存 SS：49.28\n- 总交期：53 天\n- 历史断货：0 天（历史无断货日）\n- 断货损失：约 0 元（口径为断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率 =（售价−成本）/售价；因历史断货天数为 0，故为 0）\n- 建议补货量：300 件\n- 占用资金：4,200 元（按 45 天持有期口径）\n\n**怎么理解这组数**\n日均 9.28 件 × 总交期 53 天，再叠加安全库存 49.28（对应 97% 服务水平、σ_LT=26.20），构成了目标库存水位；工具给出的建议量为 300 件、占用资金 4,200 元。由于该数据集是“新品零历史”，日均与波动参数的实际依据较弱，再结合 WAPE 0.3307，建议把 300 件视为偏保守的合成参考值，而非可直接下单的数量。\n\n如需对比运输路线或“保销量、保利润、保现金”三种方案，我可以再调用路线对比工具；也可以帮你走提报审批流程。需要哪一种？\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4884,
+      "tokens": 2646,
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-014 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:40:16"
+    },
+    "ds_27ebf3da154f5b0a9963|SKU-017": {
+      "text": "**SKU-017（数据集：合成-交期延误20天）**\n\n**预测结论**\n- 最佳模型：croston_sba，WAPE = 0.2561（回报范围内最低）\n- 对比：ma7 0.2598、es 0.2882、snaive 0.3292\n\n**补货建议（与预测同一数据集）**\n- 日均销量：8.77 件\n- 服务水平：97%（来源 cost_reverse）\n- σ_LT：19.55；安全库存 SS：36.76\n- 总交期：53 天\n- 历史断货：0 天，无首个断货日；断货损失约 0 元（计算口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）\n- 建议补货量：360 件\n- 占用资金：3,600 元\n\n**解读要点**：该数据集模拟的是交期延误 20 天的场景，因此总交期被拉长到 53 天；在服务水平 97% 下，安全库存按 σ_LT=19.55 计算为 36.76 件。不过在这份数据里历史断货为 0 天，因此断货损失计为 0 元。建议量 360 件对应占用资金 3,600 元（按 45 天持有期口径）。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4730,
+      "tokens": 2543,
+      "question": "在数据集「合成-交期延误20天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:40:20"
+    },
+    "ds_4773b5aefc855e45ad9c|SKU-001": {
+      "text": "**SKU-001 在数据集「合成-数据缺30天」的补货建议解读**\n\n你要的四个数字：\n\n| 项目 | 数值 |\n|---|---|\n| 日均销量 | 9.14 件 |\n| 总交期 | 53 天（σ_LT = 27.29，安全库存 SS = 51.34，服务水平 97%，来源 cost_reverse）|\n| 断货日 | 无——历史断货 0 天，因此没有首个断货日 |\n| 占用资金 | 0 元 |\n\n补充说明：\n- 因为历史断货天数为 0，断货损失按既定口径（断货天数 × 日均 × 售价 × 毛利率 × 1.5）算出来约 0 元。\n- 本轮结论为**无需补货（no_replenishment）**，建议量为空/无需下单，所以占用资金为 0 元。\n\n关于预测侧：我调用预测工具时它返回的是默认数据集「合成-断货14天」的回测结论（最佳模型 ma7，WAPE = 0.2825；croston_sba 0.2879、es 0.3101、snaive 0.3396 仅供参考），**并非你指定的「合成-数据缺30天」**，请勿把这条预测误差直接当成本数据集的结论；上面的补货数字才是该数据集的实际返回。\n\n如果你希望看「合成-数据缺30天」下的运输路线与三目标方案对比，我也可以调出来——但那组运输时效/运费是合成假设参数，不是真实物流报价。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 5261,
+      "tokens": 2559,
+      "question": "在数据集「合成-数据缺30天」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:40:26"
+    },
+    "ds_8a46ca94f7325ac491c5|SKU-008": {
+      "text": "**SKU-008｜数据集：合成-大促3倍**\n\n预测侧（工具回测结果）：\n- 最佳模型：croston_sba，WAPE = 0.3635\n- 对比：ma7 = 0.3830、snaive = 0.3859、es = 0.3981\n\n补货建议侧（工具返回数字）：\n- 日均销量：**8.77 件**\n- 服务水平：97%（来源 cost_reverse）；σ_LT = 28.21；安全库存 SS = 53.05\n- 总交期：**53 天**\n- 历史断货：**0 天**（工具说明「历史无断货日」，即没有可给出的首个断货日）\n- 断货损失：**约 0 元**（口径为断货天数 × 日均 × 售价 × 毛利率 × 1.5，毛利率=(售价-成本)/售价）\n- 建议结论：**本轮无需补货（no_replenishment）**\n- 占用资金：**0 元**（holding_days 按 45 天口径计算）\n\n解释：该 SKU 在「合成-大促3倍」中历史无断货记录，断货损失约 0，因此系统没有给出补货量，占用资金为 0 元。要注意 WAPE 0.3635 属于偏差偏大的水平，日均 8.77 件的参考性有限；这是合成场景数据，不能当作真实经营依据。\n\n如需进一步做运输方式/多路线对比，或走补货申请—审批—收货流程，请告诉我。\n\n口径声明：合成场景，结论不可当作真实经营依据。",
+      "latency_ms": 4327,
+      "tokens": 2554,
+      "question": "在数据集「合成-大促3倍」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "generated_at": "2026-11-19T01:40:30"
+    }
+  },
+  "summary": {
+    "run_index": 1,
+    "started_at": "2026-11-19T00:31:23",
+    "finished_at": "2026-11-19T01:40:30",
+    "calls": 76,
+    "reused_explain_cache": 0,
+    "total_ms": 4146219,
+    "avg_ms": 54555.5,
+    "ask_total": 50,
+    "ask_hit": 50,
+    "ask_rate": 100.0,
+    "explain_total": 30,
+    "explain_numbers_ok": 19,
+    "explain_number_rate": 63.3,
+    "explain_elements_ok": 30,
+    "explain_passed": 19
+  },
+  "runs": [
+    {
+      "run_index": 1,
+      "started_at": "2026-11-19T00:31:23",
+      "finished_at": "2026-11-19T01:40:30",
+      "calls": 76,
+      "reused_explain_cache": 0,
+      "total_ms": 4146219,
+      "avg_ms": 54555.5,
+      "ask_total": 50,
+      "ask_hit": 50,
+      "ask_rate": 100.0,
+      "explain_total": 30,
+      "explain_numbers_ok": 19,
+      "explain_number_rate": 63.3,
+      "explain_elements_ok": 30,
+      "explain_passed": 19
+    }
+  ]
+}

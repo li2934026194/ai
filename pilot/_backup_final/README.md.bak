@@ -1,0 +1,161 @@
+# 七 Agent 跨境备货助手 · Pilot
+
+一套内核（core）两个壳（FastAPI 正式后端 + Streamlit 调试台）的补货决策系统。
+
+- **core/** —— 纯计算内核：需求口径、4 模型回测、库存推导、两步取整。**绝不 import 任何 Web/ORM**。
+- **api/** —— FastAPI 壳：取数 + 调 core，只转 JSON，不重算任何数。
+- **agents/** —— 七个业务 Agent（A1–A7），调 core 取数，统一走 registry。
+- **loaders/ + schema.py + db.py + scenarios.py** —— 数据层：PostgreSQL 18 张表（12 张业务表 + 6 张 RBAC/审计表）+ 六套合成数据集 + 一套 UCI 公开数据集 + CSV 导入器。
+- **rbac/** —— PACK 23：user/role/permission 三表 + 多对多、DAO、Service、JWT 登录、权限装饰器、HTTP 管理接口。
+- **tests/** —— core / data / api / agents / 履约 / RBAC / 评测与五闸。
+
+## 当前状态（2026-11-19，PACK 23 后）
+
+- PACK 20/21 已封版；PACK 22 的 22A/22B/22C 代码与测试已落地（`loaders/public_uci.py`、`scripts/build_public_dataset.py`、`note` 暴露、`tests/test_public_dataset.py`），`test_public_dataset` **9/9 通过**。
+- PACK 23 的 RBAC 基础体系已落地：`rbac_user` / `rbac_role` / `rbac_permission` + 两张关联表 + `rbac_audit_log`；DAO / Service / JWT / 装饰器 / HTTP 管理 / P7 前端均已接通。RBAC 专项 **11 passed**。
+- 全量收集 **122 tests**；本机实测 **122 passed + 6 subtests**（2026-11-19 15:53 五闸复跑）；Milvus、Ollama、PostgreSQL 均已恢复并参与验证。
+- 五闸当前 **5/5 PASS**：G01–G05 全通过，结果见 `docs/gates-latest.json`。
+- 真实 UCI 文件已在 `data/online_retail_II.xlsx`；`公开-UCI礼品20SKU-180天` 已正式写库：20 SKU、3,600 条销量、3,600 条库存记录，窗口 2011-06-13～2011-12-09。真实的是成交需求，库存/在途仍是透明仿真。
+- PACK 24 商品主数据导入已落地：`POST /api/datasets/import` 的 CSV 增加 9 个可选主数据列，新 SKU 带完整合法主数据即可建产品并导入；旧格式完全兼容。`tests/test_csv_master_data.py` 10/10 通过。全量 **132 passed + 6 subtests**。
+- 1688 供应商数据列入 BL-01，不进入本版（比价/阶梯价/MOQ 优化仍不做）。
+
+## 唯一的 Python 环境：`.venv`
+
+> 本机有多个 Python（系统 3.13.12 / envs 3.13.14 / .venv 3.13.18）。
+> **全部命令固定用 `.venv\Scripts\python.exe`**，不要再 `python` / `pip` 混用，
+> 否则包会装错环境、版本会漂移（health 接口曾报 sqlalchemy 2.1.9 而非 2.0.36）。
+
+### 初始化（首次）
+
+```powershell
+cd pilot
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+固定版本：`sqlalchemy==2.0.36`、`openai-agents==0.24.0`、`fastapi`、`uvicorn`、`httpx2`、`PyJWT==2.15.1`。
+
+## 跑测试（以全量回归为准）
+
+```powershell
+cd pilot
+.\.venv\Scripts\python.exe -m pytest tests -q              # 当前 132 passed + 6 subtests
+.\.venv\Scripts\python.exe -m tests.gates                 # 当前 5/5 PASS
+.\.venv\Scripts\python.exe -m tests.eval_qa               # RUN 5：70/70，走缓存
+.\.venv\Scripts\python.exe -m tests.check_numbers         # 数字全文一致：30/30
+```
+
+旧的四层命令仍可单独跑，但不再作为封版口径：
+
+```powershell
+.\.venv\Scripts\python.exe -m tests.test_core
+.\.venv\Scripts\python.exe -m tests.test_data
+.\.venv\Scripts\python.exe -m tests.test_api
+.\.venv\Scripts\python.exe -m tests.test_agents
+```
+
+## 起 API（FastAPI + uvicorn）
+
+```powershell
+cd pilot
+.\.venv\Scripts\python.exe -m uvicorn api.main:app --host 127.0.0.1 --port 8000
+```
+
+核心只读端点（完整 16 个端点见 `17-接口契约v1.3`）：
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/health` | 状态 + 数据集数 + sqlalchemy 版本 |
+| GET | `/api/datasets` | 数据集清单：id/name/source_type/created_at/note |
+| GET | `/api/p1/dashboard?dataset_id=` | P1 KPI：待补货 / 断货风险 / 占用资金 / 今日运行 |
+| GET | `/api/p2/skus?dataset_id=&rank=` | SKU 列表（日均销量降序） |
+| GET | `/api/p3/sku/{sku}?dataset_id=` | 单 SKU 详情：S1 曲线 + per_model + 推导链 + evidence |
+
+PACK 20 新增 `POST /api/datasets/import`；PACK 21 新增 `GET /api/ops/summary` 与采购单取消入口。完整请求/响应见契约。
+
+### PACK 24：CSV 商品主数据导入
+
+`POST /api/datasets/import`（沿用 PACK 20 端点，RBAC `dataset:import` 不变，未加新端点）：
+- 前 5 列必填（旧格式不变）：`date,sku,sales_qty,on_hand,in_transit`。
+- 新 SKU 再填 9 列：`title,price,unit_cost,moq,pack_size,lead_prod,lead_transit,lead_customs,lead_inbound`；已有 SKU 只填前 5 列即可（沿用库里主数据，CSV 不覆盖）。
+- 新 SKU 主数据必须齐全合法（整数且 >0，同 SKU 多行一致），整批校验失败完整回滚；重名仍拒绝。
+- 错误码：E-6001/6002/6003/6004 沿用；新增 E-6005 冲突 / E-6006 缺字段 / E-6007 非法值（均定位到行/列）。
+- 前端 P1「＋ 导入 CSV 数据集」面板支持下载模板、上传、提交、成功结果与行/列级错误展示；导入后数据集进列表、P2 可查新 SKU。详见 `docs/pack24-report.md` 与契约 §3quinquies。
+
+### PACK 23：RBAC / JWT 登录
+
+演示模式默认 `AUTH_ENABLED=0`，既有 16 个业务端点保持原行为；生产设为 `1` 后，`/api/*` 统一要求 Bearer token，并按路径/服务装饰器校验权限。
+
+```powershell
+# 1) 建 RBAC 表、默认权限/角色，并创建管理员
+$env:RBAC_ADMIN_USERNAME="admin"
+$env:RBAC_ADMIN_PASSWORD="至少8位-生产请改"
+.\.venv\Scripts\python.exe scripts\seed_rbac.py
+
+# 2) 开发/联调打开鉴权
+$env:AUTH_ENABLED="1"
+$env:AUTH_JWT_SECRET="至少32字节的随机密钥-生产必须换"
+```
+
+- 登录：`POST /api/auth/login`（body `username/password`）→ `access_token`；`GET /api/auth/me`。
+- 管理：`/api/rbac/users`、`/api/rbac/roles`、`/api/rbac/permissions`、`/api/rbac/audit`（详见 `docs/pack23-rbac.md`）。
+- 前端新增 P7「权限」页：登录后管理用户/角色/权限并查看审计；token 只放在浏览器 sessionStorage，服务端无 session、无 token 内存缓存。
+- 说明：这是应用内 JWT + RBAC，不是飞书/Keycloak 统一身份；阿里云部署时由 ECS + Nginx + HTTPS 承载。可执行模板见 `deploy/README.md`、`deploy/pilot.service`、`deploy/nginx-pilot.conf`（**只是模板，尚未实际部署**）。
+
+每个响应都带 `meta{source_type, as_of, method}`；SKU 详情另带 `evidence`。错误结构化返回（HTTP 200 不 500），常用：
+`E-1001` 数据不足 / `E-1003` SKU 不存在 / `E-1004` 断货占比高（warning）；导入相关 `E-6001`～`E-6007`；完整错误码见契约与 `docs/reject-matrix.md`。
+
+## 数据库：PostgreSQL 默认 + SQLite 回退（PACK 7）
+
+`db.py` 的连接串优先级：
+
+1. 环境变量 `DATABASE_URL` 设了就用它；
+2. 没设就默认连 PostgreSQL：`postgresql+psycopg://postgres@127.0.0.1:5432/pilot`
+   （驱动 psycopg 3，已装进 .venv）；
+3. 显式切回 SQLite：设 `DATABASE_URL=sqlite:///data/pilot.db`。
+
+SQLite 相关代码（`DB_PATH` / `check_same_thread` / `data/pilot.db`）全部保留，
+是回滚路径，不要删。`connect_args` 按方言条件注入：SQLite 才加
+`check_same_thread=False`，PG 不需要。
+
+PG 兼容性要点（PACK 7 实测结论）：
+
+- **自增主键**：schema 里 `Integer + autoincrement` 自动映射为 PG `SERIAL`
+  （`nextval(..._seq)`），无需改。
+- **布尔字段**：`is_stockout` / `is_refund` 在 schema 里是 **`Boolean`（不是
+  `Integer`）**，PG 下正确映射为原生 `boolean`（存 `true/false`）。写入侧
+  `scenarios.py` 传的 Python `int 0/1` 由 psycopg 3 自动转成 `boolean`，落库值正确。
+- **时间字段**：`created_at` 用 `datetime.now()` 落本地时间（本机 +08），PG 列是
+  `timestamp without time zone`（naive），存的就是 +08 墙上时间，与 SQLite 行为一致。
+- **SQLite 专有语法**：已排查并适配——`tests/test_data.py` 的 `sqlite_master` /
+  `PRAGMA table_info` 改为 `information_schema` 跨方言写法；`is_stockout=1` 改为
+  `is_stockout = TRUE`；`loaders/base.py` 的 upsert 已有 PG 分支；`api/service.py`
+  只用 `func.max/count`（跨方言通用）。
+- **中文**：PG 编码 UTF8，商品标题 `合成商品 SKU-xxx` 写入/读出无乱码。
+
+## 一条必须遵守的约定
+
+`api/service.py` **不要 import agents.tools**。openai-agents SDK 也叫 `agents` 包，
+与本地 `pilot/agents` 同名会撞。service.py 自己从 db 读 + 调 core。
+
+## 两壳同数（关键）
+
+补货建议量的算法只有一份：`core/inventory.py::build_suggestion`。
+api 和 agents 都调它，σ_日 从 best 模型残差真算、lead_time 从 products 表读。
+**不要在任何壳里再写 σ / lead_time / 取整公式**，否则两壳会算出不同的数互相打脸。
+
+## 目录
+
+| 路径 | 作用 |
+|---|---|
+| `core/` | 纯计算内核（demand/models/backtest/inventory/simulate/metrics） |
+| `api/` | FastAPI 壳（main/service/schemas） |
+| `agents/` | 七 Agent（registry/tools/explain） |
+| `loaders/` | 数据源 loader（base + synthetic + csv_import） |
+| `schema.py` | 18 张表 SQLAlchemy 定义（12 业务 + 6 RBAC/审计） |
+| `rbac/` | JWT 登录、RBAC DAO/Service/装饰器/HTTP 路由 |
+| `deploy/` | 阿里云部署模板（systemd、Nginx、步骤说明；未实际执行） |
+| `db.py` | 引擎 + 会话 + create_all + suggestion_to_row |
+| `scenarios.py` | S1–S6 合成场景注入 + 建库 |
+| `data/pilot.db` | SQLite 回退库（默认仍走 PostgreSQL） |
+| `.env` | DeepSeek key（只进这里，绝不进 .py/README） |

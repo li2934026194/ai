@@ -1,0 +1,25 @@
+# Large / runtime artifacts (must NOT be committed)
+pilot/.pg/
+pilot/.venv/
+pilot/frontend/node_modules/
+pilot/web/dist/
+pilot/.idea/
+pilot/.pytest_cache/
+
+# Data & database files
+pilot/data/*.zip
+pilot/data/*.xlsx
+pilot/data/*.csv
+pilot/data/*.db
+pilot/data/*.sqlite*
+*.db-journal
+
+# Logs & caches
+*.log
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Editor / OS
+.DS_Store
+Thumbs.db

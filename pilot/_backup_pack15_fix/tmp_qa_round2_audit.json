@@ -1,0 +1,183 @@
+[
+  {
+    "id": "A13",
+    "run": 1,
+    "question": "SKU-017 的服务水平是多少？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "sku_snapshot.在手",
+      "sku_snapshot.在途",
+      "sku_snapshot.销售行数",
+      "sku_snapshot.库存行数",
+      "sku_snapshot.数据集ID",
+      "sku_snapshot.截止日",
+      "run_replenish.断货天数",
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 的服务水平 = 97%（来源：cost_reverse，即按成本反解得到的目标服务水平，并非直接取现值）**\n\n配套口径（数据集「合成-断货14天」，dataset_id=ds_00b31ed333b05de698c0）：\n\n| 项目 | 数值 |\n|---|---|\n| 日均需求 | 8.77 件 |\n| 总交期 | 53 天 |\n| σ_LT | 37.10 |\n| 安全库存 SS | 69.77 件 |\n| 历史断货 | 0 天（无断货日） |\n| 断货损失 | 约 0 元 |\n\n数据来源与行数口径：\n- sales_daily：销售日记录 180 行；inventory_daily：库存日记录 180 行；截至 2026-06-29 在手 279 件、在途 0 件。\n- demand_daily：需求统计依据上述日均与 σ_LT（本次回执未单列 demand_daily 行数）。\n\n两点提醒：\n1. 这个 97% 是模型按成本反解的目标值，不是历史实际达成的服务水平；该 SKU 历史断货 0 天，说明近期没触发过缺货，实际履约并不等于 97% 这个目标。\n2. 数据为 SYNTHETIC 合成演示（合成-断货14天场景），结论不可当作真实经营依据。\n\n如果你要的是「按 97% 下单得订多少」（回执建议补 420 件、占用资金 4,200 元，持有 45 天），或者想换别的数据集（如交期延误20天、正在缺货）对比服务水平，我可以接着跑。"
+  },
+  {
+    "id": "A13",
+    "run": 2,
+    "question": "SKU-017 的服务水平是多少？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "sku_snapshot.销售行数",
+      "sku_snapshot.库存行数",
+      "sku_snapshot.数据集ID",
+      "sku_snapshot.截止日",
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 的服务水平 = 97%（来源：cost_reverse，即按成本反解目标服务水平）**\n\n补充的同一口径信息如下：\n\n| 项目 | 数值 |\n|---|---|\n| 数据集 | 合成-断货14天（dataset_id=ds_00b31ed333b05de698c0） |\n| 日均需求 | 8.77 件 |\n| σ_LT | 37.10 |\n| 安全库存 SS | 69.77 件 |\n| 总交期 | 53 天 |\n| 在手、在途（截至 2026-06-29） | 279.0 件、0.0 件 |\n| 历史断货 | 0 天，无断货日，断货损失约 0 元 |\n| 建议补货量（持有 45 天） | 420 件，占用资金 4,200 元 |\n\n数据行数口径：销售日记录 180 行，库存日记录 180 行，这些记录来自 sales_daily 和 inventory_daily 两张表。\n\n⚠️ 口径声明：这是 SYNTHETIC 合成演示场景，结论不可当作真实经营依据。"
+  },
+  {
+    "id": "A13",
+    "run": 3,
+    "question": "SKU-017 的服务水平是多少？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "sku_snapshot.在手",
+      "sku_snapshot.在途",
+      "sku_snapshot.数据集ID",
+      "sku_snapshot.截止日",
+      "run_replenish.日均",
+      "run_replenish.总交期",
+      "run_replenish.服务水平",
+      "run_replenish.σ_LT",
+      "run_replenish.SS",
+      "run_replenish.断货天数",
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 服务水平 = 97%**\n\n依据与口径：\n- **来源**：`run_replenish` 回执明确给出「服务水平 97%（cost_reverse）」，即由成本/售价结构反推的最优服务水平，不是人工设定值。\n- **数据集**：合成-断货14天（dataset_id=ds_00b31ed333b05de698c0，SYNTHETIC 合成演示数据）\n- **行数口径**：sales_daily 180 行、inventory_daily 180 行；截至 2026-06-29 在手 279 件、在途 0 件\n- **配套参数**：日均 8.77 件，总交期 53 天，σ_LT=37.10，安全库存 SS=69.77，历史断货 0 天，建议补货 420 件（占用资金 4,200 元）\n\n⚠️ 提示：这是合成场景数据，结论不可当作真实经营依据。如需看 97% 服务水平下的补货建议明细，或换其他数据集（如「合成-正在缺货」）对比，告诉我即可。"
+  },
+  {
+    "id": "A13",
+    "run": 4,
+    "question": "SKU-017 的服务水平是多少？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "run_replenish.日均",
+      "run_replenish.总交期",
+      "run_replenish.σ_LT",
+      "run_replenish.SS",
+      "run_replenish.断货天数"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 服务水平 = 97%**\n\n- **数据集**：合成-断货14天（id=ds_00b31ed333b05de698c0，SYNTHETIC）\n- **服务水平**：97%，来源为 `cost_reverse`，即按成本反推得到的目标服务水平\n- **相关指标**：日均 8.77 件 / σ_LT=37.10 / 安全库存 SS=69.77 / 总交期 53 天\n- **数据行数口径**：本数据集的销售与库存日级明细聚合（sales_daily / inventory_daily 的日行 → 按 SKU 汇总为日均 8.77 件）；历史断货 0 天，无首个断货日\n- **场景声明**：合成数据，结论不可当作真实经营依据\n\n提示：服务水平是由模型 `cost_reverse` 反推出来的目标值，并不表示历史实际达成率；如需核对服务水平对补货量的影响，我可以再切换到其他数据集做对比。"
+  },
+  {
+    "id": "A13",
+    "run": 5,
+    "question": "SKU-017 的服务水平是多少？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "run_replenish.日均",
+      "run_replenish.总交期",
+      "run_replenish.σ_LT",
+      "run_replenish.SS",
+      "run_replenish.断货天数",
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 的服务水平：97%**\n\n- **服务水平来源**：由 cost_reverse（成本反推）得出，不是手工固定值\n- **数据集**：合成-断货14天；本次读取的最新快照口径下，日均 8.77 件、总交期 53 天、σ_LT = 37.10、安全库存 SS = 69.77\n- **行数口径**：sales_daily / inventory_daily / demand_daily 三类表按该 SKU 参与计算（历史断货 0 天，无首个断货日）\n- **本次场景说明**：随机生成的合成场景，结论不可当作真实经营依据\n\n顺带一提：按该服务水平算出的建议补货量为 420 件，占用资金 4,200 元。如果你要深挖服务水平怎么来的、或要调 95%/99% 重算，我可以转给预测/补货模块处理。"
+  },
+  {
+    "id": "A15",
+    "run": 1,
+    "question": "SKU-017 的安全库存是多少件？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "sku_snapshot.在手",
+      "sku_snapshot.在途",
+      "sku_snapshot.销售行数",
+      "sku_snapshot.库存行数",
+      "sku_snapshot.数据集ID",
+      "sku_snapshot.截止日",
+      "run_replenish.SS",
+      "run_replenish.断货天数",
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 安全库存 = 69.77 件（约 70 件）**\n\n计算口径（数据集：`合成-断货14天`，dataset_id=ds_00b31ed333b05de698c0）：\n\n| 参数 | 值 |\n|---|---|\n| 日均需求 | 8.77 件 |\n| 服务水平 | 97%（来源：cost_reverse，由成本反向推导得出） |\n| 总交期 | 53 天 |\n| σ_LT（交期内的需求标准差） | 37.10 |\n| **安全库存 SS** | **69.77 件** |\n\n参考的库存现状（截至 2026-06-29）：在手 279 件，在途 0 件；历史断货 0 天，断货损失约 0 元；本次建议补货 420 件，占用资金 4,200 元。\n\n数据口径：销售日记录 180 行、库存日记录 180 行（均为 SYNTHETIC 合成演示数据，只读，不可作为真实经营依据）。"
+  },
+  {
+    "id": "A15",
+    "run": 2,
+    "question": "SKU-017 的安全库存是多少件？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "sku_snapshot.在手",
+      "sku_snapshot.在途",
+      "sku_snapshot.销售行数",
+      "sku_snapshot.库存行数",
+      "sku_snapshot.截止日",
+      "run_replenish.SS",
+      "run_replenish.断货天数",
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 安全库存 = 69.77 件（约 70 件）**\n\n计算依据（数据集：合成-断货14天，ds_00b31ed333b05de698c0）：\n\n| 项目 | 数值 |\n|---|---|\n| 日均销量 | 8.77 件/天 |\n| 服务水平 | 97%（来源 cost_reverse） |\n| 总交期 | 53 天 |\n| 交期波动 σ_LT | 37.10 |\n| **安全库存 SS** | **69.77 件** |\n\n其他关联信息：\n- 截至 2026-06-29：在手 279 件，在途 0 件（口径：库存日记录 180 行、销售日记录 180 行）\n- 历史断货 0 天，断货损失约 0 元\n- 建议补货 420 件，占用资金 4,200 元（按 45 天持有期）\n\n口径声明：以上为合成演示数据（SYNTHETIC），结论不可作为真实经营依据。"
+  },
+  {
+    "id": "A15",
+    "run": 3,
+    "question": "SKU-017 的安全库存是多少件？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "run_replenish.总交期",
+      "run_replenish.服务水平",
+      "run_replenish.σ_LT",
+      "run_replenish.SS",
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 安全库存 = 69.77 件**（约 70 件）\n\n计算依据（数据集：合成-断货14天，源表 sales_daily / inventory_daily / demand_daily）：\n- 日均需求 8.77 件\n- 服务水平 97%（来源：cost_reverse 反推）\n- 总交期 53 天，交期波动 σ_LT = 37.10\n- 安全库存 SS = 69.77 件\n\n顺带：建议补货 420 件，占用资金 4,200 元；历史无断货日（0 天），断货损失约 0 元。\n\n口径提示：该数据集为合成场景，结论不可当作真实经营依据。需要其它数据集口径，或要我按不同服务水平重算，告诉我即可。"
+  },
+  {
+    "id": "A15",
+    "run": 4,
+    "question": "SKU-017 的安全库存是多少件？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "run_replenish.SS",
+      "run_replenish.断货天数",
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 安全库存 = 69.77 件，约 70 件**\n\n测算参数（数据来源：合成-断货14天 数据集，`demand_daily` 需求序列 + `inventory_daily` 库存快照口径；SKU-017 单点查询）：\n\n| 项目 | 数值 |\n|---|---|\n| 日均需求 | 8.77 件 |\n| 服务水平 | 97%（来源：cost_reverse 反推） |\n| 总交期 | 53 天 |\n| σ_LT（交期需求波动） | 37.10 |\n| **安全库存 SS** | **69.77 件** |\n| 建议补货量 | 420 件（占用资金 4,200 元） |\n\n补充说明：\n- 历史断货 0 天，无首个断货日，断货损失约 0 元（口径：断货天数 × 日均 × 售价 × 毛利率 × 1.5）。\n- 口径声明：本数据集为**合成场景**（「合成-断货14天」），结论不可当作真实经营依据；70 件对应 97% 服务水平下的交期波动缓冲，若调整服务水平或交期，SS 会同步变化。\n\n如需换成其他数据集（如真实业务库）核对同一指标，请告诉我数据集名称，我再取一次数。"
+  },
+  {
+    "id": "A15",
+    "run": 5,
+    "question": "SKU-017 的安全库存是多少件？",
+    "last_agent": "A3_ask",
+    "status": "ok",
+    "markers": [
+      "run_replenish.占用资金"
+    ],
+    "forbidden": [],
+    "ok": true,
+    "answer": "**SKU-017 的安全库存为 69.77 件，约 70 件。**\n\n计算依据（数据集：合成-断货14天）：\n\n| 项目 | 数值 |\n|---|---|\n| 日均销量 | 8.77 件/天 |\n| 服务水平 | 97%（来源：cost_reverse） |\n| 总交期 | 53 天 |\n| σ_LT（交期需求波动） | 37.10 |\n| **安全库存 SS** | **69.77 件** |\n\n另外一并说明：本次给出的补货建议量为 420 件，占用资金 4,200 元；历史断货天数为 0 天，因此断货损失约为 0 元。\n\n⚠️ 口径声明：该结论基于**合成场景数据**，不能作为真实经营依据。数据来源表：sales_daily / inventory_daily / demand_daily（本工具回执只给出聚合结果，未返回各表的行数明细；如需精确行数口径，请告知，我会再核对）。"
+  }
+]
