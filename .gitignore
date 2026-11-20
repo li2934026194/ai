@@ -5,6 +5,7 @@ pilot/frontend/node_modules/
 pilot/web/dist/
 pilot/.idea/
 pilot/.pytest_cache/
+pilot/_backup_*/
 
 # Data & database files
 pilot/data/*.zip
