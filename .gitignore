@@ -13,6 +13,8 @@ pilot/data/*.csv
 pilot/data/*.db
 pilot/data/*.sqlite*
 *.db-journal
+# keep the small reference sample (cloud agents need it)
+!pilot/data/sample_*.csv
 
 # Logs & caches
 *.log
