@@ -1,7 +1,7 @@
 # 严格业务风控、9角色权限矩阵与现实优化设计（V2）
 
-> 对应流程图目录：`docs/prototypes/modules/`（`m00_rbac_matrix.png` + `m01_shop.png` ~ `m13_kb.png`，共 14 张 PNG）  
-> 设计原则：**凡涉金钱与对外发布必设人工审批门禁、提案与审批强制分离（SoD）、管理权与资金权分离、未知不填零、全链路不可篡改审计**。
+> 对应流程图目录：`docs/prototypes/modules/`（`m00_rbac_matrix.png` + `m01_shop.png` ~ `m13_kb.png` + `m14_ux_principles.png`，共 15 张 PNG）  
+> 设计原则：**凡涉金钱与对外发布必设人工审批门禁、提案与审批强制分离（SoD）、管理权与资金权分离、未知不填零、全链路不可篡改审计；同时「把麻烦留给系统预检，把直观和一键决策留给人」**。
 
 ---
 
