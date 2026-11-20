@@ -25,3 +25,8 @@ __pycache__/
 # Editor / OS
 .DS_Store
 Thumbs.db
+
+# Binary docs: source docx stays local, only the converted .md is committed
+*.docx
+*.doc
+~$*.doc*
