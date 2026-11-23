@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrossPilot · AI跨境电商平台交互原型（SRS V6对齐版）</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app" class="shell">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">CP</div>
+        <div>
+          <div class="brand-name">CrossPilot</div>
+          <div class="brand-sub">AI跨境电商 · V6交互原型</div>
+        </div>
+      </div>
+
+      <div class="role-box">
+        <label class="role-label">当前演示角色 (6角色RBAC)</label>
+        <select id="roleSelect" class="role-select">
+          <option value="planner">planner · 运营/选品/补货专员</option>
+          <option value="approver">approver · 主管/财务审批人</option>
+          <option value="warehouse">warehouse · 仓管/履约专员</option>
+          <option value="viewer">viewer · 只读观察员</option>
+          <option value="auditor">auditor · 合规审计员</option>
+          <option value="admin">admin · 系统管理员</option>
+        </select>
+        <div id="roleHint" class="role-hint"></div>
+      </div>
+
+      <nav id="sidebarNav" class="nav-list"></nav>
+
+      <div class="sidebar-footer">
+        <div>对齐文档：SRS V1.0 + 1→2→3通俗版</div>
+        <div>§0.3 示例数值与规则常量已明确标注</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrap">
+      <!-- Top Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div id="breadcrumb" class="breadcrumb">CROSSPILOT</div>
+          <h1 id="pageTitle" class="page-title">加载中...</h1>
+          <p id="pageSubtitle" class="page-subtitle"></p>
+        </div>
+        <div class="topbar-actions">
+          <div id="headerActions" class="header-action-btns"></div>
+          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="展开或收起右侧SRS注释与底部来源台账">
+            📖 SRS注释与来源台账：<span id="annoStateText">已展开</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Sub-page Navigation Buttons -->
+      <div class="subnav-bar">
+        <span class="subnav-label">页面切换按钮：</span>
+        <div id="subnavButtons" class="subnav-buttons"></div>
+      </div>
+
+      <!-- Workspace Body: Main Page + Optional Annotation Drawer -->
+      <div class="workspace-grid" id="workspaceGrid">
+        <main id="pageBody" class="page-body"></main>
+
+        <aside id="annoPanel" class="anno-panel">
+          <div class="anno-header">
+            <div class="anno-title" id="annoPageTitle">功能块注释</div>
+            <div class="anno-sub" id="annoPageSub">1→2→3 对应 · SRS依据 · 技术支撑</div>
+          </div>
+          <div id="annoCards" class="anno-cards"></div>
+        </aside>
+      </div>
+
+      <!-- Bottom Word/Number Provenance Ledger -->
+      <section id="ledgerPanel" class="ledger-panel">
+        <div class="ledger-header">
+          <strong>本页文字与数字来源台账</strong>
+          <span class="ledger-note">严格区分：SRS规则 / 代码常量 vs §0.3 Mock / 老师原型示例展示值</span>
+        </div>
+        <div id="ledgerGrid" class="ledger-grid"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Toast & Modal container -->
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="modalRoot"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
