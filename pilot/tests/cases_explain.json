@@ -1,0 +1,632 @@
+{
+  "version": "v1",
+  "frozen_at": "2026-11-18",
+  "note": "PACK 13 解释评测集，跑分前冻结。db 用例的 expect 由 api.service.sku_detail 在 2026-11-18 读出后冻结；constructed 用例不写库，由 core 现有函数在内存中构造序列。",
+  "subject_agent": "A6_replenish",
+  "judge": "① 四要素齐全（日均/总交期/断货日/金额，异常态用等价文案）；② agents.explain.verify_numbers(text, expect) 返回 True。",
+  "datasets_used": [
+    {
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "name": "合成-正在缺货",
+      "why": "PACK 13 指定的主场景：5 个 SKU 当前在手=0、建议量 660，断货日 8 天"
+    },
+    {
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "name": "合成-断货14天",
+      "why": "正常场景基准：180 天完整历史、当前库存充足，含 SKU-001（14 天断货）与 SKU-018/019/020（缺成本）"
+    },
+    {
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "name": "合成-新品零历史",
+      "why": "E-1001 来源：SKU-017 只有 3 天有效历史"
+    },
+    {
+      "dataset_id": "ds_4773b5aefc855e45ad9c",
+      "name": "合成-数据缺30天",
+      "why": "E-1001 来源：SKU-017 只有 55 天有效历史"
+    },
+    {
+      "dataset_id": "ds_27ebf3da154f5b0a9963",
+      "name": "合成-交期延误20天",
+      "why": "正常 SKU 交叉样本"
+    },
+    {
+      "dataset_id": "ds_8a46ca94f7325ac491c5",
+      "name": "合成-大促3倍",
+      "why": "正常 SKU 交叉样本"
+    },
+    {
+      "dataset_id": "constructed",
+      "name": "内存构造序列（不写库）",
+      "why": "固定数据集最大断货占比仅 10.56%，无法触发 E-1004；只用内存序列验证 >50% 断货的代码路径"
+    }
+  ],
+  "cases": [
+    {
+      "id": "EX-01",
+      "category": "E-1001",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": null,
+        "lead_time": null,
+        "zero_days": null,
+        "capital": null
+      },
+      "expect_refuse": true
+    },
+    {
+      "id": "EX-02",
+      "category": "E-1001",
+      "source": "db",
+      "dataset_id": "ds_4773b5aefc855e45ad9c",
+      "dataset_name": "合成-数据缺30天",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-数据缺30天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": null,
+        "lead_time": null,
+        "zero_days": null,
+        "capital": null
+      },
+      "expect_refuse": true
+    },
+    {
+      "id": "EX-03",
+      "category": "E-1001",
+      "source": "constructed",
+      "constructed": {
+        "kind": "insufficient",
+        "days": 30,
+        "qty_per_day": 8.0
+      },
+      "question": "（构造序列：30 天有效历史）",
+      "expect": {
+        "mu_daily": null,
+        "lead_time": null,
+        "zero_days": null,
+        "capital": null
+      },
+      "expect_refuse": true
+    },
+    {
+      "id": "EX-04",
+      "category": "E-1002",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-018",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-018 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 0.9444,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": null
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-05",
+      "category": "E-1002",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-019",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-019 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 0.8278,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": null
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-06",
+      "category": "E-1002",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-020",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-020 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 0.8222,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": null
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-07",
+      "category": "E-1004",
+      "source": "constructed",
+      "constructed": {
+        "kind": "high_stockout",
+        "days": 180,
+        "stockout_days": 100,
+        "stockout_from": 60,
+        "qty_per_day": 8.0
+      },
+      "question": "（构造序列：180 天中 100 天断货，占比 55.6%）",
+      "expect": {
+        "mu_daily": 8.0,
+        "lead_time": 53,
+        "zero_days": 100,
+        "capital": 5440.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-08",
+      "category": "E-1004",
+      "source": "constructed",
+      "constructed": {
+        "kind": "high_stockout",
+        "days": 180,
+        "stockout_days": 95,
+        "stockout_from": 60,
+        "qty_per_day": 6.0
+      },
+      "question": "（构造序列：180 天中 95 天断货，占比 52.8%）",
+      "expect": {
+        "mu_daily": 6.0,
+        "lead_time": 53,
+        "zero_days": 95,
+        "capital": 4080.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-09",
+      "category": "E-1004",
+      "source": "constructed",
+      "constructed": {
+        "kind": "high_stockout",
+        "days": 180,
+        "stockout_days": 105,
+        "stockout_from": 60,
+        "qty_per_day": 10.0
+      },
+      "question": "（构造序列：180 天中 105 天断货，占比 58.3%）",
+      "expect": {
+        "mu_daily": 10.0,
+        "lead_time": 53,
+        "zero_days": 105,
+        "capital": 6800.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-10",
+      "category": "E-4001",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-001",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 9.1386,
+        "lead_time": 53,
+        "zero_days": 14,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-11",
+      "category": "E-4001",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-002",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-002 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.8389,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-12",
+      "category": "E-4001",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-009",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-009 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.5222,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-13",
+      "category": "E-5001",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.8,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 3600.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-14",
+      "category": "E-5001",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-010",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-010 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7889,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-15",
+      "category": "E-5001",
+      "source": "db",
+      "dataset_id": "ds_27ebf3da154f5b0a9963",
+      "dataset_name": "合成-交期延误20天",
+      "sku": "SKU-008",
+      "question": "在数据集「合成-交期延误20天」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7667,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-16",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-008",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7667,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-17",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-010",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-010 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7889,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-18",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-014",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-014 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 9.2833,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 4200.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-19",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_00b31ed333b05de698c0",
+      "dataset_name": "合成-断货14天",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-断货14天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7722,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 3600.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-20",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-002",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-002 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.8023,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 9240.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-21",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-003",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-003 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.5523,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 11880.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-22",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-004",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-004 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7151,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 14520.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-23",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-005",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-005 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.8895,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 6600.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-24",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_505a8430098d535b8ec1",
+      "dataset_name": "合成-正在缺货",
+      "sku": "SKU-006",
+      "question": "在数据集「合成-正在缺货」里，请解释 SKU-006 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.8605,
+        "lead_time": 53,
+        "zero_days": 8,
+        "capital": 9240.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-25",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-001",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 9.1389,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-26",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-008",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7667,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-27",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_855373e38a205928a6e8",
+      "dataset_name": "合成-新品零历史",
+      "sku": "SKU-014",
+      "question": "在数据集「合成-新品零历史」里，请解释 SKU-014 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 9.2833,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 4200.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-28",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_27ebf3da154f5b0a9963",
+      "dataset_name": "合成-交期延误20天",
+      "sku": "SKU-017",
+      "question": "在数据集「合成-交期延误20天」里，请解释 SKU-017 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7722,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 3600.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-29",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_4773b5aefc855e45ad9c",
+      "dataset_name": "合成-数据缺30天",
+      "sku": "SKU-001",
+      "question": "在数据集「合成-数据缺30天」里，请解释 SKU-001 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 9.1389,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    },
+    {
+      "id": "EX-30",
+      "category": "正常",
+      "source": "db",
+      "dataset_id": "ds_8a46ca94f7325ac491c5",
+      "dataset_name": "合成-大促3倍",
+      "sku": "SKU-008",
+      "question": "在数据集「合成-大促3倍」里，请解释 SKU-008 的补货建议：日均销量、总交期、断货日、占用资金各是多少？",
+      "expect": {
+        "mu_daily": 8.7667,
+        "lead_time": 53,
+        "zero_days": 0,
+        "capital": 0.0
+      },
+      "expect_refuse": false
+    }
+  ],
+  "revised_at": "2026-11-19",
+  "revision_note": "PACK 16a 改「σ_日 = 回测各窗口样本外合并残差」并接通 ar1 后，5 个数据集的建议量随之变化；本文件按 as-built 重算 db 类用例的 expect（mu/lead_time/zero_days/capital），问题文本、期望意图、拒答判定、构造类用例一律未改。逐条新旧值见 revision_changes。",
+  "revision_changes": [
+    {
+      "id": "EX-13",
+      "dataset": "合成-正在缺货",
+      "sku": "SKU-017",
+      "field": "capital",
+      "old": 4200.0,
+      "new": 3600.0
+    },
+    {
+      "id": "EX-14",
+      "dataset": "合成-新品零历史",
+      "sku": "SKU-010",
+      "field": "capital",
+      "old": 4200.0,
+      "new": 0.0
+    },
+    {
+      "id": "EX-15",
+      "dataset": "合成-交期延误20天",
+      "sku": "SKU-008",
+      "field": "capital",
+      "old": 6600.0,
+      "new": 0.0
+    },
+    {
+      "id": "EX-16",
+      "dataset": "合成-断货14天",
+      "sku": "SKU-008",
+      "field": "capital",
+      "old": 6600.0,
+      "new": 0.0
+    },
+    {
+      "id": "EX-17",
+      "dataset": "合成-断货14天",
+      "sku": "SKU-010",
+      "field": "capital",
+      "old": 4200.0,
+      "new": 0.0
+    },
+    {
+      "id": "EX-19",
+      "dataset": "合成-断货14天",
+      "sku": "SKU-017",
+      "field": "capital",
+      "old": 4200.0,
+      "new": 3600.0
+    },
+    {
+      "id": "EX-25",
+      "dataset": "合成-新品零历史",
+      "sku": "SKU-001",
+      "field": "capital",
+      "old": 3000.0,
+      "new": 0.0
+    },
+    {
+      "id": "EX-26",
+      "dataset": "合成-新品零历史",
+      "sku": "SKU-008",
+      "field": "capital",
+      "old": 6600.0,
+      "new": 0.0
+    },
+    {
+      "id": "EX-28",
+      "dataset": "合成-交期延误20天",
+      "sku": "SKU-017",
+      "field": "capital",
+      "old": 4200.0,
+      "new": 3600.0
+    },
+    {
+      "id": "EX-29",
+      "dataset": "合成-数据缺30天",
+      "sku": "SKU-001",
+      "field": "capital",
+      "old": 3000.0,
+      "new": 0.0
+    },
+    {
+      "id": "EX-30",
+      "dataset": "合成-大促3倍",
+      "sku": "SKU-008",
+      "field": "capital",
+      "old": 6600.0,
+      "new": 0.0
+    }
+  ]
+}

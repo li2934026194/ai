@@ -1,0 +1,8 @@
+# 固定版本（统一 .venv 环境，防止版本漂移）
+sqlalchemy==2.0.36
+openai-agents==0.24.0
+fastapi==0.163.1
+uvicorn==0.54.0
+httpx2==2.16.2
+# PACK 23：JWT 签发/校验（密码哈希用标准库 scrypt，不引入 bcrypt/passlib）
+PyJWT==2.15.1

@@ -1,0 +1,90 @@
+{
+  "1366": {
+    "P1": {
+      "scrollW": 1366,
+      "clientW": 1366,
+      "overflow": false,
+      "hash": "#P1"
+    },
+    "P2": {
+      "scrollW": 1366,
+      "clientW": 1366,
+      "overflow": false,
+      "hash": "#P2"
+    },
+    "P3": {
+      "scrollW": 1366,
+      "clientW": 1366,
+      "overflow": false,
+      "hash": "#P3"
+    },
+    "P4": {
+      "scrollW": 1366,
+      "clientW": 1366,
+      "overflow": false,
+      "hash": "#P4"
+    },
+    "P5": {
+      "scrollW": 1366,
+      "clientW": 1366,
+      "overflow": false,
+      "hash": "#P5"
+    },
+    "P6": {
+      "scrollW": 1366,
+      "clientW": 1366,
+      "overflow": false,
+      "hash": "#P6"
+    },
+    "P7": {
+      "scrollW": 1366,
+      "clientW": 1366,
+      "overflow": false,
+      "hash": "#P7"
+    }
+  },
+  "1920": {
+    "P1": {
+      "scrollW": 1920,
+      "clientW": 1920,
+      "overflow": false,
+      "hash": "#P1"
+    },
+    "P2": {
+      "scrollW": 1920,
+      "clientW": 1920,
+      "overflow": false,
+      "hash": "#P2"
+    },
+    "P3": {
+      "scrollW": 1920,
+      "clientW": 1920,
+      "overflow": false,
+      "hash": "#P3"
+    },
+    "P4": {
+      "scrollW": 1920,
+      "clientW": 1920,
+      "overflow": false,
+      "hash": "#P4"
+    },
+    "P5": {
+      "scrollW": 1920,
+      "clientW": 1920,
+      "overflow": false,
+      "hash": "#P5"
+    },
+    "P6": {
+      "scrollW": 1920,
+      "clientW": 1920,
+      "overflow": false,
+      "hash": "#P6"
+    },
+    "P7": {
+      "scrollW": 1920,
+      "clientW": 1920,
+      "overflow": false,
+      "hash": "#P7"
+    }
+  }
+}
