@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CrossPilot · AI跨境电商平台交互原型（SRS V6对齐版）</title>
+  <title>CrossPilot · AI跨境电商智能工作台（SRS V6 · 27页完整交互版）</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div id="app" class="shell">
-    <!-- Left Sidebar -->
+    <!-- Left Accordion Sidebar -->
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-logo">CP</div>
         <div>
           <div class="brand-name">CrossPilot</div>
-          <div class="brand-sub">AI跨境电商 · V6交互原型</div>
+          <div class="brand-sub">AI跨境电商 · SRS V6工作台</div>
         </div>
       </div>
 
       <div class="role-box">
-        <label class="role-label">当前演示角色 (SRS §1.5 九大角色)</label>
+        <label class="role-label">当前登录角色 (SRS §1.5 九大角色)</label>
         <select id="roleSelect" class="role-select">
           <option value="approver">主管 / 审批人 (approver)</option>
           <option value="manager">大屏浏览者 / 管理者 (manager)</option>
@@ -37,14 +37,13 @@
       <nav id="sidebarNav" class="nav-list"></nav>
 
       <div class="sidebar-footer">
-        <div>对齐文档：SRS V1.0 (§1.5 九角色) + 1→2→3</div>
-        <div>§0.3 示例数值与规则常量已明确标注</div>
+        <div>对齐：SRS V1.0 (§1.5 九角色) · 27页</div>
+        <div>§0.3 示例数值与规则常量已隔离标注</div>
       </div>
     </aside>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Area (Plan A: No Subnav Bar, Full Width!) -->
     <div class="main-wrap">
-      <!-- Top Header -->
       <header class="topbar">
         <div class="topbar-left">
           <div id="breadcrumb" class="breadcrumb">CROSSPILOT</div>
@@ -53,43 +52,48 @@
         </div>
         <div class="topbar-actions">
           <div id="headerActions" class="header-action-btns"></div>
-          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="展开或收起右侧SRS注释与底部来源台账">
-            📖 SRS注释与来源台账：<span id="annoStateText">已展开</span>
+          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="展开右侧 SRS 注释与来源台账抽屉">
+            📖 SRS注释与来源台账
           </button>
         </div>
       </header>
 
-      <!-- Sub-page Navigation Buttons -->
-      <div class="subnav-bar">
-        <span class="subnav-label">页面切换按钮：</span>
-        <div id="subnavButtons" class="subnav-buttons"></div>
-      </div>
-
-      <!-- Workspace Body: Main Page + Optional Annotation Drawer -->
-      <div class="workspace-grid" id="workspaceGrid">
-        <main id="pageBody" class="page-body"></main>
-
-        <aside id="annoPanel" class="anno-panel">
-          <div class="anno-header">
-            <div class="anno-title" id="annoPageTitle">功能块注释</div>
-            <div class="anno-sub" id="annoPageSub">1→2→3 对应 · SRS依据 · 技术支撑</div>
-          </div>
-          <div id="annoCards" class="anno-cards"></div>
-        </aside>
-      </div>
-
-      <!-- Bottom Word/Number Provenance Ledger -->
-      <section id="ledgerPanel" class="ledger-panel">
-        <div class="ledger-header">
-          <strong>本页文字与数字来源台账</strong>
-          <span class="ledger-note">严格区分：SRS规则 / 代码常量 vs §0.3 Mock / 老师原型示例展示值</span>
-        </div>
-        <div id="ledgerGrid" class="ledger-grid"></div>
-      </section>
+      <main id="pageBody" class="page-body"></main>
     </div>
   </div>
 
-  <!-- Toast & Modal container -->
+  <!-- Slide-over SRS Annotation & Provenance Drawer (Hidden by default) -->
+  <div id="annoDrawerBackdrop" class="drawer-backdrop hidden"></div>
+  <aside id="annoDrawer" class="slide-drawer hidden" aria-label="SRS注释与来源台账">
+    <div class="drawer-head dark">
+      <div>
+        <div class="drawer-title" id="annoPageTitle">功能块注释</div>
+        <div class="drawer-sub">1→2→3 对应 · SRS 依据 · 文字与数字来源台账</div>
+      </div>
+      <button class="btn btn-sm" id="closeAnnoDrawer">✕ 关闭</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-sec-label">📌 页面功能块注释（1→2→3 + SRS依据）</div>
+      <div id="annoCards" class="anno-cards"></div>
+      <div class="drawer-sec-label" style="margin-top:16px;">🧾 本页文字与数字来源台账</div>
+      <div class="ledger-note" style="margin-bottom:8px;">严格区分：SRS规则 / 代码常量 vs §0.3 Mock / 示例展示值</div>
+      <div id="ledgerGrid" class="ledger-list"></div>
+    </div>
+  </aside>
+
+  <!-- Generic Detail Slide-over Drawer -->
+  <div id="detailDrawerBackdrop" class="drawer-backdrop hidden"></div>
+  <aside id="detailDrawer" class="slide-drawer hidden" aria-label="业务详情抽屉">
+    <div class="drawer-head">
+      <div>
+        <div class="drawer-title" id="detailDrawerTitle">详情</div>
+        <div class="drawer-sub" id="detailDrawerSub"></div>
+      </div>
+      <button class="btn btn-sm" id="closeDetailDrawer">✕</button>
+    </div>
+    <div class="drawer-body" id="detailDrawerBody"></div>
+  </aside>
+
   <div id="toastContainer" class="toast-container"></div>
   <div id="modalRoot"></div>
 
