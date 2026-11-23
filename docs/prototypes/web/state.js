@@ -237,29 +237,42 @@ export function getRoleTodos(state) {
   const pendTk = state.tickets.filter(t => t.status === "待主管审批").length;
   const pendSel = state.m4Pool.filter(x => x.stage === "已提交待审").length;
   const aiCand = state.m4Pool.filter(x => x.stage === "AI初筛候选").length;
+  const missSel = state.m4Pool.filter(x => x.stage === "缺成本/待补全").length;
   const pendRp = state.m6Plans.filter(p => p.status === "待主管审批").length;
   const lowInv = state.inventoryItems.filter(i => i.shopMode === "REAL" && i.avail < i.safety).length;
   const pendCs = state.csSessions.filter(s => s.mode === "PENDING_HUMAN").length;
+  const imgMiss = state.m7Images.filter(im => !im.done).length;
 
   if (r === "approver") {
     if (pendTk) todos.m1c = `待审 ${pendTk}`;
     if (pendSel) todos.m4c = `待拍板 ${pendSel}`;
     if (pendRp) todos.m6c = `待批 ${pendRp}`;
     if (state.m7ComplianceStatus !== "主管已批准导出") todos.m7d = "待把关";
+  } else if (r === "manager") {
+    todos.m0a = `${state.shops.length} 店`;
+    todos.m2b = "大屏";
+    todos.m8a = `授权 ${state.employees.length}`;
+  } else if (r === "planner") {
+    todos.m2a = "设计";
+    todos.m5b = "预测";
+    todos.m6a = "测算";
+  } else if (r === "bi_analyst") {
+    todos.m3a = `调度 ${state.qaBindings.length}`;
+    todos.m3b = "问数";
+    todos.m5c = "WAPE";
   } else if (r === "selector") {
-    if (aiCand) todos.m4b = `初筛 ${aiCand}`;
-  } else if (r === "cs") {
-    if (pendCs) todos.m1a = `接管 ${pendCs}`;
-    if (pendTk) todos.m1c = `跟进 ${pendTk}`;
+    if (aiCand + missSel) todos.m4b = `初筛 ${aiCand + missSel}`;
+  } else if (r === "creator") {
+    if (imgMiss) todos.m7b = `缺图 ${imgMiss}`;
+    todos.m7d = "交付";
   } else if (r === "warehouse") {
     if (lowInv) todos.m0c = `预警 ${lowInv}`;
     todos.m6d = "收货";
-  } else if (r === "planner") {
-    todos.m6a = "测算";
-  } else if (r === "creator") {
-    todos.m7d = "交付";
+  } else if (r === "cs") {
+    if (pendCs) todos.m1a = `接管 ${pendCs}`;
+    if (pendTk) todos.m1c = `跟进 ${pendTk}`;
   } else if (r === "mock_buyer") {
-    todos.m1d = "入口";
+    todos.m1d = "测试入口";
   }
   return todos;
 }

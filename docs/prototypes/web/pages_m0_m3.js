@@ -738,14 +738,17 @@ export function renderM0_M3(pageId, state, helpers) {
         <div class="grid-2">
           <div class="card">
             <div class="card-header"><div class="card-title"><span class="anno-tag t-green">2</span> 多平台每日 GMV 与利润趋势</div></div>
-            <svg viewBox="0 0 500 180" style="width:100%;height:190px;background:#fafcff;border-radius:8px;border:1px solid #e2e8f0;">
-              <polyline fill="none" stroke="#2563eb" stroke-width="3" points="30,140 95,120 160,126 225,88 290,76 355,54 420,44 475,28" />
-              <polyline fill="none" stroke="#10b981" stroke-width="2.5" points="30,158 95,148 160,150 225,130 290,122 355,108 420,98 475,86" />
-              <text x="30" y="172" font-size="11" fill="#64748b">11-12</text>
-              <text x="225" y="172" font-size="11" fill="#64748b">11-15</text>
-              <text x="445" y="172" font-size="11" fill="#64748b">11-19</text>
-              <text x="340" y="22" font-size="11" fill="#2563eb" font-weight="bold">● GMV</text>
-              <text x="410" y="22" font-size="11" fill="#10b981" font-weight="bold">● 净利润</text>
+            <svg viewBox="0 0 560 190" style="width:100%;height:auto;max-height:195px;display:block;background:#ffffff;border-radius:6px;">
+              <line x1="30" y1="45" x2="530" y2="45" stroke="#f1f5f9" stroke-width="1"/>
+              <line x1="30" y1="100" x2="530" y2="100" stroke="#f1f5f9" stroke-width="1"/>
+              <line x1="30" y1="155" x2="530" y2="155" stroke="#e2e8f0" stroke-width="1"/>
+              <polyline fill="none" stroke="#2563eb" stroke-width="2.2" points="40,140 110,120 180,126 250,88 320,76 390,54 460,44 520,28" />
+              <polyline fill="none" stroke="#10b981" stroke-width="2" points="40,152 110,142 180,145 250,125 320,118 390,104 460,94 520,82" />
+              <text x="40" y="175" font-size="10" fill="#64748b">11-12</text>
+              <text x="250" y="175" font-size="10" fill="#64748b" text-anchor="middle">11-15</text>
+              <text x="520" y="175" font-size="10" fill="#64748b" text-anchor="end">11-19</text>
+              <circle cx="400" cy="20" r="3" fill="#2563eb"/><text x="408" y="23" font-size="10" fill="#2563eb" font-weight="600">GMV</text>
+              <circle cx="462" cy="20" r="3" fill="#10b981"/><text x="470" y="23" font-size="10" fill="#10b981" font-weight="600">净利润</text>
             </svg>
           </div>
           <div class="card card-blue">

@@ -441,15 +441,20 @@ export function renderM4_M6(pageId, state, helpers) {
             <div class="card-title"><span class="anno-tag t-green">1</span> 真实销量预测曲线 · BAG-108（${state.m5Model} · 未来 ${state.m5Horizon} 天）</div>
             <span class="pill p-amber">阴影仅表示历史一步绝对误差带</span>
           </div>
-          <svg viewBox="0 0 640 210" style="width:100%;height:220px;background:#fafcff;border-radius:8px;border:1px solid #e2e8f0;">
-            <polygon fill="#dbeafe" opacity="0.68" points="50,170 140,170 230,170 320,170 410,170 500,170 590,170 590,26 500,52 410,36 320,34 230,78 140,66 50,100" />
-            <polyline fill="none" stroke="#2563eb" stroke-width="3" points="50,150 140,122 230,152 320,60 410,68 500,104 590,46" />
-            ${[[50,150,state.m5DailyPred[0]],[140,122,state.m5DailyPred[1]],[230,152,state.m5DailyPred[2]],[320,60,state.m5DailyPred[3]],[410,68,state.m5DailyPred[4]],[500,104,state.m5DailyPred[5]],[590,46,state.m5DailyPred[6]]].map(([x,y,v])=>`
-              <circle cx="${x}" cy="${y}" r="4.5" fill="#2563eb"/><text x="${x}" y="${y-10}" font-size="11.5" font-weight="bold" fill="#1d4ed8" text-anchor="middle">${Math.round(v*(mult>1?1.1:1))}件</text>
+          <svg viewBox="0 0 860 230" style="width:100%;height:auto;max-height:245px;display:block;background:#ffffff;border-radius:6px;">
+            <line x1="50" y1="35" x2="820" y2="35" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="50" y1="85" x2="820" y2="85" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="50" y1="135" x2="820" y2="135" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="50" y1="185" x2="820" y2="185" stroke="#e2e8f0" stroke-width="1"/>
+            <polygon fill="#eff6ff" points="70,185 190,185 310,185 430,185 550,185 670,185 790,185 790,32 670,68 550,48 430,44 310,104 190,82 70,122" />
+            <polyline fill="none" stroke="#2563eb" stroke-width="2" points="70,160 190,132 310,164 430,68 550,76 670,114 790,54" />
+            ${[[70,160,state.m5DailyPred[0],"D+1"],[190,132,state.m5DailyPred[1],"D+2"],[310,164,state.m5DailyPred[2],"D+3"],[430,68,state.m5DailyPred[3],"D+4"],[550,76,state.m5DailyPred[4],"D+5"],[670,114,state.m5DailyPred[5],"D+6"],[790,54,state.m5DailyPred[6],"D+"+state.m5Horizon]].map(([x,y,v,d])=>`
+              <circle cx="${x}" cy="${y}" r="3.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+              <text x="${x}" y="${y-10}" font-size="10.5" font-weight="600" fill="#1d4ed8" text-anchor="middle">${Math.round(v*(mult>1?1.1:1))}件</text>
+              <text x="${x}" y="203" font-size="10.5" fill="#64748b" text-anchor="middle">${d}</text>
             `).join("")}
-            <text x="50" y="196" font-size="11" fill="#64748b">D+1</text>
-            <text x="320" y="196" font-size="11" fill="#64748b">D+4</text>
-            <text x="575" y="196" font-size="11" fill="#64748b">D+${state.m5Horizon}</text>
+            <circle cx="58" cy="221" r="3" fill="#2563eb"/><text x="66" y="224" font-size="10" fill="#475569">蓝线：未来逐日预测</text>
+            <rect x="190" y="216" width="10" height="8" rx="1.5" fill="#dbeafe"/><text x="205" y="224" font-size="10" fill="#64748b">浅蓝阴影：历史绝对误差带（非置信区间）</text>
           </svg>
         </div>
       `,
@@ -717,11 +722,13 @@ export function renderM4_M6(pageId, state, helpers) {
           <div class="grid-2">
             <div class="card">
               <div class="card-header"><div class="card-title"><span class="anno-tag t-green">2</span> M5 已保存未来逐日预测曲线（不调训练接口，仅只读消费）</div></div>
-              <svg viewBox="0 0 480 175" style="width:100%;height:175px;background:#fafcff;border-radius:8px;border:1px solid #e2e8f0;">
-                <line x1="20" y1="145" x2="460" y2="145" stroke="#cbd5e1" stroke-dasharray="4 3"/>
-                <polyline fill="none" stroke="#2563eb" stroke-width="2.5" points="40,120 90,70 140,105 190,45 240,88 290,55 340,95 390,42 440,80" />
-                <text x="35" y="162" font-size="10.5" fill="#64748b">今天 (${invRow.avail}件)</text>
-                <text x="370" y="162" font-size="10.5" fill="#64748b">未来 28 天 (CatBoost)</text>
+              <svg viewBox="0 0 540 185" style="width:100%;height:auto;max-height:190px;display:block;background:#ffffff;border-radius:6px;">
+                <line x1="25" y1="40" x2="515" y2="40" stroke="#f1f5f9" stroke-width="1"/>
+                <line x1="25" y1="95" x2="515" y2="95" stroke="#f1f5f9" stroke-width="1"/>
+                <line x1="25" y1="150" x2="515" y2="150" stroke="#e2e8f0" stroke-width="1"/>
+                <polyline fill="none" stroke="#2563eb" stroke-width="2" points="45,122 100,72 155,108 210,48 265,90 320,56 375,96 430,45 490,82" />
+                <text x="45" y="169" font-size="10" fill="#64748b">今天 (${invRow.avail}件)</text>
+                <text x="495" y="169" font-size="10" fill="#64748b" text-anchor="end">未来 28 天 (CatBoost)</text>
               </svg>
             </div>
 
