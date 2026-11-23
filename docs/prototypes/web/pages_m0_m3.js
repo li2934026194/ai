@@ -321,7 +321,7 @@ export function renderM0_M3(pageId, state, helpers) {
     const canCs = state.role === "cs" || state.role === "approver";
     return {
       headerActions: [
-        { label: "去推荐商品库", primary: false, onClick: () => goPage("m1b") },
+        { label: "去客服导购商品库", primary: false, onClick: () => goPage("m1b") },
         { label: "人工接管当前会话", primary: true, onClick: () => {
           if (!canCs) { toast("仅「客服」或主管可接管会话"); return; }
           activeSess.mode = "HUMAN"; rerender(); toast(`会话 ${activeSess.id} 已由人工接管 (HUMAN)`);
@@ -453,6 +453,9 @@ export function renderM0_M3(pageId, state, helpers) {
         }) }
       ],
       html: `
+        <div class="banner banner-blue">
+          <span>💡 <strong>模块边界说明（SRS §3.1）：</strong>本页是供<strong>客服人员回答买家咨询</strong>时使用的「本店在售导购词典」（防编造报价、防串店发错链接）；寻找尚未上架的新品请前往 <strong>M4 选品分析</strong>。</span>
+        </div>
         <div class="card">
           <div class="utabs" style="margin-bottom:12px;">
             ${["ALL", "Shopee TH", "TikTok US"].map(sh => `
@@ -461,18 +464,18 @@ export function renderM0_M3(pageId, state, helpers) {
           </div>
           <div class="filter-bar">
             <div class="filter-item" style="max-width:340px;">
-              <input id="m1bSearch" class="input" placeholder="搜索推荐 SKU / 商品名…" value="${state.csSearch}"/>
+              <input id="m1bSearch" class="input" placeholder="搜索导购 SKU / 商品名…" value="${state.csSearch}"/>
             </div>
           </div>
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-blue">1</span> 分店推荐商品目录（CustomerRecommendedProduct）</div>
+            <div class="card-title"><span class="anno-tag t-blue">1</span> 本店售前导购商品目录（CustomerRecommendedProduct）</div>
             <span class="pill p-green"><span class="anno-tag t-green">2</span> 仅召回本店 ACTIVE / READY 商品</span>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>SKU</th><th>商品名称</th><th>归属店铺</th><th>参考售价</th><th>向量状态</th><th>推荐开关</th></tr></thead>
+              <thead><tr><th>SKU</th><th>商品名称</th><th>归属店铺</th><th>参考售价</th><th>向量状态</th><th>导购开关</th></tr></thead>
               <tbody>
                 ${filtered.map((p, idx) => `
                   <tr>

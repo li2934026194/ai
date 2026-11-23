@@ -101,12 +101,14 @@ export function createInitialState() {
       { role: "assistant", text: "全部平台近 30 天净利润为 65,529.67 USD（GMV 125,429.99 USD，净利率 52.2%）。", note: "口径：按组织、店铺与币种统一折算 USD（多币种未配汇率则分币种列出）。", sql: "SELECT SUM(net_profit_usd), SUM(gmv_usd) FROM metric_snapshots WHERE days=30 [38ms]" },
     ],
 
-    // M4 Selection (Reference Image 27/28)
+    // M4 Selection (Reference Image 27/28 + FR-SEL-09 multi-perspective recommendation)
     m4Tasks: [
       { file: "Amazon SP-API Mock · rate", kind: "演示Mock", scope: "AMAZON/US · 20 SKU · 8周", status: "成功 (160条 · 仅演示)", ok: true, tag: "DEMO_ONLY" },
       { file: "选品周数据_10000条模拟_nov.xlsx", kind: "外购数据", scope: "1250 SKU · US (10,000条)", status: "成功 (估算)", ok: true, tag: "ESTIMATE_ONLY" },
       { file: "weekly_internal_nov.csv", kind: "内部数据", scope: "6 SKU · US/TH (48条)", status: "成功 (纯内部实盘)", ok: true, tag: "READY_REVIEW" },
     ],
+    m4Mode: "balanced", // "balanced" | "revenue" | "growth"
+    m4AiOpen: true,
     m4Tab: "ALL",
     m4Search: "",
     m4SrcFilter: "ALL",
@@ -114,12 +116,12 @@ export function createInitialState() {
     m4MinRev: 0,
     m4Page: 1,
     m4Pool: [
-      { sku: "SKU-00515", name: "汽车后备箱整理箱", region: "AMAZON / US", paidQty: 1960, refundQty: 40, grossRev: 68500, discount: 670.46, refundAmt: 1000, trend: 27.5, prevAvg: 200, currAvg: 255, marginKnown: true, margin: 14.2, src: "内部数据", srcCode: "INTERNAL", stage: "AI初筛候选", submitter: "—", missing: "", budget: "$1,200 (50件)" },
-      { sku: "SKU-00538", name: "可折叠防水洗衣篮", region: "AMAZON / US", paidQty: 1580, refundQty: 30, grossRev: 58200, discount: 540, refundAmt: 1138.06, trend: 31.2, prevAvg: 170, currAvg: 223, marginKnown: false, margin: null, src: "外购数据", srcCode: "PAID_EXTERNAL", stage: "缺成本/待补全", submitter: "—", missing: "缺少采购成本与头程费", budget: "$950 (40件)" },
-      { sku: "SKU-00299", name: "防抓宠物汽车座垫", region: "AMAZON / US", paidQty: 1490, refundQty: 25, grossRev: 54800, discount: 410.58, refundAmt: 1200, trend: 16.6, prevAvg: 180, currAvg: 210, marginKnown: true, margin: 16.8, src: "内部数据", srcCode: "INTERNAL", stage: "已提交待审", submitter: "吴选品", missing: "", budget: "$1,500 (60件)" },
-      { sku: "SKU-00612", name: "磁吸折叠桌面支架", region: "TIKTOK / US", paidQty: 1320, refundQty: 18, grossRev: 44200, discount: 300, refundAmt: 620, trend: 22.4, prevAvg: 152, currAvg: 186, marginKnown: true, margin: 12.5, src: "内部数据", srcCode: "INTERNAL", stage: "AI初筛候选", submitter: "—", missing: "", budget: "$1,050 (45件)" },
-      { sku: "SKU-00704", name: "无线真空迷你封口机", region: "SHOPEE / TH", paidQty: 980, refundQty: 22, grossRev: 26800, discount: 200, refundAmt: 450, trend: 19.8, prevAvg: 111, currAvg: 133, marginKnown: true, margin: 15.1, src: "内部数据", srcCode: "INTERNAL", stage: "已批准测款", submitter: "吴选品", missing: "", budget: "$880 (80件)" },
-      { sku: "SKU-00418", name: "便携露营氛围灯串", region: "AMAZON / US", paidQty: 610, refundQty: 45, grossRev: 14200, discount: 180, refundAmt: 920, trend: -8.4, prevAvg: 83, currAvg: 76, marginKnown: true, margin: 6.2, src: "外购数据", srcCode: "PAID_EXTERNAL", stage: "已淘汰", submitter: "吴选品", missing: "利润率<10%且负增长", budget: "—" },
+      { sku: "SKU-00515", name: "汽车后备箱整理箱", region: "AMAZON / US", paidQty: 1960, refundQty: 40, grossRev: 68500, discount: 670.46, refundAmt: 1000, trend: 27.5, prevAvg: 200, currAvg: 255, marginKnown: true, margin: 14.2, src: "内部数据", srcCode: "INTERNAL", stage: "AI初筛候选", submitter: "—", missing: "", budget: "$1,200 (50件)", riskNote: "轻小件无侵权命中" },
+      { sku: "SKU-00538", name: "可折叠防水洗衣篮", region: "AMAZON / US", paidQty: 1580, refundQty: 30, grossRev: 58200, discount: 540, refundAmt: 1138.06, trend: 31.2, prevAvg: 170, currAvg: 223, marginKnown: false, margin: null, src: "外购数据", srcCode: "PAID_EXTERNAL", stage: "缺成本/待补全", submitter: "—", missing: "缺少采购成本与头程费", budget: "$950 (40件)", riskNote: "需核对 1688 拿货价与实盘利润" },
+      { sku: "SKU-00299", name: "防抓宠物汽车座垫", region: "AMAZON / US", paidQty: 1490, refundQty: 25, grossRev: 54800, discount: 410.58, refundAmt: 1200, trend: 16.6, prevAvg: 180, currAvg: 210, marginKnown: true, margin: 16.8, src: "内部数据", srcCode: "INTERNAL", stage: "已提交待审", submitter: "吴选品", missing: "", budget: "$1,500 (60件)", riskNote: "内部实单已满足 10% 利润门槛" },
+      { sku: "SKU-00612", name: "磁吸折叠桌面支架", region: "TIKTOK / US", paidQty: 1320, refundQty: 18, grossRev: 44200, discount: 300, refundAmt: 620, trend: 52.4, prevAvg: 130, currAvg: 198, marginKnown: true, margin: 18.5, src: "内部数据", srcCode: "INTERNAL", stage: "AI初筛候选", submitter: "—", missing: "", budget: "$1,050 (45件)", riskNote: "高增高毛利，适合趋势优先推荐" },
+      { sku: "SKU-00704", name: "无线真空迷你封口机", region: "SHOPEE / TH", paidQty: 980, refundQty: 22, grossRev: 26800, discount: 200, refundAmt: 450, trend: 19.8, prevAvg: 111, currAvg: 133, marginKnown: true, margin: 15.1, src: "内部数据", srcCode: "INTERNAL", stage: "已批准测款", submitter: "吴选品", missing: "", budget: "$880 (80件)", riskNote: "带电商品已确认空运渠道" },
+      { sku: "SKU-00418", name: "便携露营氛围灯串", region: "AMAZON / US", paidQty: 610, refundQty: 45, grossRev: 14200, discount: 180, refundAmt: 920, trend: -8.4, prevAvg: 83, currAvg: 76, marginKnown: true, margin: 6.2, src: "外购数据", srcCode: "PAID_EXTERNAL", stage: "已淘汰", submitter: "吴选品", missing: "利润率<10%且负增长", budget: "—", riskNote: "负增长+低利润直接淘汰" },
     ],
 
     // M5

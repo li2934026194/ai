@@ -1,16 +1,32 @@
+const M4_MODES = {
+  balanced: { label: "⚖️ 综合均衡推荐", wRev: 0.50, wTrend: 0.40, wMargin: 0.10, desc: "兼顾8周体量、增长斜率与毛利安全（默认推荐视角）" },
+  revenue:  { label: "💰 规模创收优先", wRev: 0.70, wTrend: 0.20, wMargin: 0.10, desc: "优先挑8周净收入高、销量盘子稳的现金流主力款" },
+  growth:   { label: "📈 高增趋势优先", wRev: 0.25, wTrend: 0.65, wMargin: 0.10, desc: "优先挑后4周增速斜率爆发快的黑马潜力款" },
+};
+
 function calcM4NetSales(x) { return x.paidQty - x.refundQty; }
 function calcM4NetRev(x) { return +(x.grossRev - x.discount - x.refundAmt).toFixed(2); }
-function calcM4Score(x, maxRev) {
+function calcM4Score(x, maxRev, mode = "balanced") {
+  const cfg = M4_MODES[mode] || M4_MODES.balanced;
   const revNorm = Math.min(100, (calcM4NetRev(x) / maxRev) * 100);
-  const trendNorm = Math.max(0, Math.min(100, (x.trend + 20) * 1.6));
+  const trendNorm = Math.max(0, Math.min(100, (x.trend + 20) * 1.3));
   if (x.marginKnown && x.margin !== null) {
     const mNorm = Math.min(100, x.margin * 4);
-    const sc = 0.5 * revNorm + 0.4 * trendNorm + 0.1 * mNorm;
-    return { score: sc.toFixed(1), formula: `0.5×${revNorm.toFixed(0)} + 0.4×${trendNorm.toFixed(0)} + 0.1×${mNorm.toFixed(0)} = ${sc.toFixed(1)}` };
+    const sc = cfg.wRev * revNorm + cfg.wTrend * trendNorm + cfg.wMargin * mNorm;
+    return {
+      num: sc,
+      score: sc.toFixed(1),
+      formula: `${cfg.wRev}×${revNorm.toFixed(0)} + ${cfg.wTrend}×${trendNorm.toFixed(0)} + ${cfg.wMargin}×${mNorm.toFixed(0)} = ${sc.toFixed(1)}`
+    };
   }
-  const wR = (0.5 / 0.9), wT = (0.4 / 0.9);
+  const denom = cfg.wRev + cfg.wTrend;
+  const wR = cfg.wRev / denom, wT = cfg.wTrend / denom;
   const sc = wR * revNorm + wT * trendNorm;
-  return { score: sc.toFixed(1), formula: `缺利润率重归一：0.556×${revNorm.toFixed(0)} + 0.444×${trendNorm.toFixed(0)} = ${sc.toFixed(1)}` };
+  return {
+    num: sc,
+    score: sc.toFixed(1),
+    formula: `缺利润率重归一：${wR.toFixed(3)}×${revNorm.toFixed(0)} + ${wT.toFixed(3)}×${trendNorm.toFixed(0)} = ${sc.toFixed(1)}`
+  };
 }
 
 export function renderM4_M6(pageId, state, helpers) {
@@ -77,10 +93,11 @@ export function renderM4_M6(pageId, state, helpers) {
     };
   }
 
-  // ==================== M4b: Selection Pool & Screening (Reference Image 27/28) ====================
+  // ==================== M4b: Multi-Perspective Recommendation & Screening ====================
   if (pageId === "m4b") {
     const isSelector = state.role === "selector" || state.role === "planner";
     const maxRev = Math.max(...state.m4Pool.map(calcM4NetRev), 1);
+    const activeMode = M4_MODES[state.m4Mode] || M4_MODES.balanced;
     const tabs = [
       { key: "ALL", label: "全部候选" },
       { key: "AI初筛候选", label: "AI 初筛候选" },
@@ -96,7 +113,18 @@ export function renderM4_M6(pageId, state, helpers) {
       (calcM4NetRev(x) >= state.m4MinRev) &&
       (!q || x.sku.toLowerCase().includes(q) || x.name.toLowerCase().includes(q))
     );
-    const tabFiltered = baseFiltered.filter(x => state.m4Tab === "ALL" || x.stage === state.m4Tab);
+    // Rank live by active recommendation perspective (excluding eliminated from top priority)
+    const rankedPool = [...baseFiltered].sort((a, b) => {
+      if (a.stage === "已淘汰" && b.stage !== "已淘汰") return 1;
+      if (b.stage === "已淘汰" && a.stage !== "已淘汰") return -1;
+      return calcM4Score(b, maxRev, state.m4Mode).num - calcM4Score(a, maxRev, state.m4Mode).num;
+    });
+    const topRecs = [...state.m4Pool]
+      .filter(x => x.stage !== "已淘汰")
+      .sort((a, b) => calcM4Score(b, maxRev, state.m4Mode).num - calcM4Score(a, maxRev, state.m4Mode).num)
+      .slice(0, 3);
+
+    const tabFiltered = rankedPool.filter(x => state.m4Tab === "ALL" || x.stage === state.m4Tab);
     const pageSize = 3;
     const totalPages = Math.max(1, Math.ceil(tabFiltered.length / pageSize));
     if (state.m4Page > totalPages) state.m4Page = 1;
@@ -105,6 +133,7 @@ export function renderM4_M6(pageId, state, helpers) {
     return {
       headerActions: [
         { label: "← 三源数据接入", primary: false, onClick: () => goPage("m4a") },
+        { label: state.m4AiOpen ? "收起 AI 推荐榜单" : "🤖 展开 AI 选品推荐榜单", primary: false, onClick: () => { state.m4AiOpen = !state.m4AiOpen; rerender(); } },
         { label: "去 M4-3 主管测款拍板 →", primary: true, onClick: () => goPage("m4c") }
       ],
       html: `
@@ -112,7 +141,7 @@ export function renderM4_M6(pageId, state, helpers) {
           <div class="kpi-card">
             <div class="kpi-label">机会池样本数</div>
             <div class="kpi-val">${state.m4Pool.length} 款</div>
-            <div class="kpi-sub">≥4周数据方参与趋势排序</div>
+            <div class="kpi-sub">≥4周数据方参与推荐排名</div>
           </div>
           <div class="kpi-card highlight-green">
             <div class="kpi-label">AI 初筛候选</div>
@@ -131,11 +160,72 @@ export function renderM4_M6(pageId, state, helpers) {
           </div>
         </div>
 
+        <div class="card card-blue">
+          <div class="card-header" style="margin-bottom:8px;">
+            <div class="card-title">🎯 请选择选品推荐视角（SRS FR-SEL-09：按哪方面推荐选品）</div>
+            <span class="pill p-blue">当前：${activeMode.label}</span>
+          </div>
+          <div class="grid-3">
+            ${Object.entries(M4_MODES).map(([k, cfg]) => `
+              <div class="option-tile ${state.m4Mode===k?"active":""} m4-mode-opt" data-mode="${k}" style="text-align:left;padding:9px 11px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                  <strong style="font-size:12.5px;">${cfg.label}</strong>
+                  <span class="pill ${state.m4Mode===k?"p-blue":"p-gray"}">${Math.round(cfg.wRev*100)} / ${Math.round(cfg.wTrend*100)} / ${Math.round(cfg.wMargin*100)}</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-soft);line-height:1.35;">${cfg.desc}</div>
+              </div>
+            `).join("")}
+          </div>
+          <div class="formula-inline" style="margin-top:8px;">
+            <strong>四维推荐依据（BR-SEL-01~04）：</strong>
+            ① <strong>市场规模</strong>（8周净收入 = 总额 − 折扣 − 退款） ·
+            ② <strong>增长趋势</strong>（(后4周均 − 前4周均) ÷ 前4周均） ·
+            ③ <strong>利润门槛</strong>（已知经营利润率 ≥ 10%，未知时不按0算） ·
+            ④ <strong>数据与合规</strong>（内部实盘才可测款，外购估算仅作参考）
+          </div>
+        </div>
+
+        ${state.m4AiOpen ? `
+          <div class="card">
+            <div class="card-header" style="margin-bottom:8px;">
+              <div class="card-title">🤖 选品推荐 Top-3 榜单（按「${activeMode.label}」实时排序 · 先规则算分再 AI 摘要）</div>
+              <span class="pill p-green">FR-SEL-12 可解释推荐</span>
+            </div>
+            <div class="grid-3">
+              ${topRecs.map((it, idx) => {
+                const sc = calcM4Score(it, maxRev, state.m4Mode);
+                const rev = calcM4NetRev(it);
+                const why = idx === 0
+                  ? (state.m4Mode === "growth" ? `后4周增速高达 +${it.trend}% 且利润率 ${it.margin}%，增长视角第 1 名。`
+                    : state.m4Mode === "revenue" ? `8周净收入 $${rev.toLocaleString()} 位居第一，现金流规模最稳。`
+                    : `规模($${rev.toLocaleString()})、增速(+${it.trend}%)与利润(${it.margin}%)三项最均衡。`)
+                  : (it.marginKnown ? `综合表现稳健（净收入 $${rev.toLocaleString()}，趋势 +${it.trend}%，利润 ${it.margin}%）。`
+                    : `增速 +${it.trend}% 亮眼，但缺采购与头程成本，建议补齐费用后再审。`);
+                return `
+                  <div style="border:1px solid ${idx===0?"var(--blue-border)":"var(--border)"};background:${idx===0?"#fafcff":"#fff"};border-radius:8px;padding:10px 12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                      <span class="pill ${idx===0?"p-blue":"p-gray"}">Top #${idx+1} 推荐</span>
+                      <strong style="color:var(--blue-hover);font-size:13px;">${sc.score} 分</strong>
+                    </div>
+                    <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${it.name} <span style="font-weight:400;color:var(--text-soft);font-size:11px;">(${it.sku})</span></div>
+                    <div style="font-size:11.3px;color:var(--text-muted);line-height:1.45;margin-bottom:6px;">${why}</div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <span class="pill p-gray">规模 $${Math.round(rev/1000)}k</span>
+                      <span class="pill p-green">趋势 +${it.trend}%</span>
+                      <span class="pill ${it.marginKnown?"p-blue":"p-amber"}">${it.marginKnown?"利润 "+it.margin+"%":"缺成本"}</span>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        ` : ""}
+
         <div class="card">
           <div class="filter-bar">
             <div class="filter-item" style="flex:1.4;">
               <label><span class="anno-tag t-blue">1</span> 搜索 SKU / 品名</label>
-              <input id="m4SearchInp" class="input" placeholder="输入 SKU-00515 / 收纳 / 封口机…" value="${state.m4Search}"/>
+              <input id="m4SearchInp" class="input" placeholder="输入 SKU-00515 / 收纳 / 支架…" value="${state.m4Search}"/>
             </div>
             <div class="filter-item">
               <label>数据性质 (FR-SEL-02)</label>
@@ -162,14 +252,10 @@ export function renderM4_M6(pageId, state, helpers) {
               </select>
             </div>
           </div>
-          <div class="formula-box" style="margin-top:10px;">
-            <strong>📐 SRS §6.2/6.3 核心计算公式：</strong>
-            净销量 = 支付件数 − 退款件数 ｜ 净收入 = 总额 − 折扣 − 退款金额 ｜ 趋势 = (后半均 − 前半均) ÷ 前半均 ｜ 均衡评分 = <strong>0.5×净收入 + 0.4×趋势 + 0.1×利润率</strong>（利润率未知时不按0算，按 0.5/0.9 与 0.4/0.9 重归一）
-          </div>
         </div>
 
         <div class="card">
-          <div class="utabs" style="margin-bottom:14px;">
+          <div class="utabs" style="margin-bottom:12px;">
             ${tabs.map(t => {
               const cnt = baseFiltered.filter(x => t.key === "ALL" || x.stage === t.key).length;
               return `<div class="utab ${state.m4Tab===t.key?"active":""} m4-utab" data-t="${t.key}">${t.label} <span class="utab-cnt">${cnt}</span></div>`;
@@ -180,49 +266,51 @@ export function renderM4_M6(pageId, state, helpers) {
             ${paged.map(item => {
               const netQty = calcM4NetSales(item);
               const netRev = calcM4NetRev(item);
-              const sc = calcM4Score(item, maxRev);
+              const sc = calcM4Score(item, maxRev, state.m4Mode);
+              const rankIdx = rankedPool.findIndex(r => r.sku === item.sku) + 1;
               return `
                 <div class="prod-card">
                   <div class="prod-thumb">
                     <div>
                       <div style="font-size:11px;color:var(--text-soft);">${item.sku} · ${item.region}</div>
-                      <strong style="font-size:14.5px;">${item.name}</strong>
+                      <strong style="font-size:13.5px;">${item.name}</strong>
                     </div>
                     <span class="pill ${item.srcCode==="INTERNAL"?"p-green":"p-amber"}">${item.src}</span>
                   </div>
 
                   <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已提交待审"?"p-purple":item.stage==="AI初筛候选"?"p-blue":item.stage==="已淘汰"?"p-red":"p-amber"}">${item.stage}</span>
-                    <strong style="color:var(--blue-hover);font-size:13px;">AI 评分 ${sc.score}</strong>
+                    <strong style="color:var(--blue-hover);font-size:12.5px;">#${rankIdx} · ${sc.score} 分</strong>
                   </div>
 
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
-                    <div>8周净收入：<strong style="color:var(--text-dark)">$${netRev.toLocaleString()}</strong></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:11.8px;">
+                    <div>① 8周净收入：<strong style="color:var(--text-dark)">$${netRev.toLocaleString()}</strong></div>
                     <div>净销量：<strong>${netQty} 件</strong></div>
-                    <div>趋势：<strong style="color:${item.trend>=0?"var(--green-text)":"var(--red-text)"}">${item.trend>=0?"+":""}${item.trend}%</strong></div>
-                    <div>利润率：<strong>${item.marginKnown?item.margin+"%":'<span style="color:var(--amber-text)">未知(留空)</span>'}</strong></div>
+                    <div>② 趋势斜率：<strong style="color:${item.trend>=0?"var(--green-text)":"var(--red-text)"}">${item.trend>=0?"+":""}${item.trend}%</strong></div>
+                    <div>③ 利润率：<strong>${item.marginKnown?item.margin+"%":'<span style="color:var(--amber-text)">未知(留空)</span>'}</strong></div>
                   </div>
+
+                  <div style="font-size:11px;color:var(--text-soft);">④ 合规/风险：${item.riskNote || "待核对"}</div>
 
                   <div class="formula-inline">
-                    <strong>📐 算式：</strong>净销量=${item.paidQty}-${item.refundQty}=${netQty}；趋势=(${item.currAvg}-${item.prevAvg})÷${item.prevAvg}=${item.trend}%<br/>
-                    评分：<code>${sc.formula}</code>
+                    <strong>算式：</strong>净销量=${item.paidQty}-${item.refundQty}=${netQty} ｜ 评分 <code>${sc.formula}</code>
                   </div>
 
-                  ${item.missing ? `<div style="font-size:11.3px;color:var(--amber-text);">⚠ ${item.missing}</div>` : ""}
+                  ${item.missing ? `<div style="font-size:11px;color:var(--amber-text);">⚠ ${item.missing}</div>` : ""}
 
                   <div style="display:flex;gap:8px;margin-top:auto;padding-top:4px;">
                     <button class="btn btn-sm m4-detail" data-sku="${item.sku}">查看算式详情</button>
                     ${(item.stage === "AI初筛候选" || item.stage === "缺成本/待补全")
                       ? `<button class="btn btn-sm btn-primary m4-submit" data-sku="${item.sku}" ${!isSelector?"disabled":""}>提交进待审清单 →</button>`
-                      : `<span style="font-size:11.5px;color:var(--text-soft);align-self:center;">已流转 (${item.submitter})</span>`}
+                      : `<span style="font-size:11px;color:var(--text-soft);align-self:center;">已流转 (${item.submitter})</span>`}
                   </div>
                 </div>
               `;
             }).join("")}
           </div>
 
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--border);">
-            <span style="font-size:12px;color:var(--text-soft);">第 ${state.m4Page} / ${totalPages} 页 · 共 ${tabFiltered.length} 款符合筛选条件</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:9px;border-top:1px solid var(--border);">
+            <span style="font-size:11.8px;color:var(--text-soft);">第 ${state.m4Page} / ${totalPages} 页 · 共 ${tabFiltered.length} 款符合筛选条件（按「${activeMode.label}」降序）</span>
             <div style="display:flex;gap:6px;">
               <button class="btn btn-sm" id="m4PrevPg" ${state.m4Page<=1?"disabled":""}>← 上一页</button>
               <button class="btn btn-sm" id="m4NextPg" ${state.m4Page>=totalPages?"disabled":""}>下一页 →</button>
@@ -231,6 +319,10 @@ export function renderM4_M6(pageId, state, helpers) {
         </div>
       `,
       bind: () => {
+        document.querySelectorAll(".m4-mode-opt").forEach(el => el.onclick = () => {
+          state.m4Mode = el.dataset.mode; state.m4Page = 1; rerender();
+          toast(`已切换推荐视角：${M4_MODES[state.m4Mode].label}，卡片与 Top-3 榜单已实时重排`);
+        });
         document.getElementById("m4SearchInp").oninput = (e) => { state.m4Search = e.target.value; state.m4Page = 1; rerender(); };
         document.getElementById("m4SrcSel").onchange = (e) => { state.m4SrcFilter = e.target.value; state.m4Page = 1; rerender(); };
         document.getElementById("m4RegSel").onchange = (e) => { state.m4RegionFilter = e.target.value; state.m4Page = 1; rerender(); };
@@ -247,13 +339,22 @@ export function renderM4_M6(pageId, state, helpers) {
           const item = state.m4Pool.find(x => x.sku === b.dataset.sku);
           const netQty = calcM4NetSales(item);
           const netRev = calcM4NetRev(item);
+          const scBal = calcM4Score(item, maxRev, "balanced");
+          const scRev = calcM4Score(item, maxRev, "revenue");
+          const scGro = calcM4Score(item, maxRev, "growth");
           openDrawer(`${item.sku} · ${item.name}`, `${item.region} · ${item.src}`, `
-            <div class="formula-box" style="margin-bottom:12px;">
-              <strong>📐 全部指标逐步推导（SRS BR-SEL-01~03）：</strong><br/>
+            <div class="formula-box" style="margin-bottom:10px;">
+              <strong>📐 四维指标逐步推导（SRS BR-SEL-01~03）：</strong><br/>
               1. 净销量 = ${item.paidQty} (支付) − ${item.refundQty} (退款) = <strong>${netQty} 件</strong><br/>
               2. 净收入 = $${item.grossRev.toLocaleString()} − $${item.discount} (折扣) − $${item.refundAmt} (退款) = <strong>$${netRev.toLocaleString()}</strong><br/>
               3. 周趋势 = (${item.currAvg} − ${item.prevAvg}) ÷ ${item.prevAvg} × 100% = <strong>${item.trend}%</strong><br/>
               4. 经营利润率 = ${item.marginKnown ? `<strong>${item.margin}%</strong> (≥10% 达标)` : "<strong>未知（缺费用，严禁按0生成利润）</strong>"}
+            </div>
+            <div class="formula-box" style="margin-bottom:10px;">
+              <strong>🎯 三种推荐视角得分对比（FR-SEL-09）：</strong><br/>
+              • 综合均衡 (0.5/0.4/0.1)：<strong>${scBal.score}</strong> (${scBal.formula})<br/>
+              • 规模创收 (0.7/0.2/0.1)：<strong>${scRev.score}</strong> (${scRev.formula})<br/>
+              • 高增趋势 (0.25/0.65/0.1)：<strong>${scGro.score}</strong> (${scGro.formula})
             </div>
             <div class="banner ${item.srcCode==="INTERNAL"&&item.marginKnown&&item.margin>=10?"banner-green":"banner-amber"}">
               ${item.srcCode==="INTERNAL"&&item.marginKnown&&item.margin>=10 ? "满足 FR-SEL-10 批准测款条件（纯内部实盘 + 利润率≥10%）" : "未满足批准测款硬门槛（仅内部实盘且利润率≥10%才可投产）"}

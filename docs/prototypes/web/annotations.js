@@ -13,7 +13,7 @@ export const MODULE_DEFS = [
     label: "M1 智能客服 Agent",
     pages: [
       { id: "m1a", label: "客服三栏工作台" },
-      { id: "m1b", label: "推荐商品库" },
+      { id: "m1b", label: "客服导购商品库" },
       { id: "m1d", label: "模拟买家入口" },
       { id: "m1c", label: "售后工单审批" },
     ],
@@ -39,7 +39,7 @@ export const MODULE_DEFS = [
     label: "M4 选品分析 Agent",
     pages: [
       { id: "m4a", label: "三源数据接入" },
-      { id: "m4b", label: "机会池与初筛 (选品员)" },
+      { id: "m4b", label: "选品推荐与初筛" },
       { id: "m4c", label: "待审清单与拍板 (主管)" },
     ],
   },
@@ -138,11 +138,11 @@ export const PAGE_META = {
     ],
   },
   m1b: {
-    breadcrumb: "CROSSPILOT / M1 智能客服 · 推荐商品库",
-    title: "客服推荐商品库与 XLSX 批量向量化",
-    subtitle: "按店铺隔离维护可推荐商品（CustomerRecommendedProduct），支持 XLSX 导入与 Milvus/pgvector 索引。",
+    breadcrumb: "CROSSPILOT / M1 智能客服 · 客服导购商品库",
+    title: "客服售前导购商品库（话术依据与 XLSX 向量化）",
+    subtitle: "仅供客服聊天时检索本店在售商品、价格与购买链接（CustomerRecommendedProduct），区别于 M4 新品选品。",
     blocks: [
-      { color: "#2563eb", title: "分店商品知识列表", step: "1.1 步骤1-2 店铺隔离目录", srs: "SRS FR-CS-06/09 店铺唯一约束", tech: "CustomerRecommendedProduct + 搜索过滤" },
+      { color: "#2563eb", title: "为什么放在客服模块而不是 M4 选品？", step: "1.1 客服查本店在售货典", srs: "SRS §3.1 推荐目录与选品池隔离", tech: "CustomerRecommendedProduct" },
       { color: "#10b981", title: "XLSX 校验与批量入库", step: "1.1 步骤3 每20件一批写入向量", srs: "SRS FR-CS-07/08 READY/FAILED 状态", tech: "openpyxl + Embedding 异步任务" },
     ],
     ledger: [
@@ -241,12 +241,12 @@ export const PAGE_META = {
     ],
   },
   m4b: {
-    breadcrumb: "CROSSPILOT / M4 选品分析 · 机会池与初筛 (选品研究员)",
-    title: "M4-2 商品机会池与 AI 初筛工作台（选品研究员专页）",
-    subtitle: "参考选品卡片工作台：支持条件横条筛选、带数量徽章的状态 Tab、卡片分页、公式旁注，以及选品研究员提交进待审清单。",
+    breadcrumb: "CROSSPILOT / M4 选品分析 · 选品推荐与初筛",
+    title: "M4-2 多维选品推荐与 AI 初筛工作台",
+    subtitle: "支持按「综合均衡 / 规模创收 / 高增趋势」三大推荐视角实时重排榜单，透明呈现 4 维推荐依据与计算公式。",
     blocks: [
-      { color: "#2563eb", title: "状态Tab与横排条件过滤", step: "4.2 步骤1 按来源/地区/净收入过滤", srs: "SRS FR-SEL-09 排除模拟/阻断，≥4周", tech: "均衡 0.5/0.4/0.1 加权（缺利润率重归一）" },
-      { color: "#10b981", title: "卡片网格与细节抽屉", step: "4.2 步骤2-3 核验算式并提交待审", srs: "SRS §6.3 净销量/净收入/趋势算式透明", tech: "选品研究员初筛提交 → 转交 M4-3 主管" },
+      { color: "#2563eb", title: "三大推荐视角与 4 维依据", step: "4.2 步骤1 选择推荐关注维度", srs: "SRS FR-SEL-09 均衡/收入/增长三权重模式", tech: "先规则排序再可选 LLM 摘要（FR-SEL-12）" },
+      { color: "#10b981", title: "状态Tab与提交待审", step: "4.2 步骤2-3 核验算式并提交待审", srs: "SRS §6.3 未知利润率重归一不按0算", tech: "选品研究员初筛提交 → 转交 M4-3 主管" },
     ],
     ledger: [
       ["0.5净收入+0.4趋势+0.1利润率", "SRS FR-SEL-09", "利润率未知时在可用权重内重新归一化"],
