@@ -5,7 +5,7 @@ export const MODULE_DEFS = [
     badge: "2页",
     pages: [
       { id: "m0a", label: "店铺与主数据" },
-      { id: "m0b", label: "独立库存同步与RBAC" },
+      { id: "m0b", label: "独立库存同步中心" },
     ],
   },
   {
@@ -75,6 +75,15 @@ export const MODULE_DEFS = [
       { id: "m7d", label: "合规审核与选用" },
     ],
   },
+  {
+    id: "m8",
+    label: "M8 员工与权限管理",
+    badge: "2页",
+    pages: [
+      { id: "m8a", label: "员工名册与角色分配" },
+      { id: "m8b", label: "9角色权限矩阵与审计" },
+    ],
+  },
 ];
 
 export const PAGE_META = {
@@ -95,18 +104,18 @@ export const PAGE_META = {
     ],
   },
   m0b: {
-    breadcrumb: "CROSSPILOT / M0 公共底座 · 独立库存与RBAC",
-    title: "独立库存同步中心与 6 角色 RBAC 权限矩阵",
-    subtitle: "仓库库存仅由本页同步或人工盘点更新，绝不由 M6 采购/收货凭证自动改写。",
+    breadcrumb: "CROSSPILOT / M0 公共底座 · 独立库存同步",
+    title: "独立库存同步与盘点校准中心",
+    subtitle: "仓库库存仅由「采购 / 仓库 / 物流人员」在本页同步或人工盘点更新，绝不由 M6 采购/收货凭证自动改写；员工与角色授权已独立至 M8。",
     blocks: [
       { color: "#f59e0b", title: "独立库存红线与快照水位", step: "0.3 独立库存校准同步", srs: "SRS §1.4 & FR-RP 库存独立口径", tech: "inventory_snapshots 可售/锁定分离" },
-      { color: "#7c3aed", title: "6角色RBAC与SoD职责分离", step: "0.1 统一身份鉴权与权限门控", srs: "SRS §1.5 9业务岗位映射为6实现角色", tech: "pilot/rbac/service.py + 提交≠审批校验" },
+      { color: "#7c3aed", title: "联动跳转 M8 权限治理", step: "0.1 身份授权独立模块化", srs: "SRS §1.5 九大角色独立授权中心", tech: "RBAC 权限校验与 warehouse 门控" },
     ],
     ledger: [
       ["18件 / 锁定4件 / 安全25", "§0.3 示例", "对齐老师 img_069 / img_083 BAG-108 示例"],
       ["43件 / 60件", "§0.3 示例", "对齐老师 img_082 FAN-203 示例库存"],
-      ["6大代码角色", "pilot/rbac", "viewer/planner/approver/warehouse/auditor/admin"],
       ["不自动改写库存", "SRS红线", "采购收货凭证仅留痕，不自动加可售库存"],
+      ["权限管理见 M8", "页面拆分", "员工名册与9角色矩阵已拆分至 M8 两页"],
     ],
   },
   m1a: {
@@ -368,6 +377,36 @@ export const PAGE_META = {
     ledger: [
       ["0违禁词 · 必用词齐备", "SRS规则", "任务卡排除词与必用术语最终核验"],
       ["不直接推线上店铺", "SRS §0.3", "严守系统边界，仅留存选用与导出包"],
+    ],
+  },
+  m8a: {
+    breadcrumb: "CROSSPILOT / M8 员工与权限管理 · 员工名册与角色分配",
+    title: "M8-1 员工名册与 SRS §1.5 九大角色分配中心",
+    subtitle: "严格按照老师 SRS V1.0 §1.5 原文 9 大业务角色管理在职员工、人数分布、负责店铺与账号启停。",
+    blocks: [
+      { color: "#f59e0b", title: "授权管理权限门控", step: "8.1 步骤1 校验管理者/主管权限", srs: "SRS §1.5 & §12.2 R-01 替代演示固定Header", tech: "RBAC 鉴权门控 (仅 manager/approver 可写)" },
+      { color: "#2563eb", title: "团队规模与9角色统计", step: "8.1 步骤2 查看在职人数与SoD状态", srs: "SRS §1.5 完整覆盖9类业务场景角色", tech: "前端状态聚合 + SoD 互斥检查" },
+      { color: "#10b981", title: "按角色筛选与在线调岗", step: "8.1 步骤3 建档/调岗/停用离职账号", srs: "SRS §15 Q-01 正式身份与角色分配落地", tech: "员工名册表 + 实时触发 rbac_audit_logs" },
+    ],
+    ledger: [
+      ["9大业务角色", "SRS §1.5", "主管/审批人、大屏浏览者/管理者等9个原文角色"],
+      ["12名示例员工", "§0.3 示例", "覆盖9类岗位的教学演示团队名册"],
+      ["SoD 0冲突", "SRS §15 Q-09", "提交人与审批人严禁为同一账号"],
+    ],
+  },
+  m8b: {
+    breadcrumb: "CROSSPILOT / M8 员工与权限管理 · 9角色权限矩阵与审计",
+    title: "M8-2 9 大业务角色权限矩阵与审计日志",
+    subtitle: "100% 映射 SRS §1.5 九大角色对 M0~M8 共 15 项功能的操作边界，支持点击表头即时切换角色体验并查看审计追踪。",
+    blocks: [
+      { color: "#2563eb", title: "点击表头即时切换角色", step: "8.2 步骤1 交互式权限预览", srs: "SRS §1.5 直观演示不同岗位菜单与按钮差异", tech: "列高亮联动全局 roleSelect 状态" },
+      { color: "#10b981", title: "9角色×15功能细颗粒矩阵", step: "8.2 步骤2 核对管理/审批/操作/只读/禁止", srs: "SRS §1.5 + §0.2 工程落地权限清单", tech: "对应 d00_rbac_matrix_detail.png" },
+      { color: "#7c3aed", title: "变更与403越权拦截审计", step: "8.2 步骤3 全链路不可篡改留痕", srs: "SRS FR-COM-05 & SoD 越权操作追溯", tech: "rbac_audit_logs 追加式流水表" },
+    ],
+    ledger: [
+      ["★ / ✓ / ◆ / ○ / —", "权限分级", "治理授权 / 终审拍板 / 业务操作 / 只读 / 禁止"],
+      ["买家(模拟)仅M1-3", "SRS §1.5", "仅可访问模拟买家入站入口，禁止进后台"],
+      ["rbac_audit_logs", "SRS合规", "记录员工调岗、停用及403越权拦截事件"],
     ],
   },
 };

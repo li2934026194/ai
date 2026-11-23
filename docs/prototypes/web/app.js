@@ -1,19 +1,13 @@
 import { MODULE_DEFS, PAGE_META } from "./annotations.js";
 import { renderM0_M3 } from "./pages_m0_m3.js";
 import { renderM4_M7 } from "./pages_m4_m7.js";
+import { renderM8, SRS_ROLES } from "./pages_m8.js";
 
-const ROLE_HINTS = {
-  planner: "可处理客服、M4初筛入清单、M6提交补货；不可拍板终审/批准",
-  approver: "可终审 M1售后、M4测款拍板、M6补货批准（受 SoD 约束）",
-  warehouse: "可同步 M0 独立库存、登记 M6 采购/质检/分批收货凭证",
-  viewer: "只读观察员：可看 M2 大屏、M3 问数、M5 预测，禁止写入",
-  auditor: "合规审计员：只读审计全链路日志与权限记录",
-  admin: "系统管理员：全功能与模型注册启停调试权限",
-};
+const ROLE_HINTS = Object.fromEntries(SRS_ROLES.map(r => [r.key, r.desc]));
 
 const state = {
-  role: "planner",
-  pageId: "m7a",
+  role: "manager",
+  pageId: "m8a",
   showAnno: true,
   stockSyncedAt: "09:50:12",
 
@@ -134,6 +128,28 @@ const state = {
   m7VidType: "产品展示",
   m7VidProgress: 68,
   m7Published: false,
+
+  // M8: Employee Roster & 9-Role RBAC (SRS §1.5)
+  m8RoleFilter: "ALL",
+  employees: [
+    { id: "EMP-101", name: "陈主管", role: "approver", shop: "全部实盘店铺 (Shopee TH + TikTok US)", active: true, lastLogin: "今天 10:12" },
+    { id: "EMP-102", name: "王总", role: "manager", shop: "全部实盘店铺 (全局授权与大屏)", active: true, lastLogin: "今天 09:45" },
+    { id: "EMP-103", name: "张运营", role: "planner", shop: "全部实盘店铺 (Shopee TH + TikTok US)", active: true, lastLogin: "今天 10:08" },
+    { id: "EMP-104", name: "李运营", role: "planner", shop: "TikTok Shop 美区", active: true, lastLogin: "昨天 18:20" },
+    { id: "EMP-105", name: "刘数据", role: "bi_analyst", shop: "全部数据源 (只读问数与口径维护)", active: true, lastLogin: "今天 09:30" },
+    { id: "EMP-106", name: "吴选品", role: "selector", shop: "Amazon US / 行业机会池", active: true, lastLogin: "今天 10:01" },
+    { id: "EMP-107", name: "孙文案", role: "creator", shop: "Amazon US / TikTok US 内容库", active: true, lastLogin: "今天 09:55" },
+    { id: "EMP-108", name: "赵仓管", role: "warehouse", shop: "US-WH-1 / US-WH-2 / TH-WH-1", active: true, lastLogin: "今天 09:50" },
+    { id: "EMP-109", name: "钱物流", role: "warehouse", shop: "TH-WH-1", active: true, lastLogin: "昨天 17:40" },
+    { id: "EMP-110", name: "林客服", role: "cs", shop: "Shopee 泰国主店 + Amazon 沙盒", active: true, lastLogin: "今天 10:16" },
+    { id: "EMP-111", name: "周客服", role: "cs", shop: "TikTok Shop 美区", active: true, lastLogin: "今天 08:50" },
+    { id: "EMP-112", name: "演示买家01", role: "mock_buyer", shop: "仅演示沙盒 (Mock)", active: true, lastLogin: "演示入口" },
+  ],
+  auditLogs: [
+    { time: "10:15:02", actor: "manager", target: "林客服 (EMP-110)", action: "新增员工授权", detail: "授予角色「客服」，范围：Shopee 泰国主店", ok: true },
+    { time: "10:04:19", actor: "selector", target: "M4-2 SKU-00515 测款拍板", action: "权限拦截 (403)", detail: "选品研究员不可自审拍板，需由主管/审批人终审", ok: false },
+    { time: "09:51:40", actor: "approver", target: "赵仓管 (EMP-108)", action: "确认仓储权限", detail: "启用 M0-2 独立库存校准与 M6 收货凭证登记", ok: true },
+  ],
 };
 
 function toast(msg) {
@@ -212,7 +228,7 @@ function rerender() {
 
   // Page render
   const helpers = { toast, goPage, openModal, closeModal, rerender };
-  const view = renderM0_M3(state.pageId, state, helpers) || renderM4_M7(state.pageId, state, helpers);
+  const view = renderM0_M3(state.pageId, state, helpers) || renderM4_M7(state.pageId, state, helpers) || renderM8(state.pageId, state, helpers);
 
   const actBox = document.getElementById("headerActions");
   actBox.innerHTML = "";
@@ -262,10 +278,12 @@ function rerender() {
 }
 
 // Init
-document.getElementById("roleSelect").onchange = (e) => {
+const roleSelEl = document.getElementById("roleSelect");
+roleSelEl.value = state.role;
+roleSelEl.onchange = (e) => {
   state.role = e.target.value;
   rerender();
-  toast(`已切换登录角色为：${state.role}`);
+  toast(`已切换登录角色为：${SRS_ROLES.find(r=>r.key===state.role)?.label || state.role}`);
 };
 document.getElementById("toggleAnnoBtn").onclick = () => {
   state.showAnno = !state.showAnno;

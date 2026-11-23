@@ -73,15 +73,20 @@ export function renderM0_M3(pageId, state, helpers) {
     };
   }
 
-  // ==================== M0b: Independent Stock & RBAC ====================
+  // ==================== M0b: Independent Stock Sync Center ====================
   if (pageId === "m0b") {
+    const canSyncStock = state.role === "warehouse" || state.role === "manager";
     return {
       headerActions: [
-        { label: "同步仓库库存", primary: true, onClick: () => { state.stockSyncedAt = new Date().toTimeString().slice(0,8); rerender(); toast("独立仓库库存同步完成：" + state.stockSyncedAt); } }
+        { label: "去 M8 员工与权限管理 →", primary: false, onClick: () => goPage("m8a") },
+        { label: "同步仓库库存", primary: true, onClick: () => {
+          if (!canSyncStock) { toast("仅「采购 / 仓库 / 物流人员」或管理者可校准库存！"); return; }
+          state.stockSyncedAt = new Date().toTimeString().slice(0,8); rerender(); toast("独立仓库库存同步完成：" + state.stockSyncedAt);
+        } }
       ],
       html: `
         <div class="banner banner-amber">
-          <span><span class="anno-tag t-amber">1</span> 红线规则：仓库真实库存仅由本页同步或人工盘点更新；M6 补货收货凭证仅留痕，绝不自动改写可售库存。</span>
+          <span><span class="anno-tag t-amber">1</span> 红线规则：仓库真实库存仅由「采购 / 仓库 / 物流人员」在本页同步或人工盘点更新；M6 补货收货凭证仅留痕，绝不自动改写可售库存。</span>
           <span>最近同步：${state.stockSyncedAt}</span>
         </div>
 
@@ -102,27 +107,20 @@ export function renderM0_M3(pageId, state, helpers) {
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card-blue">
           <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-purple">2</span> 系统 6 大实现角色 RBAC 权限矩阵（pilot/rbac/service.py + SRS §1.5）</div>
-            <span class="pill p-purple">当前体验角色：${state.role}</span>
+            <div class="card-title"><span class="anno-tag t-purple">2</span> 员工名册与 SRS §1.5 九大角色权限已独立至【M8 员工与权限管理】</div>
+            <button class="btn btn-primary btn-sm" id="gotoM8Btn">打开 M8 员工与权限管理 →</button>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>代码角色</th><th>对应业务岗位 (SRS §1.5)</th><th>核心可操作权限</th><th>严禁 / 职责分离(SoD)边界</th></tr></thead>
-              <tbody>
-                <tr><td><span class="pill p-gray">viewer</span></td><td>观察员 / 只读访客</td><td>查看大屏(M2)、问数(M3)、预测(M5)</td><td>禁止任何写入与审批操作</td></tr>
-                <tr><td><span class="pill p-blue">planner</span></td><td>客服 / 选品 / 补货运营专员</td><td>客服回复、M4初筛入待选清单、M6提交补货草案</td><td>不得审批自己提交的工单/选品/补货</td></tr>
-                <tr><td><span class="pill p-purple">approver</span></td><td>运营主管 / 财务审批人</td><td>M1售后工单审批、M4测款终审、M6补货审批</td><td>必须与提交人为不同账号 (SoD)</td></tr>
-                <tr><td><span class="pill p-green">warehouse</span></td><td>仓管与采购履约专员</td><td>同步独立库存、M6登记采购/质检/分批收货凭证</td><td>不可越权审批财务补货预算</td></tr>
-                <tr><td><span class="pill p-amber">auditor / admin</span></td><td>审计员 / 系统管理员</td><td>全链路审计日志核验、6角色授权与模型启停</td><td>auditor 仅只读审计日志</td></tr>
-              </tbody>
-            </table>
+          <div style="font-size:12.5px;color:var(--text-muted);line-height:1.7;">
+            • <strong>M8-1 员工名册与角色分配</strong>：查看员工人数、工号姓名、按 SRS §1.5 九大业务角色筛选、在线调岗及新增授权。<br/>
+            • <strong>M8-2 9角色权限矩阵与审计</strong>：交互核对 9 大角色对 M0~M8 共 15 项功能的权限边界与 403 越权拦截日志。
           </div>
         </div>
       `,
       bind: () => {
         document.getElementById("gotoM6Btn").onclick = () => goPage("m6a");
+        document.getElementById("gotoM8Btn").onclick = () => goPage("m8a");
       }
     };
   }
@@ -382,7 +380,7 @@ export function renderM0_M3(pageId, state, helpers) {
 
   // ==================== M1c: After-sales Tickets & SoD Approval ====================
   if (pageId === "m1c") {
-    const canApprove = state.role === "approver" || state.role === "admin";
+    const canApprove = state.role === "approver";
     return {
       headerActions: [
         { label: "返回客服工作台", primary: false, onClick: () => goPage("m1a") },
@@ -397,7 +395,7 @@ export function renderM0_M3(pageId, state, helpers) {
         </div>
         <div class="grid-2">
           <div class="card">
-            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">2</span> 售后审批队列（planner 提交 → approver 拍板）</div></div>
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">2</span> 售后审批队列（客服建单 → 主管/审批人拍板）</div></div>
             <div class="table-wrap">
               <table>
                 <thead><tr><th>工单编号</th><th>关联订单</th><th>类型/金额</th><th>提交人</th><th>状态</th><th>平台回执</th></tr></thead>
@@ -431,7 +429,7 @@ export function renderM0_M3(pageId, state, helpers) {
                   <button class="btn btn-success" id="approveTkBtn" ${(!canApprove || sodSame || t.status !== "待主管审批") ? "disabled" : ""}>批准退款 (写入审计)</button>
                   <button class="btn btn-danger" id="rejectTkBtn" ${(!canApprove || sodSame || t.status !== "待主管审批") ? "disabled" : ""}>驳回工单</button>
                 </div>
-                ${!canApprove ? '<div style="font-size:11.5px;color:var(--red-text);margin-top:8px;">提示：请在左侧切换角色为 <strong>approver</strong> 后再审批。</div>' : ""}
+                ${!canApprove ? '<div style="font-size:11.5px;color:var(--red-text);margin-top:8px;">提示：请在左侧切换角色为 <strong>主管 / 审批人 (approver)</strong> 后再审批。</div>' : ""}
               `;
             })()}
           </div>

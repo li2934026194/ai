@@ -562,14 +562,17 @@ tr:hover td { background: #fafcff; }
       </div>
 
       <div class="role-box">
-        <label class="role-label">当前演示角色 (6角色RBAC)</label>
+        <label class="role-label">当前演示角色 (SRS §1.5 九大角色)</label>
         <select id="roleSelect" class="role-select">
-          <option value="planner">planner · 运营/选品/补货专员</option>
-          <option value="approver">approver · 主管/财务审批人</option>
-          <option value="warehouse">warehouse · 仓管/履约专员</option>
-          <option value="viewer">viewer · 只读观察员</option>
-          <option value="auditor">auditor · 合规审计员</option>
-          <option value="admin">admin · 系统管理员</option>
+          <option value="approver">主管 / 审批人 (approver)</option>
+          <option value="manager">大屏浏览者 / 管理者 (manager)</option>
+          <option value="planner">驾驶舱设计者 / 业务运营 (planner)</option>
+          <option value="bi_analyst">数据分析 / BI 人员 (bi_analyst)</option>
+          <option value="selector">选品研究员 (selector)</option>
+          <option value="creator">内容创作 / 审核人员 (creator)</option>
+          <option value="warehouse">采购 / 仓库 / 物流人员 (warehouse)</option>
+          <option value="cs">客服 (cs)</option>
+          <option value="mock_buyer">买家（模拟）(mock_buyer)</option>
         </select>
         <div id="roleHint" class="role-hint"></div>
       </div>
@@ -577,7 +580,7 @@ tr:hover td { background: #fafcff; }
       <nav id="sidebarNav" class="nav-list"></nav>
 
       <div class="sidebar-footer">
-        <div>对齐文档：SRS V1.0 + 1→2→3通俗版</div>
+        <div>对齐文档：SRS V1.0 (§1.5 九角色) + 1→2→3</div>
         <div>§0.3 示例数值与规则常量已明确标注</div>
       </div>
     </aside>
@@ -634,6 +637,7 @@ tr:hover td { background: #fafcff; }
   <div id="modalRoot"></div>
 
   <script>
+// === annotations.js ===
 const MODULE_DEFS = [
   {
     id: "m0",
@@ -641,7 +645,7 @@ const MODULE_DEFS = [
     badge: "2页",
     pages: [
       { id: "m0a", label: "店铺与主数据" },
-      { id: "m0b", label: "独立库存同步与RBAC" },
+      { id: "m0b", label: "独立库存同步中心" },
     ],
   },
   {
@@ -711,8 +715,16 @@ const MODULE_DEFS = [
       { id: "m7d", label: "合规审核与选用" },
     ],
   },
+  {
+    id: "m8",
+    label: "M8 员工与权限管理",
+    badge: "2页",
+    pages: [
+      { id: "m8a", label: "员工名册与角色分配" },
+      { id: "m8b", label: "9角色权限矩阵与审计" },
+    ],
+  },
 ];
-
 const PAGE_META = {
   m0a: {
     breadcrumb: "CROSSPILOT / M0 公共底座 · 店铺与主数据",
@@ -731,18 +743,18 @@ const PAGE_META = {
     ],
   },
   m0b: {
-    breadcrumb: "CROSSPILOT / M0 公共底座 · 独立库存与RBAC",
-    title: "独立库存同步中心与 6 角色 RBAC 权限矩阵",
-    subtitle: "仓库库存仅由本页同步或人工盘点更新，绝不由 M6 采购/收货凭证自动改写。",
+    breadcrumb: "CROSSPILOT / M0 公共底座 · 独立库存同步",
+    title: "独立库存同步与盘点校准中心",
+    subtitle: "仓库库存仅由「采购 / 仓库 / 物流人员」在本页同步或人工盘点更新，绝不由 M6 采购/收货凭证自动改写；员工与角色授权已独立至 M8。",
     blocks: [
       { color: "#f59e0b", title: "独立库存红线与快照水位", step: "0.3 独立库存校准同步", srs: "SRS §1.4 & FR-RP 库存独立口径", tech: "inventory_snapshots 可售/锁定分离" },
-      { color: "#7c3aed", title: "6角色RBAC与SoD职责分离", step: "0.1 统一身份鉴权与权限门控", srs: "SRS §1.5 9业务岗位映射为6实现角色", tech: "pilot/rbac/service.py + 提交≠审批校验" },
+      { color: "#7c3aed", title: "联动跳转 M8 权限治理", step: "0.1 身份授权独立模块化", srs: "SRS §1.5 九大角色独立授权中心", tech: "RBAC 权限校验与 warehouse 门控" },
     ],
     ledger: [
       ["18件 / 锁定4件 / 安全25", "§0.3 示例", "对齐老师 img_069 / img_083 BAG-108 示例"],
       ["43件 / 60件", "§0.3 示例", "对齐老师 img_082 FAN-203 示例库存"],
-      ["6大代码角色", "pilot/rbac", "viewer/planner/approver/warehouse/auditor/admin"],
       ["不自动改写库存", "SRS红线", "采购收货凭证仅留痕，不自动加可售库存"],
+      ["权限管理见 M8", "页面拆分", "员工名册与9角色矩阵已拆分至 M8 两页"],
     ],
   },
   m1a: {
@@ -1006,8 +1018,39 @@ const PAGE_META = {
       ["不直接推线上店铺", "SRS §0.3", "严守系统边界，仅留存选用与导出包"],
     ],
   },
+  m8a: {
+    breadcrumb: "CROSSPILOT / M8 员工与权限管理 · 员工名册与角色分配",
+    title: "M8-1 员工名册与 SRS §1.5 九大角色分配中心",
+    subtitle: "严格按照老师 SRS V1.0 §1.5 原文 9 大业务角色管理在职员工、人数分布、负责店铺与账号启停。",
+    blocks: [
+      { color: "#f59e0b", title: "授权管理权限门控", step: "8.1 步骤1 校验管理者/主管权限", srs: "SRS §1.5 & §12.2 R-01 替代演示固定Header", tech: "RBAC 鉴权门控 (仅 manager/approver 可写)" },
+      { color: "#2563eb", title: "团队规模与9角色统计", step: "8.1 步骤2 查看在职人数与SoD状态", srs: "SRS §1.5 完整覆盖9类业务场景角色", tech: "前端状态聚合 + SoD 互斥检查" },
+      { color: "#10b981", title: "按角色筛选与在线调岗", step: "8.1 步骤3 建档/调岗/停用离职账号", srs: "SRS §15 Q-01 正式身份与角色分配落地", tech: "员工名册表 + 实时触发 rbac_audit_logs" },
+    ],
+    ledger: [
+      ["9大业务角色", "SRS §1.5", "主管/审批人、大屏浏览者/管理者等9个原文角色"],
+      ["12名示例员工", "§0.3 示例", "覆盖9类岗位的教学演示团队名册"],
+      ["SoD 0冲突", "SRS §15 Q-09", "提交人与审批人严禁为同一账号"],
+    ],
+  },
+  m8b: {
+    breadcrumb: "CROSSPILOT / M8 员工与权限管理 · 9角色权限矩阵与审计",
+    title: "M8-2 9 大业务角色权限矩阵与审计日志",
+    subtitle: "100% 映射 SRS §1.5 九大角色对 M0~M8 共 15 项功能的操作边界，支持点击表头即时切换角色体验并查看审计追踪。",
+    blocks: [
+      { color: "#2563eb", title: "点击表头即时切换角色", step: "8.2 步骤1 交互式权限预览", srs: "SRS §1.5 直观演示不同岗位菜单与按钮差异", tech: "列高亮联动全局 roleSelect 状态" },
+      { color: "#10b981", title: "9角色×15功能细颗粒矩阵", step: "8.2 步骤2 核对管理/审批/操作/只读/禁止", srs: "SRS §1.5 + §0.2 工程落地权限清单", tech: "对应 d00_rbac_matrix_detail.png" },
+      { color: "#7c3aed", title: "变更与403越权拦截审计", step: "8.2 步骤3 全链路不可篡改留痕", srs: "SRS FR-COM-05 & SoD 越权操作追溯", tech: "rbac_audit_logs 追加式流水表" },
+    ],
+    ledger: [
+      ["★ / ✓ / ◆ / ○ / —", "权限分级", "治理授权 / 终审拍板 / 业务操作 / 只读 / 禁止"],
+      ["买家(模拟)仅M1-3", "SRS §1.5", "仅可访问模拟买家入站入口，禁止进后台"],
+      ["rbac_audit_logs", "SRS合规", "记录员工调岗、停用及403越权拦截事件"],
+    ],
+  },
 };
 
+// === pages_m0_m3.js ===
 function renderM0_M3(pageId, state, helpers) {
   const { toast, goPage, openModal, closeModal, rerender } = helpers;
 
@@ -1083,15 +1126,20 @@ function renderM0_M3(pageId, state, helpers) {
     };
   }
 
-  // ==================== M0b: Independent Stock & RBAC ====================
+  // ==================== M0b: Independent Stock Sync Center ====================
   if (pageId === "m0b") {
+    const canSyncStock = state.role === "warehouse" || state.role === "manager";
     return {
       headerActions: [
-        { label: "同步仓库库存", primary: true, onClick: () => { state.stockSyncedAt = new Date().toTimeString().slice(0,8); rerender(); toast("独立仓库库存同步完成：" + state.stockSyncedAt); } }
+        { label: "去 M8 员工与权限管理 →", primary: false, onClick: () => goPage("m8a") },
+        { label: "同步仓库库存", primary: true, onClick: () => {
+          if (!canSyncStock) { toast("仅「采购 / 仓库 / 物流人员」或管理者可校准库存！"); return; }
+          state.stockSyncedAt = new Date().toTimeString().slice(0,8); rerender(); toast("独立仓库库存同步完成：" + state.stockSyncedAt);
+        } }
       ],
       html: `
         <div class="banner banner-amber">
-          <span><span class="anno-tag t-amber">1</span> 红线规则：仓库真实库存仅由本页同步或人工盘点更新；M6 补货收货凭证仅留痕，绝不自动改写可售库存。</span>
+          <span><span class="anno-tag t-amber">1</span> 红线规则：仓库真实库存仅由「采购 / 仓库 / 物流人员」在本页同步或人工盘点更新；M6 补货收货凭证仅留痕，绝不自动改写可售库存。</span>
           <span>最近同步：${state.stockSyncedAt}</span>
         </div>
 
@@ -1112,27 +1160,20 @@ function renderM0_M3(pageId, state, helpers) {
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card-blue">
           <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-purple">2</span> 系统 6 大实现角色 RBAC 权限矩阵（pilot/rbac/service.py + SRS §1.5）</div>
-            <span class="pill p-purple">当前体验角色：${state.role}</span>
+            <div class="card-title"><span class="anno-tag t-purple">2</span> 员工名册与 SRS §1.5 九大角色权限已独立至【M8 员工与权限管理】</div>
+            <button class="btn btn-primary btn-sm" id="gotoM8Btn">打开 M8 员工与权限管理 →</button>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>代码角色</th><th>对应业务岗位 (SRS §1.5)</th><th>核心可操作权限</th><th>严禁 / 职责分离(SoD)边界</th></tr></thead>
-              <tbody>
-                <tr><td><span class="pill p-gray">viewer</span></td><td>观察员 / 只读访客</td><td>查看大屏(M2)、问数(M3)、预测(M5)</td><td>禁止任何写入与审批操作</td></tr>
-                <tr><td><span class="pill p-blue">planner</span></td><td>客服 / 选品 / 补货运营专员</td><td>客服回复、M4初筛入待选清单、M6提交补货草案</td><td>不得审批自己提交的工单/选品/补货</td></tr>
-                <tr><td><span class="pill p-purple">approver</span></td><td>运营主管 / 财务审批人</td><td>M1售后工单审批、M4测款终审、M6补货审批</td><td>必须与提交人为不同账号 (SoD)</td></tr>
-                <tr><td><span class="pill p-green">warehouse</span></td><td>仓管与采购履约专员</td><td>同步独立库存、M6登记采购/质检/分批收货凭证</td><td>不可越权审批财务补货预算</td></tr>
-                <tr><td><span class="pill p-amber">auditor / admin</span></td><td>审计员 / 系统管理员</td><td>全链路审计日志核验、6角色授权与模型启停</td><td>auditor 仅只读审计日志</td></tr>
-              </tbody>
-            </table>
+          <div style="font-size:12.5px;color:var(--text-muted);line-height:1.7;">
+            • <strong>M8-1 员工名册与角色分配</strong>：查看员工人数、工号姓名、按 SRS §1.5 九大业务角色筛选、在线调岗及新增授权。<br/>
+            • <strong>M8-2 9角色权限矩阵与审计</strong>：交互核对 9 大角色对 M0~M8 共 15 项功能的权限边界与 403 越权拦截日志。
           </div>
         </div>
       `,
       bind: () => {
         document.getElementById("gotoM6Btn").onclick = () => goPage("m6a");
+        document.getElementById("gotoM8Btn").onclick = () => goPage("m8a");
       }
     };
   }
@@ -1392,7 +1433,7 @@ function renderM0_M3(pageId, state, helpers) {
 
   // ==================== M1c: After-sales Tickets & SoD Approval ====================
   if (pageId === "m1c") {
-    const canApprove = state.role === "approver" || state.role === "admin";
+    const canApprove = state.role === "approver";
     return {
       headerActions: [
         { label: "返回客服工作台", primary: false, onClick: () => goPage("m1a") },
@@ -1407,7 +1448,7 @@ function renderM0_M3(pageId, state, helpers) {
         </div>
         <div class="grid-2">
           <div class="card">
-            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">2</span> 售后审批队列（planner 提交 → approver 拍板）</div></div>
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">2</span> 售后审批队列（客服建单 → 主管/审批人拍板）</div></div>
             <div class="table-wrap">
               <table>
                 <thead><tr><th>工单编号</th><th>关联订单</th><th>类型/金额</th><th>提交人</th><th>状态</th><th>平台回执</th></tr></thead>
@@ -1441,7 +1482,7 @@ function renderM0_M3(pageId, state, helpers) {
                   <button class="btn btn-success" id="approveTkBtn" ${(!canApprove || sodSame || t.status !== "待主管审批") ? "disabled" : ""}>批准退款 (写入审计)</button>
                   <button class="btn btn-danger" id="rejectTkBtn" ${(!canApprove || sodSame || t.status !== "待主管审批") ? "disabled" : ""}>驳回工单</button>
                 </div>
-                ${!canApprove ? '<div style="font-size:11.5px;color:var(--red-text);margin-top:8px;">提示：请在左侧切换角色为 <strong>approver</strong> 后再审批。</div>' : ""}
+                ${!canApprove ? '<div style="font-size:11.5px;color:var(--red-text);margin-top:8px;">提示：请在左侧切换角色为 <strong>主管 / 审批人 (approver)</strong> 后再审批。</div>' : ""}
               `;
             })()}
           </div>
@@ -1690,6 +1731,7 @@ function renderM0_M3(pageId, state, helpers) {
   return null;
 }
 
+// === pages_m4_m7.js ===
 function renderM4_M7(pageId, state, helpers) {
   const { toast, goPage, openModal, closeModal, rerender } = helpers;
 
@@ -1759,15 +1801,15 @@ function renderM4_M7(pageId, state, helpers) {
     };
   }
 
-  // ==================== M4b: Selection Workflow (planner -> approver) ====================
+  // ==================== M4b: Selection Workflow (selector -> approver) ====================
   if (pageId === "m4b") {
-    const isPlanner = state.role === "planner" || state.role === "admin";
-    const isApprover = state.role === "approver" || state.role === "admin";
+    const isSelector = state.role === "selector" || state.role === "planner";
+    const isApprover = state.role === "approver";
     return {
       headerActions: [
         { label: "← 选品数据接入", primary: false, onClick: () => goPage("m4a") },
-        { label: isApprover ? "当前：approver 终审模式" : "切换为 approver 测试拍板", primary: true, onClick: () => {
-          state.role = isApprover ? "planner" : "approver";
+        { label: isApprover ? "切回 选品研究员 (selector)" : "切为 主管/审批人 (approver) 测试拍板", primary: true, onClick: () => {
+          state.role = isApprover ? "selector" : "approver";
           document.getElementById("roleSelect").value = state.role;
           rerender();
           toast(`已切换角色为 ${state.role}`);
@@ -1777,9 +1819,9 @@ function renderM4_M7(pageId, state, helpers) {
         <div class="card" style="padding:12px 16px;">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <strong><span class="anno-tag t-blue">1</span> 选品角色接力流：</strong>
-            <span class="pill p-blue">① 机会池 AI 初筛 (planner)</span>
+            <span class="pill p-blue">① 机会池 AI 初筛 (选品研究员 selector)</span>
             <span>──提交──▶</span>
-            <span class="pill p-purple">② 待选清单复核 (approver)</span>
+            <span class="pill p-purple">② 待选清单复核 (主管/审批人 approver)</span>
             <span>──▶</span>
             <span class="pill p-green">③ 测款 / 上架 / 淘汰</span>
           </div>
@@ -1787,12 +1829,12 @@ function renderM4_M7(pageId, state, helpers) {
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-green">2</span> 阶段一：商品机会池（planner 初筛并提交进待选清单）</div>
+            <div class="card-title"><span class="anno-tag t-green">2</span> 阶段一：商品机会池（选品研究员初筛并提交进待选清单）</div>
             <span class="pill p-blue">当前操作角色：${state.role}</span>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>商品 / SKU</th><th>平台/地区</th><th>8周预估净收入</th><th>趋势</th><th>数据来源</th><th>状态</th><th>planner 操作</th></tr></thead>
+              <thead><tr><th>商品 / SKU</th><th>平台/地区</th><th>8周预估净收入</th><th>趋势</th><th>数据来源</th><th>状态</th><th>选品研究员操作</th></tr></thead>
               <tbody>
                 ${state.m4Pool.map((item, idx) => `
                   <tr>
@@ -1803,7 +1845,7 @@ function renderM4_M7(pageId, state, helpers) {
                     <td><span class="pill p-amber">${item.src}</span></td>
                     <td><span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已提交待审"?"p-purple":item.stage==="已淘汰"?"p-red":"p-gray"}">${item.stage}</span></td>
                     <td>
-                      ${item.stage === "仅研究估算" ? `<button class="btn btn-sm btn-primary m4-shortlist" data-i="${idx}" ${!isPlanner?"disabled":""}>加入待选清单 +</button>` : `<span style="color:var(--text-soft);font-size:12px;">已流转</span>`}
+                      ${item.stage === "仅研究估算" ? `<button class="btn btn-sm btn-primary m4-shortlist" data-i="${idx}" ${!isSelector?"disabled":""}>加入待选清单 +</button>` : `<span style="color:var(--text-soft);font-size:12px;">已流转</span>`}
                     </td>
                   </tr>
                 `).join("")}
@@ -1814,8 +1856,8 @@ function renderM4_M7(pageId, state, helpers) {
 
         <div class="card card-blue">
           <div class="card-header">
-            <div class="card-title" style="color:var(--purple-text);"><span class="anno-tag t-purple">3</span> 阶段二：待选清单与测款拍板（仅 approver 可做最终决策）</div>
-            ${!isApprover ? '<span class="pill p-red">当前角色不可拍板（请点右上角切为 approver）</span>' : '<span class="pill p-green">approver 终审已解锁 ✓</span>'}
+            <div class="card-title" style="color:var(--purple-text);"><span class="anno-tag t-purple">3</span> 阶段二：待选清单与测款拍板（仅「主管 / 审批人」可做最终决策）</div>
+            ${!isApprover ? '<span class="pill p-red">当前角色不可拍板（请点右上角切为 approver）</span>' : '<span class="pill p-green">主管 / 审批人终审已解锁 ✓</span>'}
           </div>
           <div class="table-wrap">
             <table>
@@ -2043,8 +2085,8 @@ function renderM4_M7(pageId, state, helpers) {
   // ==================== M6b: Replenishment Steps 4-5 ====================
   if (pageId === "m6b") {
     const plan = state.m6Plans[state.m6SelectedPlan];
-    const canApprove = state.role === "approver" || state.role === "admin";
-    const canWh = state.role === "warehouse" || state.role === "admin";
+    const canApprove = state.role === "approver";
+    const canWh = state.role === "warehouse";
     const sodSame = state.m6Submitter === state.role;
     return {
       headerActions: [
@@ -2396,19 +2438,350 @@ function renderM4_M7(pageId, state, helpers) {
   return null;
 }
 
+// === pages_m8.js ===
+const SRS_ROLES = [
+  { key: "approver", label: "主管 / 审批人", code: "approver", pill: "p-red", desc: "终审拍板：M1售后审批、M4选品测款/淘汰、M6补货批准、M7发布把关" },
+  { key: "manager", label: "大屏浏览者 / 管理者", code: "viewer/manager", pill: "p-purple", desc: "全局管理：M8员工授权管理、M0店铺OAuth、M2看发布大屏、M3经营问数" },
+  { key: "planner", label: "驾驶舱设计者 / 业务运营", code: "planner", pill: "p-blue", desc: "业务编排：M2驾驶舱设计发布、M5销量预测、M6补货测算提交草案" },
+  { key: "bi_analyst", label: "数据分析 / BI 人员", code: "bi_analyst", pill: "p-blue", desc: "指标口径：M3指标绑定与Celery调度、M2指标配置复用、只读问数" },
+  { key: "selector", label: "选品研究员", code: "selector", pill: "p-blue", desc: "选品初筛：M4三源数据接入、机会池初筛提交待选清单（不可自批）" },
+  { key: "creator", label: "内容创作 / 审核人员", code: "creator", pill: "p-purple", desc: "内容生成：M7文案/主图/短视频生成与违禁词检查，提交审批" },
+  { key: "warehouse", label: "采购 / 仓库 / 物流人员", code: "warehouse", pill: "p-green", desc: "仓储履约：M0-2独立库存校准同步、M6采购/质检/分批收货凭证登记" },
+  { key: "cs", label: "客服", code: "cs", pill: "p-blue", desc: "一线接待：M1三栏工作台接管、双语回复、订单核验与提交售后工单" },
+  { key: "mock_buyer", label: "买家（模拟）", code: "mock_buyer", pill: "p-gray", desc: "教学演示入口：仅可访问M1-3模拟买家入口发送英文咨询或投诉" },
+];
 
-const ROLE_HINTS = {
-  planner: "可处理客服、M4初筛入清单、M6提交补货；不可拍板终审/批准",
-  approver: "可终审 M1售后、M4测款拍板、M6补货批准（受 SoD 约束）",
-  warehouse: "可同步 M0 独立库存、登记 M6 采购/质检/分批收货凭证",
-  viewer: "只读观察员：可看 M2 大屏、M3 问数、M5 预测，禁止写入",
-  auditor: "合规审计员：只读审计全链路日志与权限记录",
-  admin: "系统管理员：全功能与模型注册启停调试权限",
-};
+const MATRIX_ROWS = [
+  ["01 M8 员工名册与角色授权", "★ 本组权限", "★ 全局授权", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止"],
+  ["02 M0-1 店铺 OAuth 与主数据", "○ 查看状态", "★ 店铺授权", "◆ 维护成本卡", "○ 只读统计", "○ 查商品基础", "○ 查商品卖点", "○ 查SKU规格", "○ 本店订单", "— 禁止"],
+  ["03 M0-2 独立库存同步与盘点", "○ 查看水位", "○ 查看水位", "○ 只读参考", "○ 只读参考", "— 禁止", "— 禁止", "◆ 同步/校准", "— 禁止", "— 禁止"],
+  ["04 M1-2 推荐商品库 (XLSX→向量)", "○ 查看目录", "— 禁止", "◆ 导入/维护", "— 禁止", "— 禁止", "○ 参考卖点", "— 禁止", "○ 检索Top-3", "— 禁止"],
+  ["05 M1-3 模拟买家入站入口", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "○ 联调测试", "◆ 发英文消息"],
+  ["06 M1-1 客服工作台与售后建单", "○ 查看会话", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "◆ 接管/建单", "— 禁止"],
+  ["07 M1-4 售后工单审批 (行锁+SoD)", "✓ 批准/驳回", "○ 查统计", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止(不可自批)", "— 禁止"],
+  ["08 M2-1 驾驶舱低代码设计发布", "○ 查看发布", "○ 查看发布", "◆ 编排/发布", "◆ 复用指标", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止"],
+  ["09 M2-2 已发布经营大屏浏览", "○ 看大屏决策", "○ 浏览大屏", "○ 看运营效果", "○ 口径验证", "○ 看类目大盘", "— 禁止", "— 禁止", "— 禁止", "— 禁止"],
+  ["10 M3-1/2 指标调度与智能问数", "○ 只读问数", "○ 经营问数", "○ 只读问数", "◆ 维护+问数", "○ 只读查数", "— 禁止", "○ 库存只读", "○ 本域只读", "— 禁止"],
+  ["11 M4-1/2 选品接入与初筛提交", "○ 查看机会池", "○ 查看进展", "— 禁止", "○ 核验口径", "◆ 接入+初筛", "— 禁止", "— 禁止", "— 禁止", "— 禁止"],
+  ["12 M4-2 选品测款终审拍板", "✓ 测款/淘汰", "○ 查看结论", "— 禁止", "— 禁止", "— 禁止(不可自批)", "— 禁止", "— 禁止", "— 禁止", "— 禁止"],
+  ["13 M5-1/2 销量预测与WAPE评估", "○ 复盘WAPE", "○ 看趋势", "◆ 画像/预测", "○ 回测评估", "○ 新品参考", "— 禁止", "○ 预测参考", "— 禁止", "— 禁止"],
+  ["14 M6-1/2 补货测算与审批履约", "✓ 审批补货", "○ 看资金", "◆ 提交草案", "— 禁止", "— 禁止", "— 禁止", "◆ 采购/收货", "— 禁止", "— 禁止"],
+  ["15 M7-1~4 文案图视频合规选用", "✓ 发布把关", "○ 查看成品", "○ 提卖点", "— 禁止", "○ 交接卖点", "◆ 生成+检查", "— 禁止", "— 禁止", "— 禁止"],
+];
+
+function badgeHtml(cell) {
+  if (cell.startsWith("★")) return `<span class="pill p-purple">${cell}</span>`;
+  if (cell.startsWith("✓")) return `<span class="pill p-red">${cell}</span>`;
+  if (cell.startsWith("◆")) return `<span class="pill p-blue">${cell}</span>`;
+  if (cell.startsWith("○")) return `<span class="pill p-gray">${cell}</span>`;
+  return `<span style="color:#94a3b8;font-size:11.5px;">${cell}</span>`;
+}
+function renderM8(pageId, state, helpers) {
+  const { toast, goPage, openModal, closeModal, rerender } = helpers;
+  const canManage = state.role === "manager" || state.role === "approver";
+
+  // ==================== M8a: Employee Roster & Role Assignment ====================
+  if (pageId === "m8a") {
+    const activeCount = state.employees.filter(e => e.active).length;
+    const filtered = state.employees.filter(e => state.m8RoleFilter === "ALL" || e.role === state.m8RoleFilter);
+
+    return {
+      headerActions: [
+        { label: "查看9角色权限矩阵 →", primary: false, onClick: () => goPage("m8b") },
+        {
+          label: "+ 新增员工与角色授权",
+          primary: true,
+          onClick: () => {
+            if (!canManage) {
+              state.auditLogs.unshift({
+                time: new Date().toTimeString().slice(0, 8),
+                actor: state.role,
+                target: "新增员工",
+                action: "权限拦截 (403 RBAC)",
+                detail: "仅「大屏浏览者/管理者」或「主管/审批人」可新增员工授权",
+                ok: false,
+              });
+              rerender();
+              toast("权限不足：请切换为「大屏浏览者/管理者」或「主管/审批人」后再新增员工！");
+              return;
+            }
+            openModal("新增员工与 SRS §1.5 角色授权", `
+              <div class="grid-2" style="gap:10px;">
+                <div class="field"><label>员工工号</label><input id="newEmpId" class="input" value="EMP-${101 + state.employees.length}" /></div>
+                <div class="field"><label>员工姓名</label><input id="newEmpName" class="input" placeholder="如：林晓" value="周宁" /></div>
+              </div>
+              <div class="field">
+                <label>分配 SRS §1.5 业务角色（单人单岗 · 严格SoD）</label>
+                <select id="newEmpRole" class="select">
+                  ${SRS_ROLES.map(r => `<option value="${r.key}">${r.label} (${r.code})</option>`).join("")}
+                </select>
+              </div>
+              <div id="newEmpRolePreview" class="banner banner-blue" style="margin-bottom:10px;font-size:12px;"></div>
+              <div class="field"><label>负责店铺 / 数据域</label><select id="newEmpShop" class="select"><option>全部实盘店铺 (Shopee TH + TikTok US)</option><option>Shopee 泰国主店</option><option>TikTok Shop 美区</option><option>仅演示沙盒 (Mock)</option></select></div>
+              <button class="btn btn-primary" id="saveNewEmpBtn" style="width:100%;justify-content:center;">确认建档并写入授权台账</button>
+            `, () => {
+              const sel = document.getElementById("newEmpRole");
+              const updPreview = () => {
+                const info = SRS_ROLES.find(r => r.key === sel.value);
+                document.getElementById("newEmpRolePreview").textContent = `职责边界：${info.desc}`;
+              };
+              sel.onchange = updPreview;
+              updPreview();
+              document.getElementById("saveNewEmpBtn").onclick = () => {
+                const id = document.getElementById("newEmpId").value.trim() || "EMP-NEW";
+                const name = document.getElementById("newEmpName").value.trim() || "新员工";
+                const role = sel.value;
+                const shop = document.getElementById("newEmpShop").value;
+                const roleObj = SRS_ROLES.find(r => r.key === role);
+                state.employees.unshift({ id, name, role, shop, active: true, lastLogin: "刚刚建档" });
+                state.auditLogs.unshift({
+                  time: new Date().toTimeString().slice(0, 8),
+                  actor: state.role,
+                  target: `${name} (${id})`,
+                  action: "新增员工授权",
+                  detail: `授予角色「${roleObj.label}」，范围：${shop}`,
+                  ok: true,
+                });
+                closeModal();
+                rerender();
+                toast(`已新增员工 ${name}，分配角色：${roleObj.label}`);
+              };
+            });
+          }
+        }
+      ],
+      html: `
+        ${!canManage ? `
+          <div class="banner banner-amber">
+            <span><span class="anno-tag t-amber">1</span> 当前登录角色为 <strong>${SRS_ROLES.find(r=>r.key===state.role)?.label || state.role}</strong>（仅限只读查看或受限访问），调岗与新增员工需管理员授权。</span>
+            <button class="btn btn-sm btn-primary" id="m8SwitchMgrBtn">切为「大屏浏览者/管理者」体验授权</button>
+          </div>
+        ` : `
+          <div class="banner banner-green">
+            <span><span class="anno-tag t-amber">1</span> 当前已解锁组织授权管理权限：可直接新增员工、切换 SRS §1.5 九大职位或停用离职账号（变更自动写审计日志）。</span>
+          </div>
+        `}
+
+        <div class="grid-4">
+          <div class="kpi-card">
+            <div class="kpi-label"><span class="anno-tag t-blue">2</span> 在职 / 总员工数</div>
+            <div class="kpi-val" style="color:var(--blue-hover)">${activeCount} / ${state.employees.length} 人</div>
+            <div class="kpi-sub">停用账号 ${state.employees.length - activeCount} 个</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">SRS §1.5 标准角色</div>
+            <div class="kpi-val" style="color:var(--purple-text)">9 类岗位</div>
+            <div class="kpi-sub">与需求规格书一字不差对齐</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">SoD 互斥冲突</div>
+            <div class="kpi-val" style="color:var(--green-text)">0 冲突</div>
+            <div class="kpi-sub">提交人与终审人严格隔离</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">审计留痕条数</div>
+            <div class="kpi-val" style="color:var(--amber-text)">${state.auditLogs.length} 条</div>
+            <div class="kpi-sub">授权变更与403拦截全记录</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-green">3</span> 按 SRS §1.5 九大角色筛选（点击查看各岗位人数与明细）</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="btn btn-sm ${state.m8RoleFilter==="ALL"?"btn-primary":""} m8-rflt" data-r="ALL">全部 (${state.employees.length})</button>
+            ${SRS_ROLES.map(r => {
+              const cnt = state.employees.filter(e => e.role === r.key).length;
+              return `<button class="btn btn-sm ${state.m8RoleFilter===r.key?"btn-primary":""} m8-rflt" data-r="${r.key}">${r.label} (${cnt})</button>`;
+            }).join("")}
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>工号</th><th>员工姓名</th><th>SRS §1.5 职位角色 (可调岗)</th><th>底层权限组</th><th>店铺 / 数据范围</th><th>状态</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                ${filtered.map(emp => {
+                  const rObj = SRS_ROLES.find(r => r.key === emp.role) || SRS_ROLES[0];
+                  return `
+                    <tr>
+                      <td><strong>${emp.id}</strong></td>
+                      <td><strong>${emp.name}</strong><div style="font-size:11px;color:var(--text-soft)">最近登录: ${emp.lastLogin}</div></td>
+                      <td>
+                        <select class="select m8-emp-role" data-id="${emp.id}" ${!canManage ? "disabled" : ""} style="min-width:190px;">
+                          ${SRS_ROLES.map(r => `<option value="${r.key}" ${emp.role===r.key?"selected":""}>${r.label}</option>`).join("")}
+                        </select>
+                      </td>
+                      <td><span class="pill ${rObj.pill}">${rObj.code}</span></td>
+                      <td style="font-size:12px;">${emp.shop}</td>
+                      <td><span class="pill ${emp.active?"p-green":"p-red"}">${emp.active?"启用中":"已停用"}</span></td>
+                      <td>
+                        <button class="btn btn-sm ${emp.active?"btn-danger":"btn-success"} m8-emp-toggle" data-id="${emp.id}" ${!canManage ? "disabled" : ""}>
+                          ${emp.active ? "停用账号" : "恢复启用"}
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        const sw = document.getElementById("m8SwitchMgrBtn");
+        if (sw) sw.onclick = () => {
+          state.role = "manager";
+          document.getElementById("roleSelect").value = "manager";
+          rerender();
+          toast("已切换为「大屏浏览者 / 管理者」，可进行员工授权操作");
+        };
+        document.querySelectorAll(".m8-rflt").forEach(b => b.onclick = () => {
+          state.m8RoleFilter = b.dataset.r;
+          rerender();
+        });
+        document.querySelectorAll(".m8-emp-role").forEach(sel => sel.onchange = (e) => {
+          const emp = state.employees.find(x => x.id === sel.dataset.id);
+          const oldLabel = SRS_ROLES.find(r => r.key === emp.role)?.label;
+          emp.role = e.target.value;
+          const newLabel = SRS_ROLES.find(r => r.key === emp.role)?.label;
+          state.auditLogs.unshift({
+            time: new Date().toTimeString().slice(0, 8),
+            actor: state.role,
+            target: `${emp.name} (${emp.id})`,
+            action: "调整员工职位",
+            detail: `${oldLabel} → ${newLabel}`,
+            ok: true,
+          });
+          rerender();
+          toast(`已将 ${emp.name} 调岗为「${newLabel}」`);
+        });
+        document.querySelectorAll(".m8-emp-toggle").forEach(b => b.onclick = () => {
+          const emp = state.employees.find(x => x.id === b.dataset.id);
+          emp.active = !emp.active;
+          state.auditLogs.unshift({
+            time: new Date().toTimeString().slice(0, 8),
+            actor: state.role,
+            target: `${emp.name} (${emp.id})`,
+            action: emp.active ? "恢复账号" : "停用账号",
+            detail: `账号状态变更为：${emp.active ? "启用中" : "已停用"}`,
+            ok: true,
+          });
+          rerender();
+          toast(`${emp.name} 账号已${emp.active ? "恢复启用" : "停用"}`);
+        });
+      }
+    };
+  }
+
+  // ==================== M8b: 9-Role Permission Matrix & Audit Logs ====================
+  if (pageId === "m8b") {
+    const curRoleObj = SRS_ROLES.find(r => r.key === state.role) || SRS_ROLES[0];
+    const activeRoleIdx = SRS_ROLES.findIndex(r => r.key === state.role);
+    return {
+      headerActions: [
+        { label: "← 返回员工名册与角色分配", primary: false, onClick: () => goPage("m8a") },
+        { label: "模拟触发一次越权拦截", primary: true, onClick: () => {
+          state.auditLogs.unshift({
+            time: new Date().toTimeString().slice(0, 8),
+            actor: state.role,
+            target: "M6-2 补货审批 RP-08",
+            action: "SoD 拦截 (403)",
+            detail: "提交人与审批人同为当前账号，触发职责分离保护",
+            ok: false,
+          });
+          rerender();
+          toast("已模拟记录一条 SoD 越权拦截审计日志");
+        } }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span><span class="anno-tag t-blue">1</span> 点击下方矩阵表头任意角色名称，即可即时切换当前演练角色！当前高亮列：<strong>${curRoleObj.label}</strong>（${curRoleObj.desc}）</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-green">2</span> SRS §1.5 九大业务角色 × 15 项核心功能权限矩阵</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="pill p-purple">★ 治理授权</span>
+              <span class="pill p-red">✓ 终审拍板</span>
+              <span class="pill p-blue">◆ 业务操作</span>
+              <span class="pill p-gray">○ 限域只读</span>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="min-width:190px;">功能模块 / 权限点</th>
+                  ${SRS_ROLES.map((r, i) => `
+                    <th style="cursor:pointer;min-width:105px;${i===activeRoleIdx?"background:#dbeafe;color:#1d4ed8;border-bottom:2px solid #2563eb;":""}" class="m8-col-switch" data-role="${r.key}" title="点击切换体验该角色">
+                      ${r.label}
+                      ${i===activeRoleIdx ? '<div style="font-size:10px;font-weight:800;">● 当前体验</div>' : '<div style="font-size:10px;color:#94a3b8;">点击切换</div>'}
+                    </th>
+                  `).join("")}
+                </tr>
+              </thead>
+              <tbody>
+                ${MATRIX_ROWS.map(row => `
+                  <tr>
+                    <td><strong>${row[0]}</strong></td>
+                    ${row.slice(1).map((cell, ci) => `
+                      <td style="${ci===activeRoleIdx?"background:#eff6ff;":""}">${badgeHtml(cell)}</td>
+                    `).join("")}
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card card-blue">
+          <div class="card-header">
+            <div class="card-title" style="color:var(--purple-text);"><span class="anno-tag t-purple">3</span> 角色变更与敏感越权拦截审计日志（rbac_audit_logs）</div>
+            <span class="pill p-purple">不可篡改留痕</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>时间</th><th>操作人角色</th><th>目标对象</th><th>动作类型</th><th>详细说明</th><th>结果</th></tr></thead>
+              <tbody>
+                ${state.auditLogs.map(log => `
+                  <tr>
+                    <td>${log.time}</td>
+                    <td><strong>${SRS_ROLES.find(r=>r.key===log.actor)?.label || log.actor}</strong></td>
+                    <td>${log.target}</td>
+                    <td><span class="pill ${log.ok?"p-blue":"p-red"}">${log.action}</span></td>
+                    <td style="font-size:12px;">${log.detail}</td>
+                    <td><span class="pill ${log.ok?"p-green":"p-red"}">${log.ok?"已记录":"已拦截"}</span></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".m8-col-switch").forEach(th => th.onclick = () => {
+          state.role = th.dataset.role;
+          document.getElementById("roleSelect").value = state.role;
+          rerender();
+          toast(`已切换体验角色为：${SRS_ROLES.find(r=>r.key===state.role)?.label}`);
+        });
+      }
+    };
+  }
+
+  return null;
+}
+
+// === app.js ===
+const ROLE_HINTS = Object.fromEntries(SRS_ROLES.map(r => [r.key, r.desc]));
 
 const state = {
-  role: "planner",
-  pageId: "m7a",
+  role: "manager",
+  pageId: "m8a",
   showAnno: true,
   stockSyncedAt: "09:50:12",
 
@@ -2529,6 +2902,28 @@ const state = {
   m7VidType: "产品展示",
   m7VidProgress: 68,
   m7Published: false,
+
+  // M8: Employee Roster & 9-Role RBAC (SRS §1.5)
+  m8RoleFilter: "ALL",
+  employees: [
+    { id: "EMP-101", name: "陈主管", role: "approver", shop: "全部实盘店铺 (Shopee TH + TikTok US)", active: true, lastLogin: "今天 10:12" },
+    { id: "EMP-102", name: "王总", role: "manager", shop: "全部实盘店铺 (全局授权与大屏)", active: true, lastLogin: "今天 09:45" },
+    { id: "EMP-103", name: "张运营", role: "planner", shop: "全部实盘店铺 (Shopee TH + TikTok US)", active: true, lastLogin: "今天 10:08" },
+    { id: "EMP-104", name: "李运营", role: "planner", shop: "TikTok Shop 美区", active: true, lastLogin: "昨天 18:20" },
+    { id: "EMP-105", name: "刘数据", role: "bi_analyst", shop: "全部数据源 (只读问数与口径维护)", active: true, lastLogin: "今天 09:30" },
+    { id: "EMP-106", name: "吴选品", role: "selector", shop: "Amazon US / 行业机会池", active: true, lastLogin: "今天 10:01" },
+    { id: "EMP-107", name: "孙文案", role: "creator", shop: "Amazon US / TikTok US 内容库", active: true, lastLogin: "今天 09:55" },
+    { id: "EMP-108", name: "赵仓管", role: "warehouse", shop: "US-WH-1 / US-WH-2 / TH-WH-1", active: true, lastLogin: "今天 09:50" },
+    { id: "EMP-109", name: "钱物流", role: "warehouse", shop: "TH-WH-1", active: true, lastLogin: "昨天 17:40" },
+    { id: "EMP-110", name: "林客服", role: "cs", shop: "Shopee 泰国主店 + Amazon 沙盒", active: true, lastLogin: "今天 10:16" },
+    { id: "EMP-111", name: "周客服", role: "cs", shop: "TikTok Shop 美区", active: true, lastLogin: "今天 08:50" },
+    { id: "EMP-112", name: "演示买家01", role: "mock_buyer", shop: "仅演示沙盒 (Mock)", active: true, lastLogin: "演示入口" },
+  ],
+  auditLogs: [
+    { time: "10:15:02", actor: "manager", target: "林客服 (EMP-110)", action: "新增员工授权", detail: "授予角色「客服」，范围：Shopee 泰国主店", ok: true },
+    { time: "10:04:19", actor: "selector", target: "M4-2 SKU-00515 测款拍板", action: "权限拦截 (403)", detail: "选品研究员不可自审拍板，需由主管/审批人终审", ok: false },
+    { time: "09:51:40", actor: "approver", target: "赵仓管 (EMP-108)", action: "确认仓储权限", detail: "启用 M0-2 独立库存校准与 M6 收货凭证登记", ok: true },
+  ],
 };
 
 function toast(msg) {
@@ -2607,7 +3002,7 @@ function rerender() {
 
   // Page render
   const helpers = { toast, goPage, openModal, closeModal, rerender };
-  const view = renderM0_M3(state.pageId, state, helpers) || renderM4_M7(state.pageId, state, helpers);
+  const view = renderM0_M3(state.pageId, state, helpers) || renderM4_M7(state.pageId, state, helpers) || renderM8(state.pageId, state, helpers);
 
   const actBox = document.getElementById("headerActions");
   actBox.innerHTML = "";
@@ -2657,10 +3052,12 @@ function rerender() {
 }
 
 // Init
-document.getElementById("roleSelect").onchange = (e) => {
+const roleSelEl = document.getElementById("roleSelect");
+roleSelEl.value = state.role;
+roleSelEl.onchange = (e) => {
   state.role = e.target.value;
   rerender();
-  toast(`已切换登录角色为：${state.role}`);
+  toast(`已切换登录角色为：${SRS_ROLES.find(r=>r.key===state.role)?.label || state.role}`);
 };
 document.getElementById("toggleAnnoBtn").onclick = () => {
   state.showAnno = !state.showAnno;
@@ -2670,6 +3067,7 @@ document.getElementById("toggleAnnoBtn").onclick = () => {
 const initHash = window.location.hash.replace("#", "");
 if (PAGE_META[initHash]) state.pageId = initHash;
 rerender();
+
 </script>
 </body>
 </html>

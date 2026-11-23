@@ -67,15 +67,15 @@ export function renderM4_M7(pageId, state, helpers) {
     };
   }
 
-  // ==================== M4b: Selection Workflow (planner -> approver) ====================
+  // ==================== M4b: Selection Workflow (selector -> approver) ====================
   if (pageId === "m4b") {
-    const isPlanner = state.role === "planner" || state.role === "admin";
-    const isApprover = state.role === "approver" || state.role === "admin";
+    const isSelector = state.role === "selector" || state.role === "planner";
+    const isApprover = state.role === "approver";
     return {
       headerActions: [
         { label: "← 选品数据接入", primary: false, onClick: () => goPage("m4a") },
-        { label: isApprover ? "当前：approver 终审模式" : "切换为 approver 测试拍板", primary: true, onClick: () => {
-          state.role = isApprover ? "planner" : "approver";
+        { label: isApprover ? "切回 选品研究员 (selector)" : "切为 主管/审批人 (approver) 测试拍板", primary: true, onClick: () => {
+          state.role = isApprover ? "selector" : "approver";
           document.getElementById("roleSelect").value = state.role;
           rerender();
           toast(`已切换角色为 ${state.role}`);
@@ -85,9 +85,9 @@ export function renderM4_M7(pageId, state, helpers) {
         <div class="card" style="padding:12px 16px;">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <strong><span class="anno-tag t-blue">1</span> 选品角色接力流：</strong>
-            <span class="pill p-blue">① 机会池 AI 初筛 (planner)</span>
+            <span class="pill p-blue">① 机会池 AI 初筛 (选品研究员 selector)</span>
             <span>──提交──▶</span>
-            <span class="pill p-purple">② 待选清单复核 (approver)</span>
+            <span class="pill p-purple">② 待选清单复核 (主管/审批人 approver)</span>
             <span>──▶</span>
             <span class="pill p-green">③ 测款 / 上架 / 淘汰</span>
           </div>
@@ -95,12 +95,12 @@ export function renderM4_M7(pageId, state, helpers) {
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-green">2</span> 阶段一：商品机会池（planner 初筛并提交进待选清单）</div>
+            <div class="card-title"><span class="anno-tag t-green">2</span> 阶段一：商品机会池（选品研究员初筛并提交进待选清单）</div>
             <span class="pill p-blue">当前操作角色：${state.role}</span>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>商品 / SKU</th><th>平台/地区</th><th>8周预估净收入</th><th>趋势</th><th>数据来源</th><th>状态</th><th>planner 操作</th></tr></thead>
+              <thead><tr><th>商品 / SKU</th><th>平台/地区</th><th>8周预估净收入</th><th>趋势</th><th>数据来源</th><th>状态</th><th>选品研究员操作</th></tr></thead>
               <tbody>
                 ${state.m4Pool.map((item, idx) => `
                   <tr>
@@ -111,7 +111,7 @@ export function renderM4_M7(pageId, state, helpers) {
                     <td><span class="pill p-amber">${item.src}</span></td>
                     <td><span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已提交待审"?"p-purple":item.stage==="已淘汰"?"p-red":"p-gray"}">${item.stage}</span></td>
                     <td>
-                      ${item.stage === "仅研究估算" ? `<button class="btn btn-sm btn-primary m4-shortlist" data-i="${idx}" ${!isPlanner?"disabled":""}>加入待选清单 +</button>` : `<span style="color:var(--text-soft);font-size:12px;">已流转</span>`}
+                      ${item.stage === "仅研究估算" ? `<button class="btn btn-sm btn-primary m4-shortlist" data-i="${idx}" ${!isSelector?"disabled":""}>加入待选清单 +</button>` : `<span style="color:var(--text-soft);font-size:12px;">已流转</span>`}
                     </td>
                   </tr>
                 `).join("")}
@@ -122,8 +122,8 @@ export function renderM4_M7(pageId, state, helpers) {
 
         <div class="card card-blue">
           <div class="card-header">
-            <div class="card-title" style="color:var(--purple-text);"><span class="anno-tag t-purple">3</span> 阶段二：待选清单与测款拍板（仅 approver 可做最终决策）</div>
-            ${!isApprover ? '<span class="pill p-red">当前角色不可拍板（请点右上角切为 approver）</span>' : '<span class="pill p-green">approver 终审已解锁 ✓</span>'}
+            <div class="card-title" style="color:var(--purple-text);"><span class="anno-tag t-purple">3</span> 阶段二：待选清单与测款拍板（仅「主管 / 审批人」可做最终决策）</div>
+            ${!isApprover ? '<span class="pill p-red">当前角色不可拍板（请点右上角切为 approver）</span>' : '<span class="pill p-green">主管 / 审批人终审已解锁 ✓</span>'}
           </div>
           <div class="table-wrap">
             <table>
@@ -351,8 +351,8 @@ export function renderM4_M7(pageId, state, helpers) {
   // ==================== M6b: Replenishment Steps 4-5 ====================
   if (pageId === "m6b") {
     const plan = state.m6Plans[state.m6SelectedPlan];
-    const canApprove = state.role === "approver" || state.role === "admin";
-    const canWh = state.role === "warehouse" || state.role === "admin";
+    const canApprove = state.role === "approver";
+    const canWh = state.role === "warehouse";
     const sodSame = state.m6Submitter === state.role;
     return {
       headerActions: [

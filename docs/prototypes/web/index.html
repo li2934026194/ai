@@ -19,14 +19,17 @@
       </div>
 
       <div class="role-box">
-        <label class="role-label">当前演示角色 (6角色RBAC)</label>
+        <label class="role-label">当前演示角色 (SRS §1.5 九大角色)</label>
         <select id="roleSelect" class="role-select">
-          <option value="planner">planner · 运营/选品/补货专员</option>
-          <option value="approver">approver · 主管/财务审批人</option>
-          <option value="warehouse">warehouse · 仓管/履约专员</option>
-          <option value="viewer">viewer · 只读观察员</option>
-          <option value="auditor">auditor · 合规审计员</option>
-          <option value="admin">admin · 系统管理员</option>
+          <option value="approver">主管 / 审批人 (approver)</option>
+          <option value="manager">大屏浏览者 / 管理者 (manager)</option>
+          <option value="planner">驾驶舱设计者 / 业务运营 (planner)</option>
+          <option value="bi_analyst">数据分析 / BI 人员 (bi_analyst)</option>
+          <option value="selector">选品研究员 (selector)</option>
+          <option value="creator">内容创作 / 审核人员 (creator)</option>
+          <option value="warehouse">采购 / 仓库 / 物流人员 (warehouse)</option>
+          <option value="cs">客服 (cs)</option>
+          <option value="mock_buyer">买家（模拟）(mock_buyer)</option>
         </select>
         <div id="roleHint" class="role-hint"></div>
       </div>
@@ -34,7 +37,7 @@
       <nav id="sidebarNav" class="nav-list"></nav>
 
       <div class="sidebar-footer">
-        <div>对齐文档：SRS V1.0 + 1→2→3通俗版</div>
+        <div>对齐文档：SRS V1.0 (§1.5 九角色) + 1→2→3</div>
         <div>§0.3 示例数值与规则常量已明确标注</div>
       </div>
     </aside>
