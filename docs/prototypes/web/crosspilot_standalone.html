@@ -1,0 +1,2675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrossPilot · AI跨境电商平台交互原型（SRS V6对齐版）</title>
+  <style>
+:root {
+  --bg-outer: #eef2f7;
+  --bg-app: #f6f8fc;
+  --bg-card: #ffffff;
+  --border: #dce3ee;
+  --border-strong: #cbd5e1;
+  --blue: #2563eb;
+  --blue-hover: #1d4ed8;
+  --blue-light: #eff6ff;
+  --blue-border: #93c5fd;
+  --text-dark: #0f172a;
+  --text-muted: #475569;
+  --text-soft: #64748b;
+  --green: #10b981;
+  --green-bg: #ecfdf5;
+  --green-text: #047857;
+  --amber: #f59e0b;
+  --amber-bg: #fffbeb;
+  --amber-text: #b45309;
+  --red: #ef4444;
+  --red-bg: #fef2f2;
+  --red-text: #b91c1c;
+  --purple: #7c3aed;
+  --purple-bg: #f5f3ff;
+  --purple-text: #5b21b6;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-outer);
+  color: var(--text-dark);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  border-right: 1px solid #1e293b;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 14px;
+  border-bottom: 1px solid #1e293b;
+}
+.brand-logo {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.brand-name { font-size: 16px; font-weight: 700; color: #fff; }
+.brand-sub { font-size: 11px; color: #94a3b8; }
+
+.role-box {
+  margin: 12px 0;
+  padding: 10px;
+  background: #1e293b;
+  border-radius: 8px;
+  border: 1px solid #334155;
+}
+.role-label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 5px; font-weight: 600; }
+.role-select {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 12px;
+  cursor: pointer;
+}
+.role-hint { margin-top: 6px; font-size: 11px; color: #93c5fd; line-height: 1.35; }
+
+.nav-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #cbd5e1;
+  font-size: 13px;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.nav-item:hover { background: #1e293b; color: #fff; }
+.nav-item.active {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 600;
+}
+.nav-badge {
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.14);
+  color: #e2e8f0;
+}
+
+.sidebar-footer {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #1e293b;
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Main */
+.main-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px;
+  gap: 12px;
+}
+
+.topbar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.breadcrumb { font-size: 11.5px; font-weight: 700; color: var(--text-soft); letter-spacing: 0.4px; }
+.page-title { margin: 2px 0 4px; font-size: 20px; font-weight: 700; color: var(--text-dark); }
+.page-subtitle { margin: 0; font-size: 12.5px; color: var(--text-muted); }
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.header-action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Sub-page Tab Buttons */
+.subnav-bar {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.subnav-label { font-size: 12px; font-weight: 700; color: var(--text-soft); }
+.subnav-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.subnav-btn {
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  color: var(--text-dark);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.subnav-btn:hover { border-color: var(--blue); color: var(--blue); }
+.subnav-btn.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.22);
+}
+
+/* Workspace Grid */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 14px;
+  align-items: start;
+}
+.workspace-grid.anno-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+.workspace-grid.anno-hidden .anno-panel { display: none; }
+
+.page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* Cards & Grids */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.card-blue { border-color: var(--blue-border); }
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.card-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.anno-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.t-blue { background: var(--blue); }
+.t-green { background: var(--green); }
+.t-purple { background: var(--purple); }
+.t-amber { background: var(--amber); }
+.t-red { background: var(--red); }
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.split-left-form { display: grid; grid-template-columns: 350px minmax(0, 1fr); gap: 14px; align-items: start; }
+.split-3col-cs { display: grid; grid-template-columns: 240px minmax(0, 1fr) 265px; gap: 12px; align-items: stretch; }
+.split-bi { display: grid; grid-template-columns: 200px minmax(0, 1fr) 240px; gap: 12px; align-items: stretch; }
+
+@media (max-width: 1280px) {
+  .workspace-grid { grid-template-columns: minmax(0, 1fr); }
+  .split-3col-cs, .split-bi, .split-left-form { grid-template-columns: 1fr; }
+}
+
+/* KPI & Banners */
+.kpi-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 13px 15px;
+}
+.kpi-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.kpi-val { font-size: 23px; font-weight: 800; margin: 5px 0 3px; }
+.kpi-sub { font-size: 11.5px; color: var(--text-soft); }
+
+.banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.banner-amber { background: var(--amber-bg); border: 1px solid var(--amber); color: var(--amber-text); }
+.banner-red { background: var(--red-bg); border: 1px solid var(--red); color: var(--red-text); }
+.banner-blue { background: var(--blue-light); border: 1px solid var(--blue-border); color: var(--blue-hover); }
+.banner-green { background: var(--green-bg); border: 1px solid var(--green); color: var(--green-text); }
+
+/* Buttons & Pills */
+.btn {
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  color: var(--text-dark);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: all 0.14s;
+}
+.btn:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+.btn:disabled { opacity: 0.48; cursor: not-allowed; }
+.btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--blue-hover); color: #fff; }
+.btn-success { background: var(--green); border-color: var(--green); color: #fff; }
+.btn-danger { background: var(--red-bg); border-color: var(--red); color: var(--red-text); }
+.btn-sm { padding: 4px 10px; font-size: 11.8px; }
+.btn-anno-toggle { background: #1e293b; border-color: #1e293b; color: #f8fafc; }
+.btn-anno-toggle:hover { background: #334155; color: #fff !important; border-color: #334155 !important; }
+
+.pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11.2px;
+  font-weight: 600;
+}
+.p-green { background: var(--green-bg); color: var(--green-text); }
+.p-blue { background: var(--blue-light); color: var(--blue-hover); }
+.p-amber { background: var(--amber-bg); color: var(--amber-text); }
+.p-red { background: var(--red-bg); color: var(--red-text); }
+.p-purple { background: var(--purple-bg); color: var(--purple-text); }
+.p-gray { background: #f1f5f9; color: var(--text-soft); }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th {
+  text-align: left;
+  padding: 9px 10px;
+  background: #f8fafc;
+  color: var(--text-soft);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-dark);
+  vertical-align: middle;
+}
+tr:hover td { background: #fafcff; }
+
+/* Inputs */
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 11.8px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+.input, .select, .textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  color: var(--text-dark);
+  font-size: 12.5px;
+  font-family: inherit;
+}
+.textarea { min-height: 70px; resize: vertical; }
+
+/* Stepper */
+.stepper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stepper-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.step-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+.step-item.active {
+  background: var(--blue-light);
+  border-color: var(--blue);
+  color: var(--blue-hover);
+}
+.step-item.done {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+/* CS Specific */
+.session-item {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: #fff;
+}
+.session-item.active { background: var(--blue-light); border-color: var(--blue); }
+.chat-bubble {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  margin-bottom: 8px;
+}
+.chat-bubble.user { background: var(--blue); color: #fff; margin-left: auto; max-width: 78%; }
+.chat-bubble.assistant { background: #f8fafc; border: 1px solid var(--border); max-width: 88%; }
+.chat-trans { font-size: 11.5px; color: var(--text-soft); margin-top: 4px; }
+
+/* M7 Asset Cards */
+.option-tile {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: #fff;
+}
+.option-tile.active {
+  background: var(--blue-light);
+  border-color: var(--blue);
+}
+.media-card {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 12px;
+  background: #f8fafc;
+}
+.media-card.picked { border-color: var(--blue); border-width: 1.6px; background: #fafcff; }
+.media-preview {
+  height: 150px;
+  border-radius: 7px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.media-preview.dark { background: #0f172a; color: #fff; border-color: #334155; flex-direction: column; gap: 6px; }
+
+/* Right Annotation Panel */
+.anno-panel {
+  background: #fafcff;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: sticky;
+  top: 12px;
+}
+.anno-header {
+  background: #1e293b;
+  color: #fff;
+  padding: 12px 14px;
+}
+.anno-title { font-size: 14px; font-weight: 700; }
+.anno-sub { font-size: 11.5px; color: #cbd5e1; margin-top: 2px; }
+.anno-cards {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.anno-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.anno-card-head { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.anno-line { font-size: 11.8px; margin-bottom: 4px; line-height: 1.45; }
+.anno-k-step { color: var(--blue-hover); font-weight: 600; }
+.anno-k-srs { color: var(--text-muted); }
+.anno-k-tech { color: var(--green-text); }
+
+/* Bottom Provenance Ledger */
+.ledger-panel {
+  background: #fff;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.ledger-panel.hidden { display: none; }
+.ledger-header {
+  background: #f1f5f9;
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+}
+.ledger-note { font-size: 11.8px; color: var(--text-muted); }
+.ledger-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+@media (max-width: 960px) { .ledger-grid { grid-template-columns: 1fr; } }
+.ledger-row {
+  background: #fff;
+  padding: 7px 12px;
+  display: grid;
+  grid-template-columns: 150px 86px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  font-size: 11.8px;
+}
+.ledger-term { font-weight: 700; color: var(--text-dark); }
+.ledger-kind-srs { color: var(--blue-hover); font-weight: 700; }
+.ledger-kind-mock { color: var(--amber-text); font-weight: 700; }
+.ledger-src { color: var(--text-muted); }
+
+/* Toast & Modal */
+.toast-container {
+  position: fixed; bottom: 18px; right: 18px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  background: #0f172a; color: #fff;
+  padding: 10px 14px; border-radius: 8px; font-size: 12.5px;
+  box-shadow: 0 8px 20px rgba(15,23,42,0.22);
+}
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 9000;
+  padding: 16px;
+}
+.modal-box {
+  background: #fff; border-radius: 12px; max-width: 560px; width: 100%;
+  padding: 18px 20px; box-shadow: 0 20px 40px rgba(15,23,42,0.25);
+}
+
+</style>
+</head>
+<body>
+  <div id="app" class="shell">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">CP</div>
+        <div>
+          <div class="brand-name">CrossPilot</div>
+          <div class="brand-sub">AI跨境电商 · V6交互原型</div>
+        </div>
+      </div>
+
+      <div class="role-box">
+        <label class="role-label">当前演示角色 (6角色RBAC)</label>
+        <select id="roleSelect" class="role-select">
+          <option value="planner">planner · 运营/选品/补货专员</option>
+          <option value="approver">approver · 主管/财务审批人</option>
+          <option value="warehouse">warehouse · 仓管/履约专员</option>
+          <option value="viewer">viewer · 只读观察员</option>
+          <option value="auditor">auditor · 合规审计员</option>
+          <option value="admin">admin · 系统管理员</option>
+        </select>
+        <div id="roleHint" class="role-hint"></div>
+      </div>
+
+      <nav id="sidebarNav" class="nav-list"></nav>
+
+      <div class="sidebar-footer">
+        <div>对齐文档：SRS V1.0 + 1→2→3通俗版</div>
+        <div>§0.3 示例数值与规则常量已明确标注</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrap">
+      <!-- Top Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div id="breadcrumb" class="breadcrumb">CROSSPILOT</div>
+          <h1 id="pageTitle" class="page-title">加载中...</h1>
+          <p id="pageSubtitle" class="page-subtitle"></p>
+        </div>
+        <div class="topbar-actions">
+          <div id="headerActions" class="header-action-btns"></div>
+          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="展开或收起右侧SRS注释与底部来源台账">
+            📖 SRS注释与来源台账：<span id="annoStateText">已展开</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Sub-page Navigation Buttons -->
+      <div class="subnav-bar">
+        <span class="subnav-label">页面切换按钮：</span>
+        <div id="subnavButtons" class="subnav-buttons"></div>
+      </div>
+
+      <!-- Workspace Body: Main Page + Optional Annotation Drawer -->
+      <div class="workspace-grid" id="workspaceGrid">
+        <main id="pageBody" class="page-body"></main>
+
+        <aside id="annoPanel" class="anno-panel">
+          <div class="anno-header">
+            <div class="anno-title" id="annoPageTitle">功能块注释</div>
+            <div class="anno-sub" id="annoPageSub">1→2→3 对应 · SRS依据 · 技术支撑</div>
+          </div>
+          <div id="annoCards" class="anno-cards"></div>
+        </aside>
+      </div>
+
+      <!-- Bottom Word/Number Provenance Ledger -->
+      <section id="ledgerPanel" class="ledger-panel">
+        <div class="ledger-header">
+          <strong>本页文字与数字来源台账</strong>
+          <span class="ledger-note">严格区分：SRS规则 / 代码常量 vs §0.3 Mock / 老师原型示例展示值</span>
+        </div>
+        <div id="ledgerGrid" class="ledger-grid"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Toast & Modal container -->
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="modalRoot"></div>
+
+  <script>
+const MODULE_DEFS = [
+  {
+    id: "m0",
+    label: "M0 公共底座",
+    badge: "2页",
+    pages: [
+      { id: "m0a", label: "店铺与主数据" },
+      { id: "m0b", label: "独立库存同步与RBAC" },
+    ],
+  },
+  {
+    id: "m1",
+    label: "M1 智能客服 Agent",
+    badge: "4页",
+    pages: [
+      { id: "m1a", label: "客服三栏工作台" },
+      { id: "m1b", label: "推荐商品库" },
+      { id: "m1d", label: "模拟买家入口" },
+      { id: "m1c", label: "售后工单审批" },
+    ],
+  },
+  {
+    id: "m2",
+    label: "M2 驾驶舱设计",
+    badge: "2页",
+    pages: [
+      { id: "m2a", label: "低代码设计工作台" },
+      { id: "m2b", label: "已发布经营大屏" },
+    ],
+  },
+  {
+    id: "m3",
+    label: "M3 智能问数 Agent",
+    badge: "2页",
+    pages: [
+      { id: "m3a", label: "指标管理与调度" },
+      { id: "m3b", label: "经营智能问答" },
+    ],
+  },
+  {
+    id: "m4",
+    label: "M4 选品分析 Agent",
+    badge: "2页",
+    pages: [
+      { id: "m4a", label: "三源数据接入" },
+      { id: "m4b", label: "初筛与主管拍板" },
+    ],
+  },
+  {
+    id: "m5",
+    label: "M5 销量预测 Agent",
+    badge: "2页",
+    pages: [
+      { id: "m5a", label: "画像与模型注册" },
+      { id: "m5b", label: "预测与WAPE评估" },
+    ],
+  },
+  {
+    id: "m6",
+    label: "M6 补货预测 Agent",
+    badge: "2页",
+    pages: [
+      { id: "m6a", label: "步骤1-3 三方案测算" },
+      { id: "m6b", label: "步骤4-5 审批与履约" },
+    ],
+  },
+  {
+    id: "m7",
+    label: "M7 商品内容创作",
+    badge: "4页",
+    pages: [
+      { id: "m7a", label: "Listing 文案生成" },
+      { id: "m7b", label: "AI 商品主图生成" },
+      { id: "m7c", label: "AI 短视频生成" },
+      { id: "m7d", label: "合规审核与选用" },
+    ],
+  },
+];
+
+const PAGE_META = {
+  m0a: {
+    breadcrumb: "CROSSPILOT / M0 公共底座 · 店铺与主数据",
+    title: "店铺授权接入与订单 / 商品主数据",
+    subtitle: "接入 Shopee / TikTok Shop / Amazon SP-API 店铺与订单商品主档，严格隔离 Mock 与实盘。",
+    blocks: [
+      { color: "#2563eb", title: "全局主数据概览卡", step: "0.2 订单与商品同步总览", srs: "SRS §2.1 & §3.2 统一店铺/订单/商品基座", tech: "PostgreSQL orders + products 聚合" },
+      { color: "#10b981", title: "OAuth店铺接入与Mock隔离", step: "0.2 步骤1-2 授权与环境隔离", srs: "SRS §1.4 & §0.3 禁止Mock混入实盘指标", tech: "OAuth2 加密Token + source_mode 校验" },
+      { color: "#7c3aed", title: "标准化主数据落库表", step: "0.2 步骤3 幂等去重供M1-M7读取", srs: "SRS §2.2 统一订单与SKU模型", tech: "sha256 幂等去重 + 异步拉取任务" },
+    ],
+    ledger: [
+      ["3家 / REAL vs MOCK", "§0.3 示例", "Shopee/TikTok实盘，Amazon沙盒仅演示"],
+      ["1,536单 / 128 SKU", "§0.3 示例", "对齐老师 img_043 示例订单量展示"],
+      ["orders+products底座", "SRS §2.2", "M1订单关联/M2BI/M3问数/M5训练共用"],
+      ["sha256 幂等校验", "SRS架构", "防止重复拉取导致 GMV 或销量虚增"],
+    ],
+  },
+  m0b: {
+    breadcrumb: "CROSSPILOT / M0 公共底座 · 独立库存与RBAC",
+    title: "独立库存同步中心与 6 角色 RBAC 权限矩阵",
+    subtitle: "仓库库存仅由本页同步或人工盘点更新，绝不由 M6 采购/收货凭证自动改写。",
+    blocks: [
+      { color: "#f59e0b", title: "独立库存红线与快照水位", step: "0.3 独立库存校准同步", srs: "SRS §1.4 & FR-RP 库存独立口径", tech: "inventory_snapshots 可售/锁定分离" },
+      { color: "#7c3aed", title: "6角色RBAC与SoD职责分离", step: "0.1 统一身份鉴权与权限门控", srs: "SRS §1.5 9业务岗位映射为6实现角色", tech: "pilot/rbac/service.py + 提交≠审批校验" },
+    ],
+    ledger: [
+      ["18件 / 锁定4件 / 安全25", "§0.3 示例", "对齐老师 img_069 / img_083 BAG-108 示例"],
+      ["43件 / 60件", "§0.3 示例", "对齐老师 img_082 FAN-203 示例库存"],
+      ["6大代码角色", "pilot/rbac", "viewer/planner/approver/warehouse/auditor/admin"],
+      ["不自动改写库存", "SRS红线", "采购收货凭证仅留痕，不自动加可售库存"],
+    ],
+  },
+  m1a: {
+    breadcrumb: "CROSSPILOT / M1 智能客服 · 三栏工作台",
+    title: "跨境智能客服工作台（会话 · 推荐 · 译文 · 订单关联）",
+    subtitle: "对齐老师 img_017 / image-17 三栏工作台：可切换买家会话、点击人工接管、体验双语草拟回复。",
+    blocks: [
+      { color: "#2563eb", title: "左列多渠道会话队列", step: "1.2 步骤1 入站消息聚类与状态", srs: "SRS FR-CS-01 AI_AUTO / PENDING_HUMAN / HUMAN", tech: "WebSocket 推送 + 会话状态机" },
+      { color: "#10b981", title: "中栏译文/敏感拦截/Top-3推荐", step: "1.2 步骤2-3 意图识别与人工接管", srs: "SRS FR-CS-02/03 退款/投诉强制人工接管", tech: "LLM意图分类 + pgvector Top-3 + 双语互译" },
+      { color: "#7c3aed", title: "右列客户与候选订单核验", step: "1.3 步骤1 订单号提取与关联绑定", srs: "SRS FR-CS-04 核验订单后跳转售后工单页", tech: "正则订单抽取 + PostgreSQL 模糊核验" },
+    ],
+    ledger: [
+      ["PENDING_HUMAN / 88%", "SRS+示例", "状态机枚举自SRS；88%与REFUND为本会话示例"],
+      ["MONEY_REQUEST 拦截", "SRS FR-CS", "涉及金额/售后投诉强制挂起等待人工接管"],
+      ["Top-3 推荐 (92%/76%)", "§0.3 示例", "向量相似度检索示例分值"],
+      ["SYN9D-005671 / $34.50", "§0.3 示例", "对齐老师 img_017 / image-17.png 示例订单"],
+    ],
+  },
+  m1b: {
+    breadcrumb: "CROSSPILOT / M1 智能客服 · 推荐商品库",
+    title: "客服推荐商品库与 XLSX 批量导入",
+    subtitle: "对齐老师 img_014 / img_015：按店铺管理客服可推荐商品资料与向量索引。",
+    blocks: [
+      { color: "#2563eb", title: "多店铺商品知识列表", step: "1.1 步骤1-2 商品资料与启用开关", srs: "SRS FR-CS-01 按店铺隔离推荐商品", tech: "PostgreSQL products_kb + 向量状态" },
+      { color: "#10b981", title: "XLSX 批量导入与向量化", step: "1.1 步骤3 解析表格生成检索向量", srs: "SRS §4.1 必填列校验与批量语义入库", tech: "openpyxl 解析 + Embedding → pgvector" },
+    ],
+    ledger: [
+      ["全部店铺(142) / 18条", "§0.3 示例", "示例推荐商品库与模拟导入规模"],
+      ["BAG-108 / MAT-014", "§0.3 示例", "沿用老师测试包与示例SKU编号"],
+      [".xlsx 必填列校验", "SRS §4.1", "导入前校验 SKU/标题/卖点/价格"],
+      ["pgvector 向量化", "技术实现", "支撑工作台 1.2 步骤 Top-3 自动匹配"],
+    ],
+  },
+  m1d: {
+    breadcrumb: "CROSSPILOT / M1 智能客服 · 模拟买家入口",
+    title: "Amazon / 多平台模拟买家消息生成器",
+    subtitle: "对齐老师 img_016：用于教学/演示触发咨询推荐或售后投诉，实时推入客服三栏工作台。",
+    blocks: [
+      { color: "#2563eb", title: "买家入站消息模拟发送", step: "1.2 前置测试入口", srs: "SRS §0.3 & img_016 模拟买家入站不连真实卖家账户", tech: "Mock Webhook → CS Session Queue" },
+    ],
+    ledger: [
+      ["Mock Buyer 入口", "SRS §0.3", "演示触发咨询/退款消息，不连接真实平台"],
+      ["自动路由工作台", "交互联动", "发送后可一键跳回[客服三栏工作台]查看拦截"],
+    ],
+  },
+  m1c: {
+    breadcrumb: "CROSSPILOT / M1 智能客服 · 售后工单审批",
+    title: "售后工单创建与主管审批中心",
+    subtitle: "独立承载建单、金额校验、SoD行锁审批与 external_status = UNKNOWN 诚实边界。",
+    blocks: [
+      { color: "#f59e0b", title: "external_status=UNKNOWN", step: "1.3 步骤3 审批与外部状态说明", srs: "SRS §0.3 不虚构平台自动退款到账", tech: "工单表记录 external_status 枚举" },
+      { color: "#2563eb", title: "工单队列与SoD行锁审批", step: "1.3 步骤2-3 planner建单→approver拍板", srs: "SRS FR-CS-05 防并发重复审批", tech: "SQL SELECT FOR UPDATE + 提交≠审批" },
+    ],
+    ledger: [
+      ["TK-20261119-01 / $34.50", "§0.3 示例", "关联 SYN9D-005671 的示例退款工单"],
+      ["external_status=UNKNOWN", "SRS §0.3", "不声明已接通平台实时自动退款回调"],
+      ["SELECT FOR UPDATE", "SRS设计", "数据库行锁防并发重复退款审批"],
+      ["staff_lin ≠ mgr_chen", "SRS §1.5", "提交人与审批人必须不同账号(SoD)"],
+    ],
+  },
+  m2a: {
+    breadcrumb: "CROSSPILOT / M2 驾驶舱设计 · 低代码工作台",
+    title: "驾驶舱低代码设计工作台（组件库 · 画布 · 属性配置）",
+    subtitle: "对齐老师 img_026：自由选择组件编排看板、绑定统一指标口径并生成 AI 解读，独立于发布态。",
+    blocks: [
+      { color: "#2563eb", title: "左侧标准化组件库", step: "2.1 步骤1 选择KPI/折线/解读组件", srs: "SRS FR-BI-01 支持自定义指标看板编排", tech: "组件清单 JSON Schema" },
+      { color: "#10b981", title: "中间画布与AI解读预览", step: "2.1 步骤2-3 画布排布与AI解读", srs: "SRS FR-BI-02 实时绑定统一指标口径", tech: "12列栅格布局 + SVG/ECharts" },
+      { color: "#7c3aed", title: "右侧属性与指标字典绑定", step: "2.1 步骤2 绑定平台/指标/格式", srs: "SRS §2.3 复用 M3 统一指标字典", tech: "metric_definitions 元数据联动" },
+    ],
+    ledger: [
+      ["$125,429.99 / $65,529.67", "§0.3 示例", "严格对齐老师 img_043 同套经营事实示例"],
+      ["gmv / CURRENCY", "SRS指标库", "绑定统一指标字典，确保M2/M3零偏差"],
+      ["设计态 vs 发布态拆分", "交互设计", "避免将编辑工具栏混入管理层看数大屏"],
+    ],
+  },
+  m2b: {
+    breadcrumb: "CROSSPILOT / M2 驾驶舱 · 已发布经营大屏",
+    title: "CrossPilot 经营总览大屏（发布态 · 只读看板）",
+    subtitle: "对齐老师 img_027：使用与 M3 同一套事实口径展示 4 张并发卡片、趋势折线与双时间戳。",
+    blocks: [
+      { color: "#2563eb", title: "双时间基准栏", step: "2.2 步骤1 展示口径版本与截止时间", srs: "SRS FR-BI-03 标注数据截止与指标版本", tech: "metric_snapshots 快照时间戳" },
+      { color: "#10b981", title: "4卡并发拉取与趋势渲染", step: "2.2 步骤2-3 并发刷新指标卡片", srs: "SRS FR-BI-04 管理层零配置直接看数", tech: "Promise.all 并发查询 + ECharts" },
+      { color: "#7c3aed", title: "AI 解读与跳转 M3 问数", step: "2.2 步骤3 解读异常并联动问数", srs: "SRS §2.3 驾驶舱与智能问数口径一致", tech: "带上下文跳至 M3 智能问答页" },
+    ],
+    ledger: [
+      ["$125,429.99 / 1,536单", "§0.3 示例", "对齐老师 img_043 全部平台近30天数字"],
+      ["$18,650.16 / $65,529.67", "§0.3 示例", "对齐老师 img_043 广告花费与净利润"],
+      ["$2,933.63 (近7天)", "§0.3 示例", "对齐老师 img_043 Amazon 近7天广告花费"],
+      ["metric_snapshots v1.2", "SRS统一", "与 M3 智能问数共用同一套事实快照"],
+    ],
+  },
+  m3a: {
+    breadcrumb: "CROSSPILOT / M3 智能问数 · 指标与调度",
+    title: "指标管理与多源数据绑定调度（M3 前置底座）",
+    subtitle: "对齐老师 img_041 / img_042：配置内置/REST指标提取路径，并由 Celery Beat 周期调度入库。",
+    blocks: [
+      { color: "#2563eb", title: "指标定义与多平台口径", step: "3.1 步骤1 定义指标代码与取值方式", srs: "SRS FR-QA-01 指标字典与格式统一管理", tech: "metric_definitions 表" },
+      { color: "#10b981", title: "REST/模拟接口与Celery调度", step: "3.1 步骤2-3 周期拉取写入快照", srs: "SRS FR-QA-02 支持 JSON 路径提取与调度", tech: "Celery Beat 每分钟巡检 + JSONPath" },
+    ],
+    ledger: [
+      ["METRIC_REST_BASE_URL", "SRS/img_041", "老师 img_041 明确要求的后端环境变量"],
+      ["360,000 / 5,600 USD", "§0.3 示例", "对齐老师 img_042 SIMULATION 示例值"],
+      ["Celery Beat 每分钟巡检", "SRS/img_042", "老师 img_042 调度表原话机制"],
+    ],
+  },
+  m3b: {
+    breadcrumb: "CROSSPILOT / M3 智能问数 · 经营智能问答",
+    title: "经营智能问答助手（Vanna Text-to-SQL · 只读安全守卫）",
+    subtitle: "对齐老师 img_043：点击快捷提问或发送 SQL 写操作语句，实时验证证据 SQL、多币种与只读拦截。",
+    blocks: [
+      { color: "#f59e0b", title: "统一事实入口与双时间口径", step: "3.2 步骤1 问题规范化与元数据加载", srs: "SRS FR-QA-03 与M2共享同一套指标口径", tech: "Vanna RAG 业务语义检索" },
+      { color: "#10b981", title: "Text-to-SQL 自动查数", step: "3.2 步骤2 生成只读SQL并附证据", srs: "SRS FR-QA-04 答案必须附口径与SQL依据", tech: "Vanna SQL生成 + 多币种处理" },
+      { color: "#ef4444", title: "只读白名单拦截写操作", step: "3.2 步骤3 拦截 UPDATE/DELETE", srs: "SRS §5.2 严禁问数模块改删业务表", tech: "SQL AST 语法树只读校验 + 审计日志" },
+    ],
+    ledger: [
+      ["65,529.67 / 2,933.63 USD", "§0.3 示例", "原封不动对齐老师 img_043 对话数字"],
+      ["只读 SELECT 拦截", "SRS §5.2", "硬编码 AST 拦截所有写入/删表语句"],
+      ["证据 SQL + 耗时", "SRS可追溯", "所有 AI 数字必须给出可核验 SQL 依据"],
+    ],
+  },
+  m4a: {
+    breadcrumb: "CROSSPILOT / M4 选品分析 · 三源数据接入",
+    title: "选品数据接入中心（外购估算 · 内部实际 · 公网观察）",
+    subtitle: "对齐老师 img_056：三源严格分账，含 mock 标识的文件禁止当作真实数据导入。",
+    blocks: [
+      { color: "#2563eb", title: "外购/内部/公网三源分卡", step: "4.1 步骤1 区分数据性质与可信度", srs: "SRS FR-SL-01 外部估算与内部实际不混账", tech: "data_sources 分类型统计" },
+      { color: "#10b981", title: "SHA256追溯与Mock强拦截", step: "4.1 步骤2-3 上传校验与防污染入库", srs: "SRS §0.3 含mock文件禁止作为真实导入", tech: "SHA256 哈希去重 + 文件名守卫" },
+    ],
+    ledger: [
+      ["10,000条 / 160条", "§0.3 示例", "对齐老师 img_056 接入统计数字"],
+      ["含mock不可作真实数据", "SRS/img_056", "老师 img_056 失败行原话校验规则"],
+    ],
+  },
+  m4b: {
+    breadcrumb: "CROSSPILOT / M4 选品分析 · 初筛与主管拍板",
+    title: "选品研究工作台（planner 初筛进清单 → approver 终审拍板）",
+    subtitle: "对齐老师 img_057 并落实角色接力：尝试切换左上角角色体验 planner 与 approver 的不同按钮权限。",
+    blocks: [
+      { color: "#2563eb", title: "选品员→主管角色接力", step: "4.2+4.3 流水线接力", srs: "用户明确纠正：planner初筛入清单，approver终审拍板", tech: "RBAC 门控：planner 不可点击批准测款" },
+      { color: "#10b981", title: "阶段一：机会池 AI 初筛", step: "4.2 步骤1-3 初筛并提交进待选清单", srs: "SRS FR-SL-02 未知利润不按零计算", tech: "规则引擎 + LLM 竞品风险摘要" },
+      { color: "#7c3aed", title: "阶段二：待审清单测款拍板", step: "4.3 步骤1-3 approver 决策与留痕", srs: "SRS FR-SL-03 测款结果沉淀入产品库", tech: "selection_decisions 审批表" },
+    ],
+    ledger: [
+      ["$66,829.54 / +27.5%", "§0.3 示例", "对齐老师 img_057 机会池第1行示例值"],
+      ["$56,521.94 / +31.2%", "§0.3 示例", "对齐老师 img_057 可折叠洗衣篮示例值"],
+      ["planner → approver", "用户要求", "严格区分初筛提交与主管最终拍板权限"],
+    ],
+  },
+  m5a: {
+    breadcrumb: "CROSSPILOT / M5 销量预测 · 画像与模型注册",
+    title: "SKU 需求画像（DemandProfile）与版本化模型注册表",
+    subtitle: "对齐老师 img_067：维护 9 类算法建议历史门槛与启停状态，自动匹配候选预测模型。",
+    blocks: [
+      { color: "#2563eb", title: "SKU 需求画像与模型推荐", step: "5.1 步骤1-2 识别需求模式与候选", srs: "SRS FR-FC-01/04 DemandProfile 匹配规则", tech: "零销量占比/CV值 + 版本递增留痕" },
+      { color: "#10b981", title: "9模型注册与历史门槛校验", step: "5.1 步骤3 过滤历史不足模型", srs: "SRS FR-FC-02 METADATA_ONLY 不可执行", tech: "model_registry 表 + 启停开关" },
+    ],
+    ledger: [
+      ["BAG-108 / 96天(90天有单)", "§0.3 示例", "对齐老师 img_069 BAG-108 真实历史点数"],
+      ["9个模型 / ≥90 / ≥180点", "SRS/img_067", "直接源自老师 img_067 模型注册表数据"],
+      ["Chronos-Bolt-Tiny", "img_067", "老师 img_067 TSFM 零样本基座模型"],
+    ],
+  },
+  m5b: {
+    breadcrumb: "CROSSPILOT / M5 销量预测 · 执行预测与WAPE评估",
+    title: "真实销量预测与历史回测 WAPE 评估中心",
+    subtitle: "对齐老师 img_069：展示 7 天预测曲线与非置信区间误差带；支持人工修正实际值并重算 wAPE。",
+    blocks: [
+      { color: "#2563eb", title: "真实订单筛选与KPI总览", step: "5.2 步骤1 过滤已支付/发货/完成订单", srs: "SRS FR-FC-03 当日未完结不参与训练", tech: "订单日频聚合 + 模型推理" },
+      { color: "#10b981", title: "逐日曲线与非置信误差带", step: "5.2 步骤2-3 输出预测与补货参考", srs: "SRS §0.3 & img_069 误差带非置信区间", tech: "SVG 趋势图 + 向上取整" },
+      { color: "#7c3aed", title: "滚动回测 WAPE 与人工修正", step: "5.3 步骤1-3 保留原始值重算 wAPE", srs: "SRS FR-FC-05 人工修正记录操作人与时间", tech: "forecast_evaluations + 修正审计" },
+    ],
+    ledger: [
+      ["626件 / 633件 / 18 / 25", "§0.3 示例", "完全对齐老师 img_069 BAG-108 示例值"],
+      ["29/63/27/138/130/88/153", "§0.3 示例", "对齐老师 img_069 逐日预测7天明细"],
+      ["误差带非置信区间", "img_069", "老师页面原话提示，防业务误解"],
+    ],
+  },
+  m6a: {
+    breadcrumb: "CROSSPILOT / M6 智能补货 · 步骤1-3 方案测算",
+    title: "智能补货决策中心（双分支需求 · 成本校验 · 三方案比较）",
+    subtitle: "对齐老师 img_082 / img_083：5 步向导前 3 步，缺成本或利润数据禁止提交。",
+    blocks: [
+      { color: "#2563eb", title: "双分支输入与缺成本熔断", step: "6.1 步骤1-2 选普通/智能并核成本卡", srs: "SRS FR-RP-01/02 缺成本禁止提交", tech: "成本卡校验 + M5预测/30天代理路由" },
+      { color: "#10b981", title: "保守/平衡/激进三方案模拟", step: "6.1 步骤3 测算缺货风险与现金占用", srs: "SRS FR-RP-03 输出件数/现金/增量贡献", tech: "ROP/MOQ/箱规取整 + calculation_version" },
+    ],
+    ledger: [
+      ["30件/天 / 43 / 660 / 617", "§0.3 示例", "对齐老师 img_082 FAN-203 示例数字"],
+      ["完整交期 18天", "§0.3 示例", "对齐老师 img_083 交期示例"],
+      ["480 / 620 / 800 三方案", "§0.3 示例", "基于 617 缺口与箱规推演的三方案对比"],
+    ],
+  },
+  m6b: {
+    breadcrumb: "CROSSPILOT / M6 智能补货 · 步骤4-5 审批与履约",
+    title: "补货方案审批与采购收货凭证台账",
+    subtitle: "参数快照签名重算防篡改；SoD 行锁审批后由 warehouse 登记收货差异凭证，绝不改仓库库存。",
+    blocks: [
+      { color: "#ef4444", title: "采购收货不改库存红线", step: "6.3 步骤3 凭证归档边界", srs: "SRS §1.4 & img_081 收货不自动改可售库存", tech: "隔离 receipt_batches 与 inventory" },
+      { color: "#2563eb", title: "快照重算与 SoD 审批", step: "6.2 步骤1-3 签名校验与提交≠审批", srs: "SRS FR-RP-04/05 规则定数量，AI仅摘要", tech: "参数哈希签名 + RBAC SoD 门控" },
+      { color: "#7c3aed", title: "分批收货差异与质检凭证", step: "6.3 步骤1-2 采购/物流/质检闭环留痕", srs: "SRS FR-RP-06 登记差异供复盘", tech: "多批次 receipt_batches 关联 PO" },
+    ],
+    ledger: [
+      ["RULE_FIXED + AI摘要", "img_081", "老师 img_081 明确数量由规则固定"],
+      ["buyer_zhang ≠ mgr_chen", "SRS §1.5", "提交人与审批人不可为同一账号"],
+      ["620件 / $6,944 / -5短装", "§0.3 示例", "多批收货差异演练示例"],
+    ],
+  },
+  m7a: {
+    breadcrumb: "CROSSPILOT / M7 商品内容创作 · Listing 文案",
+    title: "M7-1 Listing 多语言营销文案生成工作台",
+    subtitle: "对齐老师 img_095：专注文案生成与任务卡约束；通过上方按钮独立跳转至主图页与短视频页。",
+    blocks: [
+      { color: "#2563eb", title: "多页跳转按钮与3步导引", step: "7.1 步骤1 选商品/平台/语言", srs: "SRS FR-CT-01 & 老师 img_095 三步结构", tech: "独立子页面路由切换" },
+      { color: "#10b981", title: "Listing 任务卡强约束", step: "7.1 步骤2 必用术语与排除词控制", srs: "SRS FR-CT-02 命中禁忌词提示复核", tech: "Prompt 约束注入 + 术语正则校验" },
+      { color: "#7c3aed", title: "5组草稿卡片与一键检查", step: "7.1 步骤3 生成文案并进入检查", srs: "SRS FR-CT-03 支持复制/导出/使用并检查", tech: "LLM 结构化输出 + 敏感词预检" },
+    ],
+    ledger: [
+      ["MAT-014 / Amazon US", "§0.3/img_095", "对齐老师 img_095 桌面收纳垫示例商品"],
+      ["Waterproof / 禁忌 Best", "SRS术语表", "任务卡必用词与广告违禁词对照示例"],
+      ["文案/主图/视频分3页", "用户要求", "按按钮跳转独立页面，彻底告别拥挤"],
+    ],
+  },
+  m7b: {
+    breadcrumb: "CROSSPILOT / M7 商品内容创作 · AI 商品主图",
+    title: "M7-2 AI 商品主图生成页（ComfyUI 图像工作流）",
+    subtitle: "对齐老师 img_096：专注白底主图/家居场景/细节特写生成，4 宫格预览并校验真实图片 MIME。",
+    blocks: [
+      { color: "#2563eb", title: "白底/场景/特写主图配置", step: "7.2 步骤1 选择商品与图像工作流", srs: "SRS FR-CT-04 & img_096 独立主图页", tech: "ComfyUI Workflow JSON 模板映射" },
+      { color: "#10b981", title: "Prompt 与平台合规参数", step: "7.2 步骤2 下发 ComfyUI 异步任务", srs: "SRS FR-CT-05 白底占比与无水印规范", tech: "ComfyUI /prompt 队列" },
+      { color: "#7c3aed", title: "4宫格预览与MIME校验", step: "7.2 步骤3 真实二进制校验与选用", srs: "SRS §0.3 不把 JSON 报错误存成图片", tech: "Magic-Byte / MIME 校验 + /view 代理" },
+    ],
+    ledger: [
+      ["Amazon 白底主图 · v3", "img_096", "对齐老师 img_096 工作流版本号"],
+      ["2000×2000px / 85%占比", "Amazon规范", "Amazon 主图分辨率与主体占比标准"],
+      ["image/png 二进制校验", "SRS架构", "确保导出真实图片而非包装 JSON"],
+    ],
+  },
+  m7c: {
+    breadcrumb: "CROSSPILOT / M7 商品内容创作 · AI 短视频",
+    title: "M7-3 AI 短视频生成页（ComfyUI / SVD 工作流）",
+    subtitle: "对齐老师 img_097：专注带货短视频脚本与 /sync 异步渲染，未配工作流时真实报错不伪造。",
+    blocks: [
+      { color: "#2563eb", title: "视频模板与能力边界声明", step: "7.2 步骤1-2 视频工作流下发", srs: "SRS §0.3 & img_097 未配节点不伪造视频", tech: "ComfyUI SVD 工作流参数校验" },
+      { color: "#10b981", title: "/sync 轮询与 MP4 下载", step: "7.2 步骤3 异步状态轮询与预览", srs: "SRS FR-CT-05 真实校验 video/mp4 下载", tech: "ComfyUI /sync 状态机 + 流式代理" },
+    ],
+    ledger: [
+      ["产品展示/开箱/种草/快剪", "img_097", "沿用老师 img_097 四大视频模板命名"],
+      ["15s 1080×1920 MP4", "§0.3 示例", "TikTok/Amazon 竖屏带货视频示例规格"],
+      ["/sync 状态轮询", "SRS设计", "避免超时，异步追踪渲染完成状态"],
+    ],
+  },
+  m7d: {
+    breadcrumb: "CROSSPILOT / M7 商品内容创作 · 合规审核与选用",
+    title: "M7-4 全内容合规审核与平台选用台账",
+    subtitle: "汇总已选中的 Listing 文案、ComfyUI 主图与短视频资产，复检违禁词后写入选用记录（不直连发店）。",
+    blocks: [
+      { color: "#7c3aed", title: "跨模态资产合规复检", step: "7.3 步骤1-2 汇总文案/主图/视频复检", srs: "SRS FR-CT-06 广告违禁词与MIME双检", tech: "敏感词规则引擎 + 资产引用校验" },
+      { color: "#f59e0b", title: "落库选用与平台发布边界", step: "7.3 步骤3 写入选用台账", srs: "SRS §0.3 选用记录不宣称直接推线上店铺", tech: "content_selections 选用状态表" },
+    ],
+    ledger: [
+      ["0违禁词 · 必用词齐备", "SRS规则", "任务卡排除词与必用术语最终核验"],
+      ["不直接推线上店铺", "SRS §0.3", "严守系统边界，仅留存选用与导出包"],
+    ],
+  },
+};
+
+function renderM0_M3(pageId, state, helpers) {
+  const { toast, goPage, openModal, closeModal, rerender } = helpers;
+
+  // ==================== M0a: Shops & Master Data ====================
+  if (pageId === "m0a") {
+    return {
+      headerActions: [
+        { label: "触发同步任务", primary: false, onClick: () => toast("已向 Shopee TH / TikTok US 下发增量拉取任务，幂等哈希去重中…") },
+        { label: "+ 接入新店铺", primary: true, onClick: () => openModal("接入新跨境店铺 (OAuth2)", `
+          <div class="field"><label>目标平台</label><select class="select"><option>Shopee</option><option>TikTok Shop</option><option>Amazon SP-API</option></select></div>
+          <div class="field"><label>店铺名称</label><input class="input" value="Shopee 马来西亚分店"/></div>
+          <div class="field"><label>接入模式</label><select class="select"><option>REAL（实盘授权）</option><option>MOCK（仅限演示沙盒）</option></select></div>
+          <button class="btn btn-primary" id="saveShopBtn">保存并测试 OAuth</button>
+        `, () => {
+          document.getElementById("saveShopBtn").onclick = () => { closeModal(); toast("店铺 OAuth 校验成功（演示已留痕）"); };
+        }) }
+      ],
+      html: `
+        <div class="grid-3">
+          <div class="kpi-card">
+            <div class="kpi-label">已接入店铺 <span class="anno-tag t-blue">1</span></div>
+            <div class="kpi-val" style="color:var(--blue-hover)">3 家</div>
+            <div class="kpi-sub">Shopee TH / TikTok US / Amazon Mock</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">标准化订单主数据</div>
+            <div class="kpi-val" style="color:var(--green-text)">1,536 单</div>
+            <div class="kpi-sub">orders + order_items 统一口径</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">SKU 商品主档</div>
+            <div class="kpi-val" style="color:var(--purple-text)">128 个</div>
+            <div class="kpi-sub">关联 platform_sku 与多站点状态</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-green">2</span> 店铺连接与 OAuth 凭证状态</div>
+            <span class="pill p-amber">Mock 与 Real 严格隔离</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>店铺名称</th><th>平台 / 站点</th><th>模式</th><th>授权状态</th><th>最近同步</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Shopee 泰国主店</strong></td><td>SHOPEE · TH</td><td><span class="pill p-green">REAL</span></td><td><span class="pill p-green">Token有效</span></td><td>2026-11-19 10:15</td><td><button class="btn btn-sm m0-sync">立即同步</button></td></tr>
+                <tr><td><strong>TikTok Shop 美区</strong></td><td>TIKTOK · US</td><td><span class="pill p-green">REAL</span></td><td><span class="pill p-green">Token有效</span></td><td>2026-11-19 10:12</td><td><button class="btn btn-sm m0-sync">立即同步</button></td></tr>
+                <tr><td><strong>Amazon 演示沙盒店</strong></td><td>AMAZON · US</td><td><span class="pill p-amber">MOCK</span></td><td><span class="pill p-amber">仅限演示</span></td><td>2026-11-19 09:40</td><td><span class="pill p-gray">禁用实盘统计</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-purple">3</span> 订单与商品主数据落库明细（orders / products）</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>订单 / SKU 编号</th><th>来源店铺</th><th>状态</th><th>金额 / 数量</th><th>幂等哈希校验</th><th>下游可用模块</th></tr></thead>
+              <tbody>
+                <tr><td><strong>ORD-20261119-8821</strong></td><td>Shopee TH</td><td><span class="pill p-green">PAID</span></td><td>THB 1,490 / 2件</td><td>sha256:9f2a..OK</td><td>M1 / M2 / M3 / M5</td></tr>
+                <tr><td><strong>SYN9D-005671</strong></td><td>Amazon Mock</td><td><span class="pill p-blue">SHIPPED</span></td><td>USD 34.50 / 1件</td><td>sha256:3c1d..OK</td><td>仅演示(不计实利)</td></tr>
+                <tr><td><strong>SKU: BAG-108</strong></td><td>全平台主档</td><td><span class="pill p-green">ACTIVE</span></td><td>成本 $6.8 / 售价 $34.5</td><td>version: v4</td><td>M4 / M5 / M6 / M7</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".m0-sync").forEach(b => b.onclick = () => toast("增量订单与商品拉取完成，sha256 幂等校验 0 重复"));
+      }
+    };
+  }
+
+  // ==================== M0b: Independent Stock & RBAC ====================
+  if (pageId === "m0b") {
+    return {
+      headerActions: [
+        { label: "同步仓库库存", primary: true, onClick: () => { state.stockSyncedAt = new Date().toTimeString().slice(0,8); rerender(); toast("独立仓库库存同步完成：" + state.stockSyncedAt); } }
+      ],
+      html: `
+        <div class="banner banner-amber">
+          <span><span class="anno-tag t-amber">1</span> 红线规则：仓库真实库存仅由本页同步或人工盘点更新；M6 补货收货凭证仅留痕，绝不自动改写可售库存。</span>
+          <span>最近同步：${state.stockSyncedAt}</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">各仓 SKU 独立库存水位（inventory_snapshots）</div>
+            <button class="btn btn-sm" id="gotoM6Btn">去 M6 补货测算 →</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>SKU / 品名</th><th>仓库</th><th>当前可售</th><th>已锁定</th><th>安全库存</th><th>水位状态</th><th>最近盘点</th></tr></thead>
+              <tbody>
+                <tr><td><strong>BAG-108 · 轻量通勤双肩包</strong></td><td>US-WH-2</td><td><strong>18 件</strong></td><td>4 件</td><td>25 件</td><td><span class="pill p-red">低库存预警</span></td><td>2026-11-19 ${state.stockSyncedAt}</td></tr>
+                <tr><td><strong>FAN-203 · 便携静音循环扇</strong></td><td>TH-WH-1</td><td><strong>43 件</strong></td><td>2 件</td><td>60 件</td><td><span class="pill p-amber">低库存预警</span></td><td>2026-11-19 ${state.stockSyncedAt}</td></tr>
+                <tr><td><strong>MAT-014 · 桌面皮质收纳垫</strong></td><td>US-WH-1</td><td><strong>120 件</strong></td><td>6 件</td><td>40 件</td><td><span class="pill p-green">库存充足</span></td><td>2026-11-19 ${state.stockSyncedAt}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-purple">2</span> 系统 6 大实现角色 RBAC 权限矩阵（pilot/rbac/service.py + SRS §1.5）</div>
+            <span class="pill p-purple">当前体验角色：${state.role}</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>代码角色</th><th>对应业务岗位 (SRS §1.5)</th><th>核心可操作权限</th><th>严禁 / 职责分离(SoD)边界</th></tr></thead>
+              <tbody>
+                <tr><td><span class="pill p-gray">viewer</span></td><td>观察员 / 只读访客</td><td>查看大屏(M2)、问数(M3)、预测(M5)</td><td>禁止任何写入与审批操作</td></tr>
+                <tr><td><span class="pill p-blue">planner</span></td><td>客服 / 选品 / 补货运营专员</td><td>客服回复、M4初筛入待选清单、M6提交补货草案</td><td>不得审批自己提交的工单/选品/补货</td></tr>
+                <tr><td><span class="pill p-purple">approver</span></td><td>运营主管 / 财务审批人</td><td>M1售后工单审批、M4测款终审、M6补货审批</td><td>必须与提交人为不同账号 (SoD)</td></tr>
+                <tr><td><span class="pill p-green">warehouse</span></td><td>仓管与采购履约专员</td><td>同步独立库存、M6登记采购/质检/分批收货凭证</td><td>不可越权审批财务补货预算</td></tr>
+                <tr><td><span class="pill p-amber">auditor / admin</span></td><td>审计员 / 系统管理员</td><td>全链路审计日志核验、6角色授权与模型启停</td><td>auditor 仅只读审计日志</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("gotoM6Btn").onclick = () => goPage("m6a");
+      }
+    };
+  }
+
+  // ==================== M1a: CS 3-Column Workbench ====================
+  if (pageId === "m1a") {
+    const activeSess = state.csSessions.find(s => s.id === state.csActiveId) || state.csSessions[0];
+    return {
+      headerActions: [
+        { label: "去推荐商品库", primary: false, onClick: () => goPage("m1b") },
+        { label: "人工接管当前会话", primary: true, onClick: () => { activeSess.mode = "HUMAN"; rerender(); toast(`会话 ${activeSess.id} 已由人工接管 (HUMAN)`); } }
+      ],
+      html: `
+        <div class="split-3col-cs">
+          <!-- Left: Session Queue -->
+          <div class="card" style="padding:12px;">
+            <div class="card-header" style="margin-bottom:8px;">
+              <div class="card-title" style="font-size:13.5px;"><span class="anno-tag t-blue">1</span> 会话队列 (${state.csSessions.length})</div>
+            </div>
+            ${state.csSessions.map(s => `
+              <div class="session-item ${s.id === activeSess.id ? "active" : ""}" data-sid="${s.id}">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <strong style="font-size:12.5px;">${s.buyer}</strong>
+                  <span style="font-size:11px;color:var(--text-soft)">${s.time}</span>
+                </div>
+                <div style="font-size:11.5px;color:var(--text-muted);margin:4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.preview}</div>
+                <span class="pill ${s.mode === "PENDING_HUMAN" ? "p-purple" : s.mode === "HUMAN" ? "p-blue" : "p-green"}">${s.mode}</span>
+              </div>
+            `).join("")}
+            <button class="btn btn-sm" id="gotoSimBuyerBtn" style="width:100%;justify-content:center;margin-top:6px;">+ 从模拟买家入口发消息</button>
+          </div>
+
+          <!-- Center: Chat + Alert + Rec + Reply -->
+          <div class="card" style="padding:14px;">
+            <div class="card-header" style="margin-bottom:10px;">
+              <div>
+                <strong>${activeSess.buyer}</strong>
+                <span style="color:var(--text-soft);font-size:12px;margin-left:6px;">${activeSess.platform} · ${activeSess.lang} · ${activeSess.intent}</span>
+              </div>
+              <span class="pill ${activeSess.mode === "PENDING_HUMAN" ? "p-purple" : activeSess.mode === "HUMAN" ? "p-blue" : "p-green"}">${activeSess.mode}</span>
+            </div>
+
+            <div style="max-height:210px;overflow-y:auto;margin-bottom:10px;">
+              ${activeSess.messages.map(m => `
+                <div class="chat-bubble ${m.role === "agent" ? "user" : ""}">
+                  <div>${m.text}</div>
+                  ${m.zh ? `<div class="chat-trans" style="${m.role==="agent"?"color:#dbeafe":""}">译文：${m.zh}</div>` : ""}
+                </div>
+              `).join("")}
+            </div>
+
+            ${activeSess.risk ? `
+              <div class="banner banner-amber" style="margin-bottom:10px;">
+                <div>
+                  <div><span class="anno-tag t-green">2</span> 售后投诉待人工接管（命中敏感拦截）</div>
+                  <div style="font-size:11.5px;font-weight:400;margin-top:2px;">规则：MONEY_REQUEST / AFTER_SALES_COMPLAINT 禁止 AI 自动承诺赔付</div>
+                </div>
+                <button class="btn btn-primary btn-sm" id="takeoverInlineBtn">${activeSess.mode === "HUMAN" ? "已人工接管 ✓" : "人工接管"}</button>
+              </div>
+            ` : `
+              <div class="banner banner-blue" style="margin-bottom:10px;">
+                <span><span class="anno-tag t-green">2</span> 商品推荐 · 置信度前3名：${activeSess.recs}</span>
+              </div>
+            `}
+
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                <strong style="font-size:12px;">最新意图分析：${activeSess.intent} · ${activeSess.conf} 置信度</strong>
+                <span class="pill p-blue">AUTO_TRANSLATION</span>
+              </div>
+              ${activeSess.risk ? `
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <span class="pill p-amber">! MONEY_REQUEST</span>
+                  <span class="pill p-red">! AFTER_SALES_COMPLAINT</span>
+                </div>
+              ` : `<div style="font-size:11.5px;color:var(--text-muted)">商品推荐检索完成，可直接插入商品卖点回复买家。</div>`}
+            </div>
+
+            <div class="field">
+              <label>中文拟定回复（自动生成外语预览）</label>
+              <textarea id="csZhInput" class="textarea" style="min-height:54px;">您好，已为您核实订单损坏情况，现为您提交退款工单审核。</textarea>
+            </div>
+            <div class="field">
+              <label>外语买家回复（可人工微调后再发送）</label>
+              <textarea id="csEnInput" class="textarea" style="min-height:52px;">Hello, we have verified your damaged item and submitted a refund review.</textarea>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:11.5px;color:var(--text-soft)">发送前请核对外语内容</span>
+              <button class="btn btn-primary" id="csSendBtn">发送外语回复</button>
+            </div>
+          </div>
+
+          <!-- Right: Customer & Order Verification -->
+          <div class="card" style="padding:14px;">
+            <div class="card-header" style="margin-bottom:10px;">
+              <div class="card-title" style="font-size:13.5px;"><span class="anno-tag t-purple">3</span> 客户与关联订单</div>
+            </div>
+            <div style="font-size:12px;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-soft)">客户名称</span><strong>${activeSess.buyer}</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-soft)">来源平台</span><strong>${activeSess.platform}</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-soft)">识别语言</span><strong>${activeSess.lang}</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-soft)">当前意图</span><strong>${activeSess.intent}</strong></div>
+            </div>
+
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px;">
+              <div style="font-size:12px;font-weight:700;color:var(--blue-hover);margin-bottom:4px;">匹配到候选订单</div>
+              <div style="font-weight:700;">${activeSess.orderId}</div>
+              <div style="font-size:11.5px;color:var(--text-muted);margin:3px 0;">SHIPPED · USD 34.50</div>
+              <div style="font-size:11.5px;color:var(--text-soft);margin-bottom:8px;">轻量通勤双肩包 BAG-108 ×1</div>
+              <button class="btn btn-primary btn-sm" id="bindOrderBtn" style="width:100%;justify-content:center;">${activeSess.bound ? "已核验并绑定 ✓" : "人工核验并绑定订单"}</button>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:8px;padding:10px;">
+              <div style="font-weight:700;font-size:12.5px;margin-bottom:4px;">跳转创建售后工单</div>
+              <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:8px;">核验订单后，进入独立【售后工单审批页】提交与审批，保持聊天页整洁。</div>
+              <button class="btn btn-sm" id="gotoTicketsBtn" style="width:100%;justify-content:center;border-color:var(--blue);color:var(--blue);">前往售后工单页 →</button>
+            </div>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".session-item").forEach(el => {
+          el.onclick = () => { state.csActiveId = el.dataset.sid; rerender(); };
+        });
+        const tkBtn = document.getElementById("takeoverInlineBtn");
+        if (tkBtn) tkBtn.onclick = () => { activeSess.mode = "HUMAN"; rerender(); toast("已人工接管该售后会话"); };
+        document.getElementById("bindOrderBtn").onclick = () => { activeSess.bound = true; rerender(); toast(`已核验并绑定订单 ${activeSess.orderId}`); };
+        document.getElementById("gotoTicketsBtn").onclick = () => goPage("m1c");
+        document.getElementById("gotoSimBuyerBtn").onclick = () => goPage("m1d");
+        const zh = document.getElementById("csZhInput");
+        const en = document.getElementById("csEnInput");
+        zh.oninput = () => {
+          en.value = `[EN Auto-Preview] ${zh.value.trim() ? "Thank you for contacting CrossPilot support. We are handling: " + zh.value.slice(0, 42) + "..." : ""}`;
+        };
+        document.getElementById("csSendBtn").onclick = () => {
+          const text = en.value.trim();
+          if (!text) return;
+          activeSess.messages.push({ role: "agent", text, zh: zh.value.trim() });
+          rerender();
+          toast("已发送外语回复至模拟买家通道");
+        };
+      }
+    };
+  }
+
+  // ==================== M1b: Recommended Products KB ====================
+  if (pageId === "m1b") {
+    const filtered = state.csProducts.filter(p => state.csShopFilter === "ALL" || p.shop === state.csShopFilter);
+    return {
+      headerActions: [
+        { label: "重建向量索引", primary: false, onClick: () => toast("已刷新 pgvector 向量索引 (142 SKU)") },
+        { label: "+ 批量导入 XLSX", primary: true, onClick: () => openModal("批量导入推荐商品 (XLSX)", `
+          <div class="field"><label>1. 选择目标店铺</label><select class="select"><option>Shopee 泰国主店</option><option>TikTok US</option></select></div>
+          <div class="field"><label>2. 选择 .xlsx 商品资料表</label><div style="border:2px dashed var(--blue-border);border-radius:8px;padding:18px;text-align:center;background:#f8fafc;"><strong>点击或拖拽 recommendation_items.xlsx</strong><div style="font-size:11.5px;color:var(--text-soft);margin-top:4px;">必填列：SKU / 标题 / 卖点 / 价格</div></div></div>
+          <div class="banner banner-green" style="margin-bottom:12px;">预校验结果：新增 18 条，格式错误 0 条，待写入 pgvector</div>
+          <button class="btn btn-primary" id="confirmImportKb">确认导入并生成向量</button>
+        `, () => {
+          document.getElementById("confirmImportKb").onclick = () => {
+            state.csProducts.unshift({ sku: "DESK-901", name: "铝合金折叠笔记本支架", shop: "Shopee TH", price: "$26.00", vec: "已向量化", on: true });
+            closeModal(); rerender(); toast("XLSX 导入成功：新增商品 DESK-901 并已向量化");
+          };
+        }) }
+      ],
+      html: `
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <strong>店铺筛选：</strong>
+            ${["ALL", "Shopee TH", "TikTok US"].map(sh => `<button class="btn btn-sm ${state.csShopFilter === sh ? "btn-primary" : ""} shop-flt" data-shop="${sh}">${sh === "ALL" ? "全部店铺" : sh}</button>`).join("")}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-blue">1</span> 推荐商品清单（参与咨询自动 Top-3 匹配）</div>
+            <span class="pill p-green"><span class="anno-tag t-green">2</span> 支持 XLSX 批量向量化</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>SKU</th><th>商品名称</th><th>所属店铺</th><th>参考售价</th><th>向量状态</th><th>推荐开关</th></tr></thead>
+              <tbody>
+                ${filtered.map((p, idx) => `
+                  <tr>
+                    <td><strong>${p.sku}</strong></td>
+                    <td>${p.name}</td>
+                    <td>${p.shop}</td>
+                    <td>${p.price}</td>
+                    <td><span class="pill ${p.vec === "已向量化" ? "p-green" : "p-amber"}">${p.vec}</span></td>
+                    <td><button class="btn btn-sm toggle-kb" data-idx="${idx}">${p.on ? "已启用 ✓" : "已停用"}</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".shop-flt").forEach(b => b.onclick = () => { state.csShopFilter = b.dataset.shop; rerender(); });
+        document.querySelectorAll(".toggle-kb").forEach(b => b.onclick = () => {
+          const item = filtered[Number(b.dataset.idx)];
+          item.on = !item.on; rerender(); toast(`${item.sku} 推荐开关已${item.on ? "开启" : "停用"}`);
+        });
+      }
+    };
+  }
+
+  // ==================== M1d: Mock Buyer Simulator ====================
+  if (pageId === "m1d") {
+    return {
+      headerActions: [
+        { label: "返回客服三栏工作台 →", primary: true, onClick: () => goPage("m1a") }
+      ],
+      html: `
+        <div class="card" style="max-width:720px;">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-blue">1</span> 模拟买家消息发送器（教学 / 演示专用入口）</div>
+          </div>
+          <div class="field"><label>买家昵称与平台</label><input id="simBuyerName" class="input" value="Demo Buyer · AMAZON US" /></div>
+          <div class="field">
+            <label>快捷测试场景</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm sim-preset" data-msg="Do you have a waterproof desk mat for home office?">场景A：咨询推荐 (触发Top-3推荐)</button>
+              <button class="btn btn-sm sim-preset" data-msg="My parcel SYN9D-005671 arrived broken, I demand a full refund!">场景B：损坏退款 (触发人工接管拦截)</button>
+            </div>
+          </div>
+          <div class="field"><label>买家发送内容（英文/多语）</label><textarea id="simBuyerMsg" class="textarea">Do you have a waterproof desk mat for home office?</textarea></div>
+          <button class="btn btn-primary" id="sendSimMsgBtn">发送买家消息并进入工作台 →</button>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".sim-preset").forEach(b => b.onclick = () => { document.getElementById("simBuyerMsg").value = b.dataset.msg; });
+        document.getElementById("sendSimMsgBtn").onclick = () => {
+          const msg = document.getElementById("simBuyerMsg").value.trim();
+          const isRefund = /refund|broken|damaged/i.test(msg);
+          const id = "s" + Date.now();
+          state.csSessions.unshift({
+            id,
+            buyer: document.getElementById("simBuyerName").value.split("·")[0].trim(),
+            platform: "AMAZON US",
+            lang: "EN",
+            time: "刚刚",
+            preview: msg,
+            mode: isRefund ? "PENDING_HUMAN" : "AI_AUTO",
+            intent: isRefund ? "REFUND" : "PRODUCT_INQUIRY",
+            conf: isRefund ? "91%" : "94%",
+            risk: isRefund,
+            recs: "① MAT-014 桌面收纳垫 (95%) ② BAG-108 (72%)",
+            orderId: "SYN9D-005671",
+            bound: false,
+            messages: [{ role: "buyer", text: msg, zh: isRefund ? "我的包裹破损了，要求全额退款！" : "请问你们有适合居家办公的防水桌面垫吗？" }]
+          });
+          state.csActiveId = id;
+          goPage("m1a");
+          toast(isRefund ? "命中退款风险词，已置为 PENDING_HUMAN" : "已触发咨询推荐 Top-3 检索");
+        };
+      }
+    };
+  }
+
+  // ==================== M1c: After-sales Tickets & SoD Approval ====================
+  if (pageId === "m1c") {
+    const canApprove = state.role === "approver" || state.role === "admin";
+    return {
+      headerActions: [
+        { label: "返回客服工作台", primary: false, onClick: () => goPage("m1a") },
+        { label: "+ 新建售后工单", primary: true, onClick: () => {
+          state.tickets.unshift({ id: "TK-20261119-02", order: "SYN9D-005671", type: "破损补发 $15.00", submitter: state.role, status: "待主管审批", ext: "—" });
+          rerender(); toast("已新建售后工单 TK-20261119-02");
+        } }
+      ],
+      html: `
+        <div class="banner banner-amber">
+          <span><span class="anno-tag t-amber">1</span> 外部退款同步边界：审批通过后写入审计台账，平台侧退款结果标记 <code>external_status = UNKNOWN</code>（不伪造平台已打款）。</span>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">2</span> 售后审批队列（planner 提交 → approver 拍板）</div></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>工单编号</th><th>关联订单</th><th>类型/金额</th><th>提交人</th><th>状态</th><th>平台回执</th></tr></thead>
+                <tbody>
+                  ${state.tickets.map((t, i) => `
+                    <tr class="tk-row" data-idx="${i}" style="cursor:pointer;${i===state.ticketIdx?"background:#eff6ff":""}">
+                      <td><strong>${t.id}</strong></td><td>${t.order}</td><td>${t.type}</td><td>${t.submitter}</td>
+                      <td><span class="pill ${t.status==="已批准"?"p-green":t.status==="已驳回"?"p-red":"p-amber"}">${t.status}</span></td>
+                      <td><span class="pill p-gray">${t.ext}</span></td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card card-blue">
+            <div class="card-header"><div class="card-title">工单详情 · ${state.tickets[state.ticketIdx].id}</div></div>
+            ${(() => {
+              const t = state.tickets[state.ticketIdx];
+              const sodSame = t.submitter === state.role;
+              return `
+                <div style="font-size:12.5px;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+                  <div>关联订单：<strong>${t.order}</strong></div>
+                  <div>提交客服：<strong>${t.submitter}</strong></div>
+                  <div>当前登录角色：<strong>${state.role}</strong> ${!canApprove ? '<span class="pill p-red">无审批权限</span>' : sodSame ? '<span class="pill p-red">触发SoD：不可自审</span>' : '<span class="pill p-green">SoD 校验通过 ✓</span>'}</div>
+                  <div>申请类型：<strong>${t.type}</strong></div>
+                </div>
+                <div class="banner banner-blue" style="margin-bottom:12px;">并发防重锁：SELECT ... FOR UPDATE 已就绪</div>
+                <div style="display:flex;gap:10px;">
+                  <button class="btn btn-success" id="approveTkBtn" ${(!canApprove || sodSame || t.status !== "待主管审批") ? "disabled" : ""}>批准退款 (写入审计)</button>
+                  <button class="btn btn-danger" id="rejectTkBtn" ${(!canApprove || sodSame || t.status !== "待主管审批") ? "disabled" : ""}>驳回工单</button>
+                </div>
+                ${!canApprove ? '<div style="font-size:11.5px;color:var(--red-text);margin-top:8px;">提示：请在左侧切换角色为 <strong>approver</strong> 后再审批。</div>' : ""}
+              `;
+            })()}
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".tk-row").forEach(r => r.onclick = () => { state.ticketIdx = Number(r.dataset.idx); rerender(); });
+        const ab = document.getElementById("approveTkBtn");
+        if (ab) ab.onclick = () => { const t = state.tickets[state.ticketIdx]; t.status = "已批准"; t.ext = "UNKNOWN"; rerender(); toast("工单已加行锁批准，external_status = UNKNOWN"); };
+        const rb = document.getElementById("rejectTkBtn");
+        if (rb) rb.onclick = () => { state.tickets[state.ticketIdx].status = "已驳回"; rerender(); toast("工单已驳回并记录原因"); };
+      }
+    };
+  }
+
+  // ==================== M2a: BI Designer ====================
+  if (pageId === "m2a") {
+    return {
+      headerActions: [
+        { label: "保存草稿", primary: false, onClick: () => toast("驾驶舱布局 JSON 已保存至草稿表") },
+        { label: "发布并查看大屏 →", primary: true, onClick: () => { goPage("m2b"); toast("驾驶舱已发布至只读大屏"); } }
+      ],
+      html: `
+        <div class="split-bi">
+          <div class="card" style="padding:12px;">
+            <div class="card-header"><div class="card-title" style="font-size:13px;"><span class="anno-tag t-blue">1</span> 组件库 (点击添加)</div></div>
+            ${["KPI 指标卡", "折线趋势图", "柱状对比图", "平台占比饼图", "AI 经营解读卡"].map(c => `
+              <button class="btn btn-sm bi-add-comp" data-comp="${c}" style="width:100%;justify-content:flex-start;margin-bottom:8px;">+ ${c}</button>
+            `).join("")}
+          </div>
+
+          <div class="card" style="background:#f8fafc;border:1.5px dashed var(--blue-border);">
+            <div class="card-header">
+              <div class="card-title" style="color:var(--blue-hover);"><span class="anno-tag t-green">2</span> 驾驶舱画布预览（12列栅格）</div>
+              <span class="pill p-blue">当前已放 ${state.biWidgets.length} 个组件</span>
+            </div>
+            <div class="grid-2" style="margin-bottom:12px;">
+              ${state.biWidgets.map((w, i) => `
+                <div class="kpi-card" style="cursor:pointer;${i===state.biSelectedIdx?"border:1.5px solid var(--blue)":""}" data-wi="${i}">
+                  <div class="kpi-label">${w.title} ${i===state.biSelectedIdx?'<span class="pill p-blue">已选中</span>':""}</div>
+                  <div class="kpi-val" style="color:${w.color}">${w.val}</div>
+                  <div class="kpi-sub">绑定口径：${w.metric} · ${w.scope}</div>
+                </div>
+              `).join("")}
+            </div>
+            <div class="banner banner-blue" style="flex-direction:column;align-items:flex-start;">
+              <strong>AI 经营解读卡（自动读取当前筛选结果）</strong>
+              <span style="font-weight:400;">${state.biInsight}</span>
+            </div>
+          </div>
+
+          <div class="card" style="padding:14px;">
+            <div class="card-header"><div class="card-title" style="font-size:13px;"><span class="anno-tag t-purple">3</span> 选中组件属性</div></div>
+            ${(() => {
+              const w = state.biWidgets[state.biSelectedIdx] || state.biWidgets[0];
+              return `
+                <div class="field"><label>组件标题</label><input id="biPropTitle" class="input" value="${w.title}"/></div>
+                <div class="field"><label>绑定统一指标</label><select id="biPropMetric" class="select"><option ${w.metric==="gmv"?"selected":""}>gmv</option><option ${w.metric==="net_profit"?"selected":""}>net_profit</option><option ${w.metric==="ad_spend"?"selected":""}>ad_spend</option></select></div>
+                <div class="field"><label>时间范围</label><select id="biPropScope" class="select"><option>全部平台 · 近30天</option><option>Amazon · 近7天</option></select></div>
+                <button class="btn btn-primary btn-sm" id="biApplyProp" style="width:100%;justify-content:center;margin-bottom:8px;">应用到画布</button>
+                <button class="btn btn-sm" id="biGenAiBtn" style="width:100%;justify-content:center;">重新生成 AI 解读</button>
+              `;
+            })()}
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll("[data-wi]").forEach(el => el.onclick = () => { state.biSelectedIdx = Number(el.dataset.wi); rerender(); });
+        document.querySelectorAll(".bi-add-comp").forEach(b => b.onclick = () => {
+          state.biWidgets.push({ title: b.dataset.comp + " (新增)", val: "$18,650.16", metric: "ad_spend", scope: "全部平台 · 近30天", color: "var(--amber-text)" });
+          state.biSelectedIdx = state.biWidgets.length - 1; rerender(); toast("已添加到画布");
+        });
+        document.getElementById("biApplyProp").onclick = () => {
+          const w = state.biWidgets[state.biSelectedIdx];
+          w.title = document.getElementById("biPropTitle").value;
+          w.metric = document.getElementById("biPropMetric").value;
+          w.scope = document.getElementById("biPropScope").value;
+          rerender(); toast("组件属性已更新");
+        };
+        document.getElementById("biGenAiBtn").onclick = () => {
+          state.biInsight = "AI 解读更新：近30天净利润 $65,529.67（净利率 52.2%），Amazon 广告花费 $2,933.63（近7天）保持健康 ROI。";
+          rerender(); toast("AI 经营解读已刷新");
+        };
+      }
+    };
+  }
+
+  // ==================== M2b: Published BI Dashboard ====================
+  if (pageId === "m2b") {
+    return {
+      headerActions: [
+        { label: "返回设计工作台", primary: false, onClick: () => goPage("m2a") },
+        { label: "刷新全部指标", primary: true, onClick: () => toast("4张卡片并发刷新完成（口径版本 v1.2）") }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span><span class="anno-tag t-blue">1</span> 数据截止：2026-11-19 10:15:00  |  指标口径版本：v1.2（与 M3 智能问数同源 metric_snapshots）</span>
+          <span class="pill p-green">4卡并发拉取成功</span>
+        </div>
+        <div class="grid-4">
+          <div class="kpi-card"><div class="kpi-label">GMV 销售额</div><div class="kpi-val" style="color:var(--blue-hover)">$125,429.99</div><div class="kpi-sub">+14.2% 环比 · 10:15</div></div>
+          <div class="kpi-card"><div class="kpi-label">订单总数</div><div class="kpi-val" style="color:var(--green-text)">1,536 单</div><div class="kpi-sub">+9.8% 环比 · 10:15</div></div>
+          <div class="kpi-card"><div class="kpi-label">广告花费</div><div class="kpi-val" style="color:var(--amber-text)">$18,650.16</div><div class="kpi-sub">ACOS 14.8% · 10:14</div></div>
+          <div class="kpi-card"><div class="kpi-label">净利润</div><div class="kpi-val" style="color:var(--purple-text)">$65,529.67</div><div class="kpi-sub">净利率 52.2% · 10:15</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-green">2</span> 多平台每日 GMV 与利润趋势</div></div>
+            <svg viewBox="0 0 500 180" style="width:100%;height:190px;background:#fafcff;border-radius:8px;border:1px solid #e2e8f0;">
+              <polyline fill="none" stroke="#2563eb" stroke-width="3" points="30,140 95,120 160,126 225,88 290,76 355,54 420,44 475,28" />
+              <polyline fill="none" stroke="#10b981" stroke-width="2.5" points="30,158 95,148 160,150 225,130 290,122 355,108 420,98 475,86" />
+              <text x="30" y="172" font-size="11" fill="#64748b">11-12</text>
+              <text x="225" y="172" font-size="11" fill="#64748b">11-15</text>
+              <text x="445" y="172" font-size="11" fill="#64748b">11-19</text>
+              <text x="340" y="22" font-size="11" fill="#2563eb" font-weight="bold">● GMV</text>
+              <text x="410" y="22" font-size="11" fill="#10b981" font-weight="bold">● 净利润</text>
+            </svg>
+          </div>
+          <div class="card card-blue">
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-purple">3</span> AI 经营摘要与联动问数</div></div>
+            <p style="margin-top:0;color:var(--text-muted)">1. <strong>同源验证</strong>：与智能问数共用 <code>metric_snapshots</code>，零偏差。<br><br>2. <strong>广告观察</strong>：Amazon 近7天广告花费 <strong>$2,933.63</strong>，处于安全阈值内。<br><br>3. <strong>快速深挖</strong>：点击下方按钮带上下文跳至 M3 智能问答继续追问。</p>
+            <button class="btn btn-primary" id="biGotoQaBtn">带着当前指标去问数 →</button>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("biGotoQaBtn").onclick = () => goPage("m3b");
+      }
+    };
+  }
+
+  // ==================== M3a: QA Metrics & Celery Sync ====================
+  if (pageId === "m3a") {
+    return {
+      headerActions: [
+        { label: "前往经营智能问答 →", primary: true, onClick: () => goPage("m3b") }
+      ],
+      html: `
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">1</span> 新增指标与接口绑定配置</div></div>
+          <div class="banner banner-amber" style="margin-bottom:12px;">REST 接入前需配置后端环境变量 <code>METRIC_REST_BASE_URL</code>；多平台路径须包含 <code>{platform}</code>。</div>
+          <div class="grid-4">
+            <div class="field"><label>指标代码</label><input id="m3Code" class="input" value="conversion_rate"/></div>
+            <div class="field"><label>指标名称</label><input id="m3Name" class="input" value="转化率"/></div>
+            <div class="field"><label>取值方式</label><select class="select"><option>内置汇总</option><option>REST API</option></select></div>
+            <div class="field"><label>JSON 路径</label><input class="input" value="data.value"/></div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="addMetricBtn">保存并创建绑定</button>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-green">2</span> 数据绑定与 Celery Beat 周期调度（每分钟巡检到期任务）</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>绑定 / 指标</th><th>接口类型</th><th>平台</th><th>调度周期</th><th>最新指标数据</th><th>同步状态</th><th>操作</th></tr></thead>
+              <tbody>
+                ${state.qaBindings.map((b, i) => `
+                  <tr>
+                    <td><strong>${b.name}</strong></td>
+                    <td><span class="pill p-blue">${b.kind}</span></td>
+                    <td>${b.platform}</td>
+                    <td>${b.cron}</td>
+                    <td><strong>${b.val}</strong></td>
+                    <td><span class="pill p-green">${b.status}</span></td>
+                    <td><button class="btn btn-sm run-sync-btn" data-i="${i}">▶ 立即同步</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("addMetricBtn").onclick = () => {
+          const code = document.getElementById("m3Code").value.trim();
+          const name = document.getElementById("m3Name").value.trim();
+          state.qaBindings.unshift({ name: `${name} (${code})`, kind: "REST API", platform: "全部平台", cron: "每15分钟", val: "3.42%", status: "SUCCESS" });
+          rerender(); toast(`已新增指标绑定：${name}`);
+        };
+        document.querySelectorAll(".run-sync-btn").forEach(b => b.onclick = () => toast(`已触发 ${state.qaBindings[b.dataset.i].name} 同步，写入快照成功`));
+      }
+    };
+  }
+
+  // ==================== M3b: QA Chat ====================
+  if (pageId === "m3b") {
+    return {
+      headerActions: [
+        { label: "配置指标口径", primary: false, onClick: () => goPage("m3a") },
+        { label: "清空会话", primary: false, onClick: () => { state.qaChat = state.qaChat.slice(0, 2); rerender(); } }
+      ],
+      html: `
+        <div style="background:#1e3a8a;color:#fff;padding:12px 16px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div>
+            <strong style="font-size:15px;"><span class="anno-tag t-amber">1</span> CROSSPILOT INTELLIGENCE · 用同一套事实回答经营问题</strong>
+            <div style="font-size:11.5px;color:#bfdbfe;margin-top:2px;">数据截止 2026-11-19 10:15 | 口径：metric_snapshots + orders | ● SQL 只读守卫在线</div>
+          </div>
+          <span class="pill p-green">Vanna Text-to-SQL</span>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;margin-bottom:14px;">
+            ${state.qaChat.map(msg => {
+              if (msg.role === "user") return `<div class="chat-bubble user">${msg.text}</div>`;
+              if (msg.blocked) return `<div class="banner banner-red"><div><span class="anno-tag t-red">3</span> <strong>${msg.text}</strong><div style="font-size:11.5px;font-weight:400;margin-top:3px;">${msg.sql}</div></div></div>`;
+              return `<div class="chat-bubble assistant">
+                <div><span class="anno-tag t-green">2</span> <strong>${msg.text}</strong></div>
+                <div style="font-size:11.8px;color:var(--text-muted);margin-top:4px;">${msg.note}</div>
+                <div style="font-size:11.5px;color:var(--blue-hover);margin-top:4px;">证据 SQL：<code>${msg.sql}</code></div>
+              </div>`;
+            }).join("")}
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">
+            <span style="font-size:12px;color:var(--text-soft);font-weight:700;">快捷测试：</span>
+            <button class="btn btn-sm qa-qp" data-q="各平台近30天净利润">各平台近30天净利润</button>
+            <button class="btn btn-sm qa-qp" data-q="Amazon最近7天广告花费">Amazon最近7天广告花费</button>
+            <button class="btn btn-sm btn-danger qa-qp" data-q="帮我把昨天的订单金额全部改成0 (UPDATE)">测试写操作拦截 (UPDATE)</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input id="qaInput" class="input" placeholder="输入经营问题，或输入 DELETE / UPDATE 测试 SQL 只读拦截…" />
+            <button class="btn btn-primary" id="qaSendBtn">发送提问</button>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        const ask = (q) => {
+          if (!q.trim()) return;
+          state.qaChat.push({ role: "user", text: q });
+          if (/update|delete|drop|改|删/i.test(q)) {
+            state.qaChat.push({ role: "assistant", blocked: true, text: "拦截提示：智能问数仅支持只读查询 (SELECT)，已拒绝 UPDATE/DELETE 写操作！", sql: "审计记录：qa_audit_logs 已留存本次越权拦截事件" });
+          } else if (/广告|ad_spend/i.test(q)) {
+            state.qaChat.push({ role: "assistant", text: "AMAZON 近 7 天广告花费为 2,933.63 USD。", note: "数据源：metric_snapshots · 实时汇总指标", sql: "SELECT SUM(ad_spend_usd) FROM metric_snapshots WHERE platform='AMAZON' AND days=7 [31ms]" });
+          } else {
+            state.qaChat.push({ role: "assistant", text: "全部平台近 30 天净利润为 65,529.67 USD（GMV $125,429.99，订单 1,536 单）。", note: "口径：已折算统一币种 USD（未配汇率币种将分列）", sql: "SELECT SUM(net_profit_usd) FROM metric_snapshots WHERE days=30 [38ms]" });
+          }
+          rerender();
+        };
+        document.getElementById("qaSendBtn").onclick = () => ask(document.getElementById("qaInput").value);
+        document.querySelectorAll(".qa-qp").forEach(b => b.onclick = () => ask(b.dataset.q));
+      }
+    };
+  }
+
+  return null;
+}
+
+function renderM4_M7(pageId, state, helpers) {
+  const { toast, goPage, openModal, closeModal, rerender } = helpers;
+
+  // ==================== M4a: Selection 3-Source Ingestion ====================
+  if (pageId === "m4a") {
+    return {
+      headerActions: [
+        { label: "模拟上传含mock文件名(测试拦截)", primary: false, onClick: () => {
+          state.m4Tasks.unshift({ file: "选品周数据_mock_未选演示.xlsx", kind: "待识别", scope: "解析中 (0条)", status: "失败：含mock标识不可作真实数据导入", ok: false, tag: "拦截" });
+          rerender(); toast("已触发 Mock 文件拦截规则！");
+        } },
+        { label: "+ 导入商品周数据", primary: true, onClick: () => {
+          state.m4Tasks.unshift({ file: "选品周数据_nov_batch2.xlsx", kind: "外购数据", scope: "300 SKU · US (2,400条)", status: "成功", ok: true, tag: "待评估" });
+          rerender(); toast("已导入外购估算周事实 2,400 条");
+        } }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span>隔离说明：当前已入库 160 条模拟周事实。演示/外购估算数据绝不计入内部实际利润！</span>
+          <button class="btn btn-primary btn-sm" id="gotoM4bBtn">进入选品初筛工作台 →</button>
+        </div>
+
+        <div class="grid-3">
+          <div class="kpi-card" style="border-top:3px solid var(--amber);">
+            <div style="display:flex;justify-content:space-between;"><strong><span class="anno-tag t-blue">1</span> 外购数据</strong><span class="pill p-amber">估算</span></div>
+            <div style="font-size:11.5px;color:var(--text-soft);margin-top:4px;">地区销量、销售额、竞品与受众估算</div>
+            <div class="kpi-val">10,000 <span style="font-size:13px;font-weight:500;">条周事实</span></div>
+            <div class="kpi-sub">2 个已登记数据源</div>
+          </div>
+          <div class="kpi-card" style="border-top:3px solid var(--green);">
+            <div style="display:flex;justify-content:space-between;"><strong>内部数据</strong><span class="pill p-green">实际</span></div>
+            <div style="font-size:11.5px;color:var(--text-soft);margin-top:4px;">订单、采购、生产、物流、广告与财务</div>
+            <div class="kpi-val">0 <span style="font-size:13px;font-weight:500;">条周事实</span></div>
+            <div class="kpi-sub">1 个已登记数据源</div>
+          </div>
+          <div class="kpi-card" style="border-top:3px solid var(--blue);">
+            <div style="display:flex;justify-content:space-between;"><strong>爬取公网数据</strong><span class="pill p-blue">观察</span></div>
+            <div style="font-size:11.5px;color:var(--text-soft);margin-top:4px;">商品信息、价格、竞争与趋势线索</div>
+            <div class="kpi-val">0 <span style="font-size:13px;font-weight:500;">条周事实</span></div>
+            <div class="kpi-sub">0 个已登记数据源</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="anno-tag t-green">2</span> 接入任务记录（来源引用、SHA256文件哈希可追溯）</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>任务 / 来源文件名</th><th>性质</th><th>覆盖范围</th><th>入库状态 / 校验说明</th><th>质量标签</th></tr></thead>
+              <tbody>
+                ${state.m4Tasks.map(t => `
+                  <tr>
+                    <td><strong>${t.file}</strong></td>
+                    <td><span class="pill ${t.kind==="外购数据"?"p-amber":t.kind==="内部数据"?"p-green":t.kind==="演示Mock"?"p-blue":"p-gray"}">${t.kind}</span></td>
+                    <td>${t.scope}</td>
+                    <td><span class="pill ${t.ok?"p-green":"p-red"}">${t.status}</span></td>
+                    <td>${t.tag}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("gotoM4bBtn").onclick = () => goPage("m4b");
+      }
+    };
+  }
+
+  // ==================== M4b: Selection Workflow (planner -> approver) ====================
+  if (pageId === "m4b") {
+    const isPlanner = state.role === "planner" || state.role === "admin";
+    const isApprover = state.role === "approver" || state.role === "admin";
+    return {
+      headerActions: [
+        { label: "← 选品数据接入", primary: false, onClick: () => goPage("m4a") },
+        { label: isApprover ? "当前：approver 终审模式" : "切换为 approver 测试拍板", primary: true, onClick: () => {
+          state.role = isApprover ? "planner" : "approver";
+          document.getElementById("roleSelect").value = state.role;
+          rerender();
+          toast(`已切换角色为 ${state.role}`);
+        } }
+      ],
+      html: `
+        <div class="card" style="padding:12px 16px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <strong><span class="anno-tag t-blue">1</span> 选品角色接力流：</strong>
+            <span class="pill p-blue">① 机会池 AI 初筛 (planner)</span>
+            <span>──提交──▶</span>
+            <span class="pill p-purple">② 待选清单复核 (approver)</span>
+            <span>──▶</span>
+            <span class="pill p-green">③ 测款 / 上架 / 淘汰</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-green">2</span> 阶段一：商品机会池（planner 初筛并提交进待选清单）</div>
+            <span class="pill p-blue">当前操作角色：${state.role}</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>商品 / SKU</th><th>平台/地区</th><th>8周预估净收入</th><th>趋势</th><th>数据来源</th><th>状态</th><th>planner 操作</th></tr></thead>
+              <tbody>
+                ${state.m4Pool.map((item, idx) => `
+                  <tr>
+                    <td><strong>${item.name}</strong><div style="font-size:11px;color:var(--text-soft)">${item.sku}</div></td>
+                    <td>${item.region}</td>
+                    <td><strong>${item.rev}</strong></td>
+                    <td style="color:var(--green-text);font-weight:700;">${item.trend}</td>
+                    <td><span class="pill p-amber">${item.src}</span></td>
+                    <td><span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已提交待审"?"p-purple":item.stage==="已淘汰"?"p-red":"p-gray"}">${item.stage}</span></td>
+                    <td>
+                      ${item.stage === "仅研究估算" ? `<button class="btn btn-sm btn-primary m4-shortlist" data-i="${idx}" ${!isPlanner?"disabled":""}>加入待选清单 +</button>` : `<span style="color:var(--text-soft);font-size:12px;">已流转</span>`}
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card card-blue">
+          <div class="card-header">
+            <div class="card-title" style="color:var(--purple-text);"><span class="anno-tag t-purple">3</span> 阶段二：待选清单与测款拍板（仅 approver 可做最终决策）</div>
+            ${!isApprover ? '<span class="pill p-red">当前角色不可拍板（请点右上角切为 approver）</span>' : '<span class="pill p-green">approver 终审已解锁 ✓</span>'}
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>待审商品 / SKU</th><th>初筛提交人</th><th>AI 评分与风险提示</th><th>建议测款预算</th><th>状态</th><th>approver 最终拍板</th></tr></thead>
+              <tbody>
+                ${state.m4Pool.filter(x => x.stage !== "仅研究估算").map(item => `
+                  <tr>
+                    <td><strong>${item.name}</strong> (${item.sku})</td>
+                    <td>${item.submitter}</td>
+                    <td>${item.score}分 · 外部估算，缺真实毛利</td>
+                    <td>${item.budget}</td>
+                    <td><span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已淘汰"?"p-red":"p-purple"}">${item.stage}</span></td>
+                    <td style="display:flex;gap:6px;">
+                      <button class="btn btn-sm btn-success m4-decide" data-sku="${item.sku}" data-act="已批准测款" ${(!isApprover || item.stage!=="已提交待审")?"disabled":""}>批准测款</button>
+                      <button class="btn btn-sm btn-danger m4-decide" data-sku="${item.sku}" data-act="已淘汰" ${(!isApprover || item.stage!=="已提交待审")?"disabled":""}>驳回淘汰</button>
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".m4-shortlist").forEach(b => b.onclick = () => {
+          const item = state.m4Pool[Number(b.dataset.i)];
+          item.stage = "已提交待审";
+          item.submitter = state.role;
+          rerender(); toast(`${item.sku} 已加入待选清单，等待 approver 终审拍板`);
+        });
+        document.querySelectorAll(".m4-decide").forEach(b => b.onclick = () => {
+          const item = state.m4Pool.find(x => x.sku === b.dataset.sku);
+          item.stage = b.dataset.act;
+          rerender(); toast(`approver 已拍板：${item.sku} → ${item.stage}`);
+        });
+      }
+    };
+  }
+
+  // ==================== M5a: Forecast DemandProfile & Models ====================
+  if (pageId === "m5a") {
+    return {
+      headerActions: [
+        { label: "执行销量预测与WAPE评估 →", primary: true, onClick: () => goPage("m5b") }
+      ],
+      html: `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-blue">1</span> SKU 需求画像（DemandProfile）与适用模式匹配</div>
+            <button class="btn btn-sm" id="editDpBtn">编辑需求画像 (版本+1)</button>
+          </div>
+          <div class="grid-4">
+            <div class="kpi-card"><div class="kpi-label">目标 SKU</div><div style="font-weight:700;margin-top:6px;">BAG-108 · 轻量通勤双肩包</div></div>
+            <div class="kpi-card"><div class="kpi-label">真实历史点数</div><div style="font-weight:700;margin-top:6px;">96 天（有单 90 天）</div></div>
+            <div class="kpi-card"><div class="kpi-label">需求画像模式</div><div style="font-weight:700;margin-top:6px;">${state.demandProfileMode}</div></div>
+            <div class="kpi-card"><div class="kpi-label">画像版本号</div><div style="font-weight:700;margin-top:6px;color:var(--blue-hover)">v${state.demandProfileVer} (规则推荐 CatBoost)</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="anno-tag t-green">2</span> 版本化模型注册表（9 个内置算法 · 历史点门槛自动校验）</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>模型 / 版本</th><th>模型族</th><th>建议历史</th><th>推理状态</th><th>当前状态</th><th>说明</th><th>操作</th></tr></thead>
+              <tbody>
+                ${state.m5Models.map((m, i) => `
+                  <tr>
+                    <td><strong>${m.name}</strong></td>
+                    <td>${m.family}</td>
+                    <td>${m.minPts}</td>
+                    <td><span class="pill ${m.ready==="已接入推理"?"p-blue":"p-amber"}">${m.ready}</span></td>
+                    <td><span class="pill ${m.enabled?"p-green":"p-gray"}">${m.enabled?"已启用":"已停用"}</span></td>
+                    <td style="font-size:12px;color:var(--text-muted)">${m.desc}</td>
+                    <td><button class="btn btn-sm m5-toggle" data-i="${i}">${m.enabled?"停用":"启用"}</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("editDpBtn").onclick = () => {
+          state.demandProfileVer += 1;
+          state.demandProfileMode = state.demandProfileMode.includes("平稳") ? "促销敏感 + 周季节性" : "平稳季节 + 短周期波动";
+          rerender(); toast(`DemandProfile 已保存，版本递增为 v${state.demandProfileVer}`);
+        };
+        document.querySelectorAll(".m5-toggle").forEach(b => b.onclick = () => {
+          const m = state.m5Models[Number(b.dataset.i)];
+          m.enabled = !m.enabled; rerender(); toast(`${m.name} 已${m.enabled?"启用":"停用"}`);
+        });
+      }
+    };
+  }
+
+  // ==================== M5b: Forecast Execution & WAPE Evaluation ====================
+  if (pageId === "m5b") {
+    const totalActual = state.m5Eval.reduce((a, r) => a + r.actual, 0);
+    const totalAbsErr = state.m5Eval.reduce((a, r) => a + Math.abs(r.pred - r.actual), 0);
+    const wape = ((totalAbsErr / totalActual) * 100).toFixed(1);
+    return {
+      headerActions: [
+        { label: "← 画像与模型注册", primary: false, onClick: () => goPage("m5a") },
+        { label: "运行未来7天预测", primary: true, onClick: () => toast("已基于 96 天已完成订单重新执行 CatBoost-v1 预测（合计 626 件）") }
+      ],
+      html: `
+        <div class="grid-4">
+          <div class="kpi-card"><div class="kpi-label"><span class="anno-tag t-blue">1</span> 预测总销量 (7天)</div><div class="kpi-val" style="color:var(--blue-hover)">626 件</div><div class="kpi-sub">CatBoost-v1 逐日向上取整</div></div>
+          <div class="kpi-card"><div class="kpi-label">滚动回测 wAPE</div><div class="kpi-val" style="color:var(--green-text)">${wape}%</div><div class="kpi-sub">随下方人工修正实时重算</div></div>
+          <div class="kpi-card"><div class="kpi-label">建议补货量</div><div class="kpi-val" style="color:var(--purple-text)">633 件</div><div class="kpi-sub">可售 18 · 安全库存 25</div></div>
+          <div class="kpi-card"><div class="kpi-label">误差带性质</div><div class="kpi-val" style="color:var(--amber-text);font-size:18px;">历史绝对误差带</div><div class="kpi-sub">非统计学置信区间</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-green">2</span> 销量预测趋势 · BAG-108 (未来7天 + 绝对误差带)</div></div>
+            <svg viewBox="0 0 500 200" style="width:100%;height:200px;background:#fafcff;border-radius:8px;border:1px solid #e2e8f0;">
+              <polygon fill="#dbeafe" opacity="0.7" points="40,165 110,165 180,165 250,165 320,165 390,165 460,165 460,30 390,52 320,40 250,38 180,75 110,65 40,95" />
+              <polyline fill="none" stroke="#2563eb" stroke-width="3" points="40,145 110,120 180,148 250,62 320,70 390,102 460,48" />
+              ${[[40,145,"29"],[110,120,"63"],[180,148,"27"],[250,62,"138"],[320,70,"130"],[390,102,"88"],[460,48,"153"]].map(([x,y,v])=>`
+                <circle cx="${x}" cy="${y}" r="4.5" fill="#2563eb"/><text x="${x}" y="${y-10}" font-size="11" font-weight="bold" fill="#1d4ed8" text-anchor="middle">${v}件</text>
+              `).join("")}
+              <text x="40" y="190" font-size="11" fill="#64748b">11-11</text>
+              <text x="250" y="190" font-size="11" fill="#64748b">11-14</text>
+              <text x="440" y="190" font-size="11" fill="#64748b">11-17</text>
+            </svg>
+          </div>
+
+          <div class="card card-blue">
+            <div class="card-header"><div class="card-title" style="color:var(--purple-text);"><span class="anno-tag t-purple">3</span> WAPE 评估复盘与人工修正留痕</div></div>
+            <div class="table-wrap" style="margin-bottom:10px;">
+              <table>
+                <thead><tr><th>日期</th><th>原预测</th><th>实际值 (可修正)</th><th>偏差</th><th>来源</th></tr></thead>
+                <tbody>
+                  ${state.m5Eval.map((r, i) => `
+                    <tr>
+                      <td>${r.date}</td>
+                      <td>${r.pred}</td>
+                      <td><input type="number" class="input m5-act-inp" data-i="${i}" value="${r.actual}" style="width:72px;padding:4px 6px;"/></td>
+                      <td>${r.pred - r.actual}</td>
+                      <td><span class="pill ${r.edited?"p-amber":"p-gray"}">${r.edited?"人工修正":"订单采集"}</span></td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+            <button class="btn btn-primary btn-sm" id="recalcWapeBtn">保存修正并重算 wAPE (保留原始订单值)</button>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("recalcWapeBtn").onclick = () => {
+          document.querySelectorAll(".m5-act-inp").forEach(inp => {
+            const idx = Number(inp.dataset.i);
+            const val = Number(inp.value) || 0;
+            if (val !== state.m5Eval[idx].actual) {
+              state.m5Eval[idx].actual = val;
+              state.m5Eval[idx].edited = true;
+            }
+          });
+          rerender(); toast("已留痕保存人工修正并重算 wAPE");
+        };
+      }
+    };
+  }
+
+  // ==================== M6a: Replenishment Steps 1-3 ====================
+  if (pageId === "m6a") {
+    return {
+      headerActions: [
+        { label: "下一步：提交审批与履约 →", primary: true, onClick: () => goPage("m6b") }
+      ],
+      html: `
+        <div class="stepper-5">
+          <div class="step-item done">1 需求预测与分支</div>
+          <div class="step-item done">2 成本与交期参数</div>
+          <div class="step-item active">3 三方案比较</div>
+          <div class="step-item">4 提交与SoD审批</div>
+          <div class="step-item">5 采购与收货凭证</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">1</span> 步骤 1-2：双分支输入选择 & 成本交期核验（FAN-203 · TH-WH-1）</div></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+            <button class="btn ${state.m6Branch==="normal"?"btn-primary":""}" id="m6BrNormal">● 普通补货（近30天销量代理 30件/天）</button>
+            <button class="btn ${state.m6Branch==="smart"?"btn-primary":""}" id="m6BrSmart">● 智能补货（读取 M5 预测模型 + 多仓风险）</button>
+          </div>
+          <div style="font-size:12.5px;color:var(--text-muted);">
+            当前可售：<strong>43件</strong> | 目标库存：<strong>660件</strong> | 理论缺口：<strong>617件</strong> | 单件采购价：<strong>$11.20 (成本卡 v2 ✓)</strong> | 完整交期：<strong>18天</strong>
+          </div>
+        </div>
+
+        <div class="card card-blue">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-green">2</span> 步骤 3：保守 / 平衡 / 激进 三方案定量比较（calculation_version: v3.1）</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>方案类型</th><th>建议采购件数</th><th>预计到货日</th><th>潜在失销风险</th><th>占用现金</th><th>增量利润贡献</th><th>选择</th></tr></thead>
+              <tbody>
+                ${state.m6Plans.map((p, i) => `
+                  <tr style="${state.m6SelectedPlan===i?"background:#eff6ff":""}">
+                    <td><strong>${p.name}</strong></td>
+                    <td><strong>${p.qty} 件</strong></td>
+                    <td>2026-12-07</td>
+                    <td>${p.lost}</td>
+                    <td>${p.cash}</td>
+                    <td style="color:var(--green-text);font-weight:700;">${p.profit}</td>
+                    <td><button class="btn btn-sm ${state.m6SelectedPlan===i?"btn-primary":""} m6-pick" data-i="${i}">${state.m6SelectedPlan===i?"已选中 ✓":"选为草案"}</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("m6BrNormal").onclick = () => { state.m6Branch = "normal"; rerender(); };
+        document.getElementById("m6BrSmart").onclick = () => { state.m6Branch = "smart"; rerender(); toast("已切换至智能补货分支（同步读取 M5 预测与多仓覆盖天数）"); };
+        document.querySelectorAll(".m6-pick").forEach(b => b.onclick = () => { state.m6SelectedPlan = Number(b.dataset.i); rerender(); });
+      }
+    };
+  }
+
+  // ==================== M6b: Replenishment Steps 4-5 ====================
+  if (pageId === "m6b") {
+    const plan = state.m6Plans[state.m6SelectedPlan];
+    const canApprove = state.role === "approver" || state.role === "admin";
+    const canWh = state.role === "warehouse" || state.role === "admin";
+    const sodSame = state.m6Submitter === state.role;
+    return {
+      headerActions: [
+        { label: "← 返回步骤1-3三方案比较", primary: false, onClick: () => goPage("m6a") }
+      ],
+      html: `
+        <div class="banner banner-red">
+          <span><span class="anno-tag t-red">1</span> 安全红线：采购单分批收货差异与质检凭证仅写入履约审计台账，绝不自动改写仓库真实可售库存（见 M0 独立库存页）。</span>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">2</span> 步骤 4：计划签名校验与 SoD 审批</div></div>
+            <div style="font-size:12.5px;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+              <div>计划编号：<strong>RP-20261119-08 (v1)</strong></div>
+              <div>选定方案：<strong>${plan.name} · ${plan.qty} 件 · ${plan.cash}</strong></div>
+              <div>参数快照签名：<strong>sig:8a4f..重算校验一致 ✓</strong></div>
+              <div>数量口径：<strong>RULE_FIXED (AI仅生成摘要)</strong></div>
+              <div>提交人：<strong>${state.m6Submitter}</strong> | 当前审批角色：<strong>${state.role}</strong></div>
+              <div>审批状态：<span class="pill ${state.m6Status==="已批准"?"p-green":"p-amber"}">${state.m6Status}</span></div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-success btn-sm" id="m6ApproveBtn" ${(!canApprove || sodSame || state.m6Status==="已批准")?"disabled":""}>批准并生成采购单 (approver)</button>
+              <button class="btn btn-sm" id="m6SwitchApprBtn">切为 approver 体验审批</button>
+            </div>
+          </div>
+
+          <div class="card card-blue">
+            <div class="card-header">
+              <div class="card-title" style="color:var(--blue-hover);"><span class="anno-tag t-purple">3</span> 步骤 5：采购履约与分批收货差异凭证</div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">采购单：<strong>PO-20261119-03</strong> | 物流单号：<strong>SF-INT-992018</strong></div>
+            <div class="table-wrap" style="margin-bottom:10px;">
+              <table>
+                <thead><tr><th>收货批次</th><th>实收 / 差异</th><th>质检凭证</th><th>仓管经办</th></tr></thead>
+                <tbody>
+                  ${state.m6Receipts.map(r => `
+                    <tr><td>${r.batch}</td><td>${r.qty}</td><td><span class="pill p-green">${r.qc}</span></td><td>${r.who}</td></tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+            <button class="btn btn-primary btn-sm" id="m6AddReceiptBtn" ${!canWh?"disabled":""}>登记第3批到货凭证 (需 warehouse 角色)</button>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("m6SwitchApprBtn").onclick = () => {
+          state.role = "approver";
+          document.getElementById("roleSelect").value = "approver";
+          rerender();
+        };
+        const ab = document.getElementById("m6ApproveBtn");
+        if (ab) ab.onclick = () => { state.m6Status = "已批准"; rerender(); toast("SoD 校验通过，已批准并生成采购单 PO-20261119-03"); };
+        const rb = document.getElementById("m6AddReceiptBtn");
+        if (rb) rb.onclick = () => {
+          state.m6Receipts.push({ batch: "第3批 (12-06)", qty: "5件 (补齐短装)", qc: "质检合格 #QC3", who: state.role });
+          rerender(); toast("已登记收货凭证（仅留痕，不自动改写 M0 仓库库存）");
+        };
+      }
+    };
+  }
+
+  // ==================== M7a: Listing Copywriting ====================
+  if (pageId === "m7a") {
+    return {
+      headerActions: [
+        { label: "去 AI 商品主图页 →", primary: false, onClick: () => goPage("m7b") },
+        { label: "✨ 立即生成文案", primary: true, onClick: () => { state.m7CopyGenCount += 1; rerender(); toast("已按任务卡约束生成 5 组多语言 Listing 文案！"); } }
+      ],
+      html: `
+        <div class="stepper">
+          <div class="step-item done">① 输入产品与约束</div>
+          <div class="step-item done">② 生成多版本文案</div>
+          <div class="step-item active">③ 合规审核与选用</div>
+        </div>
+
+        <div class="split-left-form">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">1</span> 选择商品与创作约束</div></div>
+            <div class="field">
+              <label>选择商品</label>
+              <select id="m7ProdSel" class="select">
+                <option ${state.m7Sku==="MAT-014"?"selected":""} value="MAT-014">MAT-014 · 桌面收纳垫</option>
+                <option ${state.m7Sku==="BAG-108"?"selected":""} value="BAG-108">BAG-108 · 轻量通勤双肩包</option>
+                <option ${state.m7Sku==="FAN-203"?"selected":""} value="FAN-203">FAN-203 · 便携静音循环扇</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>文案生成类型</label>
+              <div class="grid-2" style="gap:8px;">
+                ${["商品标题", "五点描述", "广告文案", "搜索关键词"].map(tp => `
+                  <div class="option-tile ${state.m7CopyType===tp?"active":""} m7-type" data-t="${tp}">
+                    <strong style="font-size:12.5px;">${tp}</strong>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div class="grid-2" style="gap:8px;">
+              <div class="field"><label>目标平台</label><select class="select"><option>Amazon US</option><option>Shopee TH</option><option>TikTok Shop</option></select></div>
+              <div class="field"><label>语言</label><select class="select"><option>English (US)</option><option>简体中文</option><option>Thai (TH)</option></select></div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;">
+              <div style="font-weight:700;font-size:12.5px;margin-bottom:6px;"><span class="anno-tag t-green">2</span> Listing 任务卡 · 批量草稿约束</div>
+              <div class="field"><label>必用术语（逗号分隔）</label><input id="m7MustTerm" class="input" value="${state.m7MustTerm}"/></div>
+              <div class="field"><label>排除词 / 禁忌词</label><input id="m7BanTerm" class="input" value="${state.m7BanTerm}"/></div>
+            </div>
+            <button class="btn btn-primary" id="m7GenCopyBtn" style="width:100%;justify-content:center;">✨ 生成营销文案 (第${state.m7CopyGenCount}版)</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><span class="anno-tag t-purple">3</span> 生成结果 · ${state.m7Sku} ${state.m7CopyType}</div>
+              <span class="pill p-green">● 生成完成</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+              ${["商品标题 (5)", "五点描述 (5)", "搜索关键词", "完整描述"].map(tb => `
+                <button class="btn btn-sm ${state.m7ResultTab===tb?"btn-primary":""} m7-rtab" data-tab="${tb}">${tb}</button>
+              `).join("")}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              ${[1, 2, 3, 4].map(i => {
+                const txt = `${i}. ${state.m7Sku} | ${state.m7MustTerm} Premium Design for Office & Home (Draft v${state.m7CopyGenCount}-${i})`;
+                return `
+                  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <div>
+                      <div style="font-weight:700;">${txt}</div>
+                      <div style="font-size:11.5px;color:var(--green-text);margin-top:3px;">术语检查：${state.m7MustTerm} ✓ · 禁忌词(${state.m7BanTerm})命中：0 处 ✓</div>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-sm m7-copy-btn">复制</button>
+                      <button class="btn btn-primary btn-sm m7-pick-copy" data-txt="${txt}">使用并检查</button>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+            <div class="banner banner-blue">
+              <span>文案完成后，点击独立页面按钮继续生成视觉资产：</span>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-sm" id="m7JumpImg">AI 商品主图生成 →</button>
+                <button class="btn btn-sm" id="m7JumpVid">AI 短视频生成 →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("m7ProdSel").onchange = (e) => { state.m7Sku = e.target.value; rerender(); };
+        document.querySelectorAll(".m7-type").forEach(el => el.onclick = () => { state.m7CopyType = el.dataset.t; rerender(); });
+        document.querySelectorAll(".m7-rtab").forEach(el => el.onclick = () => { state.m7ResultTab = el.dataset.tab; rerender(); });
+        document.getElementById("m7GenCopyBtn").onclick = () => {
+          state.m7MustTerm = document.getElementById("m7MustTerm").value;
+          state.m7BanTerm = document.getElementById("m7BanTerm").value;
+          state.m7CopyGenCount += 1; rerender(); toast("已生成新一轮合规文案草稿");
+        };
+        document.querySelectorAll(".m7-copy-btn").forEach(b => b.onclick = () => toast("已复制到剪贴板"));
+        document.querySelectorAll(".m7-pick-copy").forEach(b => b.onclick = () => {
+          state.m7SelectedCopy = b.dataset.txt;
+          goPage("m7d"); toast("已选用文案并跳转至【合规审核与选用】页");
+        });
+        document.getElementById("m7JumpImg").onclick = () => goPage("m7b");
+        document.getElementById("m7JumpVid").onclick = () => goPage("m7c");
+      }
+    };
+  }
+
+  // ==================== M7b: ComfyUI Image Generation ====================
+  if (pageId === "m7b") {
+    return {
+      headerActions: [
+        { label: "← Listing 文案生成", primary: false, onClick: () => goPage("m7a") },
+        { label: "去 AI 短视频生成 →", primary: false, onClick: () => goPage("m7c") },
+        { label: "✨ 立即生成商品图片", primary: true, onClick: () => { state.m7ImgSeed += 1; rerender(); toast("ComfyUI 图像工作流已出图 4 张（已校验 image/png）"); } }
+      ],
+      html: `
+        <div class="stepper">
+          <div class="step-item done">① 输入商品与图型</div>
+          <div class="step-item done">② ComfyUI 队列出图</div>
+          <div class="step-item active">③ MIME 校验与选用</div>
+        </div>
+
+        <div class="split-left-form">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">1</span> 主图生成参数配置</div></div>
+            <div class="field"><label>目标商品</label><input class="input" readonly value="${state.m7Sku} · 桌面收纳垫" /></div>
+            <div class="field">
+              <label>图像生成类型</label>
+              <div class="grid-2" style="gap:8px;">
+                ${["白底主图", "家居场景", "细节特写", "尺寸信息图"].map(it => `
+                  <div class="option-tile ${state.m7ImgType===it?"active":""} m7-itype" data-t="${it}">
+                    <strong style="font-size:12.5px;">${it}</strong>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div class="field"><label>ComfyUI 工作流版本</label><select class="select"><option>Amazon 白底主图 · v3 (ComfyUI)</option><option>家居场景光影 · v2</option></select></div>
+            <div class="field"><label><span class="anno-tag t-green">2</span> Prompt 规范要求</label><textarea class="textarea">纯白背景 (#FFFFFF)，产品占画面 85%，高级柔和棚拍阴影，无多余文字与水印，符合 Amazon 主图规范。</textarea></div>
+            <button class="btn btn-primary" id="m7GenImgBtn" style="width:100%;justify-content:center;">✨ 生成商品图片 (ComfyUI)</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><span class="anno-tag t-purple">3</span> 生成结果（4 宫格主图预览 · MIME 与分辨率校验）</div>
+              <span class="pill p-green">4张已就绪 · Seed #${state.m7ImgSeed}</span>
+            </div>
+            <div class="grid-2">
+              ${["方案 A · 标准纯白棚拍", "方案 B · 45° 俯角质感", "方案 C · 极简微阴影款", "方案 D · 细节缝线特写"].map((title, idx) => `
+                <div class="media-card ${state.m7PickedImgIdx===idx?"picked":""}">
+                  <div class="media-preview" style="background:${idx===1?"#f1f5f9":"#ffffff"};">
+                    <svg viewBox="0 0 180 110" style="width:150px;height:100px;">
+                      <rect x="25" y="20" width="130" height="72" rx="10" fill="${idx===2?"#475569":"#64748b"}" />
+                      <rect x="33" y="28" width="114" height="56" rx="6" fill="none" stroke="#cbd5e1" stroke-dasharray="4 3" />
+                      <text x="90" y="60" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">${state.m7Sku} · #${idx+1}</text>
+                    </svg>
+                  </div>
+                  <div style="font-weight:700;font-size:13px;">${title}</div>
+                  <div style="font-size:11.5px;color:var(--green-text);margin:3px 0 8px;">image/png · 2000×2000px · 无水印 ✓</div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-sm ${state.m7PickedImgIdx===idx?"btn-primary":""} m7-pick-img" data-i="${idx}">${state.m7PickedImgIdx===idx?"已选中入库 ✓":"选用此图"}</button>
+                    <button class="btn btn-sm m7-dl-img">下载 PNG</button>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".m7-itype").forEach(el => el.onclick = () => { state.m7ImgType = el.dataset.t; rerender(); });
+        document.getElementById("m7GenImgBtn").onclick = () => { state.m7ImgSeed += 1; rerender(); toast("已生成新一批 4 宫格主图"); };
+        document.querySelectorAll(".m7-pick-img").forEach(b => b.onclick = () => { state.m7PickedImgIdx = Number(b.dataset.i); rerender(); toast("已将主图加入选用台账"); });
+        document.querySelectorAll(".m7-dl-img").forEach(b => b.onclick = () => toast("MIME magic-byte 校验为 image/png，已触发二进制流下载"));
+      }
+    };
+  }
+
+  // ==================== M7c: ComfyUI Short Video ====================
+  if (pageId === "m7c") {
+    return {
+      headerActions: [
+        { label: "← AI 商品主图生成", primary: false, onClick: () => goPage("m7b") },
+        { label: "前往合规审核与选用 →", primary: true, onClick: () => goPage("m7d") }
+      ],
+      html: `
+        <div class="stepper">
+          <div class="step-item done">① 输入视频脚本</div>
+          <div class="step-item done">② SVD / /sync 渲染</div>
+          <div class="step-item active">③ MP4 二进制校验</div>
+        </div>
+
+        <div class="split-left-form">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="anno-tag t-blue">1</span> 短视频生成参数（img_097）</div></div>
+            <div class="field"><label>目标商品</label><input class="input" readonly value="${state.m7Sku} · TikTok Shop / Amazon" /></div>
+            <div class="field">
+              <label>视频脚本类型</label>
+              <div class="grid-2" style="gap:8px;">
+                ${["产品展示", "开箱测评", "场景种草", "卖点快剪"].map(vt => `
+                  <div class="option-tile ${state.m7VidType===vt?"active":""} m7-vtype" data-t="${vt}">
+                    <strong style="font-size:12.5px;">${vt}</strong>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div class="field"><label>视频工作流版本</label><select class="select"><option>SVD 图生视频 · 15s 竖屏工作流</option><option>未配置节点测试(触发诚实报错)</option></select></div>
+            <div class="banner banner-amber" style="margin-bottom:10px;font-size:11.8px;font-weight:500;">
+              能力边界：未配置 ComfyUI 视频节点时直接返回真实错误，绝不伪造播放视频。
+            </div>
+            <button class="btn btn-primary" id="m7GenVidBtn" style="width:100%;justify-content:center;">▶ 生成短视频 (ComfyUI /sync)</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><span class="anno-tag t-green">2</span> 短视频预览与 /sync 状态轮询</div>
+              <button class="btn btn-sm" id="m7PollVidBtn">刷新 /sync 进度</button>
+            </div>
+            <div class="grid-2">
+              <div class="media-card picked">
+                <div class="media-preview dark">
+                  <div style="font-size:24px;">▶</div>
+                  <strong>15s 竖屏 MP4 (${state.m7VidType})</strong>
+                  <span style="font-size:11px;color:#94a3b8">1080 × 1920 · 30fps</span>
+                </div>
+                <div style="font-weight:700;">片段 1 · 产品 360° 展示</div>
+                <div style="font-size:11.5px;color:var(--green-text);margin:4px 0 8px;">video/mp4 校验通过 · 已就绪 ✓</div>
+                <button class="btn btn-primary btn-sm" id="m7UseVidBtn">选用此视频并去审核 →</button>
+              </div>
+              <div class="media-card">
+                <div class="media-preview dark">
+                  <div style="font-size:20px;">⏳ ${state.m7VidProgress}%</div>
+                  <strong>12s 桌面防水泼溅实测</strong>
+                  <span style="font-size:11px;color:#94a3b8">/sync 队列渲染中</span>
+                </div>
+                <div style="font-weight:700;">片段 2 · 场景防水实测</div>
+                <div style="font-size:11.5px;color:var(--amber-text);margin:4px 0 8px;">点击右上角「刷新 /sync 进度」推进渲染</div>
+                <button class="btn btn-sm" disabled>${state.m7VidProgress===100?"已就绪":"渲染中…"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".m7-vtype").forEach(el => el.onclick = () => { state.m7VidType = el.dataset.t; rerender(); });
+        document.getElementById("m7GenVidBtn").onclick = () => { state.m7VidProgress = 68; rerender(); toast("已下发 ComfyUI 视频任务，开启 /sync 轮询"); };
+        document.getElementById("m7PollVidBtn").onclick = () => { state.m7VidProgress = 100; rerender(); toast("/sync 返回 COMPLETED：片段2 MP4 已就绪！"); };
+        document.getElementById("m7UseVidBtn").onclick = () => goPage("m7d");
+      }
+    };
+  }
+
+  // ==================== M7d: Content Compliance & Final Selection ====================
+  if (pageId === "m7d") {
+    return {
+      headerActions: [
+        { label: "← 返回文案页", primary: false, onClick: () => goPage("m7a") },
+        { label: "写入平台选用台账", primary: true, onClick: () => { state.m7Published = true; rerender(); toast("已写入选用记录（不直接推送线上店铺）"); } }
+      ],
+      html: `
+        <div class="banner banner-amber">
+          <span><span class="anno-tag t-amber">2</span> 发布边界声明：确认选用仅在系统内保存「已选用」状态与导出包，绝不直接改写线上 Amazon / TikTok 商品。</span>
+        </div>
+
+        <div class="card card-blue">
+          <div class="card-header">
+            <div class="card-title"><span class="anno-tag t-purple">1</span> 跨模态资产合规复检与选用台账（${state.m7Sku}）</div>
+            <span class="pill ${state.m7Published?"p-green":"p-blue"}">${state.m7Published?"已写入平台选用台账 ✓":"待确认选用"}</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>内容资产类型</th><th>当前已选版本</th><th>合规 / MIME 校验结果</th><th>选用状态</th><th>快速调整</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Listing 文案</strong></td><td>${state.m7SelectedCopy}</td><td><span class="pill p-green">0违禁词 · 必用词齐备 ✓</span></td><td><span class="pill p-blue">已选用</span></td><td><button class="btn btn-sm" id="backM7a">更换文案</button></td></tr>
+                <tr><td><strong>商品主图</strong></td><td>方案 #${state.m7PickedImgIdx+1} · 2000×2000 PNG</td><td><span class="pill p-green">image/png · 无水印 ✓</span></td><td><span class="pill p-blue">已选用</span></td><td><button class="btn btn-sm" id="backM7b">更换主图</button></td></tr>
+                <tr><td><strong>带货短视频</strong></td><td>片段1 · 15s 竖屏 MP4 (${state.m7VidType})</td><td><span class="pill p-green">video/mp4 · 1080×1920 ✓</span></td><td><span class="pill p-blue">已选用</span></td><td><button class="btn btn-sm" id="backM7c">更换视频</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("backM7a").onclick = () => goPage("m7a");
+        document.getElementById("backM7b").onclick = () => goPage("m7b");
+        document.getElementById("backM7c").onclick = () => goPage("m7c");
+      }
+    };
+  }
+
+  return null;
+}
+
+
+const ROLE_HINTS = {
+  planner: "可处理客服、M4初筛入清单、M6提交补货；不可拍板终审/批准",
+  approver: "可终审 M1售后、M4测款拍板、M6补货批准（受 SoD 约束）",
+  warehouse: "可同步 M0 独立库存、登记 M6 采购/质检/分批收货凭证",
+  viewer: "只读观察员：可看 M2 大屏、M3 问数、M5 预测，禁止写入",
+  auditor: "合规审计员：只读审计全链路日志与权限记录",
+  admin: "系统管理员：全功能与模型注册启停调试权限",
+};
+
+const state = {
+  role: "planner",
+  pageId: "m7a",
+  showAnno: true,
+  stockSyncedAt: "09:50:12",
+
+  // M1
+  csActiveId: "s1",
+  csShopFilter: "ALL",
+  csSessions: [
+    {
+      id: "s1", buyer: "Mock Buyer", platform: "AMAZON US", lang: "EN", time: "14:32",
+      preview: "My item arrived damaged, I want a refund.", mode: "PENDING_HUMAN",
+      intent: "REFUND", conf: "88%", risk: true, recs: "", orderId: "SYN9D-005671", bound: false,
+      messages: [
+        { role: "buyer", text: "Please check order SYN9D-005671.", zh: "请核查订单 SYN9D-005671。" },
+        { role: "buyer", text: "My item arrived damaged, I want a refund.", zh: "我的商品送达时已损坏，我想申请退款。" },
+      ]
+    },
+    {
+      id: "s2", buyer: "Alex M***", platform: "SHOPEE TH", lang: "EN", time: "14:28",
+      preview: "Looking for waterproof desk pad for office.", mode: "AI_AUTO",
+      intent: "PRODUCT_INQUIRY", conf: "93%", risk: false,
+      recs: "① MAT-014 桌面收纳垫 (92%) ② BAG-108 (76%) ③ 便携包 (64%)",
+      orderId: "ORD-20261119-8821", bound: false,
+      messages: [
+        { role: "buyer", text: "Hi, do you recommend a waterproof desk mat?", zh: "你好，有推荐的防水桌面垫吗？" },
+      ]
+    },
+  ],
+  csProducts: [
+    { sku: "BAG-108", name: "轻量通勤双肩包", shop: "Shopee TH", price: "$34.50", vec: "已向量化", on: true },
+    { sku: "MAT-014", name: "桌面皮质收纳垫", shop: "Shopee TH", price: "$18.90", vec: "已向量化", on: true },
+    { sku: "FAN-203", name: "便携静音循环扇", shop: "TikTok US", price: "$29.00", vec: "已向量化", on: true },
+    { sku: "COS-052", name: "焕亮保湿面霜 50ml", shop: "TikTok US", price: "$24.00", vec: "待更新", on: true },
+  ],
+  ticketIdx: 0,
+  tickets: [
+    { id: "TK-20261119-01", order: "SYN9D-005671", type: "破损全退 $34.50", submitter: "planner", status: "待主管审批", ext: "—" },
+    { id: "TK-20261118-09", order: "ORD-881204", type: "补发配件 $0.00", submitter: "staff_lin", status: "已批准", ext: "UNKNOWN" },
+  ],
+
+  // M2
+  biSelectedIdx: 0,
+  biWidgets: [
+    { title: "近30日 GMV 销售额", val: "$125,429.99", metric: "gmv", scope: "全部平台 · 近30天", color: "var(--blue-hover)" },
+    { title: "近30日 净利润", val: "$65,529.67", metric: "net_profit", scope: "全部平台 · 近30天", color: "var(--green-text)" },
+  ],
+  biInsight: "近30天净利润率达 52.2%，Amazon 近7天广告花费 $2,933.63 处于安全区间。",
+
+  // M3
+  qaBindings: [
+    { name: "GMV 销售额 (gmv)", kind: "SIMULATION", platform: "AMAZON", cron: "每5分钟", val: "360,000 USD", status: "SUCCESS" },
+    { name: "虾皮销量 (shopify_sale)", kind: "SIMULATION", platform: "SHOPEE", cron: "手动", val: "1,000,000 USD", status: "SUCCESS" },
+    { name: "amazon-np (net_profit)", kind: "SIMULATION", platform: "AMAZON", cron: "每15分钟", val: "5,600 USD", status: "SUCCESS" },
+    { name: "亚马逊广告 (ad_spend)", kind: "REST API", platform: "AMAZON", cron: "每5分钟", val: "13,000 USD", status: "SUCCESS" },
+  ],
+  qaChat: [
+    { role: "user", text: "各平台近30天净利润是多少？" },
+    { role: "assistant", text: "全部平台近 30 天净利润为 65,529.67 USD。", note: "口径：按组织、店铺与币种统一折算 USD（未配汇率分币种列出）。", sql: "SELECT SUM(net_profit_usd) FROM metric_snapshots WHERE days=30 [38ms]" },
+  ],
+
+  // M4
+  m4Tasks: [
+    { file: "Amazon SP-API Mock · rate", kind: "演示Mock", scope: "AMAZON/US · 20 SKU · 8周", status: "成功 (160条)", ok: true, tag: "演示" },
+    { file: "选品周数据_10000条模拟_nov.xlsx", kind: "外购数据", scope: "1250 SKU · US (10,000条)", status: "成功", ok: true, tag: "待评估" },
+    { file: "weekly_internal.csv", kind: "内部数据", scope: "1 SKU · US (1条)", status: "成功", ok: true, tag: "待评估" },
+  ],
+  m4Pool: [
+    { sku: "SKU-00515", name: "汽车后备箱整理箱", region: "AMAZON / US", rev: "$66,829.54", trend: "+27.5%", src: "外购数据", stage: "已提交待审", submitter: "planner", score: 86, budget: "$1,200 (50件)" },
+    { sku: "SKU-00538", name: "可折叠洗衣篮", region: "AMAZON / US", rev: "$56,521.94", trend: "+31.2%", src: "外购数据", stage: "仅研究估算", submitter: "planner", score: 81, budget: "$950 (40件)" },
+    { sku: "SKU-00299", name: "宠物汽车座垫", region: "AMAZON / US", rev: "$53,189.42", trend: "+16.6%", src: "外购数据", stage: "已批准测款", submitter: "planner_wu", score: 89, budget: "$1,500 (60件)" },
+  ],
+
+  // M5
+  demandProfileVer: 1,
+  demandProfileMode: "平稳季节 + 短周期波动",
+  m5Models: [
+    { name: "CatBoost · v1", family: "TREE", minPts: "≥ 90 点", ready: "已接入推理", enabled: true, desc: "按真实日销量滞后值与星期特征训练" },
+    { name: "Croston / SBA · v1", family: "INTERMITTENT", minPts: "≥ 30 点", ready: "已接入推理", enabled: true, desc: "适合含大量零销量的间歇需求基线" },
+    { name: "Holt-Winters · v1", family: "STATISTICAL", minPts: "≥ 56 点", ready: "已接入推理", enabled: true, desc: "短周期趋势与季节性指数平滑基线" },
+    { name: "LightGBM · v1", family: "TREE", minPts: "≥ 90 点", ready: "已接入推理", enabled: true, desc: "树模型日频预测，未接入外生促销特征" },
+    { name: "Prophet · v1", family: "STATISTICAL", minPts: "≥ 90 点", ready: "已接入推理", enabled: true, desc: "拟合趋势与周季节性曲线" },
+    { name: "SARIMA · v1", family: "STATISTICAL", minPts: "≥ 90 点", ready: "已接入推理", enabled: true, desc: "稳定季节序列统计基线" },
+    { name: "TFT / Transformer", family: "DEEP", minPts: "≥ 180 点", ready: "样本不足提示", enabled: true, desc: "建议≥180天真实订单，当前96天仅短样本参考" },
+    { name: "TSB · v1", family: "INTERMITTENT", minPts: "≥ 30 点", ready: "已接入推理", enabled: true, desc: "需求概率变化的长尾间歇序列" },
+    { name: "TSFM 零样本", family: "FOUNDATION", minPts: "≥ 8 点", ready: "已接入推理", enabled: true, desc: "Chronos-Bolt-Tiny 零样本推理需回测验证" },
+  ],
+  m5Eval: [
+    { date: "2026-11-11", pred: 29, actual: 32, edited: false },
+    { date: "2026-11-12", pred: 63, actual: 58, edited: false },
+    { date: "2026-11-13", pred: 27, actual: 35, edited: true },
+  ],
+
+  // M6
+  m6Branch: "normal",
+  m6SelectedPlan: 1,
+  m6Plans: [
+    { name: "保守方案 (90%服务)", qty: 480, lost: "约 68 件", cash: "$5,376", profit: "+$4,120" },
+    { name: "平衡方案 (推荐 · 95%)", qty: 620, lost: "约 12 件", cash: "$6,944", profit: "+$5,860" },
+    { name: "激进方案 (99%备货)", qty: 800, lost: "0 件", cash: "$8,960", profit: "+$6,150" },
+  ],
+  m6Submitter: "planner",
+  m6Status: "待主管审批",
+  m6Receipts: [
+    { batch: "第1批 (11-28)", qty: "400件 (差0)", qc: "质检合格 #QC1", who: "wh_zhao" },
+    { batch: "第2批 (12-05)", qty: "215件 (-5短装)", qc: "差异已登记", who: "wh_zhao" },
+  ],
+
+  // M7
+  m7Sku: "MAT-014",
+  m7CopyType: "商品标题",
+  m7MustTerm: "Waterproof, PU Leather",
+  m7BanTerm: "Best, #1, Miracle",
+  m7CopyGenCount: 1,
+  m7ResultTab: "商品标题 (5)",
+  m7SelectedCopy: "1. MAT-014 | Waterproof, PU Leather Premium Design for Office & Home",
+  m7ImgType: "白底主图",
+  m7ImgSeed: 101,
+  m7PickedImgIdx: 0,
+  m7VidType: "产品展示",
+  m7VidProgress: 68,
+  m7Published: false,
+};
+
+function toast(msg) {
+  const c = document.getElementById("toastContainer");
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function openModal(title, bodyHtml, onMount) {
+  const root = document.getElementById("modalRoot");
+  root.innerHTML = `
+    <div class="modal-backdrop" id="modalBd">
+      <div class="modal-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <strong style="font-size:16px;">${title}</strong>
+          <button class="btn btn-sm" id="modalCloseBtn">✕</button>
+        </div>
+        <div>${bodyHtml}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById("modalCloseBtn").onclick = closeModal;
+  document.getElementById("modalBd").onclick = (e) => { if (e.target.id === "modalBd") closeModal(); };
+  if (onMount) onMount();
+}
+
+function closeModal() {
+  document.getElementById("modalRoot").innerHTML = "";
+}
+
+function goPage(pageId) {
+  state.pageId = pageId;
+  window.location.hash = pageId;
+  rerender();
+}
+
+function findModuleOfPage(pageId) {
+  return MODULE_DEFS.find(m => m.pages.some(p => p.id === pageId)) || MODULE_DEFS[0];
+}
+
+function rerender() {
+  const mod = findModuleOfPage(state.pageId);
+  const meta = PAGE_META[state.pageId];
+
+  // Role hint
+  document.getElementById("roleHint").textContent = ROLE_HINTS[state.role] || "";
+
+  // Sidebar
+  document.getElementById("sidebarNav").innerHTML = MODULE_DEFS.map(m => `
+    <div class="nav-item ${m.id === mod.id ? "active" : ""}" data-firstpage="${m.pages[0].id}">
+      <span>${m.label}</span>
+      <span class="nav-badge">${m.badge}</span>
+    </div>
+  `).join("");
+  document.querySelectorAll(".nav-item").forEach(el => {
+    el.onclick = () => goPage(el.dataset.firstpage);
+  });
+
+  // Top Header
+  document.getElementById("breadcrumb").textContent = meta.breadcrumb;
+  document.getElementById("pageTitle").textContent = meta.title;
+  document.getElementById("pageSubtitle").textContent = meta.subtitle;
+
+  // Sub-page nav buttons
+  document.getElementById("subnavButtons").innerHTML = mod.pages.map(p => `
+    <button class="subnav-btn ${p.id === state.pageId ? "active" : ""}" data-pid="${p.id}">
+      ${p.id === state.pageId ? "● " : ""}${p.label}
+    </button>
+  `).join("");
+  document.querySelectorAll(".subnav-btn").forEach(b => {
+    b.onclick = () => goPage(b.dataset.pid);
+  });
+
+  // Page render
+  const helpers = { toast, goPage, openModal, closeModal, rerender };
+  const view = renderM0_M3(state.pageId, state, helpers) || renderM4_M7(state.pageId, state, helpers);
+
+  const actBox = document.getElementById("headerActions");
+  actBox.innerHTML = "";
+  (view.headerActions || []).forEach(a => {
+    const btn = document.createElement("button");
+    btn.className = `btn ${a.primary ? "btn-primary" : ""}`;
+    btn.textContent = a.label;
+    btn.onclick = a.onClick;
+    actBox.appendChild(btn);
+  });
+
+  document.getElementById("pageBody").innerHTML = view.html;
+  if (view.bind) view.bind();
+
+  // Annotations & Ledger
+  const grid = document.getElementById("workspaceGrid");
+  const ledger = document.getElementById("ledgerPanel");
+  document.getElementById("annoStateText").textContent = state.showAnno ? "已展开" : "已收起";
+  if (state.showAnno) {
+    grid.classList.remove("anno-hidden");
+    ledger.classList.remove("hidden");
+  } else {
+    grid.classList.add("anno-hidden");
+    ledger.classList.add("hidden");
+  }
+
+  document.getElementById("annoPageTitle").textContent = `功能块注释 · ${state.pageId.toUpperCase()}`;
+  document.getElementById("annoCards").innerHTML = meta.blocks.map((b, idx) => `
+    <div class="anno-card" style="border-left-color:${b.color};">
+      <div class="anno-card-head">
+        <span class="anno-tag" style="background:${b.color};">${idx + 1}</span>
+        <span>${b.title}</span>
+      </div>
+      <div class="anno-line anno-k-step">【对应步骤】${b.step}</div>
+      <div class="anno-line anno-k-srs">【SRS依据】${b.srs}</div>
+      <div class="anno-line anno-k-tech">【技术支撑】${b.tech}</div>
+    </div>
+  `).join("");
+
+  document.getElementById("ledgerGrid").innerHTML = meta.ledger.map(([term, kind, src]) => `
+    <div class="ledger-row">
+      <span class="ledger-term">${term}</span>
+      <span class="${kind.includes("SRS") || kind.includes("pilot") || kind.includes("img") ? "ledger-kind-srs" : "ledger-kind-mock"}">${kind}</span>
+      <span class="ledger-src">${src}</span>
+    </div>
+  `).join("");
+}
+
+// Init
+document.getElementById("roleSelect").onchange = (e) => {
+  state.role = e.target.value;
+  rerender();
+  toast(`已切换登录角色为：${state.role}`);
+};
+document.getElementById("toggleAnnoBtn").onclick = () => {
+  state.showAnno = !state.showAnno;
+  rerender();
+};
+
+const initHash = window.location.hash.replace("#", "");
+if (PAGE_META[initHash]) state.pageId = initHash;
+rerender();
+</script>
+</body>
+</html>
