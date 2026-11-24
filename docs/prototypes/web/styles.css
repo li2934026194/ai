@@ -222,7 +222,8 @@ html, body {
 .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .grid-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .split-left-form { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; align-items: start; }
-.split-right-panel { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+.split-right-panel { display: grid; grid-template-columns: minmax(0, 1fr) 265px; gap: 14px; align-items: start; }
+.split-right-panel > * { min-width: 0; }
 .split-3col-cs { display: grid; grid-template-columns: 235px minmax(0, 1fr) 275px; gap: 14px; align-items: stretch; }
 .cs-2col { display: grid; grid-template-columns: minmax(0, 1.3fr) 400px; gap: 14px; align-items: start; }
 .split-bi { display: grid; grid-template-columns: 205px minmax(0, 1fr) 255px; gap: 14px; align-items: stretch; }

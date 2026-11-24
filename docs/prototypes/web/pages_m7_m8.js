@@ -1167,14 +1167,73 @@ export function renderM7_M8(pageId, state, helpers) {
       html: `
         ${renderM7StepBar(pageId, state, curM7Prod, goPage, rerender, toast)}
 
-        <div class="split-right-panel">
-          <div class="card">
+        <div class="grid-2" style="margin-bottom:14px;align-items:stretch;">
+          <div class="card" style="margin-bottom:0;">
             <div class="card-header">
-              <div>
-                <strong style="font-size:16px;">${curM7Prod.sku} · ${curM7Prod.name} (${state.m7Platform}) 成品总览</strong>
+              <div class="card-title">🌐 站点 × 类目合规规则矩阵 & 资质有效期</div>
+              <span class="pill p-blue">${activeRule.ver} · 生效 ${activeRule.eff}</span>
+            </div>
+            <div class="grid-2" style="gap:8px;margin-bottom:8px;">
+              <div class="field" style="margin-bottom:0;"><label>目标站点（切换即同步规则）</label>
+                <select id="m7dPlatSel" class="select">
+                  <option ${state.m7Platform==="亚马逊美国站"?"selected":""}>亚马逊美国站</option>
+                  <option ${state.m7Platform==="虾皮泰国站"?"selected":""}>虾皮泰国站</option>
+                  <option ${state.m7Platform==="TikTok 美区"?"selected":""}>TikTok 美区</option>
+                </select>
+              </div>
+              <div class="field" style="margin-bottom:0;"><label>商品所属类目</label>
+                <select id="m7dCatSel" class="select">
+                  ${["厨房小电","箱包出行","3C配件","美妆护肤"].map(c => `<option ${state.m7ComplianceCategory===c?"selected":""}>${c}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+            <div class="formula-box" style="margin-bottom:8px;padding:7px 10px;">
+              <strong>当前站点认证要求：</strong>${activeRule.cert}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              ${state.m7CertRecords.map((cert, ci) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:${cert.status==="已过期"?"#fef2f2":"#f8fafc"};">
+                  <div style="min-width:0;"><strong>${cert.name}</strong> <span style="color:var(--text-soft);">· ${cert.owner} · 到期 ${cert.expireDate}</span></div>
+                  <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                    <span class="pill ${cert.status==="已过期"?"p-red":"p-green"}">${cert.status}</span>
+                    <button type="button" class="btn btn-sm m7d-cert-toggle" data-ci="${ci}">${cert.status==="已过期"?"续期恢复":"模拟过期"}</button>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+            ${state.m7Platform === "TikTok 美区" ? `
+              <div style="margin-top:8px;padding:6px 10px;border-radius:7px;background:var(--amber-bg);font-size:12px;">
+                <strong>TikTok Shop 保证金与违规监测：</strong>${state.m7TiktokDeposit.shop} 当前保证金 $${state.m7TiktokDeposit.depositUsd}（${state.m7TiktokDeposit.status} · 更新于 ${state.m7TiktokDeposit.dataUpdatedAt}）
+              </div>
+            ` : ""}
+          </div>
+
+          <div class="card card-blue" style="margin-bottom:0;display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="card-header">
+                <div class="card-title">逐条合规检查与主管把关</div>
+                <span class="pill ${state.m7ComplianceStatus==="主管已批准导出"?"p-green":state.m7ComplianceStatus==="合规校验通过"?"p-blue":"p-amber"}">${state.m7ComplianceStatus}</span>
+              </div>
+              <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.65;">
+                ${state.m7ComplianceChecks.length ? state.m7ComplianceChecks.map(ch => `<div>• <strong>${ch.rule}：</strong><span style="color:${ch.pass?"var(--green-text)":"var(--red-text)"}">${ch.detail}</span></div>`).join("") : "请先完成第 1~3 步（核心 8/8 资产就绪）后，点击下方按钮运行逐条合规检查；校验通过后由「主管 / 审批人」批准导出。"}
+                ${state.m7ApprovalRecord ? `<div style="margin-top:6px;color:var(--green-text);"><strong>✓ 主管已批准：</strong>${state.m7ApprovalRecord.approver} · ${state.m7ApprovalRecord.time}（${state.m7ApprovalRecord.note}）</div>` : ""}
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px dashed var(--border-strong);">
+              <button class="btn btn-primary btn-sm" id="m7RunCompBtn" ${!isCreator?"disabled":""}>1. 运行上架合规检查</button>
+              <button class="btn btn-success btn-sm" id="m7ApprPubBtn" ${(!isApprover || state.m7ComplianceStatus!=="合规校验通过")?"disabled":""} title="${!isApprover?"需要「主管 / 审批人」权限":"需先通过第 1 步合规检查"}">2. 主管批准发布包</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="split-right-panel">
+          <div class="card" style="min-width:0;">
+            <div class="card-header">
+              <div style="min-width:0;">
+                <strong style="font-size:15.5px;">${curM7Prod.sku} · ${curM7Prod.name} (${state.m7Platform}) 成品总览</strong>
                 <div style="font-size:12px;color:var(--text-soft);">${state.m7Lang} · ${curM7Prod.origin==="M4_APPROVED"?"✓ 来自 M4 主管已同意测款":"在售老品翻新"}</div>
               </div>
-              <div style="display:flex;gap:6px;align-items:center;">
+              <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
                 <span class="pill ${doneCnt===8?"p-green":"p-amber"}">${doneCnt}/8 已制作完成</span>
                 ${extDoneCnt > 0 ? `<span class="pill p-blue">+${extDoneCnt} 扩展</span>` : ""}
               </div>
@@ -1215,7 +1274,7 @@ export function renderM7_M8(pageId, state, helpers) {
                 </div>
               `}
             ` : state.m7PreviewTab === "商品文案" ? `
-              <div style="display:flex;flex-direction:column;gap:10px;background:#f8fafc;padding:14px;border-radius:9px;border:1px solid var(--border);">
+              <div style="display:flex;flex-direction:column;gap:10px;background:#f8fafc;padding:14px;border-radius:9px;border:1px solid var(--border);overflow-wrap:anywhere;">
                 <div>
                   <span class="pill p-blue">商品标题</span>
                   <div style="font-weight:700;margin-top:4px;">${state.m7SelectedTitle || "（未写入，请去第 1 步选定）"}</div>
@@ -1239,7 +1298,7 @@ export function renderM7_M8(pageId, state, helpers) {
                 ` : ""}
               </div>
             ` : state.m7PreviewTab === "后台搜索词" ? `
-              <div style="background:#f8fafc;padding:14px;border-radius:9px;border:1px solid var(--border);">
+              <div style="background:#f8fafc;padding:14px;border-radius:9px;border:1px solid var(--border);overflow-wrap:anywhere;">
                 <span class="pill p-purple">后台搜索词</span>
                 <div style="margin-top:8px;">${state.m7SelectedKeywords || "（未写入，请去第 1 步选定）"}</div>
                 ${state.m7ShowCN && state.m7SelectedKeywordsCn ? `<div style="font-size:12.5px;color:var(--text-muted);margin-top:6px;">${state.m7SelectedKeywordsCn}</div>` : ""}
@@ -1265,54 +1324,54 @@ export function renderM7_M8(pageId, state, helpers) {
               ` : `<div style="padding:24px;text-align:center;background:#f8fafc;border-radius:8px;">短视频尚未生成，请前往第 3 步生成。</div>`}
             ` : `
               <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;">
-                <div style="background:#fffbeb;border-bottom:1px solid #fde68a;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                  <div style="font-size:12.5px;font-weight:700;color:#92400e;">🛍️ 买家视角预览 · 预览，尚未发布（模拟 ${state.m7Platform} 详情页排版，非真实上架）</div>
+                <div style="background:#fffbeb;border-bottom:1px solid #fde68a;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+                  <div style="font-size:12px;font-weight:700;color:#92400e;">🛍️ 买家视角预览 · 预览，尚未发布（模拟 ${state.m7Platform} 详情页排版，非真实上架）</div>
                   <span class="pill p-amber">${m0Prod?.demoNote ? `含 M0-2 ${m0Prod.demoNote}` : "按 M0-2 商品主档实时渲染"}</span>
                 </div>
 
-                <div style="padding:14px;display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:16px;align-items:start;">
-                  <div>
+                <div style="padding:12px;display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:14px;align-items:start;">
+                  <div style="min-width:0;">
                     ${!state.m7Images.some(x=>x.done) ? `
-                      <div style="padding:28px 12px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:8px;">
-                        <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">商品主图与附图待生成</div>
+                      <div style="padding:24px 10px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:8px;">
+                        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">商品主图与附图待生成</div>
                         <button type="button" class="btn btn-primary btn-sm m7d-jmp" data-pg="m7b">待补（去 M7-2）</button>
                       </div>
                     ` : `
-                      <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:#fff;position:relative;text-align:center;">
-                        <span class="pill p-gray" style="position:absolute;top:8px;left:8px;font-size:10px;">演示图</span>
-                        <img src="${getM7SlotImg(curM7Prod, buyerImgIdx, state.m7Images[buyerImgIdx]?.edited)}" style="width:100%;max-height:240px;object-fit:contain;" alt="买家视角主图"/>
+                      <div style="border:1px solid var(--border);border-radius:8px;padding:8px;background:#fff;position:relative;text-align:center;">
+                        <span class="pill p-gray" style="position:absolute;top:6px;left:6px;font-size:10px;">演示图</span>
+                        <img src="${getM7SlotImg(curM7Prod, buyerImgIdx, state.m7Images[buyerImgIdx]?.edited)}" style="width:100%;max-height:200px;object-fit:contain;" alt="买家视角主图"/>
                       </div>
-                      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px;">
+                      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:6px;">
                         ${state.m7Images.map((m, idx) => `
                           <button type="button" class="m7d-buyer-thumb" data-idx="${idx}" style="border:2px solid ${buyerImgIdx===idx?"var(--blue)":"var(--border)"};border-radius:6px;padding:2px;background:#fff;cursor:pointer;opacity:${m.done?1:0.35};">
-                            <img src="${getM7SlotImg(curM7Prod, idx, m.edited)}" style="width:100%;height:42px;object-fit:contain;" alt="${m.label}"/>
+                            <img src="${getM7SlotImg(curM7Prod, idx, m.edited)}" style="width:100%;height:34px;object-fit:contain;" alt="${m.label}"/>
                           </button>
                         `).join("")}
                       </div>
-                      <div style="font-size:11.5px;color:var(--text-soft);margin-top:6px;">当前预览：${state.m7Images[buyerImgIdx]?.label}（点击缩略图切换 · 演示图）</div>
+                      <div style="font-size:11px;color:var(--text-soft);margin-top:5px;">当前预览：${state.m7Images[buyerImgIdx]?.label}（演示图）</div>
                     `}
                   </div>
 
-                  <div style="display:flex;flex-direction:column;gap:12px;">
-                    <div style="border-bottom:1px solid var(--border);padding-bottom:10px;">
+                  <div style="min-width:0;display:flex;flex-direction:column;gap:10px;overflow-wrap:anywhere;word-break:break-word;">
+                    <div style="border-bottom:1px solid var(--border);padding-bottom:8px;">
                       <div style="font-size:11.5px;color:var(--text-soft);margin-bottom:2px;">1. 商品标题 · Brand: ${m0Prod?.brand || m0MissingBadge}</div>
                       ${state.m7SelectedTitle ? `
-                        <div style="font-size:16px;font-weight:800;line-height:1.4;">${state.m7SelectedTitle}</div>
+                        <div style="font-size:15px;font-weight:800;line-height:1.4;">${state.m7SelectedTitle}</div>
                         ${state.m7ShowCN && state.m7SelectedTitleCn ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;">${state.m7SelectedTitleCn}</div>` : ""}
-                      ` : `<div style="font-size:13px;color:#b45309;">尚未选定商品标题 <button type="button" class="btn btn-sm m7d-jmp" data-pg="m7a" style="margin-left:6px;">去 M7-1 选定 →</button></div>`}
+                      ` : `<div style="font-size:12.5px;color:#b45309;">尚未选定商品标题 <button type="button" class="btn btn-sm m7d-jmp" data-pg="m7a" style="margin-left:6px;">去 M7-1 选定 →</button></div>`}
                     </div>
 
-                    <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-                      <div style="font-size:11.5px;color:var(--text-soft);margin-bottom:4px;">2. 售价 / 划线价 / 实时折扣与库存（联动 M0-2 ${m0Prod?.demoNote ? "· 演示数据" : ""}）</div>
-                      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-                        ${activePrice != null ? `<span style="font-size:22px;font-weight:800;color:#b91c1c;">$${Number(activePrice).toFixed(2)}</span>` : m0MissingBadge}
-                        ${activeListPrice != null ? `<span style="font-size:13px;color:var(--text-soft);text-decoration:line-through;">$${Number(activeListPrice).toFixed(2)}</span>` : `<span style="font-size:12px;">划线价：${m0MissingBadge}</span>`}
+                    <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 10px;">
+                      <div style="font-size:11px;color:var(--text-soft);margin-bottom:3px;">2. 售价 / 划线价 / 实时折扣与库存（联动 M0-2 ${m0Prod?.demoNote ? "· 演示数据" : ""}）</div>
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        ${activePrice != null ? `<span style="font-size:20px;font-weight:800;color:#b91c1c;">$${Number(activePrice).toFixed(2)}</span>` : m0MissingBadge}
+                        ${activeListPrice != null ? `<span style="font-size:12.5px;color:var(--text-soft);text-decoration:line-through;">$${Number(activeListPrice).toFixed(2)}</span>` : `<span style="font-size:12px;">划线价：${m0MissingBadge}</span>`}
                         ${discountPct != null ? `<span class="pill p-red">-${discountPct}% OFF</span>` : ""}
                         <span style="font-size:12px;color:var(--green-text);font-weight:700;">库存：${activeStock != null ? `${activeStock} 件可售` : m0MissingBadge}</span>
                       </div>
                     </div>
 
-                    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:#f8fafc;border:1px solid var(--border);font-size:12px;color:var(--text-muted);">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 10px;border-radius:6px;background:#f8fafc;border:1px solid var(--border);font-size:12px;color:var(--text-muted);">
                       <strong>3. 买家评分与累计销量：</strong>
                       <span>暂无评分与销量（上架后由平台生成）</span>
                     </div>
@@ -1320,7 +1379,7 @@ export function renderM7_M8(pageId, state, helpers) {
                     <div>
                       <div style="font-size:12px;font-weight:700;margin-bottom:4px;">4. 规格变体选择（联动 M0-2）：</div>
                       ${buyerVarList ? `
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
                           ${buyerVarList.map((v, vi) => `
                             <button type="button" class="btn btn-sm m7d-buyer-var ${buyerVarIdx===vi?"btn-primary":""}" data-vi="${vi}">
                               ${v.name} · $${Number(v.priceUsd).toFixed(2)}
@@ -1350,9 +1409,9 @@ export function renderM7_M8(pageId, state, helpers) {
                     <div>
                       <div style="font-size:12px;font-weight:700;margin-bottom:4px;">6. 五点核心卖点 (About this item)：</div>
                       ${state.m7SelectedBullets ? `
-                        <div style="font-size:13px;line-height:1.5;background:#f8fafc;padding:8px 10px;border-radius:6px;">
+                        <div style="font-size:12.5px;line-height:1.5;background:#f8fafc;padding:7px 9px;border-radius:6px;">
                           ${state.m7SelectedBullets}
-                          ${state.m7ShowCN && state.m7SelectedBulletsCn ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${state.m7SelectedBulletsCn}</div>` : ""}
+                          ${state.m7ShowCN && state.m7SelectedBulletsCn ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;">${state.m7SelectedBulletsCn}</div>` : ""}
                         </div>
                       ` : `<button type="button" class="btn btn-sm m7d-jmp" data-pg="m7a">待选定五点描述（去 M7-1）→</button>`}
                     </div>
@@ -1360,9 +1419,9 @@ export function renderM7_M8(pageId, state, helpers) {
                     <div>
                       <div style="font-size:12px;font-weight:700;margin-bottom:4px;">7. 商品详细描述：</div>
                       ${state.m7SelectedDesc ? `
-                        <div style="font-size:13px;line-height:1.5;background:#f8fafc;padding:8px 10px;border-radius:6px;">
+                        <div style="font-size:12.5px;line-height:1.5;background:#f8fafc;padding:7px 9px;border-radius:6px;">
                           ${state.m7SelectedDesc}
-                          ${state.m7ShowCN && state.m7SelectedDescCn ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${state.m7SelectedDescCn}</div>` : ""}
+                          ${state.m7ShowCN && state.m7SelectedDescCn ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;">${state.m7SelectedDescCn}</div>` : ""}
                         </div>
                       ` : `<button type="button" class="btn btn-sm m7d-jmp" data-pg="m7a">待选定商品描述（去 M7-1）→</button>`}
                     </div>
@@ -1370,9 +1429,9 @@ export function renderM7_M8(pageId, state, helpers) {
                     <div>
                       <div style="font-size:12px;font-weight:700;margin-bottom:4px;">8. A+ 品牌图文详情模块：</div>
                       ${state.m7AplusDone ? `
-                        <div class="aplus-hero" style="padding:10px 12px;">
-                          <div><strong style="font-size:13px;">${curM7Prod.name} · A+ Story</strong><div style="font-size:11.5px;color:#cbd5e1;margin-top:2px;">${state.m7SelectedAplusCopy || "已配置品牌横幅 + 场景卖点 + 参数对比表"}</div></div>
-                          <img src="${getM7SlotImg(curM7Prod, 1, false)}" style="width:58px;height:58px;border-radius:6px;background:#fff;" alt="A+缩略"/>
+                        <div class="aplus-hero" style="padding:9px 11px;">
+                          <div style="min-width:0;"><strong style="font-size:12.5px;">${curM7Prod.name} · A+ Story</strong><div style="font-size:11px;color:#cbd5e1;margin-top:2px;">${state.m7SelectedAplusCopy || "已配置品牌横幅 + 场景卖点 + 参数对比表"}</div></div>
+                          <img src="${getM7SlotImg(curM7Prod, 1, false)}" style="width:52px;height:52px;border-radius:6px;background:#fff;flex-shrink:0;" alt="A+缩略"/>
                         </div>
                       ` : `<button type="button" class="btn btn-sm m7d-jmp" data-pg="m7c">待生成 A+ 图文（去 M7-3）→</button>`}
                     </div>
@@ -1380,7 +1439,7 @@ export function renderM7_M8(pageId, state, helpers) {
                     <div>
                       <div style="font-size:12px;font-weight:700;margin-bottom:4px;">9. 商品主图视频 (15s)：</div>
                       ${state.m7VidDone ? `
-                        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:#0f172a;color:#fff;font-size:12px;">
+                        <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#0f172a;color:#fff;font-size:12px;">
                           <span class="pill p-green">▶ 15s 演示视频</span>
                           <span>${state.m7VidType} · 3段分镜双语字幕成片</span>
                         </div>
@@ -1392,92 +1451,35 @@ export function renderM7_M8(pageId, state, helpers) {
             `}
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">8 类上架交付清单（缺项点击即可直达补齐）</div>
-                <span class="pill ${doneCnt===8?"p-green":"p-amber"}">${doneCnt}/8 已就绪</span>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                ${checklist.map(c => `
-                  <div class="m7d-chk" data-jmp="${c.jump}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:${c.done?"#f8fafc":"var(--amber-bg)"};cursor:pointer;">
-                    <div style="min-width:0;">
-                      <div style="font-weight:700;font-size:12.5px;">${c.label}</div>
-                      <div style="font-size:11.5px;color:var(--text-soft);">${c.sub}</div>
-                    </div>
-                    <span class="pill ${c.done?"p-green":"p-amber"}">${c.done?"已就绪 ✓":"去补齐 →"}</span>
+          <div class="card" style="padding:12px;margin-bottom:0;">
+            <div class="card-header" style="margin-bottom:8px;">
+              <div class="card-title" style="font-size:13px;">8 类上架交付清单</div>
+              <span class="pill ${doneCnt===8?"p-green":"p-amber"}">${doneCnt}/8 已就绪</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              ${checklist.map(c => `
+                <div class="m7d-chk" data-jmp="${c.jump}" title="${c.sub}" style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 8px;border:1px solid var(--border);border-radius:7px;background:${c.done?"#f8fafc":"var(--amber-bg)"};cursor:pointer;">
+                  <div style="min-width:0;flex:1;">
+                    <div style="font-weight:700;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.label}</div>
+                    <div style="font-size:10.5px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.sub}</div>
                   </div>
-                `).join("")}
-              </div>
-
-              <div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-strong);">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <strong style="font-size:12.5px;">扩展上架文案清单（8+N 类 · 独立计数）</strong>
-                  <span class="pill p-blue">${extDoneCnt}/6 已选</span>
+                  <span class="pill ${c.done?"p-green":"p-amber"}" style="font-size:10.5px;padding:1px 6px;flex-shrink:0;">${c.done?"✓":"补齐"}</span>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:5px;">
-                  ${extChecklist.map(ec => `
-                    <div class="m7d-ext-chk" data-tab="${ec.tab}" style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:${ec.val?"#f0fdf4":"#f8fafc"};cursor:pointer;font-size:12px;">
-                      <span>${ec.label}</span>
-                      <span class="pill ${ec.val?"p-green":"p-gray"}">${ec.val?"已写入 ✓":"去选 →"}</span>
-                    </div>
-                  `).join("")}
-                </div>
-              </div>
+              `).join("")}
             </div>
 
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">🌐 站点 × 类目合规规则矩阵 & 资质有效期</div>
-                <span class="pill p-blue">${activeRule.ver} · 生效 ${activeRule.eff}</span>
+            <div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border-strong);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <strong style="font-size:11.5px;">扩展上架文案清单（8+N 类 · 独立计数）</strong>
+                <span class="pill p-blue" style="font-size:10.5px;">${extDoneCnt}/6</span>
               </div>
-              <div class="grid-2" style="gap:8px;margin-bottom:8px;">
-                <div class="field" style="margin-bottom:0;"><label>切换目标站点（切换即同步规则）</label>
-                  <select id="m7dPlatSel" class="select">
-                    <option ${state.m7Platform==="亚马逊美国站"?"selected":""}>亚马逊美国站</option>
-                    <option ${state.m7Platform==="虾皮泰国站"?"selected":""}>虾皮泰国站</option>
-                    <option ${state.m7Platform==="TikTok 美区"?"selected":""}>TikTok 美区</option>
-                  </select>
-                </div>
-                <div class="field" style="margin-bottom:0;"><label>商品所属类目</label>
-                  <select id="m7dCatSel" class="select">
-                    ${["厨房小电","箱包出行","3C配件","美妆护肤"].map(c => `<option ${state.m7ComplianceCategory===c?"selected":""}>${c}</option>`).join("")}
-                  </select>
-                </div>
-              </div>
-              <div class="formula-box" style="margin-bottom:8px;">
-                <strong>当前站点认证要求：</strong>${activeRule.cert}
-              </div>
-              <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;">
-                ${state.m7CertRecords.map((cert, ci) => `
-                  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:${cert.status==="已过期"?"#fef2f2":"#f8fafc"};">
-                    <div><strong>${cert.name}</strong> · 责任人 ${cert.owner} · 到期 ${cert.expireDate}</div>
-                    <div>
-                      <span class="pill ${cert.status==="已过期"?"p-red":"p-green"}">${cert.status}</span>
-                      <button type="button" class="btn btn-sm m7d-cert-toggle" data-ci="${ci}" style="margin-left:4px;">${cert.status==="已过期"?"续期恢复":"模拟过期"}</button>
-                    </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;">
+                ${extChecklist.map(ec => `
+                  <div class="m7d-ext-chk" data-tab="${ec.tab}" title="${ec.label}" style="display:flex;justify-content:space-between;align-items:center;gap:3px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:${ec.val?"#f0fdf4":"#f8fafc"};cursor:pointer;font-size:10.5px;">
+                    <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ec.tab}</span>
+                    <span style="color:${ec.val?"var(--green-text)":"var(--text-soft)"};font-weight:700;flex-shrink:0;">${ec.val?"✓":"选"}</span>
                   </div>
                 `).join("")}
-              </div>
-              ${state.m7Platform === "TikTok 美区" ? `
-                <div style="padding:7px 10px;border-radius:7px;background:var(--amber-bg);font-size:12px;">
-                  <strong>TikTok Shop 保证金与违规监测：</strong>${state.m7TiktokDeposit.shop} 当前保证金 $${state.m7TiktokDeposit.depositUsd}（${state.m7TiktokDeposit.status} · 更新于 ${state.m7TiktokDeposit.dataUpdatedAt}）
-                </div>
-              ` : ""}
-            </div>
-
-            <div class="card card-blue">
-              <div class="card-header">
-                <div class="card-title">逐条合规检查与主管把关</div>
-                <span class="pill ${state.m7ComplianceStatus==="主管已批准导出"?"p-green":state.m7ComplianceStatus==="合规校验通过"?"p-blue":"p-amber"}">${state.m7ComplianceStatus}</span>
-              </div>
-              <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.7;">
-                ${state.m7ComplianceChecks.length ? state.m7ComplianceChecks.map(ch => `<div>• <strong>${ch.rule}：</strong><span style="color:${ch.pass?"var(--green-text)":"var(--red-text)"}">${ch.detail}</span></div>`).join("") : "需先完成第 1~3 步（8/8 资产就绪）后，点击下方运行合规检查。"}
-                ${state.m7ApprovalRecord ? `<div style="margin-top:6px;color:var(--green-text);"><strong>✓ 主管已批准：</strong>${state.m7ApprovalRecord.approver} · ${state.m7ApprovalRecord.time}（${state.m7ApprovalRecord.note}）</div>` : ""}
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn btn-primary btn-sm" id="m7RunCompBtn" ${!isCreator?"disabled":""}>1. 运行上架合规检查</button>
-                <button class="btn btn-success btn-sm" id="m7ApprPubBtn" ${(!isApprover || state.m7ComplianceStatus!=="合规校验通过")?"disabled":""} title="${!isApprover?"需要「主管 / 审批人」权限":"需先通过第 1 步合规检查"}">2. 主管批准发布包</button>
               </div>
             </div>
           </div>
