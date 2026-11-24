@@ -388,25 +388,25 @@ function rerender() {
   document.getElementById("pageTitle").textContent = meta.title;
   document.getElementById("pageSubtitle").textContent = meta.subtitle;
 
-  // Render 3-stage Flow Position Bar (上游环节 → 本环节 → 下游环节)
+  // Render compact single-line 3-stage Flow Position Bar (上游环节 → 本环节 → 下游环节)
   const flowBar = document.getElementById("flowPositionBar");
   const flowInfo = PAGE_FLOW_META[state.pageId];
   if (flowBar && flowInfo) {
-    flowBar.style.display = "grid";
+    flowBar.style.display = "flex";
     flowBar.innerHTML = `
       <div class="flow-node ${flowInfo.upPage ? "clickable" : ""}" ${flowInfo.upPage ? `data-flowpage="${flowInfo.upPage}" title="点击跳转上游：${flowInfo.up}"` : ""}>
-        <div class="flow-node-tag">⬅ 上游环节</div>
-        <div>${flowInfo.up}${flowInfo.upPage ? ` <span style="color:var(--blue-hover);font-weight:600;">[跳转]</span>` : ""}</div>
+        <span class="flow-node-tag">上游</span>
+        <span>${flowInfo.up}${flowInfo.upPage ? ` <span style="color:var(--blue-hover);font-weight:700;">[跳转]</span>` : ""}</span>
       </div>
-      <div class="flow-arrow">→</div>
+      <span class="flow-arrow">→</span>
       <div class="flow-node current">
-        <div class="flow-node-tag">📍 本环节当前动作</div>
-        <div><strong>${flowInfo.cur}</strong></div>
+        <span class="flow-node-tag">当前</span>
+        <strong>${flowInfo.cur}</strong>
       </div>
-      <div class="flow-arrow">→</div>
+      <span class="flow-arrow">→</span>
       <div class="flow-node ${flowInfo.downPage ? "clickable" : ""}" ${flowInfo.downPage ? `data-flowpage="${flowInfo.downPage}" title="点击跳转下游：${flowInfo.down}"` : ""}>
-        <div class="flow-node-tag">➡ 下游环节</div>
-        <div>${flowInfo.down}${flowInfo.downPage ? ` <span style="color:var(--blue-hover);font-weight:600;">[跳转]</span>` : ""}</div>
+        <span class="flow-node-tag">下游</span>
+        <span>${flowInfo.down}${flowInfo.downPage ? ` <span style="color:var(--blue-hover);font-weight:700;">[跳转]</span>` : ""}</span>
       </div>
     `;
     flowBar.querySelectorAll("[data-flowpage]").forEach(btn => {
@@ -446,9 +446,9 @@ function rerender() {
 
   const conc = buildSystemConclusion(state.pageId, state);
   const concHtml = conc ? `
-    <div class="banner banner-${conc.tone || "blue"}" id="systemConclusionBar" style="margin-bottom:14px;">
+    <div class="banner banner-${conc.tone || "blue"}" id="systemConclusionBar" style="margin-bottom:4px;font-size:12px;">
       <span>
-        <strong>💡 系统结论：</strong>【当前状态】${conc.status} ｜ <strong>【系统建议】${conc.advice}</strong> ｜ 【依据数字】${conc.basis}
+        <strong>💡 系统结论：</strong>${conc.status} ｜ <strong>建议：${conc.advice}</strong> ｜ 依据：${conc.basis}
       </span>
     </div>
   ` : "";

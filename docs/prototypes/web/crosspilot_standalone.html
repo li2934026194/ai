@@ -173,8 +173,8 @@ html, body {
 .main-wrap {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column;
-  padding: 18px 24px 28px;
-  gap: 16px;
+  padding: 12px 20px 22px;
+  gap: 10px;
 }
 
 .topbar {
@@ -182,19 +182,19 @@ html, body {
   border: 1px solid var(--border);
   border-left: 3px solid var(--blue);
   border-radius: var(--radius);
-  padding: 14px 20px;
+  padding: 10px 16px;
   display: flex; align-items: center; justify-content: space-between;
-  gap: 14px; flex-wrap: wrap;
+  gap: 12px; flex-wrap: wrap;
   box-shadow: var(--shadow-sm);
 }
-.breadcrumb { font-size: 12px; font-weight: 600; color: var(--blue); }
-.page-title { margin: 2px 0 4px; font-size: 22px; font-weight: 700; color: var(--text-dark); line-height: 1.3; }
-.page-subtitle { margin: 0; font-size: 13px; color: var(--text-soft); }
+.breadcrumb { font-size: 11.5px; font-weight: 600; color: var(--blue); }
+.page-title { margin: 1px 0 2px; font-size: 18px; font-weight: 700; color: var(--text-dark); line-height: 1.28; }
+.page-subtitle { margin: 0; font-size: 12px; color: var(--text-soft); }
 
 .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .header-action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.page-body { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.page-body { display: flex; flex-direction: column; gap: 11px; min-width: 0; }
 
 /* ========== Clean Modern SaaS Cards ========== */
 .card {
@@ -231,11 +231,12 @@ html, body {
 .split-left-form { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; align-items: start; }
 .split-right-panel { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
 .split-3col-cs { display: grid; grid-template-columns: 235px minmax(0, 1fr) 275px; gap: 14px; align-items: stretch; }
+.cs-2col { display: grid; grid-template-columns: minmax(0, 1.3fr) 400px; gap: 14px; align-items: start; }
 .split-bi { display: grid; grid-template-columns: 205px minmax(0, 1fr) 255px; gap: 14px; align-items: stretch; }
 
 @media (max-width: 1120px) {
   .grid-4, .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .split-3col-cs, .split-bi, .split-left-form, .split-right-panel { grid-template-columns: 1fr; }
+  .split-3col-cs, .cs-2col, .split-bi, .split-left-form, .split-right-panel { grid-template-columns: 1fr; }
 }
 @media (max-width: 780px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
@@ -246,7 +247,7 @@ html, body {
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 15px 17px;
+  padding: 12px 15px;
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.18s ease;
 }
@@ -254,26 +255,28 @@ html, body {
 .kpi-card.highlight-green { border-top: 3px solid var(--green); }
 .kpi-card.highlight-blue { border-top: 3px solid var(--blue); }
 .kpi-card.highlight-amber { border-top: 3px solid var(--amber); }
+.kpi-card.highlight-red { border-top: 3px solid var(--red); }
+.kpi-card.highlight-purple { border-top: 3px solid var(--purple); }
 .kpi-label {
-  font-size: 12.5px; color: var(--text-soft); font-weight: 600;
+  font-size: 12px; color: var(--text-soft); font-weight: 600;
   display: flex; align-items: center; justify-content: space-between; gap: 6px;
 }
 .kpi-val {
-  font-size: 26px; font-weight: 700; margin: 6px 0 4px;
-  line-height: 1.2; color: var(--text-dark);
+  font-size: 24px; font-weight: 700; margin: 4px 0 3px;
+  line-height: 1.18; color: var(--text-dark);
   font-variant-numeric: tabular-nums;
 }
-.kpi-sub { font-size: 12px; color: var(--text-soft); }
+.kpi-sub { font-size: 11.5px; color: var(--text-soft); }
 
 /* Formula Captions */
 .formula-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 10px 13px;
-  font-size: 12.5px;
+  padding: 9px 12px;
+  font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.55;
+  line-height: 1.5;
 }
 .formula-box strong { color: var(--blue-hover); }
 .formula-inline {
@@ -287,13 +290,14 @@ html, body {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
 }
 
-/* Soft Converged Banners */
+/* Soft Converged Banners (Compact single/two-line strip) */
 .banner {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.45;
   font-weight: 500;
-  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
 }
 .banner-amber { background: var(--amber-bg); border: 1px solid #fde68a; color: #92400e; }
 .banner-red { background: var(--red-bg); border: 1px solid #fecaca; color: #991b1b; }
@@ -466,6 +470,41 @@ tr.row-selected td { background: #eff6ff; }
 .chat-bubble.user { background: var(--blue); color: #fff; margin-left: auto; max-width: 78%; }
 .chat-bubble.assistant { background: #f8fafc; border: 1px solid var(--border); max-width: 88%; }
 .chat-trans { font-size: 12px; color: var(--text-soft); margin-top: 4px; }
+.chat-bubble.user .chat-trans { color: rgba(255, 255, 255, 0.9); }
+
+.shop-queue-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; cursor: pointer; transition: all 0.16s;
+  box-shadow: var(--shadow-sm);
+}
+.shop-queue-card:hover { border-color: var(--blue-border); box-shadow: var(--shadow-md); }
+.shop-queue-card.active { border-color: var(--blue); background: #f8fbff; box-shadow: 0 0 0 1px var(--blue); }
+
+.session-queue-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: 9px; background: #fff;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.session-queue-row.urgent { border-left: 4px solid var(--red); background: #fffafa; }
+.session-queue-row.ai-auto { border-left: 4px solid var(--green); }
+.session-queue-row:hover { box-shadow: var(--shadow-md); border-color: var(--blue-border); }
+
+.buyer-notice-strip {
+  font-size: 11.5px; line-height: 1.5; color: #475569;
+  background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;
+  padding: 7px 11px; margin-bottom: 10px;
+}
+.pdd-card {
+  background: #fff7ed; border: 1px solid #fed7aa; border-radius: 9px;
+  padding: 10px 12px; margin-bottom: 8px; font-size: 12.5px;
+}
+.evidence-thumb-wrap {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; border: 1px solid var(--border); border-radius: 7px;
+  padding: 4px; background: #fff; transition: border-color 0.15s;
+}
+.evidence-thumb-wrap:hover { border-color: var(--blue); }
+.evidence-thumb-img { width: 58px; height: 58px; border-radius: 5px; object-fit: cover; display: block; }
 
 .option-tile { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; background: #fff; text-align: center; transition: border-color 0.14s; }
 .option-tile.active { background: var(--blue-light); border-color: var(--blue); color: var(--blue-hover); }
@@ -529,20 +568,22 @@ tr.row-selected td { background: #eff6ff; }
 .nav-home-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
 
 .flow-bar {
-  display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center;
-  background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 12px 16px; margin: 16px 24px 0; box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  background: #ffffff; border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 12px; margin: 10px 20px 0; box-shadow: var(--shadow-sm);
+  font-size: 12px;
 }
 .flow-node {
-  padding: 8px 11px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border);
-  font-size: 12.5px; line-height: 1.45;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 6px; background: #f8fafc; border: 1px solid var(--border);
+  font-size: 11.5px; line-height: 1.35; color: var(--text-muted);
 }
-.flow-node.current { background: var(--blue-light); border-color: var(--blue-border); }
+.flow-node.current { background: var(--blue-light); border-color: var(--blue-border); color: var(--text-dark); }
 .flow-node.clickable { cursor: pointer; transition: border-color 0.15s; }
 .flow-node.clickable:hover { border-color: var(--blue); }
-.flow-node-tag { font-size: 11.5px; font-weight: 700; color: var(--text-soft); margin-bottom: 2px; }
+.flow-node-tag { font-size: 11px; font-weight: 700; color: var(--text-soft); white-space: nowrap; }
 .flow-node.current .flow-node-tag { color: var(--blue-hover); }
-.flow-arrow { font-size: 16px; font-weight: 700; color: #94a3b8; }
+.flow-arrow { font-size: 13px; font-weight: 700; color: #94a3b8; }
 
 .cat-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .cat-tab {
@@ -681,405 +722,8 @@ tr.row-selected td { background: #eff6ff; }
   <div id="modalRoot"></div>
 
   <script>
-(function() {
+(function(){
 'use strict';
-// ===== annotations.js =====
-const MODULE_DEFS = [
-  {
-    id: "G1", label: "① 店铺接入与档案 (M0)",
-    pages: [
-      { id: "m0a", label: "店铺授权管理" },
-      { id: "m0b", label: "商品成本与订单台账" },
-      { id: "m0c", label: "分店库存与人工盘点" },
-    ]
-  },
-  {
-    id: "G2", label: "② 售前选品与内容 (M4·M7)",
-    pages: [
-      { id: "m4a", label: "候选商品导入" },
-      { id: "m4b", label: "选品工作台与决策" },
-      { id: "m4c", label: "测款终审拍板" },
-      { id: "m7a", label: "多语言商品文案" },
-      { id: "m7b", label: "主图与详情套图" },
-      { id: "m7c", label: "商品短视频制作" },
-      { id: "m7d", label: "合规检查与成品打包" },
-    ]
-  },
-  {
-    id: "G3", label: "③ 销售与客服售后 (M1)",
-    pages: [
-      { id: "m1a", label: "客服会话与售后建单" },
-      { id: "m1b", label: "客服导购商品库" },
-      { id: "m1d", label: "买家咨询模拟测试" },
-      { id: "m1c", label: "售后审批与退款凭证" },
-    ]
-  },
-  {
-    id: "G4", label: "④ 履约预测与补货 (M5·M6)",
-    pages: [
-      { id: "m5a", label: "商品画像与预测方案" },
-      { id: "m5b", label: "销量预测与缺口测算" },
-      { id: "m5c", label: "预测误差复盘与修正" },
-      { id: "m6a", label: "常规补货测算" },
-      { id: "m6b", label: "智能补货测算" },
-      { id: "m6c", label: "补货审批与下单" },
-      { id: "m6d", label: "到货质检与收货凭证" },
-    ]
-  },
-  {
-    id: "G5", label: "⑤ 经营分析与问数 (M2·M3)",
-    pages: [
-      { id: "m2a", label: "驾驶舱草稿与发布" },
-      { id: "m2b", label: "正式经营大屏浏览" },
-      { id: "m3a", label: "指标口径与定时更新" },
-      { id: "m3b", label: "经营智能问答助手" },
-    ]
-  },
-  {
-    id: "G6", label: "⑥ 组织与权限管理 (M8)",
-    pages: [
-      { id: "m8a", label: "员工名册与岗位授权" },
-      { id: "m8b", label: "岗位权限矩阵与审计" },
-    ]
-  }
-];
-
-const PAGE_FLOW_META = {
-  home: { up: "全平台实时业务流汇总（订单/选品/售后/库存/采购）", upPage: "m0a", cur: "按当前登录岗位自动聚合「今日必办事项」", down: "点击任意待办直达对应业务页处理", downPage: "m0b" },
-  m0a: { up: "跨境电商平台店铺账号与经营性质确认", upPage: "home", cur: "连接店铺、区分实盘与演示测试环境、同步最新订单", down: "订单流入 M0-2 订单台账，实盘营收同步至 M2 大屏", downPage: "m0b" },
-  m0b: { up: "M0-1 同步回来的各店铺订单与供应商最新报价", upPage: "m0a", cur: "核对订单全生命周期、发起带审批的成本变更申请", down: "成本卡供 M4 选品算利润、M6 算采购资金、M2 算毛利", downPage: "m0c" },
-  m0c: { up: "M6-4 仓库到货质检记录（收货不自动改库存）", upPage: "m6d", cur: "人工清点生成正式盘点单，核实分店分仓真实可售数量", down: "实时重算 M5 建议补货量与 M6 理论补货缺口", downPage: "m6b" },
-  m4a: { up: "内部自营销售表、行业参考表与热销公开榜", upPage: "home", cur: "校验文件来源性质，隔离估算数据，防止演示文件混入", down: "清洗后的候选商品进入 M4-2 选品工作台评估", downPage: "m4b" },
-  m4b: { up: "M4-1 导入的候选商品与近2月成交/竞品/供应链数据", upPage: "m4a", cur: "按类目筛选、看系统建议与横向对比，提交优质品送审", down: "送审清单进入 M4-3 由主管终审拍板", downPage: "m4c" },
-  m4c: { up: "M4-2 选品研究员提交的推荐理由与测款预算", upPage: "m4b", cur: "主管核对硬门槛后拍板同意测款、退回补采或淘汰", down: "同意测款的品自动创建 M5 预测任务与 M7 内容制作任务", downPage: "m7a" },
-  m7a: { up: "M4-3 主管批准测款的新品清单（或老品详情升级）", upPage: "m4c", cur: "结合品牌用语规范撰写多版本文案，拦截违禁词与超长字数", down: "选定文案汇入 M7-4 整套上架交付清单", downPage: "m7b" },
-  m7b: { up: "M4 批准商品主信息与 M7-1 文案卖点方向", upPage: "m7a", cur: "提交 1 张白底主图 + 4 张详情附图生成或局部修改任务", down: "套图汇入 M7-4 上架交付清单（未接服务标注演示图）", downPage: "m7c" },
-  m7c: { up: "M7-2 商品主图与产品卖点脚本", upPage: "m7b", cur: "提交短视频分镜、画面生成与合成任务", down: "短视频成片汇入 M7-4 交付清单", downPage: "m7d" },
-  m7d: { up: "M7-1 文案、M7-2 套图、M7-3 视频共 8 类物料", upPage: "m7c", cur: "逐条跑上架合规检查、补齐缺项并由主管批准资料包", down: "导出离线资料包供运营人工上传电商平台后台", downPage: "m0b" },
-  m1a: { up: "各实盘店铺买家消息（及 M1-4 联调测试消息）", upPage: "m1d", cur: "客服接管会话、四要素核验绑单、三项回复检查并建售后单", down: "售后退款工单流转至 M1-3 主管审批", downPage: "m1c" },
-  m1b: { up: "M0-2 在售商品清单与运营整理的本地商品表格", upPage: "m0b", cur: "预览校验并分批建立客服检索索引，拦截重复或演示文件", down: "供 M1-1 智能客服自动推荐本店商品与防串店链接检查", downPage: "m1a" },
-  m1d: { up: "联调测试人员输入的模拟买家咨询或投诉", upPage: "home", cur: "安全模拟买家进线（绝对不向真实平台发消息）", down: "实时推送到 M1-1 客服工作台检验推荐与拦截效果", downPage: "m1a" },
-  m1c: { up: "M1-1 客服核验订单后提交的售后退款工单", upPage: "m1a", cur: "主管填写意见审批（防自批）→ 客服/运营回传手工打款凭证", down: "凭证回填后工单关闭，退款结果同步回 M0-2 订单台账", downPage: "m0b" },
-  m5a: { up: "M0-2 历史已完成订单（排除今日）与 M4 批准的新品", upPage: "m4c", cur: "核对 9 套预测方案的历史天数门槛，维护商品销量特征画像", down: "启用的方案与画像版本供 M5-2 实时计算未来销量", downPage: "m5b" },
-  m5b: { up: "M5-1 生效方案 + M0-3 分店当前可售库存", upPage: "m5a", cur: "计算未来 7/14/30 天销量趋势及扣减当前库存后的补货参考", down: "预测结果解锁 M6-2 智能补货测算，误差流入 M5-3 复盘", downPage: "m6b" },
-  m5c: { up: "M5-2 历史预测记录与 M0-2 实际成交订单明细", upPage: "m5b", cur: "评估预测误差率（WAPE），标记缺货日还原真实需求（保留原单）", down: "误差结论反馈 M5-1 换方案，并给 M6 补货提供安全系数参考", downPage: "m6b" },
-  m6a: { up: "M0-2 成本卡 + M0-3 库存 + 近30天平均日销（无预测时用）", upPage: "m0c", cur: "调整季节/活动系数并对比保守/平衡/积极三方案后提交草案", down: "常规补货草案流入 M6-3 待主管审批下单", downPage: "m6c" },
-  m6b: { up: "M5-2 未来销量预测（无预测拦截）+ M0-3 分店可售库存", upPage: "m5b", cur: "展开核对覆盖天数风险与承运商路线报价，提交智能补货草案", down: "智能补货草案独立流入 M6-3 待主管审批下单", downPage: "m6c" },
-  m6c: { up: "M6-1 常规草案与 M6-2 智能草案（分栏隔离）", upPage: "m6b", cur: "系统核对审批签名一致后，主管填写意见批准并生成采购单号", down: "采购单流转至 M6-4 等待仓库分批验收收货", downPage: "m6d" },
-  m6d: { up: "M6-3 主管批准生成的采购单号", upPage: "m6c", cur: "仓管登记分批实收件数、差异原因、质检单号与签收凭证", down: "凭证留档（不改库存），引导至 M0-3 盘点上架才加库存", downPage: "m0c" },
-  m2a: { up: "M3-1 经营指标口径与 M0 实盘实时汇总数字", upPage: "m3a", cur: "在草稿版增删指标卡片，对比与正式版差异后发布或回滚", down: "发布后的版本同步展示在 M2-2 正式经营大屏", downPage: "m2b" },
-  m2b: { up: "M2-1 已发布的正式版大屏配置与 M0 实时实盘数据", upPage: "m2a", cur: "管理层浏览核心指标、刷新截至时间，点击异常卡片追查原因", down: "异常指标点击后自动带入问题跳至 M3-2 智能问数", downPage: "m3b" },
-  m3a: { up: "内部订单/库存台账与外部广告数据源连接配置", upPage: "m0a", cur: "维护统一经营指标口径、更新频率，对未响应指标手动立即更新", down: "刷新后的稳定指标供 M2 驾驶舱与 M3-2 智能问数共用", downPage: "m3b" },
-  m3b: { up: "M0 实时订单/库存 + M2 异常追问问题 + M3-1 统一口径", upPage: "m2b", cur: "用日常业务语言只读查数（拦截修改删除指令）并附口径说明", down: "问答结论用于辅助运营、选品与管理层拍板决策", downPage: "home" },
-  m8a: { up: "企业组织架构与九大标准业务岗位定义", upPage: "home", cur: "维护员工花名册、邮箱校验、在线调岗与账号停用/启用", down: "岗位变更实时生效，并写入 M8-2 操作审计台账", downPage: "m8b" },
-  m8b: { up: "M8-1 岗位授权分配与全平台各环节操作/拦截事件", upPage: "m8a", cur: "只读核对九大岗位权限边界，用完整中文句子回溯审计记录", down: "为安全复盘与权责划分提供全程留痕依据", downPage: "home" },
-};
-
-const PAGE_META = {
-  home: {
-    title: "我的岗位工作台",
-    subtitle: "按当前登录岗位自动汇总「今日必办事项」、上游流转进来的任务以及一键直达业务处理入口。",
-    blocks: [
-      { color: "#2563eb", title: "按岗位实时计算待办", why: "让每位团队成员一进系统就知道今天要处理哪几件事、谁催着要", rule: "待办列表完全根据订单、工单、选品、库存与采购单的真实状态动态计算", owner: "全体 9 类岗位人员各自查看本岗待办", fix: "可通过左上角切换体验岗位，实时观察不同岗位的待办与权限变化" },
-    ],
-    ledger: [
-      ["岗位动态待办引擎", "实时状态汇总", "每当下游审完工单、盘点完库存或批准选品，首页待办立即同步刷新"],
-    ]
-  },
-  m0a: {
-    title: "店铺授权连接与数据隔离",
-    subtitle: "管理各跨境店铺授权状态、区分真实经营店铺与演示测试环境，随时核对最近同步时间与异常情况。",
-    blocks: [
-      { color: "#2563eb", title: "店铺连接状态巡检", why: "让管理者一眼掌握各站点连接是否正常、凭证是否过期", rule: "仅管理员或主管可连接、重连或断开店铺", owner: "大屏浏览者 / 管理者、主管 / 审批人", fix: "若显示凭证过期或同步失败，点击「重新授权」恢复连接" },
-      { color: "#10b981", title: "实盘店铺与演示环境严格隔离", why: "防止测试或演示用的模拟订单混入真实经营营收与利润报表", rule: "演示店铺永远标明「仅限演示不计营收」，绝不计入实盘销售额", owner: "全体运营与财务核对人员", fix: "若需新开实盘店铺，授权时务必确认选择「实盘经营店铺」" },
-    ],
-    ledger: [
-      ["3 家已接入店铺", "演示示例数据", "泰国虾皮主店、美国 TikTok 为实盘店；亚马逊演示店仅用于测试"],
-      ["跨店数据隔离规则", "管理制度规则", "实盘订单与演示订单分库核算，避免误导经营决策"],
-    ]
-  },
-  m0b: {
-    title: "商品档案、成本变更与订单台账",
-    subtitle: "统一维护主商品资料、各店铺上架编号、带审批记录的成本变更申请，以及全生命周期可点开查看的订单台账。",
-    blocks: [
-      { color: "#2563eb", title: "一货多店统一管理", why: "解决同一款商品在不同国家店铺编号不同、容易对账混乱的问题", rule: "同款商品关联唯一内部商品编码，支持按店铺、状态和日期筛选订单", owner: "业务运营、仓库采购人员", fix: "若某店铺缺上架编号，请在商品详情中核对是否已上架该店" },
-      { color: "#7c3aed", title: "成本变更申请与影响范围提示", why: "防止随意修改采购价或头程运费导致毛利报表和补货预算突然跳变", rule: "修改成本必须填写生效时间与业务原因，并记录审批历史与旧版本", owner: "业务运营发起，主管 / 审批人把关", fix: "发现利润异常时，可点开成本变更历史追溯哪天调过价" },
-    ],
-    ledger: [
-      ["4 款示例商品 / 订单台账", "演示示例数据", "演示常规款、季节扇、瑜伽垫、面霜的成本与订单流转"],
-      ["订单防重入账机制", "管理制度规则", "重复同步同一笔外部订单会自动拦截，确保营收不虚增"],
-    ]
-  },
-  m0c: {
-    title: "分店分仓独立库存与人工盘点",
-    subtitle: "按真实仓库与店铺口径查看当前可售库存与安全水位，生成正式盘点单并实时联动补货缺口测算。",
-    blocks: [
-      { color: "#f59e0b", title: "分店分仓独立台账", why: "美国海外仓的货不能直接发泰国本地订单，必须按仓库分开看", rule: "同一商品在不同店铺与物理仓的库存严格独立统计", owner: "采购 / 仓库 / 物流人员", fix: "遇到某个仓低于安全库存标红预警时，尽快发起盘点或补货" },
-      { color: "#10b981", title: "收货不改库存，盘点才改库存", why: "避免刚卸货未上架、或未清点残次品就虚增可售数量导致超卖", rule: "仓库收货登记只留收货凭证，必须由仓管在盘点页确认生成盘点单才更新库存", owner: "采购 / 仓库 / 物流人员（大额调整须二次确认并填原因）", fix: "盘点调整保存后，可直接在盘点单上看到 M5/M6 建议补货量的联动变化" },
-    ],
-    ledger: [
-      ["美西仓 18 件 / 曼谷仓 43 件", "演示示例数据", "展示低于安全库存时的红字预警与补货缺口联动"],
-      ["盘点单唯一改库存红线", "管理制度规则", "所有补货缺口与覆盖天数均随本次盘点结果实时重算"],
-    ]
-  },
-  m1a: {
-    title: "客服会话工作台与售后建单",
-    subtitle: "显示当前接待人与接管时间，支持并排核对买家与候选订单四要素、逐项检查回复合规性并一键转入售后审批。",
-    blocks: [
-      { color: "#2563eb", title: "人工接管留痕与四要素核验绑单", why: "避免客服接错订单或未经核实就把甲买家的退款退到乙订单上", rule: "人工接管记录接待人及时间；绑定订单必须勾选核对买家、金额、商品、时间四项一致", owner: "客服人员", fix: "若无法确认订单归属，先向买家追问订单号后再勾选确认" },
-      { color: "#10b981", title: "回复内容自动三项合规检查", why: "防止跨店发错链接、中英文报价不一致或 AI 越权承诺直接退款", rule: "发送前逐项校验：金额与订单一致、使用本店链接、中英文数字一致；不通过禁用发送", owner: "客服人员", fix: "系统标红不合规句段时，直接按提示修改数字或替换本店链接即可" },
-    ],
-    ledger: [
-      ["接待人状态 / 示例订单", "演示示例数据", "展示售后投诉接管与中英文核对检查效果"],
-      ["禁止越权承诺退款红线", "管理制度规则", "所有赔付或退款必须走 M1-3 主管审批并回传凭证"],
-    ]
-  },
-  m1b: {
-    title: "客服导购在售商品库",
-    subtitle: "供客服快速检索本店在售商品卖点与价格，支持上传表格预览前 10 行、分批建立检索索引并提示失败原因。",
-    blocks: [
-      { color: "#2563eb", title: "与选品分析严格区分", why: "客服只能推荐当前店铺已经上架在售的商品，不能把还在评估中的选品拿去推销", rule: "本商品库只收录各实盘店铺已上架商品，按店铺隔离链接", owner: "业务运营维护，客服查询使用", fix: "需要评估未采购新品请前往 M4 选品分析中心" },
-      { color: "#10b981", title: "表格预览与失败行明细定位", why: "防止错把测试演示表格导进客服真实推荐库", rule: "上传前先预览前 10 行；含演示标识或编码重复的行自动拦截并写明业务原因", owner: "业务运营", fix: "下载失败原因提示后，修正商品编码或更换正式在售清单重新导入" },
-    ],
-    ledger: [
-      ["本店在售导购示例清单", "演示示例数据", "展示商品图片、所属店铺与客服可用状态"],
-      ["演示文件拦截规则", "管理制度规则", "文件名或内容含测试演示标识时禁止导入正式客服库"],
-    ]
-  },
-  m1c: {
-    title: "售后工单审批与退款凭证闭环",
-    subtitle: "严格落实提交人与审批人分离，强制填写审批意见并校验退款上限，主管批准后必须上传手工退款凭证才可结案。",
-    blocks: [
-      { color: "#f59e0b", title: "提交人不得自批（职责分离）", why: "防范同一名员工既建退款单又自己批准造成资金漏洞", rule: "客服提交的售后工单必须由主管 / 审批人审批，系统自动禁止本人自批", owner: "客服建单，主管 / 审批人终审", fix: "若按钮提示权限不足，需切换至主管账号或请主管登录审批" },
-      { color: "#2563eb", title: "凭证上传后方能正式结案", why: "系统内审批通过不等于平台已经打款，必须留存银行或平台后台打款截图凭证", rule: "批准后状态变为「待上传退款凭证」，上传真实打款流水后工单状态才关闭", owner: "主管审批，客服 / 运营回传凭证", fix: "若平台打款失败，请在凭证备注写明原因并联系财务核对" },
-    ],
-    ledger: [
-      ["售后示例工单", "演示示例数据", "展示退款金额不得超过原订单实付金额的校验"],
-      ["人工退款凭证闭环规则", "管理制度规则", "不虚构平台自动退款到账，每笔赔付有据可查"],
-    ]
-  },
-  m1d: {
-    title: "买家咨询与售后联调模拟入口",
-    subtitle: "仅用于内部联调测试的模拟买家入口（不会向真实电商平台发送任何消息），发出后可直达客服工作台查看处理结果。",
-    blocks: [
-      { color: "#2563eb", title: "安全可控的内部联调测试台", why: "上线前测试关键词拦截、商品推荐话术是否准确，无需用真实买家号反复下单测试", rule: "本页发出的全部消息均标为模拟联调消息，与真实营收与实盘订单完全隔离", owner: "买家（模拟测试）与客服协同联调", fix: "发送消息后可点击「前往客服工作台查看处理结果」验证响应" },
-    ],
-    ledger: [
-      ["模拟测试入口说明", "管理制度规则", "仅作为客服规则与话术联调工具，不产生真实外部消息"],
-    ]
-  },
-  m2a: {
-    title: "经营驾驶舱草稿编排与正式发布",
-    subtitle: "支持在草稿版自由增删调整指标卡片，发布前并排对比草稿与正式版差异，并随时支持一键恢复上一正式版本。",
-    blocks: [
-      { color: "#2563eb", title: "草稿版与正式版双轨隔离", why: "运营调整大屏布局时，不能让正在看大屏的老板看到半成品或乱码", rule: "所有修改先保存在草稿版，只有经确认发布后才同步至正式大屏", owner: "驾驶舱设计者 / 业务运营", fix: "若误发布错误布局，可点击「恢复上一正式版」秒级回滚" },
-      { color: "#7c3aed", title: "指标来源与更新时间透明可见", why: "保证驾驶舱看到的数字和智能问数查出来的数字完全是一个口径", rule: "每张卡片标明统计口径与更新时间，数据只读引用实时经营台账", owner: "业务运营与数据分析人员共同核对", fix: "发现数字滞后可先前往 M3-1 刷新对应经营指标" },
-    ],
-    ledger: [
-      ["近30天营收与利润示例", "演示示例数据", "同步实盘订单变化实时重算"],
-      ["发布前差异对比机制", "管理制度规则", "防止误操作覆盖正式经营大屏"],
-    ]
-  },
-  m2b: {
-    title: "正式经营大屏浏览与异常下钻",
-    subtitle: "面向管理层展示已正式发布的经营驾驶舱，支持一键刷新最新数字、核对数据截至时间，并点击异常指标直接追问原因。",
-    blocks: [
-      { color: "#2563eb", title: "数据截至时间与手动刷新", why: "管理层开会看数时必须知道这份数据截至到几点几分、是不是最新", rule: "顶部显式标注「数据截至时间」，点击「刷新数据」立即拉取最新实盘汇总", owner: "大屏浏览者 / 管理者、主管", fix: "若某项核心指标变红预警，直接点击该卡片跳转智能问数追查明细" },
-    ],
-    ledger: [
-      ["正式大屏核心指标", "实时汇总计算", "随 M0 订单同步、M0-3 盘点库存动态更新"],
-    ]
-  },
-  m3a: {
-    title: "经营指标口径与定时更新管理",
-    subtitle: "集中查看各核心指标的业务口径、更新频率、最近成功时间与下次更新时间，支持对未响应指标一键立即更新。",
-    blocks: [
-      { color: "#2563eb", title: "统一指标口径字典", why: "避免业务部门和财务部门对「净利率」「广告费占比」算法理解不一致", rule: "每项指标明确写清业务计算口径与货币单位，供驾驶舱与智能问数共用", owner: "数据分析 / BI 人员", fix: "需要新增指标时需保证指标名称与口径清晰不重名" },
-      { color: "#10b981", title: "未连接外部数据源诚实告警", why: "未接入外部广告后台时如实提示未响应，绝不假装拉取成功给假数据", rule: "外部接口未连接时状态标记为「数据源未响应」，并提供「立即更新/重试」入口", owner: "数据分析 / BI 人员、系统管理员", fix: "请联系管理员配置外部数据源地址后再点「立即更新」" },
-    ],
-    ledger: [
-      ["内置汇总与外部广告指标", "演示示例数据", "内置汇总可演示立即更新；未配外部地址的指标保持诚实失败提示"],
-    ]
-  },
-  m3b: {
-    title: "经营智能问答助手（只读查数）",
-    subtitle: "用日常业务问题查询营收、利润、广告花费与库存预警，自动附带统计口径与计算依据，严禁任何修改数据的危险指令。",
-    blocks: [
-      { color: "#f59e0b", title: "严格只读查数、多币种不混加", why: "防止问答助手误删订单或把美元与泰铢直接相加得出错误总额", rule: "仅做实时汇总查询；遇到修改、删除、调价等指令立即拦截并记入审计日志", owner: "管理层、运营、数据分析均可提问", fix: "若对答案有疑问，可点「没帮助」反馈并查看下方「统计口径说明」" },
-    ],
-    ledger: [
-      ["问答实时汇总引擎", "实时计算", "直接读取当前平台实盘订单、广告与库存台账现场计算"],
-      ["只读安全守卫", "管理制度规则", "任何尝试改动业务数据的语句都会被拦截并留痕"],
-    ]
-  },
-  m4a: {
-    title: "候选选品多源导入与质量校验",
-    subtitle: "支持从本地表格选择导入候选商品（预览前 10 行），严格区分内部实盘、行业估算、公开观察与演示数据，不伪造缺失成本。",
-    blocks: [
-      { color: "#2563eb", title: "四大来源性质清晰隔离", why: "外面买来的行业估算数据不能当成公司实际赚到的利润，否则容易误判投产", rule: "内部实盘选品才可作为测款批准依据；外部数据只能辅助观察或提示补全成本", owner: "选品研究员", fix: "若文件含测试演示字样却选了正式来源，系统会自动拦截提示更正" },
-      { color: "#10b981", title: "参考报价先核实再正式投产", why: "如果只是外购估算的参考价格，直接按最终毛利拍板容易误判真实利润", rule: "外购估算品保持「临时待核价」状态，核实正式采购与头程报价后再进入投产审批", owner: "选品研究员、采购人员", fix: "请向供应商核价并复核正式采购与物流报价后再送审" },
-    ],
-    ledger: [
-      ["10,000 条行业参考 / 6 款实盘选品", "演示示例数据", "演示多来源入库校验与失败行原因定位"],
-    ]
-  },
-  m4b: {
-    title: "选品工作台与决策推荐",
-    subtitle: "围绕选品员「挑出能卖、赚钱、风险可控的商品」目标设计：按类目/价格带/风险多维筛选，看系统直接建议与竞品供应链详情，并支持横向对比和批量送审。",
-    blocks: [
-      { color: "#2563eb", title: "系统主动给出明确结论，不甩计算过程", why: "一线选品员需要知道「该投产还是放弃」以及竞品、MOQ、侵权情况，而不是自己算权重", rule: "卡片正面只保留系统建议徽章、一句话理由与 4 个业务指标；底层依据、竞争度、供应链与风险核查收入展开区", owner: "选品研究员", fix: "勾选「只看可投产」可一键筛掉临时待核价、利润低于 10% 或外购估算品" },
-      { color: "#10b981", title: "横向并排对比与批量送审", why: "面对多款同类商品时，选品员需要并排对比近2月销售额、增速、竞品数、采购价来拍板取舍", rule: "勾选 2~4 款可开启横向对比表；批量提交待审须统一填写推荐理由与测款预算", owner: "选品研究员提交，主管终审", fix: "选中商品后在上方批量操作栏直接点击「横向对比」或「批量送审」" },
-    ],
-    ledger: [
-      ["6 款示例候选商品", "演示示例数据", "含类目、价格带、竞品数、MOQ交期、侵权认证与系统建议"],
-    ]
-  },
-  m4c: {
-    title: "主管测款终审拍板",
-    subtitle: "主管核验实盘利润率（≥10% 门槛）与佐证材料后拍板同意测款、补采或淘汰；同意测款后自动为下游创建预测与内容任务。",
-    blocks: [
-      { color: "#7c3aed", title: "纯内部实盘 + 利润率 ≥10% 硬门槛", why: "守住公司现金流底线，不把外购估算品或亏损品放行测款", rule: "未满足利润率 ≥10% 或缺少成本的候选款，系统禁用「同意测款」按钮", owner: "主管 / 审批人（不可自审本人提交的单）", fix: "遇到利润缺失款可拍板「退回补采成本与核价」" },
-      { color: "#10b981", title: "批准后自动联动下游 M5 与 M7", why: "选品确定要测款后，销量预测与主图文案团队无需二次口头传话即可接手", rule: "点击同意测款并填写意见后，立即创建 M5 预测队列与 M7 内容制作任务", owner: "主管 / 审批人", fix: "批准后可在页面顶部看到已生成的下游任务数量并一键跳转查看" },
-    ],
-    ledger: [
-      ["测款审批流转记录", "实时业务状态", "批准后立即在 M5-1 与 M7-1 可见该新品任务"],
-    ]
-  },
-  m5a: {
-    title: "商品销量特征画像与预测方案",
-    subtitle: "用运营能看懂的业务语言说明 9 套预测方案适用哪种商品，自动核验当前历史销售天数是否达标，并记录画像变更历史。",
-    blocks: [
-      { color: "#2563eb", title: "按商品特性自动匹配方案", why: "销量平稳的爆款和经常几天零单的长尾款，需要用不同的测算方法才能算准", rule: "系统根据商品可用历史天数自动标记「天数足够可使用」或「天数不足提示」，禁止对长周期方案硬算", owner: "业务运营、数据分析人员", fix: "新品历史天数不足 30 天时，可先选用「新品快速估算方案（≥8天）」" },
-      { color: "#10b981", title: "方案启停与画像调整全留痕", why: "避免有人悄悄关掉某个方案或改了销量规律设置，导致后面预测数值突然大变却找不到原因", rule: "修改商品特征或启停方案必须填写业务依据，并保存版本变更记录", owner: "业务运营、数据分析人员", fix: "可在页面下方变更记录查看是谁在什么时候修改了方案" },
-    ],
-    ledger: [
-      ["96 天历史订单样本", "演示示例数据", "已自动剔除当日未完结订单，保证历史基线准确"],
-    ]
-  },
-  m5b: {
-    title: "销量预测执行与补货参考",
-    subtitle: "基于历史日销量实时计算未来 7/14/30 天预测曲线，明确列出所用时间区间、耗时与关联 M0-3 最新库存后的建议补货量。",
-    blocks: [
-      { color: "#2563eb", title: "真实运算与库存实时联动", why: "仓管刚刚盘点修正完库存，预测页和补货参考量必须立刻同步跟着变", rule: "每次执行预测均实时读取 M0-3 当前可售库存：建议补货量 = 预测总量 + 安全库存 − 当前可售", owner: "业务运营、供应链参考", fix: "如果发现建议补货量异常，请先核对 M0-3 最新盘点库存是否正确" },
-      { color: "#f59e0b", title: "如实声明误差区间含义", why: "提醒管理者任何预测都存在波动区间，浅蓝阴影是根据历史偏差推算的参考波动带，不是绝对保底承诺", owner: "业务运营", rule: "页面显著标明「历史波动参考带（不代表绝对置信保证）」", fix: "大促前建议结合 M5-3 回测误差率手工微调补货安全天数" },
-    ],
-    ledger: [
-      ["逐日预测曲线与耗时", "实时运算结果", "切换不同预测方案与预测天数可即时重新演算曲线"],
-    ]
-  },
-  m5c: {
-    title: "预测误差率（WAPE）复盘与缺货修正",
-    subtitle: "用大白话解读预测准不准（WAPE=预测误差率），支持标记缺货日并填写原因修正参考销量，同时永久保留原始订单数字。",
-    blocks: [
-      { color: "#7c3aed", title: "什么是预测误差率（WAPE）与缺货日修正", why: "如果某天商品断货了只卖出 0 件，不代表买家不想买；直接拿 0 件去算准度会误判模型，需要标注「缺货日」还原真实需求", rule: "修正参考值必须填写原因，系统永久保留「原始订单实销」供财务和审计核对，不篡改订单事实", owner: "业务运营、数据分析人员", fix: "误差率 ＞20% 时建议回 M5-1 更换更适合该商品波动规律的方案" },
-    ],
-    ledger: [
-      ["预测误差率评级参考", "管理经验标准", "≤5% 极准 / 5%~10% 优秀 / 10%~20% 良好 / ＞30% 需调优"],
-    ]
-  },
-  m6a: {
-    title: "常规补货测算（经验系数调整）",
-    subtitle: "无预测模型数据时用近 30 天日均销量作为参考基线，提交前展示完整参数快照与保守/平衡/激进三方案对比。",
-    blocks: [
-      { color: "#2563eb", title: "先看依据与三方案对比再提交", why: "防止拍脑袋调高淡旺季系数，把不合理的采购数量直接发去审批", rule: "所有非零季节或活动调整必须填写报表/活动依据；缺少成本卡的商品禁止提交补货", owner: "业务运营、采购人员", fix: "提交前会在确认窗口完整展示日均需求、交期、安全库存与三套方案对比" },
-    ],
-    ledger: [
-      ["常规补货独立计划池", "管理制度规则", "与 M6-2 智能补货计划彻底分开排队，互不混淆"],
-    ]
-  },
-  m6b: {
-    title: "智能补货测算（预测驱动与物流分配）",
-    subtitle: "强制引用 M5 已完成的未来预测结果计算补货缺口，点击「覆盖天数不足」或「路线报价」可展开查看详细依据与承运商单价。",
-    blocks: [
-      { color: "#ef4444", title: "缺销量预测严禁强行测算", why: "既然走智能补货分支，就必须依据科学预测结果，不能在没有预测时悄悄退回拍脑袋算法", rule: "若所选商品尚未在 M5 完成销量预测，页面立即拦截并引导前往 M5 执行预测", owner: "业务运营", fix: "点击错误卡片上的「前往 M5 完成预测」即可快速补齐" },
-      { color: "#2563eb", title: "可展开的覆盖预警与物流报价明细", why: "让供应链主管看清为什么系统说库存不够用，以及海运和空运到底差多少钱", rule: "点击风险标签查看所引用的预测版本与逐日需求；点击路线查看承运商与分仓比例", owner: "业务运营、物流人员", fix: "覆盖天数小于物流运输周期时，建议适当提高空运比例防断货" },
-    ],
-    ledger: [
-      ["多仓覆盖天数与路线报价", "实时联动计算", "随 M0-3 库存盘点与 M5 预测刷新同步重算"],
-    ]
-  },
-  m6c: {
-    title: "补货审批、签名核对与采购下单",
-    subtitle: "主管审批前系统自动核对计划提交时的测算快照签名是否一致，填写意见批准后立即生成采购单号并流转到收货登记。",
-    blocks: [
-      { color: "#2563eb", title: "防篡改快照核对与职责分离", why: "防止提交审批之后有人在后台改动商品成本或参数，导致主管批准的金额和实际下单金额不一致", rule: "审批页显式展示「签名核对：一致 / 不一致」；提交人与审批人不可为同一人；审批意见必填", owner: "主管 / 审批人", fix: "若签名提示不一致，请驳回计划并要求运营按最新库存重新测算提交" },
-    ],
-    ledger: [
-      ["常规计划与智能计划分栏审批", "管理制度规则", "审批通过后生成正式采购单号并进入 M6-4 待收货列表"],
-    ]
-  },
-  m6d: {
-    title: "到货质检与分批收货凭证登记",
-    subtitle: "通过完整表单登记每批次实收数量、短装/破损差异原因、质检单号与凭证附件；严守「收货登记不自动改库存」安全红线。",
-    blocks: [
-      { color: "#ef4444", title: "收货登记不自动加库存", why: "货车刚拉到仓库门口时可能还没清点完残次品，直接自动加进可售库存会导致线上超卖发不出货", rule: "分批收货与质检记录仅存入履约台账；实际可售数量必须由仓管去 M0-3 盘点校准", owner: "采购 / 仓库 / 物流人员", fix: "登记完最后一笔收货后，点击页面按钮直达 M0-3 录入盘点单" },
-    ],
-    ledger: [
-      ["分批收货与差异台账", "实时业务记录", "支持部分收货状态跟踪，直到累计实收达到采购总量"],
-    ]
-  },
-  m7a: {
-    title: "多语言商品文案创作与用语检查",
-    subtitle: "直接承接 M4 主管同意测款的新品与在售老品，生成差异化版本文案，实时高亮品牌必用词并拦截平台违禁词与超长标题。",
-    blocks: [
-      { color: "#2563eb", title: "承接 M4 批准新品与品牌规范检查", why: "避免文案团队给未通过审核的新品白费力气写详情页，同时防范写错违禁词导致店铺被罚", rule: "优先展示 M4 主管已同意测款商品；含禁用词或超过目标平台字数上限的草稿禁止写入交付清单", owner: "内容创作 / 审核人员", fix: "被标红拦截的草稿请删除违禁词或精简字符后再选用" },
-    ],
-    ledger: [
-      ["Amazon / Shopee / TikTok 字符上限", "平台规则参考", "实时校验标题与五点描述的规范命中情况"],
-    ]
-  },
-  m7b: {
-    title: "商品主图与 1 大 4 小套图制作",
-    subtitle: "提交「1 张白底主图 + 4 张详情附图」生成任务，展示排队到生成的真实进度过程；未接入专业绘图服务时诚实标为「演示图」。",
-    blocks: [
-      { color: "#2563eb", title: "5 张标准套图与局部重绘", why: "一张一张改图不能把之前已经合格的 4 张图全推翻重做", rule: "支持针对选中图位单独发起局部修改，保留其余 4 张合格图片不变", owner: "内容创作 / 审核人员", fix: "未连接专业绘图服务时页面显示为「演示图，非真实生成」，不可冒充成品直接上架" },
-    ],
-    ledger: [
-      ["5 项套图位状态", "实时交互状态", "与 M7-4 上架交付清单实时同步就绪状态"],
-    ]
-  },
-  m7c: {
-    title: "商品短视频分镜与合成制作",
-    subtitle: "展示视频制作从「分镜准备 → 画面生成 → 成片合成」的进度与阶段日志；未配置视频生成节点时如实报错，不造假文件。",
-    blocks: [
-      { color: "#f59e0b", title: "未配置生成节点时绝不伪造成功", why: "如果后台根本没连视频生成机器，系统必须老实告诉员工失败原因，不能给一个打不开的空文件", rule: "默认状态为未配置视频服务并演示真实报错与排查指引；切换模拟已配置状态可体验完整制作进度", owner: "内容创作 / 审核人员", fix: "报错时可点击「切换模拟节点体验」或联系系统管理员接入视频服务" },
-    ],
-    ledger: [
-      ["四大电商短视频脚本类型", "运营经验模板", "产品展示、开箱测评、场景种草、卖点快剪"],
-    ]
-  },
-  m7d: {
-    title: "上架前 8 项交付清单与合规把关",
-    subtitle: "汇总文案、套图、A+ 图文与短视频共 8 类上架资产，逐条核验合规规则并给出缺项原因，主管批准后生成离线导出资料包。",
-    blocks: [
-      { color: "#2563eb", title: "8 类交付物缺项一键直达补齐", why: "让上架负责人一眼看出「8 件套还差哪一件、为什么没通过」，点一下直接跳去补齐", rule: "全部合规规则校验通过并由主管 / 审批人签字批准后，才解锁离线资料包导出", owner: "内容创作人员自检，主管最终批准", fix: "导出资料包后由运营人工上传平台后台，系统绝不擅自改写线上在售店铺" },
-    ],
-    ledger: [
-      ["8 类上架交付清单", "实时联动核对", "缺项实时标黄提示，补齐后立即变绿"],
-    ]
-  },
-  m8a: {
-    title: "员工名册与九大业务岗位授权",
-    subtitle: "管理在职员工、企业邮箱、所属岗位与负责店铺范围；严格校验工号唯一与邮箱格式，调岗与停用均须二次确认并记入审计。",
-    blocks: [
-      { color: "#f59e0b", title: "组织授权隔离与变更留痕", why: "不能让普通客服或选品员自己给自己开通「主管审批」或「大屏管理」权限", rule: "仅大屏浏览者 / 管理者与主管 / 审批人可新增员工、调岗或停用账号，且每笔变更自动写入审计台账", owner: "大屏浏览者 / 管理者、主管 / 审批人", fix: "若遇到按钮禁用，请核对左上角当前登录岗位是否具备组织管理权限" },
-    ],
-    ledger: [
-      ["九大业务岗位体系", "企业管理制度", "覆盖审批、管理、运营、分析、选品、内容、仓管、客服与联调测试"],
-    ]
-  },
-  m8b: {
-    title: "岗位权限矩阵（只读）与操作审计台账",
-    subtitle: "只读核对九大岗位对各业务模块的操作权限边界，下方用管理层看得懂的自然语言实时记录所有关键审批、变更与越权拦截事件。",
-    blocks: [
-      { color: "#2563eb", title: "只读权限核对与越权自动留痕", why: "严禁在业务表内直接点击切换角色绕过控制；所有角色体验切换统一由左上角岗位选择器完成", rule: "权限矩阵仅供核对当前登录岗位权限边界；任何无权操作都会被拦截并作为审计事件记录在案", owner: "系统管理者、主管 / 审批人审计复核", fix: "若员工反馈某按钮灰色不可点，可在上表查明该按钮具体需要哪个岗位权限" },
-    ],
-    ledger: [
-      ["审计台账实时保存", "本地实时记录", "用完整中文句子记录「谁在何时对哪张单据做了什么」"],
-    ]
-  }
-};
-
 // ===== state.js =====
 const BACKEND_SERVICE_URL = ""; // 预留后台服务地址；留空表示纯前端演示模式，外部连接服务均如实标注未接入
 
@@ -1123,6 +767,16 @@ const PRODUCT_IMAGES = {
   "SKU-00704": makeSvgDataUri("#ecfdf5", "#059669", "迷你真空封口机", `<rect x="62" y="92" width="116" height="42" rx="20" fill="#10b981"/><rect x="76" y="106" width="68" height="12" rx="6" fill="#ecfdf5"/><circle cx="158" cy="113" r="8" fill="#047857"/>`),
   "SKU-00418": makeSvgDataUri("#fef2f2", "#dc2626", "露营氛围灯串", `<path d="M68 82 Q120 120 172 82" fill="none" stroke="#475569" stroke-width="4"/><circle cx="80" cy="92" r="11" fill="#fbbf24"/><circle cx="106" cy="104" r="11" fill="#f87171"/><circle cx="134" cy="104" r="11" fill="#fbbf24"/><circle cx="160" cy="92" r="11" fill="#f87171"/>`),
 };
+
+function getEvidenceImg(kind = "scratch", label = "买家实拍凭证") {
+  if (kind === "box") {
+    return makeSvgDataUri("#fff7ed", "#ea580c", label, `<rect x="66" y="72" width="108" height="84" rx="8" fill="#fed7aa" stroke="#ea580c" stroke-width="4"/><path d="M66 96 L112 72 M174 114 L142 156" stroke="#dc2626" stroke-width="5" stroke-linecap="round"/><circle cx="132" cy="112" r="22" fill="none" stroke="#dc2626" stroke-width="4" stroke-dasharray="6 4"/>`);
+  }
+  if (kind === "voucher") {
+    return makeSvgDataUri("#ecfdf5", "#059669", label, `<rect x="74" y="64" width="92" height="100" rx="10" fill="#d1fae5" stroke="#059669" stroke-width="3"/><line x1="90" y1="88" x2="150" y2="88" stroke="#047857" stroke-width="4"/><line x1="90" y1="108" x2="138" y2="108" stroke="#047857" stroke-width="4"/><path d="M102 134 L116 146 L142 122" fill="none" stroke="#059669" stroke-width="6" stroke-linecap="round"/>`);
+  }
+  return makeSvgDataUri("#fef2f2", "#dc2626", label, `<rect x="72" y="68" width="96" height="90" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/><path d="M92 92 L148 134 M144 96 L108 128" stroke="#dc2626" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="113" r="26" fill="none" stroke="#dc2626" stroke-width="4" stroke-dasharray="6 4"/>`);
+}
 
 function daysOffsetDate(offsetDays) {
   const d = new Date();
@@ -1295,19 +949,21 @@ function buildSystemConclusion(pageId, state) {
   }
   if (pageId === "m1a") {
     const pending = state.csSessions.filter(s => s.status === "待人工接管");
+    const aiAuto = state.csSessions.filter(s => s.status === "智能自动接待");
+    const humanBusy = state.csSessions.filter(s => s.status === "人工接待中");
     return {
       tone: pending.length ? "amber" : "green",
-      status: `当前 ${state.csSessions.length} 个会话中 ${pending.length} 个待人工接管、${state.csSessions.filter(s => s.mode === "MOCK").length} 个联调隔离会话`,
-      advice: pending.length ? `请优先接管「${pending[0].buyer}」会话，核对订单四要素后决定是否建售后工单` : "所有高风险买家会话已接管处理",
-      basis: `待接管 ${pending.length} 个 · 导购词库就绪 ${state.csCatalog.length} 款`
+      status: `共 ${state.csSessions.length} 组会话：智能自动接待 ${aiAuto.length} 组、待人工接管 ${pending.length} 组、人工接待中 ${humanBusy.length} 组`,
+      advice: pending.length ? `请先点击「立即接管并去回复」处理「${pending[0].buyer}」（${pending[0].shop}）` : "高风险人工队列已全部接管处理",
+      basis: `导购与说明书知识库就绪 ${state.csCatalog.length} 条 · 测试沙盒已隔离`
     };
   }
   if (pageId === "m1b") {
     return {
       tone: "blue",
-      status: `已建立本店专属导购商品索引 ${state.csCatalog.length} 款，导入失败 ${state.csImportLogs.reduce((s, l) => s + (l.failCount || 0), 0)} 条`,
-      advice: "回复买家前务必使用本页对应店铺链接，严禁跨店发送他店链接",
-      basis: `索引已就绪 ${state.csCatalog.length} 款 · 导入批次数 ${state.csImportLogs.length}`
+      status: `已建立本店专属导购与说明书排障知识库 ${state.csCatalog.length} 条，导入失败 ${state.csImportLogs.reduce((s, l) => s + (l.failCount || 0), 0)} 条`,
+      advice: "AI 自动回复仅引用本页已就绪的导购与说明书知识，严禁跨店发送他店链接",
+      basis: `知识索引就绪 ${state.csCatalog.length} 条 · 导入批次数 ${state.csImportLogs.length}`
     };
   }
   if (pageId === "m1c") {
@@ -1534,7 +1190,7 @@ function getRoleTodos(state) {
 }
 
 /**
- * 动态计算当前登录岗位的「今日必办事项（3-5条）」——完全从 state 真实数据实时得出
+ * 动态计算当前登录岗位的「今日必办事项（3-5条）」，完全从 state 真实数据实时得出
  */
 function computeRoleWorkbenchTodos(state) {
   const list = [];
@@ -2054,35 +1710,97 @@ function createInitialState() {
     ],
 
     // M1
+    csViewMode: "queue",
+    csShopFilter: "ALL",
     csActiveId: "cs1",
-    csTakeoverMap: { cs1: { who: "李客服", at: "10:18:00" }, cs2: { who: "智能客服自动接待", at: "10:15:00" }, cs3: { who: "智能客服自动接待", at: "09:50:00" } },
+    csTakeoverMap: {
+      cs1: { who: "待客服接管", at: "尚未接管" },
+      cs4: { who: "待客服接管", at: "尚未接管" },
+      cs2: { who: "智能客服自动接待", at: "10:15:00" },
+      cs5: { who: "智能客服自动接待", at: "10:08:00" },
+      cs3: { who: "智能客服自动接待", at: "09:50:00" },
+    },
     csSessions: [
       {
         id: "cs1", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Emily Carter",
-        intent: "售后投诉 / 退货诉求", status: "待人工接管", conf: "88%",
+        bizType: "售后退换赔", intent: "收到包裹划痕 · 买家已提交仅退款清单", status: "待人工接管",
+        serviceMode: "WAIT_HUMAN", conf: "88%",
+        kbHit: "",
+        handoffReason: "买家点击【申请退款/退换货】提交仅退款 $34.50 并上传 2 张实拍照片，触发资金赔付熔断转人工",
         linkedOrder: "SYN9D-005671", linkVerified: false, linkChecks: { buyer: true, amount: true, product: true, time: true },
+        buyerAfterSales: {
+          submitted: true,
+          afterSalesType: "仅退款（不退货）",
+          goodsStatus: "已收到货（已拆封验货）",
+          reasonCategory: "商品破损或划痕",
+          amountUsd: 34.50,
+          note: "外箱压扁且背包正面有明显划痕，希望直接退款 $34.50",
+          photos: [
+            { kind: "scratch", label: "商品正面划痕特写.jpg" },
+            { kind: "box", label: "破损外箱+快递面单.jpg" },
+          ],
+          submittedAt: daysOffsetDateTime(0, "10:16")
+        },
         msgs: [
-          { who: "buyer", text: "Hello, my package arrived with a scratch. Can I get a refund of $34.50?", trans: "买家译文：您好，收到的包裹有划痕，可以退款 $34.50 吗？" },
-          { who: "ai", text: "拦截提示：检测到「退款」诉求，智能助手不代客承诺赔付，已转人工接管。", trans: "可先核对订单并转入售后工单由主管审批" },
+          { who: "buyer", text: "Hello, my package arrived with a scratch. I submitted a refund request of $34.50 with photos.", trans: "买家译文：您好，收到的包裹有划痕，我已上传照片并申请退款 $34.50。" },
+          { who: "ai", text: "熔断提示：检测到买家提交售后退款清单与举证照片，智能助手已停止自动答复并转交人工坐席。", trans: "请人工接管核对照片与订单四要素，并填写初审结论转主管审批" },
         ],
-        draftZh: "非常抱歉给您带来不便，已收到您反馈的 $34.50 订单问题，我们正在提交主管加急审核处理。",
-        draftEn: "We sincerely apologize for the inconvenience. We have received your request regarding the $34.50 order and escalated it for priority review."
+        draftZh: "非常抱歉给您带来不便，已收到您上传的破损实拍照片与 $34.50 退款申请，我已加急核验并提交主管审核。",
+        draftEn: "We sincerely apologize for the inconvenience. We have received your damage photos and $34.50 refund request, and escalated it for priority review."
+      },
+      {
+        id: "cs4", shop: "TikTok Shop 美区", mode: "REAL", buyer: "David Miller",
+        bizType: "物流履约异常", intent: "发货催单与清关超期咨询", status: "待人工接管",
+        serviceMode: "WAIT_HUMAN", conf: "76%",
+        kbHit: "",
+        handoffReason: "识别到「催单/待拣货超期」且AI置信度仅 76%（低于85%自动发送阈值），转人工跟进仓库",
+        linkedOrder: "TTUS-30291", linkVerified: true, linkChecks: { buyer: true, amount: true, product: true, time: true },
+        buyerAfterSales: null,
+        msgs: [
+          { who: "buyer", text: "Order TTUS-30291 was paid earlier today, why is tracking still pending?", trans: "买家译文：订单 TTUS-30291 今天已付款，为什么还没看到物流单号？" },
+          { who: "ai", text: "转人工说明：已关联订单 TTUS-30291（美西仓待拣货打包），因涉及履约催办已排队待人工客服跟进确认出库时间。", trans: "建议客服查询仓库波次后回复买家预计发货时间" },
+        ],
+        draftZh: "您好，订单 TTUS-30291（加厚防滑瑜伽垫）已进入美西仓今日下午拣货波次，预计今天 18:00 前生成 UPS 运单号并同步给您。",
+        draftEn: "Hello! Your order TTUS-30291 is scheduled for afternoon picking at our US West warehouse and your UPS tracking number will be updated before 6:00 PM today."
       },
       {
         id: "cs2", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Nattapong S.",
-        intent: "售前尺寸与防泼水咨询", status: "智能自动接待", conf: "94%",
+        bizType: "售前导购", intent: "售前尺寸与防泼水咨询", status: "智能自动接待",
+        serviceMode: "AI_AUTO", conf: "94%",
+        kbHit: "导购库 · BAG-108 防泼水牛津布与15.6寸电脑仓说明",
+        handoffReason: "",
         linkedOrder: "", linkVerified: false, linkChecks: { buyer: false, amount: false, product: false, time: false },
+        buyerAfterSales: null,
         msgs: [
           { who: "buyer", text: "Is BAG-108 waterproof for rainy commuting?", trans: "买家译文：BAG-108 这款双肩包雨天通勤防泼水吗？" },
-          { who: "ai", text: "匹配本店导购库：轻量通勤双肩包采用防泼水牛津布，可装 15.6 寸电脑，售价 ฿890。", trans: "已附上本店商品直达链接" },
+          { who: "ai", text: "匹配本店导购库：轻量通勤双肩包采用防泼水牛津布，可装 15.6 寸电脑，售价 ฿890。", trans: "知识来源：M1-2 导购词典（置信度 94%，已自动发送）" },
         ],
         draftZh: "您好，BAG-108 采用高密度防泼水面料，可容纳 15.6 寸笔记本电脑，本店售价 ฿890。",
         draftEn: "Hello! BAG-108 uses water-resistant fabric and fits a 15.6-inch laptop, priced at ฿890 in our store."
       },
       {
+        id: "cs5", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Ploy K.",
+        bizType: "使用说明与排障", intent: "循环扇拆洗步骤与红灯闪烁排障", status: "智能自动接待",
+        serviceMode: "AI_AUTO", conf: "96%",
+        kbHit: "说明书FAQ · FAN-203 前网罩拆洗与充电红灯提示",
+        handoffReason: "",
+        linkedOrder: "SPTH-2026-108", linkVerified: true, linkChecks: { buyer: true, amount: true, product: true, time: true },
+        buyerAfterSales: null,
+        msgs: [
+          { who: "buyer", text: "How do I remove the front cover of FAN-203 to clean, and why does the red indicator blink?", trans: "买家译文：FAN-203 循环扇前网罩怎么拆下来清洗？充电时红灯闪烁正常吗？" },
+          { who: "ai", text: "已命中 M1-2 使用说明库：① 断电后逆时针轻旋前网罩即可取下水洗（机身后壳勿浸水）；② 充电时红灯慢闪表示正在快充中，充满后自动转绿灯常亮，属于正常现象。", trans: "知识来源：FAN-203 官方使用说明书 FAQ（置信度 96%，无需人工介入）" },
+        ],
+        draftZh: "您好，FAN-203 前网罩可断电后逆时针旋转拆洗；充电时红灯慢闪属正常充电提示，充满后转绿灯。",
+        draftEn: "Hi! Power off FAN-203 and twist the front grille counter-clockwise to wash. A slow blinking red light means normal charging and turns solid green when full."
+      },
+      {
         id: "cs3", shop: "Amazon 演示沙盒店", mode: "MOCK", buyer: "Demo Buyer (测试)",
-        intent: "联调测试咨询", status: "仅限联调演示", conf: "91%",
+        bizType: "联调测试", intent: "联调测试咨询", status: "仅限联调演示",
+        serviceMode: "AI_AUTO", conf: "91%",
+        kbHit: "导购库 · BAG-108 (沙盒联调)",
+        handoffReason: "",
         linkedOrder: "AMZ-DEMO-9901", linkVerified: true, linkChecks: { buyer: true, amount: true, product: true, time: true },
+        buyerAfterSales: null,
         msgs: [
           { who: "buyer", text: "Hi, is this commuter backpack suitable for 15-inch laptops?", trans: "测试译文：这款通勤包适合放 15 寸电脑吗？" },
           { who: "ai", text: "测试回执：已命中导购库轻量通勤双肩包，本消息来自联调模拟入口，不计入实盘统计。", trans: "仅联调演示" },
@@ -2092,16 +1810,44 @@ function createInitialState() {
       }
     ],
     csCatalog: [
-      { sku: "BAG-108", name: "轻量通勤双肩包", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$29.90", status: "索引已就绪", points: "防泼水牛津布 / 15.6寸电脑仓 / 轻量化 580g" },
-      { sku: "FAN-203", name: "便携静音循环扇", shop: "Shopee 泰国主店", domain: "shopee.co.th/cp-th", price: "฿590", status: "索引已就绪", points: "USB-C 续航12h / 32dB低噪 / 折叠桌面壁挂" },
-      { sku: "MAT-014", name: "加厚防滑瑜伽垫", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$24.90", status: "索引已就绪", points: "10mm加厚TPE / 双面防滑纹路 / 附收纳绑带" },
+      { sku: "BAG-108", name: "轻量通勤双肩包", docType: "商品导购", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$29.90", status: "索引已就绪", points: "防泼水牛津布 / 15.6寸独立加厚电脑仓 / 轻量化 580g / 侧袋可放700ml水杯" },
+      { sku: "FAN-203", name: "便携静音循环扇", docType: "使用说明与排障FAQ", shop: "Shopee 泰国主店", domain: "shopee.co.th/cp-th", price: "฿590", status: "索引已就绪", points: "【拆洗】断电逆时针旋开前网罩水洗，主机禁止浸水；【指示灯】红灯慢闪=充电中，绿灯=充满；USB-C 续航12h" },
+      { sku: "MAT-014", name: "加厚防滑瑜伽垫", docType: "使用说明与排障FAQ", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$24.90", status: "索引已就绪", points: "【开箱气味】环保TPE材质新拆封会有轻微原材料味，阴凉通风24小时即散；【保养】湿布擦拭勿暴晒" },
+      { sku: "LMP-418", name: "便携露营氛围灯串", docType: "使用说明与排障FAQ", shop: "Amazon 美国精品店", domain: "amazon.com/dp/cp-lmp", price: "$13.80", status: "索引已就绪", points: "【遥控配对】长按电池盒开关键3秒待灯闪后按遥控ON；【防水】灯珠IP65防雨，电池盒需防浸泡" },
     ],
     csImportLogs: [
-      { file: "本店在售导购词典_11月.xlsx", shop: "TikTok Shop 美区", total: 40, okCount: 40, failCount: 0, failReason: "全部校验通过，无失败行", status: "已完成 (40/40)", time: daysOffsetDateTime(0, "09:00") }
+      { file: "本店在售导购与说明书FAQ_11月.xlsx", shop: "全平台店铺(按店隔离)", total: 40, okCount: 40, failCount: 0, failReason: "全部校验通过，无失败行", status: "已完成 (40/40)", time: daysOffsetDateTime(0, "09:00") }
     ],
     tickets: [
-      { id: "TK-20261119-01", orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", buyer: "Emily Carter", reason: "收到包裹划痕申请退款", orderAmount: 34.50, refundAmount: 34.50, submitter: "李客服", approver: "待陈主管审批", approveNote: "待主管复核破损照片后审批", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: "待审批后上传打款截图" },
-      { id: "TK-20261119-02", orderNo: "SPTH-2026-108", shop: "Shopee 泰国主店", buyer: "Nattapong S.", reason: "风扇外盒轻微挤压部分补偿", orderAmount: 33.80, refundAmount: 8.00, submitter: "李客服", approver: "陈主管", approveNote: "同意补偿 $8.00 安抚券", status: "待上传退款凭证", refundSyncStatus: "已批待手工打款", voucher: "待财务/客服上传平台退款截图" },
+      {
+        id: "TK-20261119-01", orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", buyer: "Emily Carter",
+        sku: "BAG-108", afterSalesType: "仅退款（不退货）", goodsStatus: "已收到货（已拆封验货）",
+        reasonCategory: "商品破损或划痕", reason: "收到包裹外箱变形且背包正面有明显划痕，买家申请仅退款",
+        liability: "物流运输破损",
+        handoffReason: "买家上传破损照片并申请全额退款 $34.50，触发资金赔付熔断转人工",
+        evidencePhotos: [
+          { kind: "scratch", label: "商品正面划痕特写.jpg" },
+          { kind: "box", label: "破损外箱+快递面单.jpg" },
+        ],
+        skuCostUsd: 4.50, returnShipEstUsd: 14.20,
+        csReviewSummary: "已核验订单四要素（今早 08:40 签收），划痕特写与外箱快递面单同框真实无误；该品采购成本 $4.50，退回美西仓尾程运费约 $14.20（高于货值），曾尝试协商 $10 部分补偿被买家拒绝。建议批准「仅退款」$34.50，同步凭面单向 UPS 申报破损理赔。",
+        orderAmount: 34.50, refundAmount: 34.50, submitter: "李客服", approver: "待陈主管审批",
+        approveNote: "", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: "待审批后上传打款截图"
+      },
+      {
+        id: "TK-20261119-02", orderNo: "SPTH-2026-108", shop: "Shopee 泰国主店", buyer: "Nattapong S.",
+        sku: "FAN-203", afterSalesType: "部分补偿（安抚留货）", goodsStatus: "已收到货（已拆封验货）",
+        reasonCategory: "商品破损或划痕", reason: "风扇彩盒边角轻微挤压，机器功能完好，协商补偿 $8.00 留货",
+        liability: "物流运输破损",
+        handoffReason: "买家反馈外盒压损要求退货，人工协商改为小额补偿留货",
+        evidencePhotos: [
+          { kind: "box", label: "彩盒挤压照片.jpg" },
+        ],
+        skuCostUsd: 6.20, returnShipEstUsd: 9.80,
+        csReviewSummary: "经确认循环扇开机正常仅外盒挤压，成功说服买家留货不再退回，节省双向运费 $9.80，建议补偿 $8.00。",
+        orderAmount: 33.80, refundAmount: 8.00, submitter: "李客服", approver: "陈主管",
+        approveNote: "留货比退运划算，同意补偿 $8.00", status: "待上传退款凭证", refundSyncStatus: "已批待手工打款", voucher: "待财务/客服上传平台退款截图"
+      },
     ],
 
     // M2（全部从 computeLiveBusinessStats(state) 实时得出，零硬编码假数）
@@ -2374,8 +2120,404 @@ function createInitialState() {
   };
 }
 
-// ===== pages_m0_m3.js =====
+// ===== annotations.js =====
+const MODULE_DEFS = [
+  {
+    id: "G1", label: "① 店铺接入与档案 (M0)",
+    pages: [
+      { id: "m0a", label: "店铺授权管理" },
+      { id: "m0b", label: "商品成本与订单台账" },
+      { id: "m0c", label: "分店库存与人工盘点" },
+    ]
+  },
+  {
+    id: "G2", label: "② 售前选品与内容 (M4·M7)",
+    pages: [
+      { id: "m4a", label: "候选商品导入" },
+      { id: "m4b", label: "选品工作台与决策" },
+      { id: "m4c", label: "测款终审拍板" },
+      { id: "m7a", label: "多语言商品文案" },
+      { id: "m7b", label: "主图与详情套图" },
+      { id: "m7c", label: "商品短视频制作" },
+      { id: "m7d", label: "合规检查与成品打包" },
+    ]
+  },
+  {
+    id: "G3", label: "③ 销售与客服售后 (M1)",
+    pages: [
+      { id: "m1a", label: "客服会话与售后建单" },
+      { id: "m1b", label: "客服导购商品库" },
+      { id: "m1d", label: "买家咨询模拟测试" },
+      { id: "m1c", label: "售后审批与退款凭证" },
+    ]
+  },
+  {
+    id: "G4", label: "④ 履约预测与补货 (M5·M6)",
+    pages: [
+      { id: "m5a", label: "商品画像与预测方案" },
+      { id: "m5b", label: "销量预测与缺口测算" },
+      { id: "m5c", label: "预测误差复盘与修正" },
+      { id: "m6a", label: "常规补货测算" },
+      { id: "m6b", label: "智能补货测算" },
+      { id: "m6c", label: "补货审批与下单" },
+      { id: "m6d", label: "到货质检与收货凭证" },
+    ]
+  },
+  {
+    id: "G5", label: "⑤ 经营分析与问数 (M2·M3)",
+    pages: [
+      { id: "m2a", label: "驾驶舱草稿与发布" },
+      { id: "m2b", label: "正式经营大屏浏览" },
+      { id: "m3a", label: "指标口径与定时更新" },
+      { id: "m3b", label: "经营智能问答助手" },
+    ]
+  },
+  {
+    id: "G6", label: "⑥ 组织与权限管理 (M8)",
+    pages: [
+      { id: "m8a", label: "员工名册与岗位授权" },
+      { id: "m8b", label: "岗位权限矩阵与审计" },
+    ]
+  }
+];
 
+const PAGE_FLOW_META = {
+  home: { up: "全平台实时业务流汇总（订单/选品/售后/库存/采购）", upPage: "m0a", cur: "按当前登录岗位自动聚合「今日必办事项」", down: "点击任意待办直达对应业务页处理", downPage: "m0b" },
+  m0a: { up: "跨境电商平台店铺账号与经营性质确认", upPage: "home", cur: "连接店铺、区分实盘与演示测试环境、同步最新订单", down: "订单流入 M0-2 订单台账，实盘营收同步至 M2 大屏", downPage: "m0b" },
+  m0b: { up: "M0-1 同步回来的各店铺订单与供应商最新报价", upPage: "m0a", cur: "核对订单全生命周期、发起带审批的成本变更申请", down: "成本卡供 M4 选品算利润、M6 算采购资金、M2 算毛利", downPage: "m0c" },
+  m0c: { up: "M6-4 仓库到货质检记录（收货不自动改库存）", upPage: "m6d", cur: "人工清点生成正式盘点单，核实分店分仓真实可售数量", down: "实时重算 M5 建议补货量与 M6 理论补货缺口", downPage: "m6b" },
+  m4a: { up: "内部自营销售表、行业参考表与热销公开榜", upPage: "home", cur: "校验文件来源性质，隔离估算数据，防止演示文件混入", down: "清洗后的候选商品进入 M4-2 选品工作台评估", downPage: "m4b" },
+  m4b: { up: "M4-1 导入的候选商品与近2月成交/竞品/供应链数据", upPage: "m4a", cur: "按类目筛选、看系统建议与横向对比，提交优质品送审", down: "送审清单进入 M4-3 由主管终审拍板", downPage: "m4c" },
+  m4c: { up: "M4-2 选品研究员提交的推荐理由与测款预算", upPage: "m4b", cur: "主管核对硬门槛后拍板同意测款、退回补采或淘汰", down: "同意测款的品自动创建 M5 预测任务与 M7 内容制作任务", downPage: "m7a" },
+  m7a: { up: "M4-3 主管批准测款的新品清单（或老品详情升级）", upPage: "m4c", cur: "结合品牌用语规范撰写多版本文案，拦截违禁词与超长字数", down: "选定文案汇入 M7-4 整套上架交付清单", downPage: "m7b" },
+  m7b: { up: "M4 批准商品主信息与 M7-1 文案卖点方向", upPage: "m7a", cur: "提交 1 张白底主图 + 4 张详情附图生成或局部修改任务", down: "套图汇入 M7-4 上架交付清单（未接服务标注演示图）", downPage: "m7c" },
+  m7c: { up: "M7-2 商品主图与产品卖点脚本", upPage: "m7b", cur: "提交短视频分镜、画面生成与合成任务", down: "短视频成片汇入 M7-4 交付清单", downPage: "m7d" },
+  m7d: { up: "M7-1 文案、M7-2 套图、M7-3 视频共 8 类物料", upPage: "m7c", cur: "逐条跑上架合规检查、补齐缺项并由主管批准资料包", down: "导出离线资料包供运营人工上传电商平台后台", downPage: "m0b" },
+  m1a: { up: "各实盘店铺买家消息（及 M1-4 联调测试消息）", upPage: "m1d", cur: "客服接管会话、四要素核验绑单、三项回复检查并建售后单", down: "售后退款工单流转至 M1-3 主管审批", downPage: "m1c" },
+  m1b: { up: "M0-2 在售商品清单与运营整理的本地商品表格", upPage: "m0b", cur: "预览校验并分批建立客服检索索引，拦截重复或演示文件", down: "供 M1-1 智能客服自动推荐本店商品与防串店链接检查", downPage: "m1a" },
+  m1d: { up: "联调测试人员输入的模拟买家咨询或投诉", upPage: "home", cur: "安全模拟买家进线（绝对不向真实平台发消息）", down: "实时推送到 M1-1 客服工作台检验推荐与拦截效果", downPage: "m1a" },
+  m1c: { up: "M1-1 客服核验订单后提交的售后退款工单", upPage: "m1a", cur: "主管填写意见审批（防自批）→ 客服/运营回传手工打款凭证", down: "凭证回填后工单关闭，退款结果同步回 M0-2 订单台账", downPage: "m0b" },
+  m5a: { up: "M0-2 历史已完成订单（排除今日）与 M4 批准的新品", upPage: "m4c", cur: "核对 9 套预测方案的历史天数门槛，维护商品销量特征画像", down: "启用的方案与画像版本供 M5-2 实时计算未来销量", downPage: "m5b" },
+  m5b: { up: "M5-1 生效方案 + M0-3 分店当前可售库存", upPage: "m5a", cur: "计算未来 7/14/30 天销量趋势及扣减当前库存后的补货参考", down: "预测结果解锁 M6-2 智能补货测算，误差流入 M5-3 复盘", downPage: "m6b" },
+  m5c: { up: "M5-2 历史预测记录与 M0-2 实际成交订单明细", upPage: "m5b", cur: "评估预测误差率（WAPE），标记缺货日还原真实需求（保留原单）", down: "误差结论反馈 M5-1 换方案，并给 M6 补货提供安全系数参考", downPage: "m6b" },
+  m6a: { up: "M0-2 成本卡 + M0-3 库存 + 近30天平均日销（无预测时用）", upPage: "m0c", cur: "调整季节/活动系数并对比保守/平衡/积极三方案后提交草案", down: "常规补货草案流入 M6-3 待主管审批下单", downPage: "m6c" },
+  m6b: { up: "M5-2 未来销量预测（无预测拦截）+ M0-3 分店可售库存", upPage: "m5b", cur: "展开核对覆盖天数风险与承运商路线报价，提交智能补货草案", down: "智能补货草案独立流入 M6-3 待主管审批下单", downPage: "m6c" },
+  m6c: { up: "M6-1 常规草案与 M6-2 智能草案（分栏隔离）", upPage: "m6b", cur: "系统核对审批签名一致后，主管填写意见批准并生成采购单号", down: "采购单流转至 M6-4 等待仓库分批验收收货", downPage: "m6d" },
+  m6d: { up: "M6-3 主管批准生成的采购单号", upPage: "m6c", cur: "仓管登记分批实收件数、差异原因、质检单号与签收凭证", down: "凭证留档（不改库存），引导至 M0-3 盘点上架才加库存", downPage: "m0c" },
+  m2a: { up: "M3-1 经营指标口径与 M0 实盘实时汇总数字", upPage: "m3a", cur: "在草稿版增删指标卡片，对比与正式版差异后发布或回滚", down: "发布后的版本同步展示在 M2-2 正式经营大屏", downPage: "m2b" },
+  m2b: { up: "M2-1 已发布的正式版大屏配置与 M0 实时实盘数据", upPage: "m2a", cur: "管理层浏览核心指标、刷新截至时间，点击异常卡片追查原因", down: "异常指标点击后自动带入问题跳至 M3-2 智能问数", downPage: "m3b" },
+  m3a: { up: "内部订单/库存台账与外部广告数据源连接配置", upPage: "m0a", cur: "维护统一经营指标口径、更新频率，对未响应指标手动立即更新", down: "刷新后的稳定指标供 M2 驾驶舱与 M3-2 智能问数共用", downPage: "m3b" },
+  m3b: { up: "M0 实时订单/库存 + M2 异常追问问题 + M3-1 统一口径", upPage: "m2b", cur: "用日常业务语言只读查数（拦截修改删除指令）并附口径说明", down: "问答结论用于辅助运营、选品与管理层拍板决策", downPage: "home" },
+  m8a: { up: "企业组织架构与九大标准业务岗位定义", upPage: "home", cur: "维护员工花名册、邮箱校验、在线调岗与账号停用/启用", down: "岗位变更实时生效，并写入 M8-2 操作审计台账", downPage: "m8b" },
+  m8b: { up: "M8-1 岗位授权分配与全平台各环节操作/拦截事件", upPage: "m8a", cur: "只读核对九大岗位权限边界，用完整中文句子回溯审计记录", down: "为安全复盘与权责划分提供全程留痕依据", downPage: "home" },
+};
+
+const PAGE_META = {
+  home: {
+    title: "我的岗位工作台",
+    subtitle: "按当前登录岗位自动汇总「今日必办事项」、上游流转进来的任务以及一键直达业务处理入口。",
+    blocks: [
+      { color: "#2563eb", title: "按岗位实时计算待办", why: "让每位团队成员一进系统就知道今天要处理哪几件事、谁催着要", rule: "待办列表完全根据订单、工单、选品、库存与采购单的真实状态动态计算", owner: "全体 9 类岗位人员各自查看本岗待办", fix: "可通过左上角切换体验岗位，实时观察不同岗位的待办与权限变化" },
+    ],
+    ledger: [
+      ["岗位动态待办引擎", "实时状态汇总", "每当下游审完工单、盘点完库存或批准选品，首页待办立即同步刷新"],
+    ]
+  },
+  m0a: {
+    title: "店铺授权连接与数据隔离",
+    subtitle: "管理各跨境店铺授权状态、区分真实经营店铺与演示测试环境，随时核对最近同步时间与异常情况。",
+    blocks: [
+      { color: "#2563eb", title: "店铺连接状态巡检", why: "让管理者一眼掌握各站点连接是否正常、凭证是否过期", rule: "仅管理员或主管可连接、重连或断开店铺", owner: "大屏浏览者 / 管理者、主管 / 审批人", fix: "若显示凭证过期或同步失败，点击「重新授权」恢复连接" },
+      { color: "#10b981", title: "实盘店铺与演示环境严格隔离", why: "防止测试或演示用的模拟订单混入真实经营营收与利润报表", rule: "演示店铺永远标明「仅限演示不计营收」，绝不计入实盘销售额", owner: "全体运营与财务核对人员", fix: "若需新开实盘店铺，授权时务必确认选择「实盘经营店铺」" },
+    ],
+    ledger: [
+      ["3 家已接入店铺", "演示示例数据", "泰国虾皮主店、美国 TikTok 为实盘店；亚马逊演示店仅用于测试"],
+      ["跨店数据隔离规则", "管理制度规则", "实盘订单与演示订单分库核算，避免误导经营决策"],
+    ]
+  },
+  m0b: {
+    title: "商品档案、成本变更与订单台账",
+    subtitle: "统一维护主商品资料、各店铺上架编号、带审批记录的成本变更申请，以及全生命周期可点开查看的订单台账。",
+    blocks: [
+      { color: "#2563eb", title: "一货多店统一管理", why: "解决同一款商品在不同国家店铺编号不同、容易对账混乱的问题", rule: "同款商品关联唯一内部商品编码，支持按店铺、状态和日期筛选订单", owner: "业务运营、仓库采购人员", fix: "若某店铺缺上架编号，请在商品详情中核对是否已上架该店" },
+      { color: "#7c3aed", title: "成本变更申请与影响范围提示", why: "防止随意修改采购价或头程运费导致毛利报表和补货预算突然跳变", rule: "修改成本必须填写生效时间与业务原因，并记录审批历史与旧版本", owner: "业务运营发起，主管 / 审批人把关", fix: "发现利润异常时，可点开成本变更历史追溯哪天调过价" },
+    ],
+    ledger: [
+      ["4 款示例商品 / 订单台账", "演示示例数据", "演示常规款、季节扇、瑜伽垫、面霜的成本与订单流转"],
+      ["订单防重入账机制", "管理制度规则", "重复同步同一笔外部订单会自动拦截，确保营收不虚增"],
+    ]
+  },
+  m0c: {
+    title: "分店分仓独立库存与人工盘点",
+    subtitle: "按真实仓库与店铺口径查看当前可售库存与安全水位，生成正式盘点单并实时联动补货缺口测算。",
+    blocks: [
+      { color: "#f59e0b", title: "分店分仓独立台账", why: "美国海外仓的货不能直接发泰国本地订单，必须按仓库分开看", rule: "同一商品在不同店铺与物理仓的库存严格独立统计", owner: "采购 / 仓库 / 物流人员", fix: "遇到某个仓低于安全库存标红预警时，尽快发起盘点或补货" },
+      { color: "#10b981", title: "收货不改库存，盘点才改库存", why: "避免刚卸货未上架、或未清点残次品就虚增可售数量导致超卖", rule: "仓库收货登记只留收货凭证，必须由仓管在盘点页确认生成盘点单才更新库存", owner: "采购 / 仓库 / 物流人员（大额调整须二次确认并填原因）", fix: "盘点调整保存后，可直接在盘点单上看到 M5/M6 建议补货量的联动变化" },
+    ],
+    ledger: [
+      ["美西仓 18 件 / 曼谷仓 43 件", "演示示例数据", "展示低于安全库存时的红字预警与补货缺口联动"],
+      ["盘点单唯一改库存红线", "管理制度规则", "所有补货缺口与覆盖天数均随本次盘点结果实时重算"],
+    ]
+  },
+  m1a: {
+    title: "客服会话工作台与售后建单",
+    subtitle: "显示当前接待人与接管时间，支持并排核对买家与候选订单四要素、逐项检查回复合规性并一键转入售后审批。",
+    blocks: [
+      { color: "#2563eb", title: "人工接管留痕与四要素核验绑单", why: "避免客服接错订单或未经核实就把甲买家的退款退到乙订单上", rule: "人工接管记录接待人及时间；绑定订单必须勾选核对买家、金额、商品、时间四项一致", owner: "客服人员", fix: "若无法确认订单归属，先向买家追问订单号后再勾选确认" },
+      { color: "#10b981", title: "回复内容自动三项合规检查", why: "防止跨店发错链接、中英文报价不一致或 AI 越权承诺直接退款", rule: "发送前逐项校验：金额与订单一致、使用本店链接、中英文数字一致；不通过禁用发送", owner: "客服人员", fix: "系统标红不合规句段时，直接按提示修改数字或替换本店链接即可" },
+    ],
+    ledger: [
+      ["接待人状态 / 示例订单", "演示示例数据", "展示售后投诉接管与中英文核对检查效果"],
+      ["禁止越权承诺退款红线", "管理制度规则", "所有赔付或退款必须走 M1-3 主管审批并回传凭证"],
+    ]
+  },
+  m1b: {
+    title: "客服导购在售商品库",
+    subtitle: "供客服快速检索本店在售商品卖点与价格，支持上传表格预览前 10 行、分批建立检索索引并提示失败原因。",
+    blocks: [
+      { color: "#2563eb", title: "与选品分析严格区分", why: "客服只能推荐当前店铺已经上架在售的商品，不能把还在评估中的选品拿去推销", rule: "本商品库只收录各实盘店铺已上架商品，按店铺隔离链接", owner: "业务运营维护，客服查询使用", fix: "需要评估未采购新品请前往 M4 选品分析中心" },
+      { color: "#10b981", title: "表格预览与失败行明细定位", why: "防止错把测试演示表格导进客服真实推荐库", rule: "上传前先预览前 10 行；含演示标识或编码重复的行自动拦截并写明业务原因", owner: "业务运营", fix: "下载失败原因提示后，修正商品编码或更换正式在售清单重新导入" },
+    ],
+    ledger: [
+      ["本店在售导购示例清单", "演示示例数据", "展示商品图片、所属店铺与客服可用状态"],
+      ["演示文件拦截规则", "管理制度规则", "文件名或内容含测试演示标识时禁止导入正式客服库"],
+    ]
+  },
+  m1c: {
+    title: "售后工单审批与退款凭证闭环",
+    subtitle: "严格落实提交人与审批人分离，强制填写审批意见并校验退款上限，主管批准后必须上传手工退款凭证才可结案。",
+    blocks: [
+      { color: "#f59e0b", title: "提交人不得自批（职责分离）", why: "防范同一名员工既建退款单又自己批准造成资金漏洞", rule: "客服提交的售后工单必须由主管 / 审批人审批，系统自动禁止本人自批", owner: "客服建单，主管 / 审批人终审", fix: "若按钮提示权限不足，需切换至主管账号或请主管登录审批" },
+      { color: "#2563eb", title: "凭证上传后方能正式结案", why: "系统内审批通过不等于平台已经打款，必须留存银行或平台后台打款截图凭证", rule: "批准后状态变为「待上传退款凭证」，上传真实打款流水后工单状态才关闭", owner: "主管审批，客服 / 运营回传凭证", fix: "若平台打款失败，请在凭证备注写明原因并联系财务核对" },
+    ],
+    ledger: [
+      ["售后示例工单", "演示示例数据", "展示退款金额不得超过原订单实付金额的校验"],
+      ["人工退款凭证闭环规则", "管理制度规则", "不虚构平台自动退款到账，每笔赔付有据可查"],
+    ]
+  },
+  m1d: {
+    title: "买家咨询与售后联调模拟入口",
+    subtitle: "仅用于内部联调测试的模拟买家入口（不会向真实电商平台发送任何消息），发出后可直达客服工作台查看处理结果。",
+    blocks: [
+      { color: "#2563eb", title: "安全可控的内部联调测试台", why: "上线前测试关键词拦截、商品推荐话术是否准确，无需用真实买家号反复下单测试", rule: "本页发出的全部消息均标为模拟联调消息，与真实营收与实盘订单完全隔离", owner: "买家（模拟测试）与客服协同联调", fix: "发送消息后可点击「前往客服工作台查看处理结果」验证响应" },
+    ],
+    ledger: [
+      ["模拟测试入口说明", "管理制度规则", "仅作为客服规则与话术联调工具，不产生真实外部消息"],
+    ]
+  },
+  m2a: {
+    title: "经营驾驶舱草稿编排与正式发布",
+    subtitle: "支持在草稿版自由增删调整指标卡片，发布前并排对比草稿与正式版差异，并随时支持一键恢复上一正式版本。",
+    blocks: [
+      { color: "#2563eb", title: "草稿版与正式版双轨隔离", why: "运营调整大屏布局时，不能让正在看大屏的老板看到半成品或乱码", rule: "所有修改先保存在草稿版，只有经确认发布后才同步至正式大屏", owner: "驾驶舱设计者 / 业务运营", fix: "若误发布错误布局，可点击「恢复上一正式版」秒级回滚" },
+      { color: "#7c3aed", title: "指标来源与更新时间透明可见", why: "保证驾驶舱看到的数字和智能问数查出来的数字完全是一个口径", rule: "每张卡片标明统计口径与更新时间，数据只读引用实时经营台账", owner: "业务运营与数据分析人员共同核对", fix: "发现数字滞后可先前往 M3-1 刷新对应经营指标" },
+    ],
+    ledger: [
+      ["近30天营收与利润示例", "演示示例数据", "同步实盘订单变化实时重算"],
+      ["发布前差异对比机制", "管理制度规则", "防止误操作覆盖正式经营大屏"],
+    ]
+  },
+  m2b: {
+    title: "正式经营大屏浏览与异常下钻",
+    subtitle: "面向管理层展示已正式发布的经营驾驶舱，支持一键刷新最新数字、核对数据截至时间，并点击异常指标直接追问原因。",
+    blocks: [
+      { color: "#2563eb", title: "数据截至时间与手动刷新", why: "管理层开会看数时必须知道这份数据截至到几点几分、是不是最新", rule: "顶部显式标注「数据截至时间」，点击「刷新数据」立即拉取最新实盘汇总", owner: "大屏浏览者 / 管理者、主管", fix: "若某项核心指标变红预警，直接点击该卡片跳转智能问数追查明细" },
+    ],
+    ledger: [
+      ["正式大屏核心指标", "实时汇总计算", "随 M0 订单同步、M0-3 盘点库存动态更新"],
+    ]
+  },
+  m3a: {
+    title: "经营指标口径与定时更新管理",
+    subtitle: "集中查看各核心指标的业务口径、更新频率、最近成功时间与下次更新时间，支持对未响应指标一键立即更新。",
+    blocks: [
+      { color: "#2563eb", title: "统一指标口径字典", why: "避免业务部门和财务部门对「净利率」「广告费占比」算法理解不一致", rule: "每项指标明确写清业务计算口径与货币单位，供驾驶舱与智能问数共用", owner: "数据分析 / BI 人员", fix: "需要新增指标时需保证指标名称与口径清晰不重名" },
+      { color: "#10b981", title: "未连接外部数据源诚实告警", why: "未接入外部广告后台时如实提示未响应，绝不假装拉取成功给假数据", rule: "外部接口未连接时状态标记为「数据源未响应」，并提供「立即更新/重试」入口", owner: "数据分析 / BI 人员、系统管理员", fix: "请联系管理员配置外部数据源地址后再点「立即更新」" },
+    ],
+    ledger: [
+      ["内置汇总与外部广告指标", "演示示例数据", "内置汇总可演示立即更新；未配外部地址的指标保持诚实失败提示"],
+    ]
+  },
+  m3b: {
+    title: "经营智能问答助手（只读查数）",
+    subtitle: "用日常业务问题查询营收、利润、广告花费与库存预警，自动附带统计口径与计算依据，严禁任何修改数据的危险指令。",
+    blocks: [
+      { color: "#f59e0b", title: "严格只读查数、多币种不混加", why: "防止问答助手误删订单或把美元与泰铢直接相加得出错误总额", rule: "仅做实时汇总查询；遇到修改、删除、调价等指令立即拦截并记入审计日志", owner: "管理层、运营、数据分析均可提问", fix: "若对答案有疑问，可点「没帮助」反馈并查看下方「统计口径说明」" },
+    ],
+    ledger: [
+      ["问答实时汇总引擎", "实时计算", "直接读取当前平台实盘订单、广告与库存台账现场计算"],
+      ["只读安全守卫", "管理制度规则", "任何尝试改动业务数据的语句都会被拦截并留痕"],
+    ]
+  },
+  m4a: {
+    title: "候选选品多源导入与质量校验",
+    subtitle: "支持从本地表格选择导入候选商品（预览前 10 行），严格区分内部实盘、行业估算、公开观察与演示数据，不伪造缺失成本。",
+    blocks: [
+      { color: "#2563eb", title: "四大来源性质清晰隔离", why: "外面买来的行业估算数据不能当成公司实际赚到的利润，否则容易误判投产", rule: "内部实盘选品才可作为测款批准依据；外部数据只能辅助观察或提示补全成本", owner: "选品研究员", fix: "若文件含测试演示字样却选了正式来源，系统会自动拦截提示更正" },
+      { color: "#10b981", title: "参考报价先核实再正式投产", why: "如果只是外购估算的参考价格，直接按最终毛利拍板容易误判真实利润", rule: "外购估算品保持「临时待核价」状态，核实正式采购与头程报价后再进入投产审批", owner: "选品研究员、采购人员", fix: "请向供应商核价并复核正式采购与物流报价后再送审" },
+    ],
+    ledger: [
+      ["10,000 条行业参考 / 6 款实盘选品", "演示示例数据", "演示多来源入库校验与失败行原因定位"],
+    ]
+  },
+  m4b: {
+    title: "选品工作台与决策推荐",
+    subtitle: "围绕选品员「挑出能卖、赚钱、风险可控的商品」目标设计：按类目/价格带/风险多维筛选，看系统直接建议与竞品供应链详情，并支持横向对比和批量送审。",
+    blocks: [
+      { color: "#2563eb", title: "系统主动给出明确结论，不甩计算过程", why: "一线选品员需要知道「该投产还是放弃」以及竞品、MOQ、侵权情况，而不是自己算权重", rule: "卡片正面只保留系统建议徽章、一句话理由与 4 个业务指标；底层依据、竞争度、供应链与风险核查收入展开区", owner: "选品研究员", fix: "勾选「只看可投产」可一键筛掉临时待核价、利润低于 10% 或外购估算品" },
+      { color: "#10b981", title: "横向并排对比与批量送审", why: "面对多款同类商品时，选品员需要并排对比近2月销售额、增速、竞品数、采购价来拍板取舍", rule: "勾选 2~4 款可开启横向对比表；批量提交待审须统一填写推荐理由与测款预算", owner: "选品研究员提交，主管终审", fix: "选中商品后在上方批量操作栏直接点击「横向对比」或「批量送审」" },
+    ],
+    ledger: [
+      ["6 款示例候选商品", "演示示例数据", "含类目、价格带、竞品数、MOQ交期、侵权认证与系统建议"],
+    ]
+  },
+  m4c: {
+    title: "主管测款终审拍板",
+    subtitle: "主管核验实盘利润率（≥10% 门槛）与佐证材料后拍板同意测款、补采或淘汰；同意测款后自动为下游创建预测与内容任务。",
+    blocks: [
+      { color: "#7c3aed", title: "纯内部实盘 + 利润率 ≥10% 硬门槛", why: "守住公司现金流底线，不把外购估算品或亏损品放行测款", rule: "未满足利润率 ≥10% 或缺少成本的候选款，系统禁用「同意测款」按钮", owner: "主管 / 审批人（不可自审本人提交的单）", fix: "遇到利润缺失款可拍板「退回补采成本与核价」" },
+      { color: "#10b981", title: "批准后自动联动下游 M5 与 M7", why: "选品确定要测款后，销量预测与主图文案团队无需二次口头传话即可接手", rule: "点击同意测款并填写意见后，立即创建 M5 预测队列与 M7 内容制作任务", owner: "主管 / 审批人", fix: "批准后可在页面顶部看到已生成的下游任务数量并一键跳转查看" },
+    ],
+    ledger: [
+      ["测款审批流转记录", "实时业务状态", "批准后立即在 M5-1 与 M7-1 可见该新品任务"],
+    ]
+  },
+  m5a: {
+    title: "商品销量特征画像与预测方案",
+    subtitle: "用运营能看懂的业务语言说明 9 套预测方案适用哪种商品，自动核验当前历史销售天数是否达标，并记录画像变更历史。",
+    blocks: [
+      { color: "#2563eb", title: "按商品特性自动匹配方案", why: "销量平稳的爆款和经常几天零单的长尾款，需要用不同的测算方法才能算准", rule: "系统根据商品可用历史天数自动标记「天数足够可使用」或「天数不足提示」，禁止对长周期方案硬算", owner: "业务运营、数据分析人员", fix: "新品历史天数不足 30 天时，可先选用「新品快速估算方案（≥8天）」" },
+      { color: "#10b981", title: "方案启停与画像调整全留痕", why: "避免有人悄悄关掉某个方案或改了销量规律设置，导致后面预测数值突然大变却找不到原因", rule: "修改商品特征或启停方案必须填写业务依据，并保存版本变更记录", owner: "业务运营、数据分析人员", fix: "可在页面下方变更记录查看是谁在什么时候修改了方案" },
+    ],
+    ledger: [
+      ["96 天历史订单样本", "演示示例数据", "已自动剔除当日未完结订单，保证历史基线准确"],
+    ]
+  },
+  m5b: {
+    title: "销量预测执行与补货参考",
+    subtitle: "基于历史日销量实时计算未来 7/14/30 天预测曲线，明确列出所用时间区间、耗时与关联 M0-3 最新库存后的建议补货量。",
+    blocks: [
+      { color: "#2563eb", title: "真实运算与库存实时联动", why: "仓管刚刚盘点修正完库存，预测页和补货参考量必须立刻同步跟着变", rule: "每次执行预测均实时读取 M0-3 当前可售库存：建议补货量 = 预测总量 + 安全库存 − 当前可售", owner: "业务运营、供应链参考", fix: "如果发现建议补货量异常，请先核对 M0-3 最新盘点库存是否正确" },
+      { color: "#f59e0b", title: "如实声明误差区间含义", why: "提醒管理者任何预测都存在波动区间，浅蓝阴影是根据历史偏差推算的参考波动带，不是绝对保底承诺", owner: "业务运营", rule: "页面显著标明「历史波动参考带（不代表绝对置信保证）」", fix: "大促前建议结合 M5-3 回测误差率手工微调补货安全天数" },
+    ],
+    ledger: [
+      ["逐日预测曲线与耗时", "实时运算结果", "切换不同预测方案与预测天数可即时重新演算曲线"],
+    ]
+  },
+  m5c: {
+    title: "预测误差率（WAPE）复盘与缺货修正",
+    subtitle: "用大白话解读预测准不准（WAPE=预测误差率），支持标记缺货日并填写原因修正参考销量，同时永久保留原始订单数字。",
+    blocks: [
+      { color: "#7c3aed", title: "什么是预测误差率（WAPE）与缺货日修正", why: "如果某天商品断货了只卖出 0 件，不代表买家不想买；直接拿 0 件去算准度会误判模型，需要标注「缺货日」还原真实需求", rule: "修正参考值必须填写原因，系统永久保留「原始订单实销」供财务和审计核对，不篡改订单事实", owner: "业务运营、数据分析人员", fix: "误差率 ＞20% 时建议回 M5-1 更换更适合该商品波动规律的方案" },
+    ],
+    ledger: [
+      ["预测误差率评级参考", "管理经验标准", "≤5% 极准 / 5%~10% 优秀 / 10%~20% 良好 / ＞30% 需调优"],
+    ]
+  },
+  m6a: {
+    title: "常规补货测算（经验系数调整）",
+    subtitle: "无预测模型数据时用近 30 天日均销量作为参考基线，提交前展示完整参数快照与保守/平衡/激进三方案对比。",
+    blocks: [
+      { color: "#2563eb", title: "先看依据与三方案对比再提交", why: "防止拍脑袋调高淡旺季系数，把不合理的采购数量直接发去审批", rule: "所有非零季节或活动调整必须填写报表/活动依据；缺少成本卡的商品禁止提交补货", owner: "业务运营、采购人员", fix: "提交前会在确认窗口完整展示日均需求、交期、安全库存与三套方案对比" },
+    ],
+    ledger: [
+      ["常规补货独立计划池", "管理制度规则", "与 M6-2 智能补货计划彻底分开排队，互不混淆"],
+    ]
+  },
+  m6b: {
+    title: "智能补货测算（预测驱动与物流分配）",
+    subtitle: "强制引用 M5 已完成的未来预测结果计算补货缺口，点击「覆盖天数不足」或「路线报价」可展开查看详细依据与承运商单价。",
+    blocks: [
+      { color: "#ef4444", title: "缺销量预测严禁强行测算", why: "既然走智能补货分支，就必须依据科学预测结果，不能在没有预测时悄悄退回拍脑袋算法", rule: "若所选商品尚未在 M5 完成销量预测，页面立即拦截并引导前往 M5 执行预测", owner: "业务运营", fix: "点击错误卡片上的「前往 M5 完成预测」即可快速补齐" },
+      { color: "#2563eb", title: "可展开的覆盖预警与物流报价明细", why: "让供应链主管看清为什么系统说库存不够用，以及海运和空运到底差多少钱", rule: "点击风险标签查看所引用的预测版本与逐日需求；点击路线查看承运商与分仓比例", owner: "业务运营、物流人员", fix: "覆盖天数小于物流运输周期时，建议适当提高空运比例防断货" },
+    ],
+    ledger: [
+      ["多仓覆盖天数与路线报价", "实时联动计算", "随 M0-3 库存盘点与 M5 预测刷新同步重算"],
+    ]
+  },
+  m6c: {
+    title: "补货审批、签名核对与采购下单",
+    subtitle: "主管审批前系统自动核对计划提交时的测算快照签名是否一致，填写意见批准后立即生成采购单号并流转到收货登记。",
+    blocks: [
+      { color: "#2563eb", title: "防篡改快照核对与职责分离", why: "防止提交审批之后有人在后台改动商品成本或参数，导致主管批准的金额和实际下单金额不一致", rule: "审批页显式展示「签名核对：一致 / 不一致」；提交人与审批人不可为同一人；审批意见必填", owner: "主管 / 审批人", fix: "若签名提示不一致，请驳回计划并要求运营按最新库存重新测算提交" },
+    ],
+    ledger: [
+      ["常规计划与智能计划分栏审批", "管理制度规则", "审批通过后生成正式采购单号并进入 M6-4 待收货列表"],
+    ]
+  },
+  m6d: {
+    title: "到货质检与分批收货凭证登记",
+    subtitle: "通过完整表单登记每批次实收数量、短装/破损差异原因、质检单号与凭证附件；严守「收货登记不自动改库存」安全红线。",
+    blocks: [
+      { color: "#ef4444", title: "收货登记不自动加库存", why: "货车刚拉到仓库门口时可能还没清点完残次品，直接自动加进可售库存会导致线上超卖发不出货", rule: "分批收货与质检记录仅存入履约台账；实际可售数量必须由仓管去 M0-3 盘点校准", owner: "采购 / 仓库 / 物流人员", fix: "登记完最后一笔收货后，点击页面按钮直达 M0-3 录入盘点单" },
+    ],
+    ledger: [
+      ["分批收货与差异台账", "实时业务记录", "支持部分收货状态跟踪，直到累计实收达到采购总量"],
+    ]
+  },
+  m7a: {
+    title: "多语言商品文案创作与用语检查",
+    subtitle: "直接承接 M4 主管同意测款的新品与在售老品，生成差异化版本文案，实时高亮品牌必用词并拦截平台违禁词与超长标题。",
+    blocks: [
+      { color: "#2563eb", title: "承接 M4 批准新品与品牌规范检查", why: "避免文案团队给未通过审核的新品白费力气写详情页，同时防范写错违禁词导致店铺被罚", rule: "优先展示 M4 主管已同意测款商品；含禁用词或超过目标平台字数上限的草稿禁止写入交付清单", owner: "内容创作 / 审核人员", fix: "被标红拦截的草稿请删除违禁词或精简字符后再选用" },
+    ],
+    ledger: [
+      ["Amazon / Shopee / TikTok 字符上限", "平台规则参考", "实时校验标题与五点描述的规范命中情况"],
+    ]
+  },
+  m7b: {
+    title: "商品主图与 1 大 4 小套图制作",
+    subtitle: "提交「1 张白底主图 + 4 张详情附图」生成任务，展示排队到生成的真实进度过程；未接入专业绘图服务时诚实标为「演示图」。",
+    blocks: [
+      { color: "#2563eb", title: "5 张标准套图与局部重绘", why: "一张一张改图不能把之前已经合格的 4 张图全推翻重做", rule: "支持针对选中图位单独发起局部修改，保留其余 4 张合格图片不变", owner: "内容创作 / 审核人员", fix: "未连接专业绘图服务时页面显示为「演示图，非真实生成」，不可冒充成品直接上架" },
+    ],
+    ledger: [
+      ["5 项套图位状态", "实时交互状态", "与 M7-4 上架交付清单实时同步就绪状态"],
+    ]
+  },
+  m7c: {
+    title: "商品短视频分镜与合成制作",
+    subtitle: "展示视频制作从「分镜准备 → 画面生成 → 成片合成」的进度与阶段日志；未配置视频生成节点时如实报错，不造假文件。",
+    blocks: [
+      { color: "#f59e0b", title: "未配置生成节点时绝不伪造成功", why: "如果后台根本没连视频生成机器，系统必须老实告诉员工失败原因，不能给一个打不开的空文件", rule: "默认状态为未配置视频服务并演示真实报错与排查指引；切换模拟已配置状态可体验完整制作进度", owner: "内容创作 / 审核人员", fix: "报错时可点击「切换模拟节点体验」或联系系统管理员接入视频服务" },
+    ],
+    ledger: [
+      ["四大电商短视频脚本类型", "运营经验模板", "产品展示、开箱测评、场景种草、卖点快剪"],
+    ]
+  },
+  m7d: {
+    title: "上架前 8 项交付清单与合规把关",
+    subtitle: "汇总文案、套图、A+ 图文与短视频共 8 类上架资产，逐条核验合规规则并给出缺项原因，主管批准后生成离线导出资料包。",
+    blocks: [
+      { color: "#2563eb", title: "8 类交付物缺项一键直达补齐", why: "让上架负责人一眼看出「8 件套还差哪一件、为什么没通过」，点一下直接跳去补齐", rule: "全部合规规则校验通过并由主管 / 审批人签字批准后，才解锁离线资料包导出", owner: "内容创作人员自检，主管最终批准", fix: "导出资料包后由运营人工上传平台后台，系统绝不擅自改写线上在售店铺" },
+    ],
+    ledger: [
+      ["8 类上架交付清单", "实时联动核对", "缺项实时标黄提示，补齐后立即变绿"],
+    ]
+  },
+  m8a: {
+    title: "员工名册与九大业务岗位授权",
+    subtitle: "管理在职员工、企业邮箱、所属岗位与负责店铺范围；严格校验工号唯一与邮箱格式，调岗与停用均须二次确认并记入审计。",
+    blocks: [
+      { color: "#f59e0b", title: "组织授权隔离与变更留痕", why: "不能让普通客服或选品员自己给自己开通「主管审批」或「大屏管理」权限", rule: "仅大屏浏览者 / 管理者与主管 / 审批人可新增员工、调岗或停用账号，且每笔变更自动写入审计台账", owner: "大屏浏览者 / 管理者、主管 / 审批人", fix: "若遇到按钮禁用，请核对左上角当前登录岗位是否具备组织管理权限" },
+    ],
+    ledger: [
+      ["九大业务岗位体系", "企业管理制度", "覆盖审批、管理、运营、分析、选品、内容、仓管、客服与联调测试"],
+    ]
+  },
+  m8b: {
+    title: "岗位权限矩阵（只读）与操作审计台账",
+    subtitle: "只读核对九大岗位对各业务模块的操作权限边界，下方用管理层看得懂的自然语言实时记录所有关键审批、变更与越权拦截事件。",
+    blocks: [
+      { color: "#2563eb", title: "只读权限核对与越权自动留痕", why: "严禁在业务表内直接点击切换角色绕过控制；所有角色体验切换统一由左上角岗位选择器完成", rule: "权限矩阵仅供核对当前登录岗位权限边界；任何无权操作都会被拦截并作为审计事件记录在案", owner: "系统管理者、主管 / 审批人审计复核", fix: "若员工反馈某按钮灰色不可点，可在上表查明该按钮具体需要哪个岗位权限" },
+    ],
+    ledger: [
+      ["审计台账实时保存", "本地实时记录", "用完整中文句子记录「谁在何时对哪张单据做了什么」"],
+    ]
+  }
+};
+
+// ===== pages_m0_m3.js =====
 function daysUntilDateStr(dateStr) {
   if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return 999;
   const target = new Date(dateStr + "T00:00:00");
@@ -3555,73 +3697,396 @@ function renderM0_M3(pageId, state, helpers) {
   }
 
   // ==================== M1-1: 客服会话、四要素核验绑单、三项回复检查 ====================
+  // ==================== M1 公共辅助：图片放大 & 拼多多式买家售后申请弹窗 ====================
+  const openEvidenceLightbox = (photo) => {
+    const src = photo.dataUrl || getEvidenceImg(photo.kind || "scratch", photo.label || "买家实拍凭证");
+    openModal(`买家实拍凭证放大预览 · ${photo.label || "证据图片"}`, `
+      <div style="text-align:center;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+        <img src="${src}" style="max-width:100%;max-height:360px;border-radius:8px;border:1px solid #cbd5e1;" alt="${photo.label}"/>
+        <div style="font-size:12.5px;color:var(--text-soft);margin-top:8px;">文件名：<strong>${photo.label}</strong>（已与当前订单与会话归档关联）</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="btn btn-primary" id="closeLightBoxBtn">关闭预览</button>
+      </div>
+    `, (root) => {
+      root.querySelector("#closeLightBoxBtn").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+    });
+  };
+
+  const openBuyerAfterSalesForm = (targetSess, onDone) => {
+    const linkedOrd = state.orders.find(o => o.orderNo === targetSess.linkedOrder) || state.orders.find(o => o.shop === targetSess.shop) || state.orders[0];
+    const presetAmt = targetSess.buyerAfterSales?.amountUsd || linkedOrd?.amountUsd || 29.90;
+    let draftPhotos = [...(targetSess.buyerAfterSales?.photos || [{ kind: "scratch", label: "商品破损实拍.jpg" }])];
+
+    openModal(`买家端售后申请清单（拼多多式）· ${targetSess.shop}`, `
+      <div class="buyer-notice-strip">
+        <strong>🤖 智能客服</strong>负责解答尺码材质、使用说明/故障自检与物流进度；<strong>🧑 申请退换货或理赔</strong>请填写下方清单并上传问题实拍，提交后将自动转入人工客服优先处理。
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>1. 售后类型 *</label>
+          <select id="pddType" class="select">
+            <option>仅退款（不退货）</option>
+            <option>部分补偿（安抚留货）</option>
+            <option>退货退款（退回海外仓）</option>
+            <option>换货 / 补发配件</option>
+          </select>
+        </div>
+        <div class="field"><label>2. 货物状态 *</label>
+          <select id="pddGoods" class="select">
+            <option>已收到货（已拆封验货）</option>
+            <option>未收到货（在途/疑丢件）</option>
+            <option>已拒收退回中</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>3. 申请原因 *</label>
+          <select id="pddReason" class="select">
+            <option>商品破损或划痕</option>
+            <option>功能故障不能用</option>
+            <option>发错货或尺码不符</option>
+            <option>少件漏发</option>
+            <option>物流超期未送达</option>
+            <option>个人原因不想要</option>
+          </select>
+        </div>
+        <div class="field"><label>4. 申请退款/补偿金额 (USD) *</label>
+          <input id="pddAmt" type="number" step="0.01" class="input" value="${presetAmt}"/>
+        </div>
+      </div>
+      <div class="field"><label>5. 问题补充说明 *</label>
+        <textarea id="pddNote" class="textarea" placeholder="请描述商品哪里破损、少发了什么配件或希望怎么处理...">${targetSess.buyerAfterSales?.note || "外箱挤压变形，拆封发现商品有明显划痕，希望尽快退款处理。"}</textarea>
+      </div>
+      <div class="field">
+        <label>6. 上传问题实拍照片（破损/错漏发必传 ≥1 张，最多 3 张）*</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;" id="pddPhotoList"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-sm" id="pddAddScratch">+ 附带「商品划痕特写.jpg」</button>
+          <button type="button" class="btn btn-sm" id="pddAddBox">+ 附带「外箱破损+快递面单.jpg」</button>
+          <label class="btn btn-sm" style="cursor:pointer;">📁 选本地图片<input type="file" accept="image/*" id="pddLocalFile" style="display:none;"/></label>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+        <button class="btn" id="pddCancel">取消</button>
+        <button class="btn btn-danger" id="pddSubmit">提交售后申请并转人工客服 →</button>
+      </div>
+    `, (root) => {
+      const renderPhotos = () => {
+        const box = root.querySelector("#pddPhotoList");
+        if (!draftPhotos.length) {
+          box.innerHTML = `<span style="font-size:12px;color:var(--red-text);">暂未上传问题实拍图（破损/故障/错漏发退款必须上传至少 1 张）</span>`;
+          return;
+        }
+        box.innerHTML = draftPhotos.map((ph, i) => `
+          <div class="evidence-thumb-wrap" style="position:relative;">
+            <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" class="evidence-thumb-img" alt="${ph.label}"/>
+            <span style="font-size:11px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ph.label}</span>
+            <button type="button" class="pdd-del-ph" data-i="${i}" style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;border:none;background:#ef4444;color:#fff;font-size:11px;cursor:pointer;line-height:1;">×</button>
+          </div>
+        `).join("");
+        box.querySelectorAll(".pdd-del-ph").forEach(b => b.onclick = () => {
+          draftPhotos.splice(Number(b.dataset.i), 1);
+          renderPhotos();
+        });
+      };
+      renderPhotos();
+
+      root.querySelector("#pddAddScratch").onclick = () => {
+        if (draftPhotos.length >= 3) { toast("最多上传 3 张凭证照片", "warn"); return; }
+        draftPhotos.push({ kind: "scratch", label: "商品划痕特写.jpg" });
+        renderPhotos();
+      };
+      root.querySelector("#pddAddBox").onclick = () => {
+        if (draftPhotos.length >= 3) { toast("最多上传 3 张凭证照片", "warn"); return; }
+        draftPhotos.push({ kind: "box", label: "外箱破损+快递面单.jpg" });
+        renderPhotos();
+      };
+      root.querySelector("#pddLocalFile").onchange = (e) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+        if (draftPhotos.length >= 3) { toast("最多上传 3 张凭证照片", "warn"); return; }
+        draftPhotos.push({ kind: "scratch", label: f.name });
+        renderPhotos();
+      };
+      root.querySelector("#pddCancel").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+      root.querySelector("#pddSubmit").onclick = () => {
+        const type = root.querySelector("#pddType").value;
+        const goods = root.querySelector("#pddGoods").value;
+        const reason = root.querySelector("#pddReason").value;
+        const amt = Number(root.querySelector("#pddAmt").value);
+        const note = root.querySelector("#pddNote").value.trim();
+        const needPhoto = ["商品破损或划痕", "功能故障不能用", "发错货或尺码不符", "少件漏发"].includes(reason);
+        if (!note) { toast("请填写问题补充说明", "error"); return; }
+        if (!(amt > 0)) { toast("请填写有效的申请金额", "error"); return; }
+        if (needPhoto && draftPhotos.length === 0) { toast("所选原因属于破损/故障/错漏发，必须附带至少 1 张买家问题实拍图", "error"); return; }
+
+        targetSess.buyerAfterSales = {
+          submitted: true, afterSalesType: type, goodsStatus: goods, reasonCategory: reason,
+          amountUsd: amt, note, photos: draftPhotos, submittedAt: nowDateTimeStr()
+        };
+        targetSess.bizType = "售后退换赔";
+        targetSess.intent = `${reason} · 申请${type} $${amt.toFixed(2)}`;
+        targetSess.status = "待人工接管";
+        targetSess.serviceMode = "WAIT_HUMAN";
+        targetSess.handoffReason = `买家主动提交「${type}」申请（${reason}，${draftPhotos.length}张实拍图），已自动停用AI并转人工处理`;
+        state.csTakeoverMap[targetSess.id] = { who: "待客服接管", at: "刚刚提交申请" };
+        targetSess.msgs.push({
+          who: "buyer",
+          text: `[After-Sales Request] ${type} ($${amt.toFixed(2)}) · ${reason}. ${note}`,
+          trans: `买家提交售后清单：${type} · ${goods} · 附 ${draftPhotos.length} 张实拍图`
+        });
+        targetSess.msgs.push({
+          who: "ai",
+          text: "熔断通知：收到买家退换货清单与凭证照片，智能客服已停言，正在排队等待人工客服接管。",
+          trans: "已进入 M1-1 店铺待人工接管队列"
+        });
+        appendAuditLog(state, { sentence: `买家「${targetSess.buyer}」提交了「${type}」申请（$${amt.toFixed(2)}，${draftPhotos.length}张图），会话已转入待人工队列`, ok: true });
+        document.getElementById("modalRoot").innerHTML = "";
+        if (onDone) onDone();
+        else rerender();
+        toast("已提交买家售后清单并自动转人工队列", "success");
+      };
+    });
+  };
+
+  // ==================== M1-1: 多店铺客服分流调度台 & 人工接待工作台 (Option A 两页式) ====================
   if (pageId === "m1a") {
-    const canCs = state.role === "cs" || state.role === "approver";
+    const canCs = state.role === "cs";
+    const isApproverReadonly = state.role === "approver";
+    const viewMode = state.csViewMode || "queue";
     const active = state.csSessions.find(s => s.id === state.csActiveId) || state.csSessions[0];
-    const tkInfo = state.csTakeoverMap[active.id] || { who: "智能助手自动接待", at: "刚接入" };
+    const tkInfo = state.csTakeoverMap[active.id] || { who: "智能客服自动接待", at: "刚接入" };
     const linkedOrdObj = state.orders.find(o => o.orderNo === active.linkedOrder);
 
+    // 按店铺汇总智能自动对话数 / 待人工 / 人工接待中
+    const shopNames = [...new Set(state.csSessions.map(s => s.shop))];
+    const shopSummaries = shopNames.map(name => {
+      const list = state.csSessions.filter(s => s.shop === name);
+      return {
+        shop: name,
+        mode: list[0]?.mode || "REAL",
+        total: list.length,
+        aiAuto: list.filter(s => s.status === "智能自动接待" || s.status === "仅限联调演示").length,
+        waitHuman: list.filter(s => s.status === "待人工接管").length,
+        humanBusy: list.filter(s => s.status === "人工接待中").length,
+      };
+    });
+
+    // -------------------- 第 1 页：分店铺会话调度台 --------------------
+    if (viewMode === "queue") {
+      const curShopFilter = state.csShopFilter || "ALL";
+      const filteredSessions = state.csSessions
+        .filter(s => curShopFilter === "ALL" || s.shop === curShopFilter)
+        .slice()
+        .sort((a, b) => {
+          const rank = s => s.status === "待人工接管" ? 0 : s.status === "人工接待中" ? 1 : 2;
+          return rank(a) - rank(b);
+        });
+
+      return {
+        headerActions: [
+          { label: "导购与说明书知识库 →", primary: false, onClick: () => goPage("m1b") },
+          { label: "售后主管审批台 →", primary: true, onClick: () => goPage("m1c") }
+        ],
+        html: `
+          <div class="banner banner-blue">
+            <span><strong>第 1 页 · 分店铺分流调度台：</strong>🤖 <strong>智能客服</strong>自动接待售前导购、使用说明排障与常规查单；🧑 <strong>触发退款/退换/物流异常/低置信度</strong>自动转人工队列，点击右侧按钮直接接管并进入第 2 页回复。</span>
+            <button class="btn btn-sm" id="qDemoPddBtn">🛒 模拟买家提交退换货清单</button>
+          </div>
+
+          <div class="grid-${Math.min(4, shopSummaries.length + 1)}">
+            <div class="shop-queue-card ${curShopFilter === "ALL" ? "active" : ""}" data-shop="ALL">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <strong style="font-size:13.5px;">全部接入店铺 (${shopNames.length} 家)</strong>
+                <span class="pill p-blue">总 ${state.csSessions.length} 组</span>
+              </div>
+              <div style="display:flex;gap:10px;font-size:12px;flex-wrap:wrap;">
+                <span>🤖 智能对话 <strong>${state.csSessions.filter(s => s.status === "智能自动接待" || s.status === "仅限联调演示").length}</strong></span>
+                <span style="color:var(--red-text);">🚨 待人工 <strong>${state.csSessions.filter(s => s.status === "待人工接管").length}</strong></span>
+                <span style="color:var(--blue-hover);">🧑 人工中 <strong>${state.csSessions.filter(s => s.status === "人工接待中").length}</strong></span>
+              </div>
+            </div>
+            ${shopSummaries.map(sp => `
+              <div class="shop-queue-card ${curShopFilter === sp.shop ? "active" : ""}" data-shop="${sp.shop}">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;">
+                  <strong style="font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sp.shop}</strong>
+                  <span class="pill ${sp.mode==="MOCK"?"p-amber":sp.waitHuman>0?"p-red":"p-green"}">${sp.mode==="MOCK"?"沙盒联调":sp.waitHuman>0?`待人工 ${sp.waitHuman}`:"AI正常托管"}</span>
+                </div>
+                <div style="display:flex;gap:10px;font-size:12px;flex-wrap:wrap;">
+                  <span>🤖 智能对话 <strong>${sp.aiAuto}</strong></span>
+                  <span style="color:${sp.waitHuman>0?"var(--red-text)":"var(--text-soft)"};">🚨 待人工 <strong>${sp.waitHuman}</strong></span>
+                  <span>🧑 人工中 <strong>${sp.humanBusy}</strong></span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                ${curShopFilter === "ALL" ? "全店铺客服会话分流队列" : `${curShopFilter} · 会话队列`}
+                <span class="pill p-gray">${filteredSessions.length} 组</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-soft);">已将「待人工接管」优先置顶 · 点击右侧按钮跳转到第 2 页回复</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              ${filteredSessions.map(s => {
+                const info = state.csTakeoverMap[s.id] || { who: "智能客服自动接待", at: "" };
+                const isWait = s.status === "待人工接管";
+                const isHuman = s.status === "人工接待中";
+                const isMock = s.mode === "MOCK";
+                return `
+                  <div class="session-queue-row ${isWait ? "urgent" : isHuman ? "" : "ai-auto"}">
+                    <div style="flex:1;min-width:260px;">
+                      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;">
+                        <span class="pill ${isWait?"p-red":isHuman?"p-blue":isMock?"p-amber":"p-green"}">
+                          ${isWait ? "🚨 待人工接管" : isHuman ? "🧑 人工接待中 · AI已禁言" : isMock ? "🧪 仅限联调演示" : `🤖 智能自动接待 (${s.conf})`}
+                        </span>
+                        <span class="pill p-gray">${s.bizType || "常规咨询"}</span>
+                        <strong style="font-size:14px;">${s.buyer}</strong>
+                        <span style="font-size:12px;color:var(--text-soft);">· ${s.shop}</span>
+                        ${s.buyerAfterSales?.submitted ? `<span class="pill p-amber">📎 买家售后单: ${s.buyerAfterSales.afterSalesType} $${Number(s.buyerAfterSales.amountUsd).toFixed(2)} (${s.buyerAfterSales.photos?.length || 0}图)</span>` : ""}
+                      </div>
+                      <div style="font-size:12.5px;color:var(--text-dark);margin-bottom:3px;"><strong>买家诉求：</strong>${s.intent}</div>
+                      ${s.handoffReason ? `<div style="font-size:12px;color:var(--red-text);"><strong>转人工原因：</strong>${s.handoffReason}</div>` : s.kbHit ? `<div style="font-size:12px;color:var(--green-text);"><strong>命中知识：</strong>${s.kbHit}</div>` : ""}
+                      <div style="font-size:11.5px;color:var(--text-soft);margin-top:2px;">当前接待：${info.who} (${info.at}) ｜ 关联订单：${s.linkedOrder || "暂未绑定"}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                      ${isWait ? `
+                        <button class="btn btn-sm btn-danger q-takeover-go" data-id="${s.id}">✋ 接管并去回复 →</button>
+                      ` : isHuman ? `
+                        <button class="btn btn-sm btn-primary q-open-ws" data-id="${s.id}">进入人工工作台回复 →</button>
+                      ` : `
+                        <button class="btn btn-sm q-open-ws" data-id="${s.id}">查看AI对话 / 人工介入 →</button>
+                      `}
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `,
+        bind: () => {
+          document.querySelectorAll(".shop-queue-card").forEach(el => {
+            el.onclick = () => { state.csShopFilter = el.dataset.shop; rerender(); };
+          });
+          document.querySelectorAll(".q-open-ws").forEach(b => {
+            b.onclick = () => { state.csActiveId = b.dataset.id; state.csViewMode = "workspace"; rerender(); };
+          });
+          document.querySelectorAll(".q-takeover-go").forEach(b => {
+            b.onclick = () => {
+              const target = state.csSessions.find(s => s.id === b.dataset.id);
+              if (!target) return;
+              state.csActiveId = target.id;
+              if (canCs) {
+                state.csTakeoverMap[target.id] = { who: ROLE_PERSON_NAMES[state.role], at: nowTimeStr() };
+                target.status = "人工接待中";
+                target.serviceMode = "HUMAN";
+                appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 从分店铺调度台接管了「${target.buyer}」（${target.shop}）会话并禁言智能客服`, ok: true });
+                toast(`已接管「${target.buyer}」会话（AI已禁言），进入第 2 页回复`, "success");
+              } else {
+                toast("当前岗位仅浏览会话工作台（接管建单请切至「客服」岗位）", "warn");
+              }
+              state.csViewMode = "workspace";
+              rerender();
+            };
+          });
+          const pddBtn = document.getElementById("qDemoPddBtn");
+          if (pddBtn) pddBtn.onclick = () => openBuyerAfterSalesForm(active);
+        }
+      };
+    }
+
+    // -------------------- 第 2 页：人工坐席接待与售后处理工作台 --------------------
     // 实时三项回复内容检查
     const zhVal = active.draftZh || "";
     const enVal = active.draftEn || "";
     const zhNums = (zhVal.match(/\d+(\.\d+)?/g) || []).join(",");
     const enNums = (enVal.match(/\d+(\.\d+)?/g) || []).join(",");
     const numMatchOk = zhNums === enNums;
-
-    // 金额与订单一致检查
     const orderAmt = linkedOrdObj ? linkedOrdObj.amountUsd : null;
     const mentionNums = (zhVal + " " + enVal).match(/\$\s*(\d+(\.\d+)?)/g) || [];
     const amountWithinOk = !orderAmt || mentionNums.every(m => Number(m.replace("$", "").trim()) <= orderAmt);
-
-    // 本店链接检查
     const otherDomains = state.csCatalog.filter(c => c.shop !== active.shop).map(c => c.domain);
     const wrongDom = otherDomains.find(d => (zhVal + " " + enVal).includes(d));
     const linkMatchOk = !wrongDom;
-
     const allReplyChecksOk = numMatchOk && amountWithinOk && linkMatchOk;
+
+    // 建单用默认值（优先承接买家提交的拼多多式售后清单）
+    const bAs = active.buyerAfterSales;
+    const prodObj = linkedOrdObj ? state.masterProducts.find(p => p.sku === linkedOrdObj.sku) : null;
+    const estCost = prodObj ? prodObj.cost : 4.50;
+    const estReturnShip = prodObj ? +(Number(prodObj.freight || 2.5) + Number(prodObj.lastMile || 4.8) * 1.8).toFixed(2) : 14.20;
+    const csDraftForm = active.csFormDraft || {
+      afterSalesType: bAs?.afterSalesType || "仅退款（不退货）",
+      goodsStatus: bAs?.goodsStatus || "已收到货（已拆封验货）",
+      reasonCategory: bAs?.reasonCategory || "商品破损或划痕",
+      liability: "物流运输破损",
+      refundAmount: bAs?.amountUsd || (linkedOrdObj ? linkedOrdObj.amountUsd : 34.50),
+      photos: bAs?.photos ? [...bAs.photos] : [{ kind: "scratch", label: "商品划痕特写.jpg" }],
+      reviewSummary: bAs?.submitted
+        ? `已核验订单 ${active.linkedOrder || "待绑定"}，买家提交「${bAs.afterSalesType}」并附 ${bAs.photos?.length || 0} 张实拍图属实；采购成本 $${estCost.toFixed(2)}、退回海外仓运费预估 $${estReturnShip.toFixed(2)}，建议按申请方案处理。`
+        : "已核验买家反馈与订单信息，请结合商品成本与运费确认售后方案。"
+    };
+    active.csFormDraft = csDraftForm;
+
+    const isHumanTaken = active.status === "人工接待中";
+    const isWaitHuman = active.status === "待人工接管";
 
     return {
       headerActions: [
-        { label: "查看本店在售导购库 →", primary: false, onClick: () => goPage("m1b") },
-        { label: "前往售后审批台账 →", primary: true, onClick: () => goPage("m1c") }
+        { label: "← 返回店铺会话调度台", primary: false, onClick: () => { state.csViewMode = "queue"; rerender(); } },
+        { label: "查看本店知识库 →", primary: false, onClick: () => goPage("m1b") },
+        { label: "前往售后审批台 →", primary: true, onClick: () => goPage("m1c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>一线客服处理买家咨询、人工接管并核验订单四要素后转入售后审批。<strong>数据来源：</strong>实时接入买家会话与订单台账（当前会话接待人：<strong>${tkInfo.who}</strong> · 接管时间：<strong>${tkInfo.at}</strong>）。</span>
+        <div class="banner ${isWaitHuman ? "banner-red" : isHumanTaken ? "banner-blue" : "banner-green"}">
+          <span>
+            <button class="btn btn-sm" id="wsBackQueueBtn" style="margin-right:8px;">← 返回第1页店铺队列</button>
+            <strong>${active.buyer} · ${active.shop}</strong> ｜
+            ${isHumanTaken ? `🧑 <strong>人工接待中（AI已禁言防抢答）</strong> · 接待人：${tkInfo.who}` : isWaitHuman ? `🚨 <strong>待人工接管</strong> · ${active.handoffReason}` : `🤖 <strong>智能自动接待</strong> · ${active.kbHit || active.intent}`}
+          </span>
+          ${!isHumanTaken ? `<button class="btn btn-sm btn-primary" id="csTakeoverBtn" ${!canCs?"disabled":""}>✋ 立即接管会话并禁言AI</button>` : `<span class="pill p-green">AI已锁止禁发 ✓</span>`}
         </div>
 
-        <div class="grid-3">
-          <div class="kpi-card highlight-blue"><div class="kpi-label">待人工接管会话</div><div class="kpi-val" style="color:var(--blue-hover)">${state.csSessions.filter(s=>s.status==="待人工接管").length} 组</div><div class="kpi-sub">含售后投诉或敏感字眼</div></div>
-          <div class="kpi-card highlight-green"><div class="kpi-label">智能自动接待中</div><div class="kpi-val" style="color:var(--green-text)">${state.csSessions.filter(s=>s.status==="智能自动接待").length} 组</div><div class="kpi-sub">普通商品问答自动处理</div></div>
-          <div class="kpi-card"><div class="kpi-label">已确认绑单会话</div><div class="kpi-val">${state.csSessions.filter(s=>s.linkVerified).length} 组</div><div class="kpi-sub">四要素核对一致后才可建单</div></div>
-        </div>
-
-        <div class="cs-3col">
-          <div class="card">
-            <div class="card-header"><div class="card-title">买家会话列表</div></div>
-            ${state.csSessions.map(s => {
-              const info = state.csTakeoverMap[s.id] || { who: "自动", at: "" };
-              return `
-                <div class="session-item ${s.id===active.id?"active":""} cs-sess-pick" data-id="${s.id}">
-                  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-                    <strong>${s.buyer}</strong>
-                    <span class="pill ${s.mode==="MOCK"?"p-amber":s.status==="待人工接管"?"p-red":"p-green"}">${s.status}</span>
-                  </div>
-                  <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${s.shop} · ${s.intent}</div>
-                  <div style="font-size:12px;color:var(--blue-hover);margin-top:2px;">接待：${info.who} (${info.at})</div>
-                </div>
-              `;
-            }).join("")}
+        ${isApproverReadonly ? `
+          <div class="banner banner-amber">
+            <span><strong>职责分离提示：</strong>当前以「主管 / 审批人」只读巡检此会话；一线回复与提交售后工单须由「客服」岗位执行（可在左侧切换「客服」体验完整建单）。</span>
           </div>
+        ` : ""}
 
+        <div class="cs-2col">
+          <!-- 左栏：买家视角提示 + 对话流 + 双语回答 -->
           <div class="card">
-            <div class="card-header">
-              <div>
-                <div class="card-title">${active.buyer} · ${active.shop}</div>
-                <div style="font-size:12px;color:var(--text-soft);">当前接待人：<strong>${tkInfo.who}</strong> ｜ 接管时间：<strong>${tkInfo.at}</strong></div>
-              </div>
-              <button class="btn btn-sm btn-primary" id="csTakeoverBtn" ${!canCs?"disabled":""}>✋ 人工接管会话</button>
+            <div class="card-header" style="margin-bottom:8px;">
+              <div class="card-title">第 2 页 · 对话详情与双语人工回复</div>
+              <button class="btn btn-sm" id="wsBuyerApplyBtn">🛍️ 买家端：发起退换货并传图</button>
             </div>
+
+            <div class="buyer-notice-strip">
+              <strong>买家端功能边界小字提示：</strong>🤖 智能客服负责解答商品尺码材质、使用说明/故障排障与物流进度；🧑 如需退款/退货、换货补发或破损理赔，请买家点击「申请退款/退换货」填写清单并上传实拍图，系统将直转人工处理。
+            </div>
+
+            ${bAs?.submitted ? `
+              <div class="pdd-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
+                  <strong>📦 买家提交的售后申请清单（拼多多式举证）</strong>
+                  <span class="pill p-amber">${bAs.afterSalesType} · $${Number(bAs.amountUsd).toFixed(2)}</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.55;">
+                  货物状态：<strong>${bAs.goodsStatus}</strong> ｜ 申请原因：<strong>${bAs.reasonCategory}</strong><br/>
+                  买家说明：${bAs.note}
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;">
+                  ${(bAs.photos || []).map((ph, idx) => `
+                    <div class="evidence-thumb-wrap ws-zoom-photo" data-src-list="buyer" data-idx="${idx}" title="点击查看大图">
+                      <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" class="evidence-thumb-img" alt="${ph.label}"/>
+                      <span style="font-size:11px;">${ph.label}</span>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            ` : ""}
 
             <div style="max-height:240px;overflow-y:auto;padding-right:4px;margin-bottom:10px;">
               ${active.msgs.map(m => `
@@ -3632,59 +4097,147 @@ function renderM0_M3(pageId, state, helpers) {
               `).join("")}
             </div>
 
-            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
-              <div style="font-weight:700;font-size:12.5px;margin-bottom:6px;">回复内容合规检查（发送前自动逐项核验）</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:12px;">
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin-bottom:10px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:5px;">发送前合规检查（金额一致 / 本店链接 / 中外数字一致）</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px;">
                 <span class="pill ${amountWithinOk?"p-green":"p-red"}">${amountWithinOk ? "✓ 金额与订单一致" : "✗ 报价超出实付金额"}</span>
-                <span class="pill ${linkMatchOk?"p-green":"p-red"}">${linkMatchOk ? "✓ 使用本店商品链接" : "✗ 检测到其他店铺链接"}</span>
-                <span class="pill ${numMatchOk?"p-green":"p-red"}">${numMatchOk ? "✓ 中英文数字一致" : `✗ 中英文数字不一致 (中文[${zhNums||"无"}] vs 英文[${enNums||"无"}])`}</span>
+                <span class="pill ${linkMatchOk?"p-green":"p-red"}">${linkMatchOk ? "✓ 使用本店商品链接" : "✗ 检测到他店链接"}</span>
+                <span class="pill ${numMatchOk?"p-green":"p-red"}">${numMatchOk ? "✓ 中英文数字一致" : `✗ 数字不一致 (中[${zhNums||"无"}] vs 英[${enNums||"无"}])`}</span>
               </div>
             </div>
 
-            <div class="field"><label>中文核对草稿（便于客服主管抽检）</label><textarea id="csDraftZh" class="textarea ${!allReplyChecksOk?"input-err":""}">${active.draftZh}</textarea></div>
-            <div class="field"><label>发送给买家的外文回复</label><textarea id="csDraftEn" class="textarea ${!allReplyChecksOk?"input-err":""}">${active.draftEn}</textarea></div>
+            <div class="field"><label>中文核对草稿（主管抽检留痕）</label><textarea id="csDraftZh" class="textarea ${!allReplyChecksOk?"input-err":""}" style="min-height:56px;">${active.draftZh}</textarea></div>
+            <div class="field"><label>发送给买家的外文回复</label><textarea id="csDraftEn" class="textarea ${!allReplyChecksOk?"input-err":""}" style="min-height:56px;">${active.draftEn}</textarea></div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span style="font-size:12px;color:${allReplyChecksOk?"var(--green-text)":"var(--red-text)"};">${allReplyChecksOk ? "三项检查全部通过，可以发送" : "存在不合规表述，请按红色标出项修正后再发送"}</span>
-              <button class="btn btn-primary" id="csSendBtn" ${(!canCs || !allReplyChecksOk)?"disabled":""}>发送回复给买家</button>
+              <span style="font-size:12px;color:${allReplyChecksOk?"var(--green-text)":"var(--red-text)"};">${allReplyChecksOk ? "三项检查通过，可发出人工回复" : "请先修正红色标出的数字/链接问题"}</span>
+              <button class="btn btn-primary" id="csSendBtn" ${(!canCs || !allReplyChecksOk)?"disabled":""}>发送人工回复给买家</button>
             </div>
           </div>
 
+          <!-- 右栏：订单四要素核验 + 拼多多式售后建单 & 初审总结 -->
           <div class="card">
-            <div class="card-header"><div class="card-title">关联订单核验与售后建单</div></div>
-            <div class="formula-box" style="margin-bottom:10px;">
-              <div><strong>会话绑定单号：</strong>${active.linkedOrder || "尚未绑定"}</div>
-              <div><strong>核验状态：</strong><span class="pill ${active.linkVerified?"p-green":"p-amber"}">${active.linkVerified?"四要素已人工核对一致 ✓":"待并排核对四要素"}</span></div>
+            <div class="card-header" style="margin-bottom:8px;">
+              <div class="card-title">订单核验 & 售后初审建单</div>
+              <button class="btn btn-sm btn-primary" id="csBindOrderBtn" ${!canCs?"disabled":""}>🔍 核对绑定订单</button>
             </div>
-            <button class="btn btn-sm btn-primary" id="csBindOrderBtn" style="width:100%;justify-content:center;margin-bottom:10px;" ${!canCs?"disabled":""}>🔍 并排核对并绑定订单</button>
 
-            <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;"/>
-            <div class="field"><label>申请退款金额 (USD)</label><input id="csRefAmt" type="number" step="0.01" class="input" value="${linkedOrdObj ? linkedOrdObj.amountUsd : 34.50}"/></div>
-            <div class="field"><label>售后原因 *</label><input id="csRefReason" class="input" value="买家反馈包裹外箱划痕申请退款"/></div>
+            <div class="formula-box" style="margin-bottom:10px;">
+              <div><strong>绑定单号：</strong>${active.linkedOrder || "尚未绑定"} <span class="pill ${active.linkVerified?"p-green":"p-amber"}" style="margin-left:4px;">${active.linkVerified?"四要素一致 ✓":"待核对"}</span></div>
+              <div style="margin-top:4px;">
+                订单实付：<strong>$${(linkedOrdObj ? linkedOrdObj.amountUsd : 34.50).toFixed(2)}</strong> ｜
+                采购成本：<strong>$${estCost.toFixed(2)}</strong> ｜
+                退回运费预估：<strong>$${estReturnShip.toFixed(2)}</strong>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field"><label>售后类型 *</label>
+                <select id="csAfterType" class="select">
+                  ${["仅退款（不退货）", "部分补偿（安抚留货）", "退货退款（退回海外仓）", "换货 / 补发配件"].map(o => `<option ${csDraftForm.afterSalesType===o?"selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field"><label>货物状态 *</label>
+                <select id="csGoodsStatus" class="select">
+                  ${["已收到货（已拆封验货）", "未收到货（在途/疑丢件）", "已拒收退回中"].map(o => `<option ${csDraftForm.goodsStatus===o?"selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field"><label>售后原因分类 *</label>
+                <select id="csReasonCat" class="select">
+                  ${["商品破损或划痕", "功能故障不能用", "发错货或尺码不符", "少件漏发", "物流超期未送达", "个人原因不想要"].map(o => `<option ${csDraftForm.reasonCategory===o?"selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field"><label>初审定责归属 *</label>
+                <select id="csLiability" class="select">
+                  ${["物流运输破损", "工厂质检瑕疵", "仓库错漏发", "买家个人原因"].map(o => `<option ${csDraftForm.liability===o?"selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+
+            <div class="field"><label>申请退款 / 补偿金额 (USD) *</label>
+              <input id="csRefAmt" type="number" step="0.01" class="input" value="${Number(csDraftForm.refundAmount).toFixed(2)}"/>
+            </div>
+
+            <div class="field">
+              <label>买家举证照片（破损/错漏发赔付必附 ≥1 张，点图可放大）*</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                ${(csDraftForm.photos || []).map((ph, idx) => `
+                  <div class="evidence-thumb-wrap ws-zoom-photo" data-src-list="form" data-idx="${idx}">
+                    <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" class="evidence-thumb-img" alt="${ph.label}"/>
+                    <span style="font-size:10.5px;">${ph.label}</span>
+                  </div>
+                `).join("")}
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-sm" id="csAddPhotoBox">+ 补附外箱面单照</button>
+                <button type="button" class="btn btn-sm" id="csClearPhotos">清空重传</button>
+              </div>
+            </div>
+
+            <div class="field"><label>客服初审总结（必填，供主管看卷宗拍板）*</label>
+              <textarea id="csReviewSummary" class="textarea" style="min-height:76px;" placeholder="请总结：1.订单与照片核验结果 2.是否高于退运成本 3.为什么建议批此金额">${csDraftForm.reviewSummary}</textarea>
+            </div>
+
             <button class="btn btn-danger" id="csCreateTicketBtn" style="width:100%;justify-content:center;" ${(!canCs || !active.linkVerified)?"disabled":""} title="${!active.linkVerified?"请先完成上方订单四要素核验":""}">
-              提交售后工单 (转主管审批) →
+              提交完整售后卷宗 → 转主管审批
             </button>
           </div>
         </div>
       `,
       bind: () => {
-        document.querySelectorAll(".cs-sess-pick").forEach(el => el.onclick = () => { state.csActiveId = el.dataset.id; rerender(); });
+        document.getElementById("wsBackQueueBtn").onclick = () => { state.csViewMode = "queue"; rerender(); };
+        document.getElementById("wsBuyerApplyBtn").onclick = () => openBuyerAfterSalesForm(active, () => {
+          active.csFormDraft = null;
+          rerender();
+        });
+        document.querySelectorAll(".ws-zoom-photo").forEach(el => {
+          el.onclick = () => {
+            const list = el.dataset.srcList === "buyer" ? (bAs?.photos || []) : (csDraftForm.photos || []);
+            const ph = list[Number(el.dataset.idx)];
+            if (ph) openEvidenceLightbox(ph);
+          };
+        });
+
         document.getElementById("csDraftZh").oninput = (e) => { active.draftZh = e.target.value; rerender(); };
         document.getElementById("csDraftEn").oninput = (e) => { active.draftEn = e.target.value; rerender(); };
 
-        document.getElementById("csTakeoverBtn").onclick = () => {
-          state.csTakeoverMap[active.id] = { who: ROLE_PERSON_NAMES[state.role], at: nowTimeStr() };
-          active.status = "人工接待中";
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 接管了买家「${active.buyer}」的客服会话`, ok: true });
+        document.getElementById("csAfterType").onchange = (e) => { csDraftForm.afterSalesType = e.target.value; };
+        document.getElementById("csGoodsStatus").onchange = (e) => { csDraftForm.goodsStatus = e.target.value; };
+        document.getElementById("csReasonCat").onchange = (e) => { csDraftForm.reasonCategory = e.target.value; };
+        document.getElementById("csLiability").onchange = (e) => { csDraftForm.liability = e.target.value; };
+        document.getElementById("csRefAmt").oninput = (e) => { csDraftForm.refundAmount = e.target.value; };
+        document.getElementById("csReviewSummary").oninput = (e) => { csDraftForm.reviewSummary = e.target.value; };
+
+        document.getElementById("csAddPhotoBox").onclick = () => {
+          if (csDraftForm.photos.length >= 3) { toast("最多附加 3 张证据照片", "warn"); return; }
+          csDraftForm.photos.push({ kind: "box", label: "外箱破损+面单.jpg" });
           rerender();
-          toast(`已人工接管会话，当前接待人：${ROLE_PERSON_NAMES[state.role]}`, "success");
+        };
+        document.getElementById("csClearPhotos").onclick = () => {
+          csDraftForm.photos = [];
+          rerender();
         };
 
+        const tkBtn = document.getElementById("csTakeoverBtn");
+        if (tkBtn) {
+          tkBtn.onclick = () => {
+            state.csTakeoverMap[active.id] = { who: ROLE_PERSON_NAMES[state.role], at: nowTimeStr() };
+            active.status = "人工接待中";
+            active.serviceMode = "HUMAN";
+            appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 接管了买家「${active.buyer}」的客服会话并禁言智能助手`, ok: true });
+            rerender();
+            toast(`已人工接管会话（AI已禁言），当前接待人：${ROLE_PERSON_NAMES[state.role]}`, "success");
+          };
+        }
+
         document.getElementById("csSendBtn").onclick = () => {
-          active.msgs.push({ who: "ai", text: active.draftEn, trans: "中文对照：" + active.draftZh });
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 通过三项内容检查后向买家「${active.buyer}」发送了回复`, ok: true });
+          active.msgs.push({ who: "ai", text: active.draftEn, trans: "人工回复对照：" + active.draftZh });
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 通过三项内容检查后向买家「${active.buyer}」发送了人工回复`, ok: true });
           rerender();
-          toast("内容检查通过，回复已发出", "success");
+          toast("内容检查通过，人工回复已发出", "success");
         };
 
         document.getElementById("csBindOrderBtn").onclick = () => {
@@ -3747,45 +4300,69 @@ function renderM0_M3(pageId, state, helpers) {
         };
 
         document.getElementById("csCreateTicketBtn").onclick = () => {
+          const afterSalesType = document.getElementById("csAfterType").value;
+          const goodsStatus = document.getElementById("csGoodsStatus").value;
+          const reasonCategory = document.getElementById("csReasonCat").value;
+          const liability = document.getElementById("csLiability").value;
           const amt = Number(document.getElementById("csRefAmt").value);
-          const reason = document.getElementById("csRefReason").value.trim();
+          const summary = document.getElementById("csReviewSummary").value.trim();
           const maxOrd = linkedOrdObj ? linkedOrdObj.amountUsd : 34.50;
-          if (!reason) { toast("请填写售后原因", "error"); return; }
-          if (!(amt > 0) || amt > maxOrd) { toast(`退款金额必须在 $0.01 至实付上限 $${maxOrd.toFixed(2)} 之间`, "error"); return; }
+          const needPhoto = ["商品破损或划痕", "功能故障不能用", "发错货或尺码不符", "少件漏发"].includes(reasonCategory);
+
+          if (needPhoto && csDraftForm.photos.length === 0) {
+            toast("所选售后原因属于破损/故障/错漏发，必须附带至少 1 张买家举证照片才能提交主管审批", "error");
+            return;
+          }
+          if (!summary || summary.length < 8) {
+            toast("请填写完整的客服初审总结（供主管判断是否批准）", "error");
+            return;
+          }
+          if (!(amt > 0) || amt > maxOrd) {
+            toast(`申请赔付金额必须在 $0.01 至实付上限 $${maxOrd.toFixed(2)} 之间`, "error");
+            return;
+          }
           commitAction({
-            title: `提交售后工单 · 关联订单 ${active.linkedOrder}`,
-            summary: `退款申请金额 <strong>$${amt.toFixed(2)}</strong>（订单实付 $${maxOrd.toFixed(2)}）；提交后需由「主管 / 审批人」审批，客服本人不可自批。`,
-            confirmText: "确认建单转交主管",
+            title: `提交售后审批卷宗 · 关联订单 ${active.linkedOrder}`,
+            summary: `售后类型：<strong>${afterSalesType}</strong> ｜ 货物状态：${goodsStatus} ｜ 申请赔付 <strong>$${amt.toFixed(2)}</strong>（已附 ${csDraftForm.photos.length} 张举证图）；提交后由「主管 / 审批人」终审，客服本人不可自批。`,
+            confirmText: "确认提交审批卷宗",
             onConfirm: () => {
               const tkId = genDocId("TK");
               state.tickets.unshift({
-                id: tkId, orderNo: active.linkedOrder, shop: active.shop, buyer: active.buyer, reason,
+                id: tkId, orderNo: active.linkedOrder, shop: active.shop, buyer: active.buyer,
+                sku: linkedOrdObj?.sku || "BAG-108",
+                afterSalesType, goodsStatus, reasonCategory, liability,
+                reason: `${reasonCategory} · ${afterSalesType}`,
+                handoffReason: active.handoffReason || "人工客服核验售后诉求转建工单",
+                evidencePhotos: [...csDraftForm.photos],
+                skuCostUsd: estCost, returnShipEstUsd: estReturnShip,
+                csReviewSummary: summary,
                 orderAmount: maxOrd, refundAmount: amt, submitter: ROLE_PERSON_NAMES[state.role],
-                approver: "", approveNote: "", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: ""
+                approver: "待陈主管审批", approveNote: "", status: "待主管审批",
+                refundSyncStatus: "未打款（待审批）", voucher: "待审批后上传打款截图"
               });
-              return { toastMsg: `售后工单 ${tkId} 已创建，已流转至 M1-3 待主管审批` };
+              return { toastMsg: `售后卷宗 ${tkId} 已创建，主管可在 M1-3 查看全部照片与初审总结` };
             },
-            audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 为订单 ${active.linkedOrder} 创建了售后退款工单，申请退款 $${amt.toFixed(2)}`, ok: true }
+            audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 为订单 ${active.linkedOrder} 提交了「${afterSalesType}」工单（$${amt.toFixed(2)}，${csDraftForm.photos.length}张图），定责：${liability}`, ok: true }
           });
         };
       }
     };
   }
 
-  // ==================== M1-2: 客服导购在售商品库 ====================
+  // ==================== M1-2: 客服导购与使用说明知识库 ====================
   if (pageId === "m1b") {
     const canMaintain = state.role === "planner" || state.role === "approver";
     return {
       headerActions: [
-        { label: "← 返回客服会话", primary: false, onClick: () => goPage("m1a") },
+        { label: "← 返回客服调度台", primary: false, onClick: () => goPage("m1a") },
         {
-          label: "+ 从表格导入商品", primary: true,
+          label: "+ 从表格导入知识", primary: true,
           disabled: !canMaintain,
           disabledTitle: "需要业务运营或主管权限",
           onClick: () => {
-            openModal("从表格导入客服在售导购商品", `
+            openModal("从表格导入客服导购与说明书 FAQ 知识", `
               <div class="banner banner-blue" style="margin-bottom:12px;">
-                <span>请上传在售商品表格（支持预览前 10 行数据）；若文件名含测试演示字样或存在重复商品编码，系统将自动拦截并列出失败原因。</span>
+                <span>支持导入商品导购卖点及使用说明排障 FAQ（预览前 10 行）；含演示标识或重复编码将自动拦截。</span>
               </div>
               <div class="field"><label>目标实盘店铺 *</label>
                 <select id="csImpShop" class="select"><option>TikTok Shop 美区</option><option>Shopee 泰国主店</option></select>
@@ -3796,7 +4373,7 @@ function renderM0_M3(pageId, state, helpers) {
               <div id="csImpPreview" style="margin-bottom:12px;"></div>
               <div style="display:flex;justify-content:flex-end;gap:8px;">
                 <button class="btn" id="csImpCancel">取消</button>
-                <button class="btn btn-primary" id="csImpRun">开始导入并建立商品索引</button>
+                <button class="btn btn-primary" id="csImpRun">开始导入并建立知识索引</button>
               </div>
             `, (root) => {
               const fInput = root.querySelector("#csImpFile");
@@ -3806,17 +4383,17 @@ function renderM0_M3(pageId, state, helpers) {
                 if (!f) { prevBox.innerHTML = ""; return; }
                 const isMock = /mock|演示|demo/i.test(f.name);
                 if (isMock) {
-                  prevBox.innerHTML = `<div class="banner banner-red"><span>❌ 拦截原因：文件「${f.name}」包含测试演示字样，严禁导入正式客服导购商品库！</span></div>`;
+                  prevBox.innerHTML = `<div class="banner banner-red"><span>❌ 拦截原因：文件「${f.name}」包含测试演示字样，严禁导入正式客服知识库！</span></div>`;
                   return;
                 }
                 prevBox.innerHTML = `
-                  <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">表格前 10 行数据预览（示例抽取自 ${f.name}）：</div>
+                  <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">表格前 10 行数据预览（抽取自 ${f.name}）：</div>
                   <div class="table-wrap" style="max-height:160px;">
                     <table>
-                      <thead><tr><th>行号</th><th>商品编码</th><th>商品名称</th><th>售价</th><th>预检结果</th></tr></thead>
+                      <thead><tr><th>行号</th><th>商品编码</th><th>知识类型</th><th>售价</th><th>预检结果</th></tr></thead>
                       <tbody>
-                        <tr><td>第 1 行</td><td>BAG-209</td><td>防水商务斜挎包</td><td>$26.90</td><td><span class="pill p-green">格式合法</span></td></tr>
-                        <tr><td>第 2 行</td><td>BAG-108</td><td>轻量通勤双肩包</td><td>$29.90</td><td><span class="pill p-red">失败：商品编码与本店已有数据重复</span></td></tr>
+                        <tr><td>第 1 行</td><td>BAG-209</td><td>商品导购</td><td>$26.90</td><td><span class="pill p-green">格式合法</span></td></tr>
+                        <tr><td>第 2 行</td><td>BAG-108</td><td>商品导购</td><td>$29.90</td><td><span class="pill p-red">失败：商品编码与本店已有数据重复</span></td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -3834,19 +4411,19 @@ function renderM0_M3(pageId, state, helpers) {
                 const shop = root.querySelector("#csImpShop").value;
                 document.getElementById("modalRoot").innerHTML = "";
                 runAsyncTask("m1_catalog_imp", {
-                  label: `建立商品索引（20/200 分批校验）· ${f.name}`,
+                  label: `建立知识索引（20/200 分批校验）· ${f.name}`,
                   steps: ["读取表格数据并检查编码重复", "分批建立客服搜索索引 (100/200)", "完成索引并生成异常行明细"],
                   durationMs: 1200,
                   onSuccess: () => {
                     state.csCatalog.unshift({
-                      sku: "BAG-209", name: "防水商务斜挎包", shop, domain: shop.includes("泰国") ? "shopee.co.th/cp-th" : "tiktok.com/shop/us-cp",
+                      sku: "BAG-209", name: "防水商务斜挎包", docType: "商品导购", shop, domain: shop.includes("泰国") ? "shopee.co.th/cp-th" : "tiktok.com/shop/us-cp",
                       price: "$26.90", status: "索引已就绪", points: "防泼水帆布 / 轻便单肩 / 多隔层收纳"
                     });
                     state.csImportLogs.unshift({
                       file: f.name, shop, total: 200, okCount: 199, failCount: 1,
                       failReason: "第 2 行商品编码 BAG-108 重复，已自动跳过", status: "部分成功 (199/200)", time: nowDateTimeStr()
                     });
-                    return { summary: "已建立商品索引 199/200（第 2 行因商品编码重复跳过）", toastMsg: "导入完成：成功 199 条，跳过 1 条重复编码" };
+                    return { summary: "已建立知识索引 199/200（第 2 行因商品编码重复跳过）", toastMsg: "导入完成：成功 199 条，跳过 1 条重复编码" };
                   }
                 });
               };
@@ -3856,16 +4433,16 @@ function renderM0_M3(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>供客服人员在回答买家时查询本店真实在售商品与卖点（未采购的新品评估请去 M4 选品中心）。<strong>数据来源：</strong>在售导购清单（最近导入：${state.csImportLogs[0]?.time || "暂无导入记录"}）。</span>
+          <span><strong>知识库定位：</strong>供<strong>智能客服自动应答</strong>与人工坐席检索，覆盖「商品导购卖点」与「使用说明/拆洗/排障FAQ」，严格按店铺隔离防发错链接。</span>
         </div>
 
         ${renderAsyncBox("m1_catalog_imp")}
 
         <div class="card">
-          <div class="card-header"><div class="card-title">本店在售导购商品清单（按店铺严格隔离）</div></div>
+          <div class="card-header"><div class="card-title">本店在售导购与使用说明知识库（AI 自动应答唯一依据）</div></div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>商品实拍与编码</th><th>所属店铺与本店网址</th><th>在售标价</th><th>核心卖点摘要</th><th>索引状态</th></tr></thead>
+              <thead><tr><th>商品实拍与编码</th><th>知识类型</th><th>所属店铺与本店网址</th><th>在售标价</th><th>导购卖点 / 使用说明与排障要点</th><th>索引状态</th></tr></thead>
               <tbody>
                 ${state.csCatalog.map(p => `
                   <tr>
@@ -3875,9 +4452,10 @@ function renderM0_M3(pageId, state, helpers) {
                         <div><strong>${p.sku} · ${p.name}</strong></div>
                       </div>
                     </td>
+                    <td class="nowrap"><span class="pill ${p.docType==="使用说明与排障FAQ"?"p-purple":"p-blue"}">${p.docType || "商品导购"}</span></td>
                     <td class="nowrap">${p.shop}<div style="font-size:12px;color:var(--text-soft);">${p.domain}</div></td>
                     <td class="nowrap"><strong>${p.price}</strong></td>
-                    <td style="font-size:12.5px;">${p.points}</td>
+                    <td style="font-size:12.5px;max-width:360px;">${p.points}</td>
                     <td class="nowrap"><span class="pill p-green">${p.status}</span></td>
                   </tr>
                 `).join("")}
@@ -3910,7 +4488,7 @@ function renderM0_M3(pageId, state, helpers) {
     };
   }
 
-  // ==================== M1-3: 售后工单审批与退款凭证闭环 ====================
+  // ==================== M1-3: 售后工单主管审批台账与退款凭证闭环 ====================
   if (pageId === "m1c") {
     const isApprover = state.role === "approver";
     const canUploadVoucher = state.role === "cs" || isApprover;
@@ -3922,42 +4500,69 @@ function renderM0_M3(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-amber">
-          <span><strong>闭环与风控说明：</strong>① 提交人与审批人必须为不同人员；② 主管审批时须填写意见且退款不得超过实付；③ 批准后进入<strong>「待上传退款凭证」</strong>，仅上传手工打款凭证后工单才正式关闭。</span>
+          <span><strong>主管审批与凭证闭环：</strong>① 主管可直接查看<strong>买家实拍照片、售后类型、转人工原因、定责与客服初审总结</strong>后拍板；② 批准确认后由人工去平台后台打款并回传退款截图关单，如证据不足可驳回退回客服补证。</span>
         </div>
 
         <div class="grid-3">
-          <div class="kpi-card highlight-red"><div class="kpi-label">待主管审批工单</div><div class="kpi-val" style="color:var(--red-text)">${state.tickets.filter(t=>t.status==="待主管审批").length} 单</div><div class="kpi-sub">需主管/审批人填写意见拍板</div></div>
+          <div class="kpi-card highlight-red"><div class="kpi-label">待主管审批工单</div><div class="kpi-val" style="color:var(--red-text)">${state.tickets.filter(t=>t.status==="待主管审批").length} 单</div><div class="kpi-sub">需主管查看证据卷宗拍板</div></div>
           <div class="kpi-card highlight-amber"><div class="kpi-label">待上传退款凭证</div><div class="kpi-val" style="color:var(--amber-text)">${state.tickets.filter(t=>t.status==="待上传退款凭证").length} 单</div><div class="kpi-sub">需在平台后台手工打款并回传截图</div></div>
           <div class="kpi-card highlight-green"><div class="kpi-label">已上传凭证关闭</div><div class="kpi-val" style="color:var(--green-text)">${state.tickets.filter(t=>t.status==="已关闭（退款完成）").length} 单</div><div class="kpi-sub">同步更新至 M0-2 订单台账</div></div>
         </div>
 
         <div class="card">
-          <div class="card-header"><div class="card-title">售后工单与退款凭证台账</div></div>
+          <div class="card-header"><div class="card-title">售后审批卷宗与退款凭证台账</div></div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>工单编号</th><th>关联订单 / 买家</th><th>申请退款 / 实付上限</th><th>提交人 / 审批人</th><th>退款状态与凭证</th><th>操作</th></tr></thead>
+              <thead><tr><th>工单 / 店铺</th><th>订单 / 售后类型与定责</th><th>申请赔付 / 成本参考</th><th>买家举证照片与客服初审总结（主管判断依据）</th><th>状态与凭证</th><th>操作</th></tr></thead>
               <tbody>
                 ${state.tickets.map((t, idx) => {
                   const isSelfSubmit = t.submitter === ROLE_PERSON_NAMES[state.role];
                   const canApproveThis = isApprover && !isSelfSubmit;
+                  const photos = t.evidencePhotos || [];
                   return `
                     <tr>
-                      <td class="nowrap"><strong>${t.id}</strong><div style="font-size:12px;color:var(--text-soft);">${t.shop}</div></td>
-                      <td><strong>${t.orderNo}</strong> (${t.buyer})<div style="font-size:12px;color:var(--text-soft);">${t.reason}</div></td>
-                      <td class="nowrap"><strong style="color:var(--red-text);">$${t.refundAmount.toFixed(2)}</strong><div style="font-size:12px;color:var(--text-soft);">实付上限 $${t.orderAmount.toFixed(2)}</div></td>
-                      <td class="nowrap">提交：${t.submitter}<div style="font-size:12px;color:var(--text-soft);">审批：${t.approver || "待批"}${t.approveNote ? ` (${t.approveNote})` : ""}</div></td>
+                      <td class="nowrap">
+                        <strong>${t.id}</strong>
+                        <div style="font-size:12px;color:var(--text-soft);">${t.shop}</div>
+                        <div style="font-size:11.5px;color:var(--text-soft);">提交：${t.submitter}</div>
+                      </td>
                       <td>
-                        <span class="pill ${t.status==="已关闭（退款完成）"?"p-green":t.status==="待上传退款凭证"?"p-blue":t.status==="已驳回"?"p-red":"p-amber"}">${t.status}</span>
-                        <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${t.refundSyncStatus}${t.voucher ? ` · 凭证：${t.voucher}` : ""}</div>
+                        <div><strong>${t.orderNo}</strong> · ${t.buyer}</div>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;margin:4px 0;">
+                          <span class="pill p-blue">${t.afterSalesType || "仅退款"}</span>
+                          <span class="pill p-gray">${t.goodsStatus || "已收到货"}</span>
+                          <span class="pill p-amber">${t.liability || "待定责"}</span>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-soft);">${t.reason}</div>
+                      </td>
+                      <td class="nowrap">
+                        <strong style="color:var(--red-text);font-size:14px;">$${t.refundAmount.toFixed(2)}</strong>
+                        <div style="font-size:11.5px;color:var(--text-soft);">实付上限 $${t.orderAmount.toFixed(2)}</div>
+                        <div style="font-size:11.5px;color:var(--text-soft);">采购 $${Number(t.skuCostUsd || 4.5).toFixed(2)} / 退运 $${Number(t.returnShipEstUsd || 14.0).toFixed(2)}</div>
+                      </td>
+                      <td style="min-width:280px;max-width:360px;">
+                        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;">
+                          ${photos.length ? photos.map((ph, pi) => `
+                            <div class="evidence-thumb-wrap m1c-zoom-photo" data-ti="${idx}" data-pi="${pi}" title="点击放大查看买家凭证">
+                              <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" style="width:42px;height:42px;border-radius:4px;object-fit:cover;" alt="${ph.label}"/>
+                            </div>
+                          `).join("") : `<span class="pill p-red">无实拍附件</span>`}
+                        </div>
+                        <div style="font-size:12px;color:var(--text-dark);line-height:1.45;background:#f8fafc;padding:6px 8px;border-radius:6px;border:1px solid var(--border);">
+                          <strong>客服总结：</strong>${t.csReviewSummary || "未填写初审总结"}
+                        </div>
+                      </td>
+                      <td>
+                        <span class="pill ${t.status==="已关闭（退款完成）"?"p-green":t.status==="待上传退款凭证"?"p-blue":t.status==="已驳回"||t.status==="待客服重审/补证"?"p-red":"p-amber"}">${t.status}</span>
+                        <div style="font-size:11.5px;color:var(--text-soft);margin-top:3px;">${t.refundSyncStatus}${t.approveNote ? ` · 批注：${t.approveNote}` : ""}</div>
                       </td>
                       <td class="nowrap">
                         ${t.status === "待主管审批" ? `
-                          <div style="display:flex;gap:6px;">
-                            <button class="btn btn-sm btn-success m1c-act" data-i="${idx}" data-act="APPROVE" ${!canApproveThis?"disabled":""} title="${!isApprover?"需要「主管 / 审批人」权限":"提交人与审批人不可为同一人"}">批准</button>
-                            <button class="btn btn-sm btn-danger m1c-act" data-i="${idx}" data-act="REJECT" ${!canApproveThis?"disabled":""}>驳回</button>
-                          </div>
+                          <button class="btn btn-sm btn-primary m1c-dossier" data-i="${idx}" ${!canApproveThis?"disabled":""} title="${!isApprover?"需要「主管 / 审批人」权限":"提交人与审批人不可为同一人"}">📋 看卷宗审批</button>
                         ` : t.status === "待上传退款凭证" ? `
                           <button class="btn btn-sm btn-primary m1c-voucher" data-i="${idx}" ${!canUploadVoucher?"disabled":""}>📎 上传退款凭证</button>
+                        ` : t.status === "待客服重审/补证" ? `
+                          <button class="btn btn-sm btn-danger m1c-rework" data-i="${idx}">去补充资料 →</button>
                         ` : `<span style="font-size:12px;color:var(--green-text);font-weight:700;">已闭环归档 ✓</span>`}
                       </td>
                     </tr>
@@ -3969,37 +4574,90 @@ function renderM0_M3(pageId, state, helpers) {
         </div>
       `,
       bind: () => {
-        document.querySelectorAll(".m1c-act").forEach(b => b.onclick = () => {
+        document.querySelectorAll(".m1c-zoom-photo").forEach(el => {
+          el.onclick = () => {
+            const t = state.tickets[Number(el.dataset.ti)];
+            const ph = t?.evidencePhotos?.[Number(el.dataset.pi)];
+            if (ph) openEvidenceLightbox(ph);
+          };
+        });
+
+        document.querySelectorAll(".m1c-rework").forEach(b => {
+          b.onclick = () => { state.csViewMode = "workspace"; goPage("m1a"); };
+        });
+
+        document.querySelectorAll(".m1c-dossier").forEach(b => b.onclick = () => {
           const t = state.tickets[Number(b.dataset.i)];
-          const isApprove = b.dataset.act === "APPROVE";
-          commitAction({
-            title: `${isApprove ? "批准" : "驳回"}售后退款工单 · ${t.id}`,
-            danger: !isApprove,
-            summary: isApprove ? `申请退款 $${t.refundAmount.toFixed(2)}（不超过原订单实付 $${t.orderAmount.toFixed(2)}）；批准后将进入「待上传退款凭证」状态。` : "驳回后工单直接终止，请填写明确退回原因以便客服向买家解释。",
-            confirmText: isApprove ? "确认批准（待传凭证）" : "确认驳回",
-            fieldsHtml: `<div class="field"><label>主管审批意见（必填）*</label><input id="m1cNote" class="input" placeholder="${isApprove ? "如：核对照片属实，同意全额退款" : "如：超出售后时效，请与买家协商"}"/></div>`,
-            validate: (wrap) => {
-              const el = wrap.querySelector("#m1cNote");
-              return el.value.trim() ? [] : [{ el, msg: "必须填写主管审批意见" }];
-            },
-            onConfirm: (wrap) => {
-              const note = wrap.querySelector("#m1cNote").value.trim();
+          const photos = t.evidencePhotos || [];
+          openModal(`主管审批卷宗 · ${t.id}（${t.shop}）`, `
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12.5px;line-height:1.6;">
+              <div><strong>1. 触发转人工原因：</strong>${t.handoffReason || "人工核验转交"}</div>
+              <div><strong>2. 售后方案与定责：</strong>${t.afterSalesType} ｜ ${t.goodsStatus} ｜ 归因：<strong>${t.liability}</strong></div>
+              <div><strong>3. 经济账参考：</strong>订单实付 <strong>$${t.orderAmount.toFixed(2)}</strong> ｜ 拟赔付 <strong style="color:var(--red-text);">$${t.refundAmount.toFixed(2)}</strong> ｜ 采购成本 $${Number(t.skuCostUsd || 4.5).toFixed(2)} ｜ 退回海外仓预估运费 $${Number(t.returnShipEstUsd || 14.0).toFixed(2)}</div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">4. 买家举证照片（${photos.length} 张）：</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${photos.length ? photos.map(ph => `
+                  <div class="evidence-thumb-wrap">
+                    <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" style="width:92px;height:92px;border-radius:6px;object-fit:cover;" alt="${ph.label}"/>
+                    <span style="font-size:11px;">${ph.label}</span>
+                  </div>
+                `).join("") : `<span class="pill p-red">警告：无买家实拍凭证</span>`}
+              </div>
+            </div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 11px;margin-bottom:10px;font-size:12.5px;">
+              <strong>5. 前序客服（${t.submitter}）初审总结：</strong><br/>${t.csReviewSummary || "未填写"}
+            </div>
+            <div class="grid-2">
+              <div class="field"><label>最终审批金额 (USD，≤ $${t.orderAmount.toFixed(2)}) *</label><input id="dosAmt" type="number" step="0.01" class="input" value="${t.refundAmount.toFixed(2)}"/></div>
+              <div class="field"><label>审批决策 *</label>
+                <select id="dosDec" class="select">
+                  <option value="APPROVE">✓ 批准通过（转人工后台打款）</option>
+                  <option value="REWORK">↩ 驳回退回客服补证/重谈</option>
+                  <option value="REJECT">✕ 终局驳回（不予退款）</option>
+                </select>
+              </div>
+            </div>
+            <div class="field"><label>主管审批意见（必填）*</label><input id="dosNote" class="input" placeholder="如：照片与面单核实无误，退运成本高于货值，同意仅退款"/></div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+              <button class="btn" id="dosCancel">取消</button>
+              <button class="btn btn-primary" id="dosSubmit">确认审批决定</button>
+            </div>
+          `, (root) => {
+            root.querySelector("#dosCancel").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+            root.querySelector("#dosSubmit").onclick = () => {
+              const dec = root.querySelector("#dosDec").value;
+              const amt = Number(root.querySelector("#dosAmt").value);
+              const note = root.querySelector("#dosNote").value.trim();
+              if (!note) { toast("必须填写主管审批意见", "error"); return; }
+              if (dec === "APPROVE" && (!(amt > 0) || amt > t.orderAmount)) {
+                toast(`核准金额必须在 $0.01 至 $${t.orderAmount.toFixed(2)} 之间`, "error");
+                return;
+              }
               t.approver = ROLE_PERSON_NAMES[state.role];
               t.approveNote = note;
-              if (isApprove) {
+              if (dec === "APPROVE") {
+                t.refundAmount = amt;
                 t.status = "待上传退款凭证";
                 t.refundSyncStatus = "主管已批，待后台手工打款";
-                return { toastMsg: `工单 ${t.id} 已批准，请上传手工退款凭证后完成结案` };
+                toast(`工单 ${t.id} 已批准 $${amt.toFixed(2)}，请手工打款并传凭证`, "success");
+              } else if (dec === "REWORK") {
+                t.status = "待客服重审/补证";
+                t.refundSyncStatus = "已退回客服补充照片/重谈方案";
+                toast(`工单 ${t.id} 已退回客服补证`, "warn");
               } else {
                 t.status = "已驳回";
                 t.refundSyncStatus = "已驳回不退款";
-                return { toastMsg: `工单 ${t.id} 已驳回`, toastLevel: "warn" };
+                toast(`工单 ${t.id} 已终局驳回`, "warn");
               }
-            },
-            audit: (wrap) => ({
-              sentence: `${ROLE_PERSON_NAMES[state.role]} ${isApprove ? "批准" : "驳回"}了售后工单 ${t.id}（金额 $${t.refundAmount.toFixed(2)}），审批意见：${wrap.querySelector("#m1cNote").value.trim()}`,
-              ok: true
-            })
+              appendAuditLog(state, {
+                sentence: `${ROLE_PERSON_NAMES[state.role]} 对售后卷宗 ${t.id} 作出「${t.status}」决定（$${t.refundAmount.toFixed(2)}），意见：${note}`,
+                ok: true
+              });
+              document.getElementById("modalRoot").innerHTML = "";
+              rerender();
+            };
           });
         });
 
@@ -4046,30 +4704,38 @@ function renderM0_M3(pageId, state, helpers) {
     const mkSess = state.csSessions.find(s => s.id === "cs3") || state.csSessions[state.csSessions.length - 1];
     return {
       headerActions: [
-        { label: "去客服工作台查看处理结果 →", primary: true, onClick: () => goPage("m1a") }
+        { label: "去客服调度台查看处理结果 →", primary: true, onClick: () => { state.csViewMode = "queue"; goPage("m1a"); } }
       ],
       html: `
         <div class="banner banner-amber">
-          <span><strong>联调测试说明：</strong>本页面仅为<strong>内部规则联调测试入口（绝对不会向真实买家或外部平台发送任何消息）</strong>，用于测试智能客服推荐与敏感词转人工拦截效果。</span>
+          <span><strong>联调测试说明：</strong>本页面仅为<strong>内部规则联调测试入口（绝对不会向真实买家或外部平台发送任何消息）</strong>，用于体验买家端提示、AI 说明书自动答复与拼多多式退换货转人工。</span>
         </div>
 
         <div class="grid-3">
           <div class="kpi-card"><div class="kpi-label">联调目标环境</div><div class="kpi-val" style="font-size:18px;color:var(--amber-text)">演示测试专用</div><div class="kpi-sub">与实盘店铺营收完全隔离</div></div>
           <div class="kpi-card highlight-blue"><div class="kpi-label">当前联调消息数</div><div class="kpi-val" style="color:var(--blue-hover)">${mkSess.msgs.length} 条</div><div class="kpi-sub">已同步推送到 M1-1 客服台</div></div>
-          <div class="kpi-card highlight-green"><div class="kpi-label">最近识别结果</div><div class="kpi-val" style="font-size:17px;color:var(--green-text)">${mkSess.status}</div><div class="kpi-sub">可去 M1-1 查看完整应答</div></div>
+          <div class="kpi-card highlight-green"><div class="kpi-label">最近识别结果</div><div class="kpi-val" style="font-size:17px;color:var(--green-text)">${mkSess.status}</div><div class="kpi-sub">可去 M1-1 查看分流队列</div></div>
         </div>
 
         <div class="split-left-form">
           <div class="card">
-            <div class="card-header"><div class="card-title">发送一条模拟买家咨询或售后投诉</div></div>
-            <div class="field"><label>快速选择测试场景</label>
+            <div class="card-header"><div class="card-title">模拟买家发送消息或申请退换货</div></div>
+            <div class="buyer-notice-strip">
+              <strong>买家端提醒小字：</strong>🤖 智能客服可解答商品尺码、使用说明/故障排障与物流进度；🧑 如需退款退货、换货补发请点击下方「模拟买家：申请退款/退换货」。
+            </div>
+            <div class="field"><label>快速选择 4 类真实业务测试场景</label>
               <select id="mkPresetSel" class="select">
-                <option value="Is this waterproof backpack available in stock?">售前商品咨询：询问防泼水与库存</option>
-                <option value="My item arrived damaged, I want a refund of $29.90!">售后投诉测试：包含「refund」触发人工转接拦截</option>
+                <option value="Is this waterproof backpack available in stock?">1. 售前导购：询问防泼水与库存 (AI自动)</option>
+                <option value="How do I remove the front cover of FAN-203 to clean, and why does the red indicator blink?">2. 使用说明排障：循环扇拆洗与红灯闪烁 (AI自动)</option>
+                <option value="My package has been stuck in customs for 5 days, please check!">3. 物流异常催单：清关停滞触发转人工</option>
+                <option value="My item arrived damaged, I want a refund of $29.90!">4. 售后破损退款：触发熔断转人工拦截</option>
               </select>
             </div>
             <div class="field"><label>模拟买家消息内容 *</label><textarea id="mkMsgText" class="textarea">Is this waterproof backpack available in stock?</textarea></div>
-            <button class="btn btn-primary" id="mkSendBtn" style="width:100%;justify-content:center;" ${!canSim?"disabled":""}>发送模拟消息并触发规则检测</button>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-primary" id="mkSendBtn" style="width:100%;justify-content:center;" ${!canSim?"disabled":""}>发送模拟消息并触发规则检测</button>
+              <button class="btn btn-danger" id="mkPddBtn" style="width:100%;justify-content:center;" ${!canSim?"disabled":""}>🛒 模拟买家点击【申请退款/退换货】(填清单+传图)</button>
+            </div>
           </div>
 
           <div class="card">
@@ -4077,7 +4743,7 @@ function renderM0_M3(pageId, state, helpers) {
               <div class="card-title">联调回执预览（已同步至客服工作台）</div>
               <button class="btn btn-sm btn-primary" id="mkJumpCsBtn">前往客服页核对结果 →</button>
             </div>
-            <div style="max-height:260px;overflow-y:auto;">
+            <div style="max-height:280px;overflow-y:auto;">
               ${mkSess.msgs.map(m => `
                 <div class="chat-bubble ${m.who==="buyer"?"user":"assistant"}">
                   <div>${m.text}</div>
@@ -4090,17 +4756,28 @@ function renderM0_M3(pageId, state, helpers) {
       `,
       bind: () => {
         document.getElementById("mkPresetSel").onchange = (e) => { document.getElementById("mkMsgText").value = e.target.value; };
-        document.getElementById("mkJumpCsBtn").onclick = () => { state.csActiveId = mkSess.id; goPage("m1a"); };
+        document.getElementById("mkJumpCsBtn").onclick = () => { state.csActiveId = mkSess.id; state.csViewMode = "queue"; goPage("m1a"); };
+        document.getElementById("mkPddBtn").onclick = () => openBuyerAfterSalesForm(mkSess, () => rerender());
         document.getElementById("mkSendBtn").onclick = () => {
           const txt = document.getElementById("mkMsgText").value.trim();
           if (!txt) { toast("请输入模拟买家消息内容", "error"); return; }
-          const isRefund = /refund|damage|complaint|return/i.test(txt);
+          const isRefund = /refund|damage|complaint|return|customs|stuck/i.test(txt);
+          const isManual = /clean|cover|blink|red|manual|install/i.test(txt);
           mkSess.msgs.push({ who: "buyer", text: txt, trans: "（联调测试买家消息）" });
           if (isRefund) {
             mkSess.status = "待人工接管";
-            mkSess.msgs.push({ who: "ai", text: "拦截回执：检测到退款/破损关键词，禁止智能助手直接承诺赔付，已标记为「待人工接管」。", trans: "请到 M1-1 客服工作台核实处理" });
+            mkSess.serviceMode = "WAIT_HUMAN";
+            mkSess.handoffReason = "联调消息命中退款/物流异常敏感词，已自动转人工队列";
+            mkSess.msgs.push({ who: "ai", text: "拦截回执：检测到退款/破损/清关异常关键词，禁止智能助手直接承诺赔付，已标记为「待人工接管」。", trans: "请到 M1-1 客服调度台接管并回复" });
+          } else if (isManual) {
+            mkSess.status = "智能自动接待";
+            mkSess.serviceMode = "AI_AUTO";
+            mkSess.kbHit = "说明书FAQ · FAN-203 前网罩拆洗与充电红灯提示";
+            mkSess.msgs.push({ who: "ai", text: "说明书回执：已命中 FAN-203 使用说明库（断电逆时针旋开前网罩清洗；红灯慢闪为正常充电），置信度 96% 已自动答复。", trans: "非退款排障类咨询由 AI 直接解决" });
           } else {
             mkSess.status = "智能自动接待";
+            mkSess.serviceMode = "AI_AUTO";
+            mkSess.kbHit = "导购库 · BAG-108 (沙盒联调)";
             mkSess.msgs.push({ who: "ai", text: "推荐回执：已在导购商品库匹配到「轻量通勤双肩包 ($29.90)」，生成双语推荐草稿。", trans: "可到 M1-1 查看自动推荐结果" });
           }
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 发送了联调测试消息，系统判定为「${mkSess.status}」`, ok: true });
@@ -4560,7 +5237,6 @@ function renderM0_M3(pageId, state, helpers) {
 }
 
 // ===== pages_m4_m6.js =====
-
 const M4_MODES = {
   balanced: { key: "balanced", label: "均衡优选", wRev: 45, wTrend: 35, wMargin: 20, desc: "适合日常选品：平衡近2月销售额、近期涨势与毛利空间，优先推荐可投产单品" },
   revenue:  { key: "revenue",  label: "稳健经营", wRev: 60, wTrend: 15, wMargin: 25, desc: "适合稳现金流：优先挑选销额大、毛利率高、退货率与侵权风险低的老道品类" },
@@ -6177,7 +6853,6 @@ function renderM4_M6(pageId, state, helpers) {
 }
 
 // ===== pages_m7_m8.js =====
-
 const MATRIX_ROWS = [
   ["01 M8 员工名册与岗位授权", "★ 本组权限", "★ 全局授权", "✕ 禁止", "✕ 禁止", "✕ 禁止", "✕ 禁止", "✕ 禁止", "✕ 禁止", "✕ 禁止"],
   ["02 M0-1 店铺连接与商品主档", "○ 查看状态", "★ 店铺授权", "◆ 成本变更", "○ 只读统计", "○ 查基础资料", "○ 查商品卖点", "○ 查商品规格", "○ 本店订单", "✕ 禁止"],
@@ -7095,7 +7770,6 @@ function renderM7_M8(pageId, state, helpers) {
 }
 
 // ===== app.js =====
-
 const ROLE_HINTS = Object.fromEntries(BIZ_ROLES.map(r => [r.key, r.desc]));
 let state = createInitialState();
 
@@ -7480,25 +8154,25 @@ function rerender() {
   document.getElementById("pageTitle").textContent = meta.title;
   document.getElementById("pageSubtitle").textContent = meta.subtitle;
 
-  // Render 3-stage Flow Position Bar (上游环节 → 本环节 → 下游环节)
+  // Render compact single-line 3-stage Flow Position Bar (上游环节 → 本环节 → 下游环节)
   const flowBar = document.getElementById("flowPositionBar");
   const flowInfo = PAGE_FLOW_META[state.pageId];
   if (flowBar && flowInfo) {
-    flowBar.style.display = "grid";
+    flowBar.style.display = "flex";
     flowBar.innerHTML = `
       <div class="flow-node ${flowInfo.upPage ? "clickable" : ""}" ${flowInfo.upPage ? `data-flowpage="${flowInfo.upPage}" title="点击跳转上游：${flowInfo.up}"` : ""}>
-        <div class="flow-node-tag">⬅ 上游环节</div>
-        <div>${flowInfo.up}${flowInfo.upPage ? ` <span style="color:var(--blue-hover);font-weight:600;">[跳转]</span>` : ""}</div>
+        <span class="flow-node-tag">上游</span>
+        <span>${flowInfo.up}${flowInfo.upPage ? ` <span style="color:var(--blue-hover);font-weight:700;">[跳转]</span>` : ""}</span>
       </div>
-      <div class="flow-arrow">→</div>
+      <span class="flow-arrow">→</span>
       <div class="flow-node current">
-        <div class="flow-node-tag">📍 本环节当前动作</div>
-        <div><strong>${flowInfo.cur}</strong></div>
+        <span class="flow-node-tag">当前</span>
+        <strong>${flowInfo.cur}</strong>
       </div>
-      <div class="flow-arrow">→</div>
+      <span class="flow-arrow">→</span>
       <div class="flow-node ${flowInfo.downPage ? "clickable" : ""}" ${flowInfo.downPage ? `data-flowpage="${flowInfo.downPage}" title="点击跳转下游：${flowInfo.down}"` : ""}>
-        <div class="flow-node-tag">➡ 下游环节</div>
-        <div>${flowInfo.down}${flowInfo.downPage ? ` <span style="color:var(--blue-hover);font-weight:600;">[跳转]</span>` : ""}</div>
+        <span class="flow-node-tag">下游</span>
+        <span>${flowInfo.down}${flowInfo.downPage ? ` <span style="color:var(--blue-hover);font-weight:700;">[跳转]</span>` : ""}</span>
       </div>
     `;
     flowBar.querySelectorAll("[data-flowpage]").forEach(btn => {
@@ -7538,9 +8212,9 @@ function rerender() {
 
   const conc = buildSystemConclusion(state.pageId, state);
   const concHtml = conc ? `
-    <div class="banner banner-${conc.tone || "blue"}" id="systemConclusionBar" style="margin-bottom:14px;">
+    <div class="banner banner-${conc.tone || "blue"}" id="systemConclusionBar" style="margin-bottom:4px;font-size:12px;">
       <span>
-        <strong>💡 系统结论：</strong>【当前状态】${conc.status} ｜ <strong>【系统建议】${conc.advice}</strong> ｜ 【依据数字】${conc.basis}
+        <strong>💡 系统结论：</strong>${conc.status} ｜ <strong>建议：${conc.advice}</strong> ｜ 依据：${conc.basis}
       </span>
     </div>
   ` : "";
@@ -7624,8 +8298,8 @@ if (PAGE_META[initHash]) {
   if (mod) state.openModuleId = mod.id;
 }
 rerender();
-})();
 
+})();
 </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 import {
-  BACKEND_SERVICE_URL, ROLE_PERSON_NAMES, getProductImg, genDocId, nowDateTimeStr, nowTimeStr, relTimeLabel, appendAuditLog,
+  BACKEND_SERVICE_URL, ROLE_PERSON_NAMES, getProductImg, getEvidenceImg, genDocId, nowDateTimeStr, nowTimeStr, relTimeLabel, appendAuditLog,
   daysOffsetDate, calcProductMargin, calcInvCoverage, evalShopHealth
 } from "./state.js";
 
@@ -1182,73 +1182,396 @@ export function renderM0_M3(pageId, state, helpers) {
   }
 
   // ==================== M1-1: 客服会话、四要素核验绑单、三项回复检查 ====================
+  // ==================== M1 公共辅助：图片放大 & 拼多多式买家售后申请弹窗 ====================
+  const openEvidenceLightbox = (photo) => {
+    const src = photo.dataUrl || getEvidenceImg(photo.kind || "scratch", photo.label || "买家实拍凭证");
+    openModal(`买家实拍凭证放大预览 · ${photo.label || "证据图片"}`, `
+      <div style="text-align:center;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+        <img src="${src}" style="max-width:100%;max-height:360px;border-radius:8px;border:1px solid #cbd5e1;" alt="${photo.label}"/>
+        <div style="font-size:12.5px;color:var(--text-soft);margin-top:8px;">文件名：<strong>${photo.label}</strong>（已与当前订单与会话归档关联）</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="btn btn-primary" id="closeLightBoxBtn">关闭预览</button>
+      </div>
+    `, (root) => {
+      root.querySelector("#closeLightBoxBtn").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+    });
+  };
+
+  const openBuyerAfterSalesForm = (targetSess, onDone) => {
+    const linkedOrd = state.orders.find(o => o.orderNo === targetSess.linkedOrder) || state.orders.find(o => o.shop === targetSess.shop) || state.orders[0];
+    const presetAmt = targetSess.buyerAfterSales?.amountUsd || linkedOrd?.amountUsd || 29.90;
+    let draftPhotos = [...(targetSess.buyerAfterSales?.photos || [{ kind: "scratch", label: "商品破损实拍.jpg" }])];
+
+    openModal(`买家端售后申请清单（拼多多式）· ${targetSess.shop}`, `
+      <div class="buyer-notice-strip">
+        <strong>🤖 智能客服</strong>负责解答尺码材质、使用说明/故障自检与物流进度；<strong>🧑 申请退换货或理赔</strong>请填写下方清单并上传问题实拍，提交后将自动转入人工客服优先处理。
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>1. 售后类型 *</label>
+          <select id="pddType" class="select">
+            <option>仅退款（不退货）</option>
+            <option>部分补偿（安抚留货）</option>
+            <option>退货退款（退回海外仓）</option>
+            <option>换货 / 补发配件</option>
+          </select>
+        </div>
+        <div class="field"><label>2. 货物状态 *</label>
+          <select id="pddGoods" class="select">
+            <option>已收到货（已拆封验货）</option>
+            <option>未收到货（在途/疑丢件）</option>
+            <option>已拒收退回中</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>3. 申请原因 *</label>
+          <select id="pddReason" class="select">
+            <option>商品破损或划痕</option>
+            <option>功能故障不能用</option>
+            <option>发错货或尺码不符</option>
+            <option>少件漏发</option>
+            <option>物流超期未送达</option>
+            <option>个人原因不想要</option>
+          </select>
+        </div>
+        <div class="field"><label>4. 申请退款/补偿金额 (USD) *</label>
+          <input id="pddAmt" type="number" step="0.01" class="input" value="${presetAmt}"/>
+        </div>
+      </div>
+      <div class="field"><label>5. 问题补充说明 *</label>
+        <textarea id="pddNote" class="textarea" placeholder="请描述商品哪里破损、少发了什么配件或希望怎么处理...">${targetSess.buyerAfterSales?.note || "外箱挤压变形，拆封发现商品有明显划痕，希望尽快退款处理。"}</textarea>
+      </div>
+      <div class="field">
+        <label>6. 上传问题实拍照片（破损/错漏发必传 ≥1 张，最多 3 张）*</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;" id="pddPhotoList"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-sm" id="pddAddScratch">+ 附带「商品划痕特写.jpg」</button>
+          <button type="button" class="btn btn-sm" id="pddAddBox">+ 附带「外箱破损+快递面单.jpg」</button>
+          <label class="btn btn-sm" style="cursor:pointer;">📁 选本地图片<input type="file" accept="image/*" id="pddLocalFile" style="display:none;"/></label>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+        <button class="btn" id="pddCancel">取消</button>
+        <button class="btn btn-danger" id="pddSubmit">提交售后申请并转人工客服 →</button>
+      </div>
+    `, (root) => {
+      const renderPhotos = () => {
+        const box = root.querySelector("#pddPhotoList");
+        if (!draftPhotos.length) {
+          box.innerHTML = `<span style="font-size:12px;color:var(--red-text);">暂未上传问题实拍图（破损/故障/错漏发退款必须上传至少 1 张）</span>`;
+          return;
+        }
+        box.innerHTML = draftPhotos.map((ph, i) => `
+          <div class="evidence-thumb-wrap" style="position:relative;">
+            <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" class="evidence-thumb-img" alt="${ph.label}"/>
+            <span style="font-size:11px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ph.label}</span>
+            <button type="button" class="pdd-del-ph" data-i="${i}" style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;border:none;background:#ef4444;color:#fff;font-size:11px;cursor:pointer;line-height:1;">×</button>
+          </div>
+        `).join("");
+        box.querySelectorAll(".pdd-del-ph").forEach(b => b.onclick = () => {
+          draftPhotos.splice(Number(b.dataset.i), 1);
+          renderPhotos();
+        });
+      };
+      renderPhotos();
+
+      root.querySelector("#pddAddScratch").onclick = () => {
+        if (draftPhotos.length >= 3) { toast("最多上传 3 张凭证照片", "warn"); return; }
+        draftPhotos.push({ kind: "scratch", label: "商品划痕特写.jpg" });
+        renderPhotos();
+      };
+      root.querySelector("#pddAddBox").onclick = () => {
+        if (draftPhotos.length >= 3) { toast("最多上传 3 张凭证照片", "warn"); return; }
+        draftPhotos.push({ kind: "box", label: "外箱破损+快递面单.jpg" });
+        renderPhotos();
+      };
+      root.querySelector("#pddLocalFile").onchange = (e) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+        if (draftPhotos.length >= 3) { toast("最多上传 3 张凭证照片", "warn"); return; }
+        draftPhotos.push({ kind: "scratch", label: f.name });
+        renderPhotos();
+      };
+      root.querySelector("#pddCancel").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+      root.querySelector("#pddSubmit").onclick = () => {
+        const type = root.querySelector("#pddType").value;
+        const goods = root.querySelector("#pddGoods").value;
+        const reason = root.querySelector("#pddReason").value;
+        const amt = Number(root.querySelector("#pddAmt").value);
+        const note = root.querySelector("#pddNote").value.trim();
+        const needPhoto = ["商品破损或划痕", "功能故障不能用", "发错货或尺码不符", "少件漏发"].includes(reason);
+        if (!note) { toast("请填写问题补充说明", "error"); return; }
+        if (!(amt > 0)) { toast("请填写有效的申请金额", "error"); return; }
+        if (needPhoto && draftPhotos.length === 0) { toast("所选原因属于破损/故障/错漏发，必须附带至少 1 张买家问题实拍图", "error"); return; }
+
+        targetSess.buyerAfterSales = {
+          submitted: true, afterSalesType: type, goodsStatus: goods, reasonCategory: reason,
+          amountUsd: amt, note, photos: draftPhotos, submittedAt: nowDateTimeStr()
+        };
+        targetSess.bizType = "售后退换赔";
+        targetSess.intent = `${reason} · 申请${type} $${amt.toFixed(2)}`;
+        targetSess.status = "待人工接管";
+        targetSess.serviceMode = "WAIT_HUMAN";
+        targetSess.handoffReason = `买家主动提交「${type}」申请（${reason}，${draftPhotos.length}张实拍图），已自动停用AI并转人工处理`;
+        state.csTakeoverMap[targetSess.id] = { who: "待客服接管", at: "刚刚提交申请" };
+        targetSess.msgs.push({
+          who: "buyer",
+          text: `[After-Sales Request] ${type} ($${amt.toFixed(2)}) · ${reason}. ${note}`,
+          trans: `买家提交售后清单：${type} · ${goods} · 附 ${draftPhotos.length} 张实拍图`
+        });
+        targetSess.msgs.push({
+          who: "ai",
+          text: "熔断通知：收到买家退换货清单与凭证照片，智能客服已停言，正在排队等待人工客服接管。",
+          trans: "已进入 M1-1 店铺待人工接管队列"
+        });
+        appendAuditLog(state, { sentence: `买家「${targetSess.buyer}」提交了「${type}」申请（$${amt.toFixed(2)}，${draftPhotos.length}张图），会话已转入待人工队列`, ok: true });
+        document.getElementById("modalRoot").innerHTML = "";
+        if (onDone) onDone();
+        else rerender();
+        toast("已提交买家售后清单并自动转人工队列", "success");
+      };
+    });
+  };
+
+  // ==================== M1-1: 多店铺客服分流调度台 & 人工接待工作台 (Option A 两页式) ====================
   if (pageId === "m1a") {
-    const canCs = state.role === "cs" || state.role === "approver";
+    const canCs = state.role === "cs";
+    const isApproverReadonly = state.role === "approver";
+    const viewMode = state.csViewMode || "queue";
     const active = state.csSessions.find(s => s.id === state.csActiveId) || state.csSessions[0];
-    const tkInfo = state.csTakeoverMap[active.id] || { who: "智能助手自动接待", at: "刚接入" };
+    const tkInfo = state.csTakeoverMap[active.id] || { who: "智能客服自动接待", at: "刚接入" };
     const linkedOrdObj = state.orders.find(o => o.orderNo === active.linkedOrder);
 
+    // 按店铺汇总智能自动对话数 / 待人工 / 人工接待中
+    const shopNames = [...new Set(state.csSessions.map(s => s.shop))];
+    const shopSummaries = shopNames.map(name => {
+      const list = state.csSessions.filter(s => s.shop === name);
+      return {
+        shop: name,
+        mode: list[0]?.mode || "REAL",
+        total: list.length,
+        aiAuto: list.filter(s => s.status === "智能自动接待" || s.status === "仅限联调演示").length,
+        waitHuman: list.filter(s => s.status === "待人工接管").length,
+        humanBusy: list.filter(s => s.status === "人工接待中").length,
+      };
+    });
+
+    // -------------------- 第 1 页：分店铺会话调度台 --------------------
+    if (viewMode === "queue") {
+      const curShopFilter = state.csShopFilter || "ALL";
+      const filteredSessions = state.csSessions
+        .filter(s => curShopFilter === "ALL" || s.shop === curShopFilter)
+        .slice()
+        .sort((a, b) => {
+          const rank = s => s.status === "待人工接管" ? 0 : s.status === "人工接待中" ? 1 : 2;
+          return rank(a) - rank(b);
+        });
+
+      return {
+        headerActions: [
+          { label: "导购与说明书知识库 →", primary: false, onClick: () => goPage("m1b") },
+          { label: "售后主管审批台 →", primary: true, onClick: () => goPage("m1c") }
+        ],
+        html: `
+          <div class="banner banner-blue">
+            <span><strong>第 1 页 · 分店铺分流调度台：</strong>🤖 <strong>智能客服</strong>自动接待售前导购、使用说明排障与常规查单；🧑 <strong>触发退款/退换/物流异常/低置信度</strong>自动转人工队列，点击右侧按钮直接接管并进入第 2 页回复。</span>
+            <button class="btn btn-sm" id="qDemoPddBtn">🛒 模拟买家提交退换货清单</button>
+          </div>
+
+          <div class="grid-${Math.min(4, shopSummaries.length + 1)}">
+            <div class="shop-queue-card ${curShopFilter === "ALL" ? "active" : ""}" data-shop="ALL">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <strong style="font-size:13.5px;">全部接入店铺 (${shopNames.length} 家)</strong>
+                <span class="pill p-blue">总 ${state.csSessions.length} 组</span>
+              </div>
+              <div style="display:flex;gap:10px;font-size:12px;flex-wrap:wrap;">
+                <span>🤖 智能对话 <strong>${state.csSessions.filter(s => s.status === "智能自动接待" || s.status === "仅限联调演示").length}</strong></span>
+                <span style="color:var(--red-text);">🚨 待人工 <strong>${state.csSessions.filter(s => s.status === "待人工接管").length}</strong></span>
+                <span style="color:var(--blue-hover);">🧑 人工中 <strong>${state.csSessions.filter(s => s.status === "人工接待中").length}</strong></span>
+              </div>
+            </div>
+            ${shopSummaries.map(sp => `
+              <div class="shop-queue-card ${curShopFilter === sp.shop ? "active" : ""}" data-shop="${sp.shop}">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;">
+                  <strong style="font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sp.shop}</strong>
+                  <span class="pill ${sp.mode==="MOCK"?"p-amber":sp.waitHuman>0?"p-red":"p-green"}">${sp.mode==="MOCK"?"沙盒联调":sp.waitHuman>0?`待人工 ${sp.waitHuman}`:"AI正常托管"}</span>
+                </div>
+                <div style="display:flex;gap:10px;font-size:12px;flex-wrap:wrap;">
+                  <span>🤖 智能对话 <strong>${sp.aiAuto}</strong></span>
+                  <span style="color:${sp.waitHuman>0?"var(--red-text)":"var(--text-soft)"};">🚨 待人工 <strong>${sp.waitHuman}</strong></span>
+                  <span>🧑 人工中 <strong>${sp.humanBusy}</strong></span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                ${curShopFilter === "ALL" ? "全店铺客服会话分流队列" : `${curShopFilter} · 会话队列`}
+                <span class="pill p-gray">${filteredSessions.length} 组</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-soft);">已将「待人工接管」优先置顶 · 点击右侧按钮跳转到第 2 页回复</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              ${filteredSessions.map(s => {
+                const info = state.csTakeoverMap[s.id] || { who: "智能客服自动接待", at: "" };
+                const isWait = s.status === "待人工接管";
+                const isHuman = s.status === "人工接待中";
+                const isMock = s.mode === "MOCK";
+                return `
+                  <div class="session-queue-row ${isWait ? "urgent" : isHuman ? "" : "ai-auto"}">
+                    <div style="flex:1;min-width:260px;">
+                      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;">
+                        <span class="pill ${isWait?"p-red":isHuman?"p-blue":isMock?"p-amber":"p-green"}">
+                          ${isWait ? "🚨 待人工接管" : isHuman ? "🧑 人工接待中 · AI已禁言" : isMock ? "🧪 仅限联调演示" : `🤖 智能自动接待 (${s.conf})`}
+                        </span>
+                        <span class="pill p-gray">${s.bizType || "常规咨询"}</span>
+                        <strong style="font-size:14px;">${s.buyer}</strong>
+                        <span style="font-size:12px;color:var(--text-soft);">· ${s.shop}</span>
+                        ${s.buyerAfterSales?.submitted ? `<span class="pill p-amber">📎 买家售后单: ${s.buyerAfterSales.afterSalesType} $${Number(s.buyerAfterSales.amountUsd).toFixed(2)} (${s.buyerAfterSales.photos?.length || 0}图)</span>` : ""}
+                      </div>
+                      <div style="font-size:12.5px;color:var(--text-dark);margin-bottom:3px;"><strong>买家诉求：</strong>${s.intent}</div>
+                      ${s.handoffReason ? `<div style="font-size:12px;color:var(--red-text);"><strong>转人工原因：</strong>${s.handoffReason}</div>` : s.kbHit ? `<div style="font-size:12px;color:var(--green-text);"><strong>命中知识：</strong>${s.kbHit}</div>` : ""}
+                      <div style="font-size:11.5px;color:var(--text-soft);margin-top:2px;">当前接待：${info.who} (${info.at}) ｜ 关联订单：${s.linkedOrder || "暂未绑定"}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                      ${isWait ? `
+                        <button class="btn btn-sm btn-danger q-takeover-go" data-id="${s.id}">✋ 接管并去回复 →</button>
+                      ` : isHuman ? `
+                        <button class="btn btn-sm btn-primary q-open-ws" data-id="${s.id}">进入人工工作台回复 →</button>
+                      ` : `
+                        <button class="btn btn-sm q-open-ws" data-id="${s.id}">查看AI对话 / 人工介入 →</button>
+                      `}
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `,
+        bind: () => {
+          document.querySelectorAll(".shop-queue-card").forEach(el => {
+            el.onclick = () => { state.csShopFilter = el.dataset.shop; rerender(); };
+          });
+          document.querySelectorAll(".q-open-ws").forEach(b => {
+            b.onclick = () => { state.csActiveId = b.dataset.id; state.csViewMode = "workspace"; rerender(); };
+          });
+          document.querySelectorAll(".q-takeover-go").forEach(b => {
+            b.onclick = () => {
+              const target = state.csSessions.find(s => s.id === b.dataset.id);
+              if (!target) return;
+              state.csActiveId = target.id;
+              if (canCs) {
+                state.csTakeoverMap[target.id] = { who: ROLE_PERSON_NAMES[state.role], at: nowTimeStr() };
+                target.status = "人工接待中";
+                target.serviceMode = "HUMAN";
+                appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 从分店铺调度台接管了「${target.buyer}」（${target.shop}）会话并禁言智能客服`, ok: true });
+                toast(`已接管「${target.buyer}」会话（AI已禁言），进入第 2 页回复`, "success");
+              } else {
+                toast("当前岗位仅浏览会话工作台（接管建单请切至「客服」岗位）", "warn");
+              }
+              state.csViewMode = "workspace";
+              rerender();
+            };
+          });
+          const pddBtn = document.getElementById("qDemoPddBtn");
+          if (pddBtn) pddBtn.onclick = () => openBuyerAfterSalesForm(active);
+        }
+      };
+    }
+
+    // -------------------- 第 2 页：人工坐席接待与售后处理工作台 --------------------
     // 实时三项回复内容检查
     const zhVal = active.draftZh || "";
     const enVal = active.draftEn || "";
     const zhNums = (zhVal.match(/\d+(\.\d+)?/g) || []).join(",");
     const enNums = (enVal.match(/\d+(\.\d+)?/g) || []).join(",");
     const numMatchOk = zhNums === enNums;
-
-    // 金额与订单一致检查
     const orderAmt = linkedOrdObj ? linkedOrdObj.amountUsd : null;
     const mentionNums = (zhVal + " " + enVal).match(/\$\s*(\d+(\.\d+)?)/g) || [];
     const amountWithinOk = !orderAmt || mentionNums.every(m => Number(m.replace("$", "").trim()) <= orderAmt);
-
-    // 本店链接检查
     const otherDomains = state.csCatalog.filter(c => c.shop !== active.shop).map(c => c.domain);
     const wrongDom = otherDomains.find(d => (zhVal + " " + enVal).includes(d));
     const linkMatchOk = !wrongDom;
-
     const allReplyChecksOk = numMatchOk && amountWithinOk && linkMatchOk;
+
+    // 建单用默认值（优先承接买家提交的拼多多式售后清单）
+    const bAs = active.buyerAfterSales;
+    const prodObj = linkedOrdObj ? state.masterProducts.find(p => p.sku === linkedOrdObj.sku) : null;
+    const estCost = prodObj ? prodObj.cost : 4.50;
+    const estReturnShip = prodObj ? +(Number(prodObj.freight || 2.5) + Number(prodObj.lastMile || 4.8) * 1.8).toFixed(2) : 14.20;
+    const csDraftForm = active.csFormDraft || {
+      afterSalesType: bAs?.afterSalesType || "仅退款（不退货）",
+      goodsStatus: bAs?.goodsStatus || "已收到货（已拆封验货）",
+      reasonCategory: bAs?.reasonCategory || "商品破损或划痕",
+      liability: "物流运输破损",
+      refundAmount: bAs?.amountUsd || (linkedOrdObj ? linkedOrdObj.amountUsd : 34.50),
+      photos: bAs?.photos ? [...bAs.photos] : [{ kind: "scratch", label: "商品划痕特写.jpg" }],
+      reviewSummary: bAs?.submitted
+        ? `已核验订单 ${active.linkedOrder || "待绑定"}，买家提交「${bAs.afterSalesType}」并附 ${bAs.photos?.length || 0} 张实拍图属实；采购成本 $${estCost.toFixed(2)}、退回海外仓运费预估 $${estReturnShip.toFixed(2)}，建议按申请方案处理。`
+        : "已核验买家反馈与订单信息，请结合商品成本与运费确认售后方案。"
+    };
+    active.csFormDraft = csDraftForm;
+
+    const isHumanTaken = active.status === "人工接待中";
+    const isWaitHuman = active.status === "待人工接管";
 
     return {
       headerActions: [
-        { label: "查看本店在售导购库 →", primary: false, onClick: () => goPage("m1b") },
-        { label: "前往售后审批台账 →", primary: true, onClick: () => goPage("m1c") }
+        { label: "← 返回店铺会话调度台", primary: false, onClick: () => { state.csViewMode = "queue"; rerender(); } },
+        { label: "查看本店知识库 →", primary: false, onClick: () => goPage("m1b") },
+        { label: "前往售后审批台 →", primary: true, onClick: () => goPage("m1c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>一线客服处理买家咨询、人工接管并核验订单四要素后转入售后审批。<strong>数据来源：</strong>实时接入买家会话与订单台账（当前会话接待人：<strong>${tkInfo.who}</strong> · 接管时间：<strong>${tkInfo.at}</strong>）。</span>
+        <div class="banner ${isWaitHuman ? "banner-red" : isHumanTaken ? "banner-blue" : "banner-green"}">
+          <span>
+            <button class="btn btn-sm" id="wsBackQueueBtn" style="margin-right:8px;">← 返回第1页店铺队列</button>
+            <strong>${active.buyer} · ${active.shop}</strong> ｜
+            ${isHumanTaken ? `🧑 <strong>人工接待中（AI已禁言防抢答）</strong> · 接待人：${tkInfo.who}` : isWaitHuman ? `🚨 <strong>待人工接管</strong> · ${active.handoffReason}` : `🤖 <strong>智能自动接待</strong> · ${active.kbHit || active.intent}`}
+          </span>
+          ${!isHumanTaken ? `<button class="btn btn-sm btn-primary" id="csTakeoverBtn" ${!canCs?"disabled":""}>✋ 立即接管会话并禁言AI</button>` : `<span class="pill p-green">AI已锁止禁发 ✓</span>`}
         </div>
 
-        <div class="grid-3">
-          <div class="kpi-card highlight-blue"><div class="kpi-label">待人工接管会话</div><div class="kpi-val" style="color:var(--blue-hover)">${state.csSessions.filter(s=>s.status==="待人工接管").length} 组</div><div class="kpi-sub">含售后投诉或敏感字眼</div></div>
-          <div class="kpi-card highlight-green"><div class="kpi-label">智能自动接待中</div><div class="kpi-val" style="color:var(--green-text)">${state.csSessions.filter(s=>s.status==="智能自动接待").length} 组</div><div class="kpi-sub">普通商品问答自动处理</div></div>
-          <div class="kpi-card"><div class="kpi-label">已确认绑单会话</div><div class="kpi-val">${state.csSessions.filter(s=>s.linkVerified).length} 组</div><div class="kpi-sub">四要素核对一致后才可建单</div></div>
-        </div>
-
-        <div class="cs-3col">
-          <div class="card">
-            <div class="card-header"><div class="card-title">买家会话列表</div></div>
-            ${state.csSessions.map(s => {
-              const info = state.csTakeoverMap[s.id] || { who: "自动", at: "" };
-              return `
-                <div class="session-item ${s.id===active.id?"active":""} cs-sess-pick" data-id="${s.id}">
-                  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-                    <strong>${s.buyer}</strong>
-                    <span class="pill ${s.mode==="MOCK"?"p-amber":s.status==="待人工接管"?"p-red":"p-green"}">${s.status}</span>
-                  </div>
-                  <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${s.shop} · ${s.intent}</div>
-                  <div style="font-size:12px;color:var(--blue-hover);margin-top:2px;">接待：${info.who} (${info.at})</div>
-                </div>
-              `;
-            }).join("")}
+        ${isApproverReadonly ? `
+          <div class="banner banner-amber">
+            <span><strong>职责分离提示：</strong>当前以「主管 / 审批人」只读巡检此会话；一线回复与提交售后工单须由「客服」岗位执行（可在左侧切换「客服」体验完整建单）。</span>
           </div>
+        ` : ""}
 
+        <div class="cs-2col">
+          <!-- 左栏：买家视角提示 + 对话流 + 双语回答 -->
           <div class="card">
-            <div class="card-header">
-              <div>
-                <div class="card-title">${active.buyer} · ${active.shop}</div>
-                <div style="font-size:12px;color:var(--text-soft);">当前接待人：<strong>${tkInfo.who}</strong> ｜ 接管时间：<strong>${tkInfo.at}</strong></div>
-              </div>
-              <button class="btn btn-sm btn-primary" id="csTakeoverBtn" ${!canCs?"disabled":""}>✋ 人工接管会话</button>
+            <div class="card-header" style="margin-bottom:8px;">
+              <div class="card-title">第 2 页 · 对话详情与双语人工回复</div>
+              <button class="btn btn-sm" id="wsBuyerApplyBtn">🛍️ 买家端：发起退换货并传图</button>
             </div>
+
+            <div class="buyer-notice-strip">
+              <strong>买家端功能边界小字提示：</strong>🤖 智能客服负责解答商品尺码材质、使用说明/故障排障与物流进度；🧑 如需退款/退货、换货补发或破损理赔，请买家点击「申请退款/退换货」填写清单并上传实拍图，系统将直转人工处理。
+            </div>
+
+            ${bAs?.submitted ? `
+              <div class="pdd-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
+                  <strong>📦 买家提交的售后申请清单（拼多多式举证）</strong>
+                  <span class="pill p-amber">${bAs.afterSalesType} · $${Number(bAs.amountUsd).toFixed(2)}</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.55;">
+                  货物状态：<strong>${bAs.goodsStatus}</strong> ｜ 申请原因：<strong>${bAs.reasonCategory}</strong><br/>
+                  买家说明：${bAs.note}
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;">
+                  ${(bAs.photos || []).map((ph, idx) => `
+                    <div class="evidence-thumb-wrap ws-zoom-photo" data-src-list="buyer" data-idx="${idx}" title="点击查看大图">
+                      <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" class="evidence-thumb-img" alt="${ph.label}"/>
+                      <span style="font-size:11px;">${ph.label}</span>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            ` : ""}
 
             <div style="max-height:240px;overflow-y:auto;padding-right:4px;margin-bottom:10px;">
               ${active.msgs.map(m => `
@@ -1259,59 +1582,147 @@ export function renderM0_M3(pageId, state, helpers) {
               `).join("")}
             </div>
 
-            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
-              <div style="font-weight:700;font-size:12.5px;margin-bottom:6px;">回复内容合规检查（发送前自动逐项核验）</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:12px;">
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin-bottom:10px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:5px;">发送前合规检查（金额一致 / 本店链接 / 中外数字一致）</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px;">
                 <span class="pill ${amountWithinOk?"p-green":"p-red"}">${amountWithinOk ? "✓ 金额与订单一致" : "✗ 报价超出实付金额"}</span>
-                <span class="pill ${linkMatchOk?"p-green":"p-red"}">${linkMatchOk ? "✓ 使用本店商品链接" : "✗ 检测到其他店铺链接"}</span>
-                <span class="pill ${numMatchOk?"p-green":"p-red"}">${numMatchOk ? "✓ 中英文数字一致" : `✗ 中英文数字不一致 (中文[${zhNums||"无"}] vs 英文[${enNums||"无"}])`}</span>
+                <span class="pill ${linkMatchOk?"p-green":"p-red"}">${linkMatchOk ? "✓ 使用本店商品链接" : "✗ 检测到他店链接"}</span>
+                <span class="pill ${numMatchOk?"p-green":"p-red"}">${numMatchOk ? "✓ 中英文数字一致" : `✗ 数字不一致 (中[${zhNums||"无"}] vs 英[${enNums||"无"}])`}</span>
               </div>
             </div>
 
-            <div class="field"><label>中文核对草稿（便于客服主管抽检）</label><textarea id="csDraftZh" class="textarea ${!allReplyChecksOk?"input-err":""}">${active.draftZh}</textarea></div>
-            <div class="field"><label>发送给买家的外文回复</label><textarea id="csDraftEn" class="textarea ${!allReplyChecksOk?"input-err":""}">${active.draftEn}</textarea></div>
+            <div class="field"><label>中文核对草稿（主管抽检留痕）</label><textarea id="csDraftZh" class="textarea ${!allReplyChecksOk?"input-err":""}" style="min-height:56px;">${active.draftZh}</textarea></div>
+            <div class="field"><label>发送给买家的外文回复</label><textarea id="csDraftEn" class="textarea ${!allReplyChecksOk?"input-err":""}" style="min-height:56px;">${active.draftEn}</textarea></div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span style="font-size:12px;color:${allReplyChecksOk?"var(--green-text)":"var(--red-text)"};">${allReplyChecksOk ? "三项检查全部通过，可以发送" : "存在不合规表述，请按红色标出项修正后再发送"}</span>
-              <button class="btn btn-primary" id="csSendBtn" ${(!canCs || !allReplyChecksOk)?"disabled":""}>发送回复给买家</button>
+              <span style="font-size:12px;color:${allReplyChecksOk?"var(--green-text)":"var(--red-text)"};">${allReplyChecksOk ? "三项检查通过，可发出人工回复" : "请先修正红色标出的数字/链接问题"}</span>
+              <button class="btn btn-primary" id="csSendBtn" ${(!canCs || !allReplyChecksOk)?"disabled":""}>发送人工回复给买家</button>
             </div>
           </div>
 
+          <!-- 右栏：订单四要素核验 + 拼多多式售后建单 & 初审总结 -->
           <div class="card">
-            <div class="card-header"><div class="card-title">关联订单核验与售后建单</div></div>
-            <div class="formula-box" style="margin-bottom:10px;">
-              <div><strong>会话绑定单号：</strong>${active.linkedOrder || "尚未绑定"}</div>
-              <div><strong>核验状态：</strong><span class="pill ${active.linkVerified?"p-green":"p-amber"}">${active.linkVerified?"四要素已人工核对一致 ✓":"待并排核对四要素"}</span></div>
+            <div class="card-header" style="margin-bottom:8px;">
+              <div class="card-title">订单核验 & 售后初审建单</div>
+              <button class="btn btn-sm btn-primary" id="csBindOrderBtn" ${!canCs?"disabled":""}>🔍 核对绑定订单</button>
             </div>
-            <button class="btn btn-sm btn-primary" id="csBindOrderBtn" style="width:100%;justify-content:center;margin-bottom:10px;" ${!canCs?"disabled":""}>🔍 并排核对并绑定订单</button>
 
-            <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;"/>
-            <div class="field"><label>申请退款金额 (USD)</label><input id="csRefAmt" type="number" step="0.01" class="input" value="${linkedOrdObj ? linkedOrdObj.amountUsd : 34.50}"/></div>
-            <div class="field"><label>售后原因 *</label><input id="csRefReason" class="input" value="买家反馈包裹外箱划痕申请退款"/></div>
+            <div class="formula-box" style="margin-bottom:10px;">
+              <div><strong>绑定单号：</strong>${active.linkedOrder || "尚未绑定"} <span class="pill ${active.linkVerified?"p-green":"p-amber"}" style="margin-left:4px;">${active.linkVerified?"四要素一致 ✓":"待核对"}</span></div>
+              <div style="margin-top:4px;">
+                订单实付：<strong>$${(linkedOrdObj ? linkedOrdObj.amountUsd : 34.50).toFixed(2)}</strong> ｜
+                采购成本：<strong>$${estCost.toFixed(2)}</strong> ｜
+                退回运费预估：<strong>$${estReturnShip.toFixed(2)}</strong>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field"><label>售后类型 *</label>
+                <select id="csAfterType" class="select">
+                  ${["仅退款（不退货）", "部分补偿（安抚留货）", "退货退款（退回海外仓）", "换货 / 补发配件"].map(o => `<option ${csDraftForm.afterSalesType===o?"selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field"><label>货物状态 *</label>
+                <select id="csGoodsStatus" class="select">
+                  ${["已收到货（已拆封验货）", "未收到货（在途/疑丢件）", "已拒收退回中"].map(o => `<option ${csDraftForm.goodsStatus===o?"selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field"><label>售后原因分类 *</label>
+                <select id="csReasonCat" class="select">
+                  ${["商品破损或划痕", "功能故障不能用", "发错货或尺码不符", "少件漏发", "物流超期未送达", "个人原因不想要"].map(o => `<option ${csDraftForm.reasonCategory===o?"selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field"><label>初审定责归属 *</label>
+                <select id="csLiability" class="select">
+                  ${["物流运输破损", "工厂质检瑕疵", "仓库错漏发", "买家个人原因"].map(o => `<option ${csDraftForm.liability===o?"selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+
+            <div class="field"><label>申请退款 / 补偿金额 (USD) *</label>
+              <input id="csRefAmt" type="number" step="0.01" class="input" value="${Number(csDraftForm.refundAmount).toFixed(2)}"/>
+            </div>
+
+            <div class="field">
+              <label>买家举证照片（破损/错漏发赔付必附 ≥1 张，点图可放大）*</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                ${(csDraftForm.photos || []).map((ph, idx) => `
+                  <div class="evidence-thumb-wrap ws-zoom-photo" data-src-list="form" data-idx="${idx}">
+                    <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" class="evidence-thumb-img" alt="${ph.label}"/>
+                    <span style="font-size:10.5px;">${ph.label}</span>
+                  </div>
+                `).join("")}
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-sm" id="csAddPhotoBox">+ 补附外箱面单照</button>
+                <button type="button" class="btn btn-sm" id="csClearPhotos">清空重传</button>
+              </div>
+            </div>
+
+            <div class="field"><label>客服初审总结（必填，供主管看卷宗拍板）*</label>
+              <textarea id="csReviewSummary" class="textarea" style="min-height:76px;" placeholder="请总结：1.订单与照片核验结果 2.是否高于退运成本 3.为什么建议批此金额">${csDraftForm.reviewSummary}</textarea>
+            </div>
+
             <button class="btn btn-danger" id="csCreateTicketBtn" style="width:100%;justify-content:center;" ${(!canCs || !active.linkVerified)?"disabled":""} title="${!active.linkVerified?"请先完成上方订单四要素核验":""}">
-              提交售后工单 (转主管审批) →
+              提交完整售后卷宗 → 转主管审批
             </button>
           </div>
         </div>
       `,
       bind: () => {
-        document.querySelectorAll(".cs-sess-pick").forEach(el => el.onclick = () => { state.csActiveId = el.dataset.id; rerender(); });
+        document.getElementById("wsBackQueueBtn").onclick = () => { state.csViewMode = "queue"; rerender(); };
+        document.getElementById("wsBuyerApplyBtn").onclick = () => openBuyerAfterSalesForm(active, () => {
+          active.csFormDraft = null;
+          rerender();
+        });
+        document.querySelectorAll(".ws-zoom-photo").forEach(el => {
+          el.onclick = () => {
+            const list = el.dataset.srcList === "buyer" ? (bAs?.photos || []) : (csDraftForm.photos || []);
+            const ph = list[Number(el.dataset.idx)];
+            if (ph) openEvidenceLightbox(ph);
+          };
+        });
+
         document.getElementById("csDraftZh").oninput = (e) => { active.draftZh = e.target.value; rerender(); };
         document.getElementById("csDraftEn").oninput = (e) => { active.draftEn = e.target.value; rerender(); };
 
-        document.getElementById("csTakeoverBtn").onclick = () => {
-          state.csTakeoverMap[active.id] = { who: ROLE_PERSON_NAMES[state.role], at: nowTimeStr() };
-          active.status = "人工接待中";
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 接管了买家「${active.buyer}」的客服会话`, ok: true });
+        document.getElementById("csAfterType").onchange = (e) => { csDraftForm.afterSalesType = e.target.value; };
+        document.getElementById("csGoodsStatus").onchange = (e) => { csDraftForm.goodsStatus = e.target.value; };
+        document.getElementById("csReasonCat").onchange = (e) => { csDraftForm.reasonCategory = e.target.value; };
+        document.getElementById("csLiability").onchange = (e) => { csDraftForm.liability = e.target.value; };
+        document.getElementById("csRefAmt").oninput = (e) => { csDraftForm.refundAmount = e.target.value; };
+        document.getElementById("csReviewSummary").oninput = (e) => { csDraftForm.reviewSummary = e.target.value; };
+
+        document.getElementById("csAddPhotoBox").onclick = () => {
+          if (csDraftForm.photos.length >= 3) { toast("最多附加 3 张证据照片", "warn"); return; }
+          csDraftForm.photos.push({ kind: "box", label: "外箱破损+面单.jpg" });
           rerender();
-          toast(`已人工接管会话，当前接待人：${ROLE_PERSON_NAMES[state.role]}`, "success");
+        };
+        document.getElementById("csClearPhotos").onclick = () => {
+          csDraftForm.photos = [];
+          rerender();
         };
 
+        const tkBtn = document.getElementById("csTakeoverBtn");
+        if (tkBtn) {
+          tkBtn.onclick = () => {
+            state.csTakeoverMap[active.id] = { who: ROLE_PERSON_NAMES[state.role], at: nowTimeStr() };
+            active.status = "人工接待中";
+            active.serviceMode = "HUMAN";
+            appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 接管了买家「${active.buyer}」的客服会话并禁言智能助手`, ok: true });
+            rerender();
+            toast(`已人工接管会话（AI已禁言），当前接待人：${ROLE_PERSON_NAMES[state.role]}`, "success");
+          };
+        }
+
         document.getElementById("csSendBtn").onclick = () => {
-          active.msgs.push({ who: "ai", text: active.draftEn, trans: "中文对照：" + active.draftZh });
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 通过三项内容检查后向买家「${active.buyer}」发送了回复`, ok: true });
+          active.msgs.push({ who: "ai", text: active.draftEn, trans: "人工回复对照：" + active.draftZh });
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 通过三项内容检查后向买家「${active.buyer}」发送了人工回复`, ok: true });
           rerender();
-          toast("内容检查通过，回复已发出", "success");
+          toast("内容检查通过，人工回复已发出", "success");
         };
 
         document.getElementById("csBindOrderBtn").onclick = () => {
@@ -1374,45 +1785,69 @@ export function renderM0_M3(pageId, state, helpers) {
         };
 
         document.getElementById("csCreateTicketBtn").onclick = () => {
+          const afterSalesType = document.getElementById("csAfterType").value;
+          const goodsStatus = document.getElementById("csGoodsStatus").value;
+          const reasonCategory = document.getElementById("csReasonCat").value;
+          const liability = document.getElementById("csLiability").value;
           const amt = Number(document.getElementById("csRefAmt").value);
-          const reason = document.getElementById("csRefReason").value.trim();
+          const summary = document.getElementById("csReviewSummary").value.trim();
           const maxOrd = linkedOrdObj ? linkedOrdObj.amountUsd : 34.50;
-          if (!reason) { toast("请填写售后原因", "error"); return; }
-          if (!(amt > 0) || amt > maxOrd) { toast(`退款金额必须在 $0.01 至实付上限 $${maxOrd.toFixed(2)} 之间`, "error"); return; }
+          const needPhoto = ["商品破损或划痕", "功能故障不能用", "发错货或尺码不符", "少件漏发"].includes(reasonCategory);
+
+          if (needPhoto && csDraftForm.photos.length === 0) {
+            toast("所选售后原因属于破损/故障/错漏发，必须附带至少 1 张买家举证照片才能提交主管审批", "error");
+            return;
+          }
+          if (!summary || summary.length < 8) {
+            toast("请填写完整的客服初审总结（供主管判断是否批准）", "error");
+            return;
+          }
+          if (!(amt > 0) || amt > maxOrd) {
+            toast(`申请赔付金额必须在 $0.01 至实付上限 $${maxOrd.toFixed(2)} 之间`, "error");
+            return;
+          }
           commitAction({
-            title: `提交售后工单 · 关联订单 ${active.linkedOrder}`,
-            summary: `退款申请金额 <strong>$${amt.toFixed(2)}</strong>（订单实付 $${maxOrd.toFixed(2)}）；提交后需由「主管 / 审批人」审批，客服本人不可自批。`,
-            confirmText: "确认建单转交主管",
+            title: `提交售后审批卷宗 · 关联订单 ${active.linkedOrder}`,
+            summary: `售后类型：<strong>${afterSalesType}</strong> ｜ 货物状态：${goodsStatus} ｜ 申请赔付 <strong>$${amt.toFixed(2)}</strong>（已附 ${csDraftForm.photos.length} 张举证图）；提交后由「主管 / 审批人」终审，客服本人不可自批。`,
+            confirmText: "确认提交审批卷宗",
             onConfirm: () => {
               const tkId = genDocId("TK");
               state.tickets.unshift({
-                id: tkId, orderNo: active.linkedOrder, shop: active.shop, buyer: active.buyer, reason,
+                id: tkId, orderNo: active.linkedOrder, shop: active.shop, buyer: active.buyer,
+                sku: linkedOrdObj?.sku || "BAG-108",
+                afterSalesType, goodsStatus, reasonCategory, liability,
+                reason: `${reasonCategory} · ${afterSalesType}`,
+                handoffReason: active.handoffReason || "人工客服核验售后诉求转建工单",
+                evidencePhotos: [...csDraftForm.photos],
+                skuCostUsd: estCost, returnShipEstUsd: estReturnShip,
+                csReviewSummary: summary,
                 orderAmount: maxOrd, refundAmount: amt, submitter: ROLE_PERSON_NAMES[state.role],
-                approver: "", approveNote: "", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: ""
+                approver: "待陈主管审批", approveNote: "", status: "待主管审批",
+                refundSyncStatus: "未打款（待审批）", voucher: "待审批后上传打款截图"
               });
-              return { toastMsg: `售后工单 ${tkId} 已创建，已流转至 M1-3 待主管审批` };
+              return { toastMsg: `售后卷宗 ${tkId} 已创建，主管可在 M1-3 查看全部照片与初审总结` };
             },
-            audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 为订单 ${active.linkedOrder} 创建了售后退款工单，申请退款 $${amt.toFixed(2)}`, ok: true }
+            audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 为订单 ${active.linkedOrder} 提交了「${afterSalesType}」工单（$${amt.toFixed(2)}，${csDraftForm.photos.length}张图），定责：${liability}`, ok: true }
           });
         };
       }
     };
   }
 
-  // ==================== M1-2: 客服导购在售商品库 ====================
+  // ==================== M1-2: 客服导购与使用说明知识库 ====================
   if (pageId === "m1b") {
     const canMaintain = state.role === "planner" || state.role === "approver";
     return {
       headerActions: [
-        { label: "← 返回客服会话", primary: false, onClick: () => goPage("m1a") },
+        { label: "← 返回客服调度台", primary: false, onClick: () => goPage("m1a") },
         {
-          label: "+ 从表格导入商品", primary: true,
+          label: "+ 从表格导入知识", primary: true,
           disabled: !canMaintain,
           disabledTitle: "需要业务运营或主管权限",
           onClick: () => {
-            openModal("从表格导入客服在售导购商品", `
+            openModal("从表格导入客服导购与说明书 FAQ 知识", `
               <div class="banner banner-blue" style="margin-bottom:12px;">
-                <span>请上传在售商品表格（支持预览前 10 行数据）；若文件名含测试演示字样或存在重复商品编码，系统将自动拦截并列出失败原因。</span>
+                <span>支持导入商品导购卖点及使用说明排障 FAQ（预览前 10 行）；含演示标识或重复编码将自动拦截。</span>
               </div>
               <div class="field"><label>目标实盘店铺 *</label>
                 <select id="csImpShop" class="select"><option>TikTok Shop 美区</option><option>Shopee 泰国主店</option></select>
@@ -1423,7 +1858,7 @@ export function renderM0_M3(pageId, state, helpers) {
               <div id="csImpPreview" style="margin-bottom:12px;"></div>
               <div style="display:flex;justify-content:flex-end;gap:8px;">
                 <button class="btn" id="csImpCancel">取消</button>
-                <button class="btn btn-primary" id="csImpRun">开始导入并建立商品索引</button>
+                <button class="btn btn-primary" id="csImpRun">开始导入并建立知识索引</button>
               </div>
             `, (root) => {
               const fInput = root.querySelector("#csImpFile");
@@ -1433,17 +1868,17 @@ export function renderM0_M3(pageId, state, helpers) {
                 if (!f) { prevBox.innerHTML = ""; return; }
                 const isMock = /mock|演示|demo/i.test(f.name);
                 if (isMock) {
-                  prevBox.innerHTML = `<div class="banner banner-red"><span>❌ 拦截原因：文件「${f.name}」包含测试演示字样，严禁导入正式客服导购商品库！</span></div>`;
+                  prevBox.innerHTML = `<div class="banner banner-red"><span>❌ 拦截原因：文件「${f.name}」包含测试演示字样，严禁导入正式客服知识库！</span></div>`;
                   return;
                 }
                 prevBox.innerHTML = `
-                  <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">表格前 10 行数据预览（示例抽取自 ${f.name}）：</div>
+                  <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">表格前 10 行数据预览（抽取自 ${f.name}）：</div>
                   <div class="table-wrap" style="max-height:160px;">
                     <table>
-                      <thead><tr><th>行号</th><th>商品编码</th><th>商品名称</th><th>售价</th><th>预检结果</th></tr></thead>
+                      <thead><tr><th>行号</th><th>商品编码</th><th>知识类型</th><th>售价</th><th>预检结果</th></tr></thead>
                       <tbody>
-                        <tr><td>第 1 行</td><td>BAG-209</td><td>防水商务斜挎包</td><td>$26.90</td><td><span class="pill p-green">格式合法</span></td></tr>
-                        <tr><td>第 2 行</td><td>BAG-108</td><td>轻量通勤双肩包</td><td>$29.90</td><td><span class="pill p-red">失败：商品编码与本店已有数据重复</span></td></tr>
+                        <tr><td>第 1 行</td><td>BAG-209</td><td>商品导购</td><td>$26.90</td><td><span class="pill p-green">格式合法</span></td></tr>
+                        <tr><td>第 2 行</td><td>BAG-108</td><td>商品导购</td><td>$29.90</td><td><span class="pill p-red">失败：商品编码与本店已有数据重复</span></td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -1461,19 +1896,19 @@ export function renderM0_M3(pageId, state, helpers) {
                 const shop = root.querySelector("#csImpShop").value;
                 document.getElementById("modalRoot").innerHTML = "";
                 runAsyncTask("m1_catalog_imp", {
-                  label: `建立商品索引（20/200 分批校验）· ${f.name}`,
+                  label: `建立知识索引（20/200 分批校验）· ${f.name}`,
                   steps: ["读取表格数据并检查编码重复", "分批建立客服搜索索引 (100/200)", "完成索引并生成异常行明细"],
                   durationMs: 1200,
                   onSuccess: () => {
                     state.csCatalog.unshift({
-                      sku: "BAG-209", name: "防水商务斜挎包", shop, domain: shop.includes("泰国") ? "shopee.co.th/cp-th" : "tiktok.com/shop/us-cp",
+                      sku: "BAG-209", name: "防水商务斜挎包", docType: "商品导购", shop, domain: shop.includes("泰国") ? "shopee.co.th/cp-th" : "tiktok.com/shop/us-cp",
                       price: "$26.90", status: "索引已就绪", points: "防泼水帆布 / 轻便单肩 / 多隔层收纳"
                     });
                     state.csImportLogs.unshift({
                       file: f.name, shop, total: 200, okCount: 199, failCount: 1,
                       failReason: "第 2 行商品编码 BAG-108 重复，已自动跳过", status: "部分成功 (199/200)", time: nowDateTimeStr()
                     });
-                    return { summary: "已建立商品索引 199/200（第 2 行因商品编码重复跳过）", toastMsg: "导入完成：成功 199 条，跳过 1 条重复编码" };
+                    return { summary: "已建立知识索引 199/200（第 2 行因商品编码重复跳过）", toastMsg: "导入完成：成功 199 条，跳过 1 条重复编码" };
                   }
                 });
               };
@@ -1483,16 +1918,16 @@ export function renderM0_M3(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>供客服人员在回答买家时查询本店真实在售商品与卖点（未采购的新品评估请去 M4 选品中心）。<strong>数据来源：</strong>在售导购清单（最近导入：${state.csImportLogs[0]?.time || "暂无导入记录"}）。</span>
+          <span><strong>知识库定位：</strong>供<strong>智能客服自动应答</strong>与人工坐席检索，覆盖「商品导购卖点」与「使用说明/拆洗/排障FAQ」，严格按店铺隔离防发错链接。</span>
         </div>
 
         ${renderAsyncBox("m1_catalog_imp")}
 
         <div class="card">
-          <div class="card-header"><div class="card-title">本店在售导购商品清单（按店铺严格隔离）</div></div>
+          <div class="card-header"><div class="card-title">本店在售导购与使用说明知识库（AI 自动应答唯一依据）</div></div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>商品实拍与编码</th><th>所属店铺与本店网址</th><th>在售标价</th><th>核心卖点摘要</th><th>索引状态</th></tr></thead>
+              <thead><tr><th>商品实拍与编码</th><th>知识类型</th><th>所属店铺与本店网址</th><th>在售标价</th><th>导购卖点 / 使用说明与排障要点</th><th>索引状态</th></tr></thead>
               <tbody>
                 ${state.csCatalog.map(p => `
                   <tr>
@@ -1502,9 +1937,10 @@ export function renderM0_M3(pageId, state, helpers) {
                         <div><strong>${p.sku} · ${p.name}</strong></div>
                       </div>
                     </td>
+                    <td class="nowrap"><span class="pill ${p.docType==="使用说明与排障FAQ"?"p-purple":"p-blue"}">${p.docType || "商品导购"}</span></td>
                     <td class="nowrap">${p.shop}<div style="font-size:12px;color:var(--text-soft);">${p.domain}</div></td>
                     <td class="nowrap"><strong>${p.price}</strong></td>
-                    <td style="font-size:12.5px;">${p.points}</td>
+                    <td style="font-size:12.5px;max-width:360px;">${p.points}</td>
                     <td class="nowrap"><span class="pill p-green">${p.status}</span></td>
                   </tr>
                 `).join("")}
@@ -1537,7 +1973,7 @@ export function renderM0_M3(pageId, state, helpers) {
     };
   }
 
-  // ==================== M1-3: 售后工单审批与退款凭证闭环 ====================
+  // ==================== M1-3: 售后工单主管审批台账与退款凭证闭环 ====================
   if (pageId === "m1c") {
     const isApprover = state.role === "approver";
     const canUploadVoucher = state.role === "cs" || isApprover;
@@ -1549,42 +1985,69 @@ export function renderM0_M3(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-amber">
-          <span><strong>闭环与风控说明：</strong>① 提交人与审批人必须为不同人员；② 主管审批时须填写意见且退款不得超过实付；③ 批准后进入<strong>「待上传退款凭证」</strong>，仅上传手工打款凭证后工单才正式关闭。</span>
+          <span><strong>主管审批与凭证闭环：</strong>① 主管可直接查看<strong>买家实拍照片、售后类型、转人工原因、定责与客服初审总结</strong>后拍板；② 批准确认后由人工去平台后台打款并回传退款截图关单，如证据不足可驳回退回客服补证。</span>
         </div>
 
         <div class="grid-3">
-          <div class="kpi-card highlight-red"><div class="kpi-label">待主管审批工单</div><div class="kpi-val" style="color:var(--red-text)">${state.tickets.filter(t=>t.status==="待主管审批").length} 单</div><div class="kpi-sub">需主管/审批人填写意见拍板</div></div>
+          <div class="kpi-card highlight-red"><div class="kpi-label">待主管审批工单</div><div class="kpi-val" style="color:var(--red-text)">${state.tickets.filter(t=>t.status==="待主管审批").length} 单</div><div class="kpi-sub">需主管查看证据卷宗拍板</div></div>
           <div class="kpi-card highlight-amber"><div class="kpi-label">待上传退款凭证</div><div class="kpi-val" style="color:var(--amber-text)">${state.tickets.filter(t=>t.status==="待上传退款凭证").length} 单</div><div class="kpi-sub">需在平台后台手工打款并回传截图</div></div>
           <div class="kpi-card highlight-green"><div class="kpi-label">已上传凭证关闭</div><div class="kpi-val" style="color:var(--green-text)">${state.tickets.filter(t=>t.status==="已关闭（退款完成）").length} 单</div><div class="kpi-sub">同步更新至 M0-2 订单台账</div></div>
         </div>
 
         <div class="card">
-          <div class="card-header"><div class="card-title">售后工单与退款凭证台账</div></div>
+          <div class="card-header"><div class="card-title">售后审批卷宗与退款凭证台账</div></div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>工单编号</th><th>关联订单 / 买家</th><th>申请退款 / 实付上限</th><th>提交人 / 审批人</th><th>退款状态与凭证</th><th>操作</th></tr></thead>
+              <thead><tr><th>工单 / 店铺</th><th>订单 / 售后类型与定责</th><th>申请赔付 / 成本参考</th><th>买家举证照片与客服初审总结（主管判断依据）</th><th>状态与凭证</th><th>操作</th></tr></thead>
               <tbody>
                 ${state.tickets.map((t, idx) => {
                   const isSelfSubmit = t.submitter === ROLE_PERSON_NAMES[state.role];
                   const canApproveThis = isApprover && !isSelfSubmit;
+                  const photos = t.evidencePhotos || [];
                   return `
                     <tr>
-                      <td class="nowrap"><strong>${t.id}</strong><div style="font-size:12px;color:var(--text-soft);">${t.shop}</div></td>
-                      <td><strong>${t.orderNo}</strong> (${t.buyer})<div style="font-size:12px;color:var(--text-soft);">${t.reason}</div></td>
-                      <td class="nowrap"><strong style="color:var(--red-text);">$${t.refundAmount.toFixed(2)}</strong><div style="font-size:12px;color:var(--text-soft);">实付上限 $${t.orderAmount.toFixed(2)}</div></td>
-                      <td class="nowrap">提交：${t.submitter}<div style="font-size:12px;color:var(--text-soft);">审批：${t.approver || "待批"}${t.approveNote ? ` (${t.approveNote})` : ""}</div></td>
+                      <td class="nowrap">
+                        <strong>${t.id}</strong>
+                        <div style="font-size:12px;color:var(--text-soft);">${t.shop}</div>
+                        <div style="font-size:11.5px;color:var(--text-soft);">提交：${t.submitter}</div>
+                      </td>
                       <td>
-                        <span class="pill ${t.status==="已关闭（退款完成）"?"p-green":t.status==="待上传退款凭证"?"p-blue":t.status==="已驳回"?"p-red":"p-amber"}">${t.status}</span>
-                        <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${t.refundSyncStatus}${t.voucher ? ` · 凭证：${t.voucher}` : ""}</div>
+                        <div><strong>${t.orderNo}</strong> · ${t.buyer}</div>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;margin:4px 0;">
+                          <span class="pill p-blue">${t.afterSalesType || "仅退款"}</span>
+                          <span class="pill p-gray">${t.goodsStatus || "已收到货"}</span>
+                          <span class="pill p-amber">${t.liability || "待定责"}</span>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-soft);">${t.reason}</div>
+                      </td>
+                      <td class="nowrap">
+                        <strong style="color:var(--red-text);font-size:14px;">$${t.refundAmount.toFixed(2)}</strong>
+                        <div style="font-size:11.5px;color:var(--text-soft);">实付上限 $${t.orderAmount.toFixed(2)}</div>
+                        <div style="font-size:11.5px;color:var(--text-soft);">采购 $${Number(t.skuCostUsd || 4.5).toFixed(2)} / 退运 $${Number(t.returnShipEstUsd || 14.0).toFixed(2)}</div>
+                      </td>
+                      <td style="min-width:280px;max-width:360px;">
+                        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;">
+                          ${photos.length ? photos.map((ph, pi) => `
+                            <div class="evidence-thumb-wrap m1c-zoom-photo" data-ti="${idx}" data-pi="${pi}" title="点击放大查看买家凭证">
+                              <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" style="width:42px;height:42px;border-radius:4px;object-fit:cover;" alt="${ph.label}"/>
+                            </div>
+                          `).join("") : `<span class="pill p-red">无实拍附件</span>`}
+                        </div>
+                        <div style="font-size:12px;color:var(--text-dark);line-height:1.45;background:#f8fafc;padding:6px 8px;border-radius:6px;border:1px solid var(--border);">
+                          <strong>客服总结：</strong>${t.csReviewSummary || "未填写初审总结"}
+                        </div>
+                      </td>
+                      <td>
+                        <span class="pill ${t.status==="已关闭（退款完成）"?"p-green":t.status==="待上传退款凭证"?"p-blue":t.status==="已驳回"||t.status==="待客服重审/补证"?"p-red":"p-amber"}">${t.status}</span>
+                        <div style="font-size:11.5px;color:var(--text-soft);margin-top:3px;">${t.refundSyncStatus}${t.approveNote ? ` · 批注：${t.approveNote}` : ""}</div>
                       </td>
                       <td class="nowrap">
                         ${t.status === "待主管审批" ? `
-                          <div style="display:flex;gap:6px;">
-                            <button class="btn btn-sm btn-success m1c-act" data-i="${idx}" data-act="APPROVE" ${!canApproveThis?"disabled":""} title="${!isApprover?"需要「主管 / 审批人」权限":"提交人与审批人不可为同一人"}">批准</button>
-                            <button class="btn btn-sm btn-danger m1c-act" data-i="${idx}" data-act="REJECT" ${!canApproveThis?"disabled":""}>驳回</button>
-                          </div>
+                          <button class="btn btn-sm btn-primary m1c-dossier" data-i="${idx}" ${!canApproveThis?"disabled":""} title="${!isApprover?"需要「主管 / 审批人」权限":"提交人与审批人不可为同一人"}">📋 看卷宗审批</button>
                         ` : t.status === "待上传退款凭证" ? `
                           <button class="btn btn-sm btn-primary m1c-voucher" data-i="${idx}" ${!canUploadVoucher?"disabled":""}>📎 上传退款凭证</button>
+                        ` : t.status === "待客服重审/补证" ? `
+                          <button class="btn btn-sm btn-danger m1c-rework" data-i="${idx}">去补充资料 →</button>
                         ` : `<span style="font-size:12px;color:var(--green-text);font-weight:700;">已闭环归档 ✓</span>`}
                       </td>
                     </tr>
@@ -1596,37 +2059,90 @@ export function renderM0_M3(pageId, state, helpers) {
         </div>
       `,
       bind: () => {
-        document.querySelectorAll(".m1c-act").forEach(b => b.onclick = () => {
+        document.querySelectorAll(".m1c-zoom-photo").forEach(el => {
+          el.onclick = () => {
+            const t = state.tickets[Number(el.dataset.ti)];
+            const ph = t?.evidencePhotos?.[Number(el.dataset.pi)];
+            if (ph) openEvidenceLightbox(ph);
+          };
+        });
+
+        document.querySelectorAll(".m1c-rework").forEach(b => {
+          b.onclick = () => { state.csViewMode = "workspace"; goPage("m1a"); };
+        });
+
+        document.querySelectorAll(".m1c-dossier").forEach(b => b.onclick = () => {
           const t = state.tickets[Number(b.dataset.i)];
-          const isApprove = b.dataset.act === "APPROVE";
-          commitAction({
-            title: `${isApprove ? "批准" : "驳回"}售后退款工单 · ${t.id}`,
-            danger: !isApprove,
-            summary: isApprove ? `申请退款 $${t.refundAmount.toFixed(2)}（不超过原订单实付 $${t.orderAmount.toFixed(2)}）；批准后将进入「待上传退款凭证」状态。` : "驳回后工单直接终止，请填写明确退回原因以便客服向买家解释。",
-            confirmText: isApprove ? "确认批准（待传凭证）" : "确认驳回",
-            fieldsHtml: `<div class="field"><label>主管审批意见（必填）*</label><input id="m1cNote" class="input" placeholder="${isApprove ? "如：核对照片属实，同意全额退款" : "如：超出售后时效，请与买家协商"}"/></div>`,
-            validate: (wrap) => {
-              const el = wrap.querySelector("#m1cNote");
-              return el.value.trim() ? [] : [{ el, msg: "必须填写主管审批意见" }];
-            },
-            onConfirm: (wrap) => {
-              const note = wrap.querySelector("#m1cNote").value.trim();
+          const photos = t.evidencePhotos || [];
+          openModal(`主管审批卷宗 · ${t.id}（${t.shop}）`, `
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12.5px;line-height:1.6;">
+              <div><strong>1. 触发转人工原因：</strong>${t.handoffReason || "人工核验转交"}</div>
+              <div><strong>2. 售后方案与定责：</strong>${t.afterSalesType} ｜ ${t.goodsStatus} ｜ 归因：<strong>${t.liability}</strong></div>
+              <div><strong>3. 经济账参考：</strong>订单实付 <strong>$${t.orderAmount.toFixed(2)}</strong> ｜ 拟赔付 <strong style="color:var(--red-text);">$${t.refundAmount.toFixed(2)}</strong> ｜ 采购成本 $${Number(t.skuCostUsd || 4.5).toFixed(2)} ｜ 退回海外仓预估运费 $${Number(t.returnShipEstUsd || 14.0).toFixed(2)}</div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">4. 买家举证照片（${photos.length} 张）：</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${photos.length ? photos.map(ph => `
+                  <div class="evidence-thumb-wrap">
+                    <img src="${ph.dataUrl || getEvidenceImg(ph.kind, ph.label)}" style="width:92px;height:92px;border-radius:6px;object-fit:cover;" alt="${ph.label}"/>
+                    <span style="font-size:11px;">${ph.label}</span>
+                  </div>
+                `).join("") : `<span class="pill p-red">警告：无买家实拍凭证</span>`}
+              </div>
+            </div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 11px;margin-bottom:10px;font-size:12.5px;">
+              <strong>5. 前序客服（${t.submitter}）初审总结：</strong><br/>${t.csReviewSummary || "未填写"}
+            </div>
+            <div class="grid-2">
+              <div class="field"><label>最终审批金额 (USD，≤ $${t.orderAmount.toFixed(2)}) *</label><input id="dosAmt" type="number" step="0.01" class="input" value="${t.refundAmount.toFixed(2)}"/></div>
+              <div class="field"><label>审批决策 *</label>
+                <select id="dosDec" class="select">
+                  <option value="APPROVE">✓ 批准通过（转人工后台打款）</option>
+                  <option value="REWORK">↩ 驳回退回客服补证/重谈</option>
+                  <option value="REJECT">✕ 终局驳回（不予退款）</option>
+                </select>
+              </div>
+            </div>
+            <div class="field"><label>主管审批意见（必填）*</label><input id="dosNote" class="input" placeholder="如：照片与面单核实无误，退运成本高于货值，同意仅退款"/></div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+              <button class="btn" id="dosCancel">取消</button>
+              <button class="btn btn-primary" id="dosSubmit">确认审批决定</button>
+            </div>
+          `, (root) => {
+            root.querySelector("#dosCancel").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+            root.querySelector("#dosSubmit").onclick = () => {
+              const dec = root.querySelector("#dosDec").value;
+              const amt = Number(root.querySelector("#dosAmt").value);
+              const note = root.querySelector("#dosNote").value.trim();
+              if (!note) { toast("必须填写主管审批意见", "error"); return; }
+              if (dec === "APPROVE" && (!(amt > 0) || amt > t.orderAmount)) {
+                toast(`核准金额必须在 $0.01 至 $${t.orderAmount.toFixed(2)} 之间`, "error");
+                return;
+              }
               t.approver = ROLE_PERSON_NAMES[state.role];
               t.approveNote = note;
-              if (isApprove) {
+              if (dec === "APPROVE") {
+                t.refundAmount = amt;
                 t.status = "待上传退款凭证";
                 t.refundSyncStatus = "主管已批，待后台手工打款";
-                return { toastMsg: `工单 ${t.id} 已批准，请上传手工退款凭证后完成结案` };
+                toast(`工单 ${t.id} 已批准 $${amt.toFixed(2)}，请手工打款并传凭证`, "success");
+              } else if (dec === "REWORK") {
+                t.status = "待客服重审/补证";
+                t.refundSyncStatus = "已退回客服补充照片/重谈方案";
+                toast(`工单 ${t.id} 已退回客服补证`, "warn");
               } else {
                 t.status = "已驳回";
                 t.refundSyncStatus = "已驳回不退款";
-                return { toastMsg: `工单 ${t.id} 已驳回`, toastLevel: "warn" };
+                toast(`工单 ${t.id} 已终局驳回`, "warn");
               }
-            },
-            audit: (wrap) => ({
-              sentence: `${ROLE_PERSON_NAMES[state.role]} ${isApprove ? "批准" : "驳回"}了售后工单 ${t.id}（金额 $${t.refundAmount.toFixed(2)}），审批意见：${wrap.querySelector("#m1cNote").value.trim()}`,
-              ok: true
-            })
+              appendAuditLog(state, {
+                sentence: `${ROLE_PERSON_NAMES[state.role]} 对售后卷宗 ${t.id} 作出「${t.status}」决定（$${t.refundAmount.toFixed(2)}），意见：${note}`,
+                ok: true
+              });
+              document.getElementById("modalRoot").innerHTML = "";
+              rerender();
+            };
           });
         });
 
@@ -1673,30 +2189,38 @@ export function renderM0_M3(pageId, state, helpers) {
     const mkSess = state.csSessions.find(s => s.id === "cs3") || state.csSessions[state.csSessions.length - 1];
     return {
       headerActions: [
-        { label: "去客服工作台查看处理结果 →", primary: true, onClick: () => goPage("m1a") }
+        { label: "去客服调度台查看处理结果 →", primary: true, onClick: () => { state.csViewMode = "queue"; goPage("m1a"); } }
       ],
       html: `
         <div class="banner banner-amber">
-          <span><strong>联调测试说明：</strong>本页面仅为<strong>内部规则联调测试入口（绝对不会向真实买家或外部平台发送任何消息）</strong>，用于测试智能客服推荐与敏感词转人工拦截效果。</span>
+          <span><strong>联调测试说明：</strong>本页面仅为<strong>内部规则联调测试入口（绝对不会向真实买家或外部平台发送任何消息）</strong>，用于体验买家端提示、AI 说明书自动答复与拼多多式退换货转人工。</span>
         </div>
 
         <div class="grid-3">
           <div class="kpi-card"><div class="kpi-label">联调目标环境</div><div class="kpi-val" style="font-size:18px;color:var(--amber-text)">演示测试专用</div><div class="kpi-sub">与实盘店铺营收完全隔离</div></div>
           <div class="kpi-card highlight-blue"><div class="kpi-label">当前联调消息数</div><div class="kpi-val" style="color:var(--blue-hover)">${mkSess.msgs.length} 条</div><div class="kpi-sub">已同步推送到 M1-1 客服台</div></div>
-          <div class="kpi-card highlight-green"><div class="kpi-label">最近识别结果</div><div class="kpi-val" style="font-size:17px;color:var(--green-text)">${mkSess.status}</div><div class="kpi-sub">可去 M1-1 查看完整应答</div></div>
+          <div class="kpi-card highlight-green"><div class="kpi-label">最近识别结果</div><div class="kpi-val" style="font-size:17px;color:var(--green-text)">${mkSess.status}</div><div class="kpi-sub">可去 M1-1 查看分流队列</div></div>
         </div>
 
         <div class="split-left-form">
           <div class="card">
-            <div class="card-header"><div class="card-title">发送一条模拟买家咨询或售后投诉</div></div>
-            <div class="field"><label>快速选择测试场景</label>
+            <div class="card-header"><div class="card-title">模拟买家发送消息或申请退换货</div></div>
+            <div class="buyer-notice-strip">
+              <strong>买家端提醒小字：</strong>🤖 智能客服可解答商品尺码、使用说明/故障排障与物流进度；🧑 如需退款退货、换货补发请点击下方「模拟买家：申请退款/退换货」。
+            </div>
+            <div class="field"><label>快速选择 4 类真实业务测试场景</label>
               <select id="mkPresetSel" class="select">
-                <option value="Is this waterproof backpack available in stock?">售前商品咨询：询问防泼水与库存</option>
-                <option value="My item arrived damaged, I want a refund of $29.90!">售后投诉测试：包含「refund」触发人工转接拦截</option>
+                <option value="Is this waterproof backpack available in stock?">1. 售前导购：询问防泼水与库存 (AI自动)</option>
+                <option value="How do I remove the front cover of FAN-203 to clean, and why does the red indicator blink?">2. 使用说明排障：循环扇拆洗与红灯闪烁 (AI自动)</option>
+                <option value="My package has been stuck in customs for 5 days, please check!">3. 物流异常催单：清关停滞触发转人工</option>
+                <option value="My item arrived damaged, I want a refund of $29.90!">4. 售后破损退款：触发熔断转人工拦截</option>
               </select>
             </div>
             <div class="field"><label>模拟买家消息内容 *</label><textarea id="mkMsgText" class="textarea">Is this waterproof backpack available in stock?</textarea></div>
-            <button class="btn btn-primary" id="mkSendBtn" style="width:100%;justify-content:center;" ${!canSim?"disabled":""}>发送模拟消息并触发规则检测</button>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-primary" id="mkSendBtn" style="width:100%;justify-content:center;" ${!canSim?"disabled":""}>发送模拟消息并触发规则检测</button>
+              <button class="btn btn-danger" id="mkPddBtn" style="width:100%;justify-content:center;" ${!canSim?"disabled":""}>🛒 模拟买家点击【申请退款/退换货】(填清单+传图)</button>
+            </div>
           </div>
 
           <div class="card">
@@ -1704,7 +2228,7 @@ export function renderM0_M3(pageId, state, helpers) {
               <div class="card-title">联调回执预览（已同步至客服工作台）</div>
               <button class="btn btn-sm btn-primary" id="mkJumpCsBtn">前往客服页核对结果 →</button>
             </div>
-            <div style="max-height:260px;overflow-y:auto;">
+            <div style="max-height:280px;overflow-y:auto;">
               ${mkSess.msgs.map(m => `
                 <div class="chat-bubble ${m.who==="buyer"?"user":"assistant"}">
                   <div>${m.text}</div>
@@ -1717,17 +2241,28 @@ export function renderM0_M3(pageId, state, helpers) {
       `,
       bind: () => {
         document.getElementById("mkPresetSel").onchange = (e) => { document.getElementById("mkMsgText").value = e.target.value; };
-        document.getElementById("mkJumpCsBtn").onclick = () => { state.csActiveId = mkSess.id; goPage("m1a"); };
+        document.getElementById("mkJumpCsBtn").onclick = () => { state.csActiveId = mkSess.id; state.csViewMode = "queue"; goPage("m1a"); };
+        document.getElementById("mkPddBtn").onclick = () => openBuyerAfterSalesForm(mkSess, () => rerender());
         document.getElementById("mkSendBtn").onclick = () => {
           const txt = document.getElementById("mkMsgText").value.trim();
           if (!txt) { toast("请输入模拟买家消息内容", "error"); return; }
-          const isRefund = /refund|damage|complaint|return/i.test(txt);
+          const isRefund = /refund|damage|complaint|return|customs|stuck/i.test(txt);
+          const isManual = /clean|cover|blink|red|manual|install/i.test(txt);
           mkSess.msgs.push({ who: "buyer", text: txt, trans: "（联调测试买家消息）" });
           if (isRefund) {
             mkSess.status = "待人工接管";
-            mkSess.msgs.push({ who: "ai", text: "拦截回执：检测到退款/破损关键词，禁止智能助手直接承诺赔付，已标记为「待人工接管」。", trans: "请到 M1-1 客服工作台核实处理" });
+            mkSess.serviceMode = "WAIT_HUMAN";
+            mkSess.handoffReason = "联调消息命中退款/物流异常敏感词，已自动转人工队列";
+            mkSess.msgs.push({ who: "ai", text: "拦截回执：检测到退款/破损/清关异常关键词，禁止智能助手直接承诺赔付，已标记为「待人工接管」。", trans: "请到 M1-1 客服调度台接管并回复" });
+          } else if (isManual) {
+            mkSess.status = "智能自动接待";
+            mkSess.serviceMode = "AI_AUTO";
+            mkSess.kbHit = "说明书FAQ · FAN-203 前网罩拆洗与充电红灯提示";
+            mkSess.msgs.push({ who: "ai", text: "说明书回执：已命中 FAN-203 使用说明库（断电逆时针旋开前网罩清洗；红灯慢闪为正常充电），置信度 96% 已自动答复。", trans: "非退款排障类咨询由 AI 直接解决" });
           } else {
             mkSess.status = "智能自动接待";
+            mkSess.serviceMode = "AI_AUTO";
+            mkSess.kbHit = "导购库 · BAG-108 (沙盒联调)";
             mkSess.msgs.push({ who: "ai", text: "推荐回执：已在导购商品库匹配到「轻量通勤双肩包 ($29.90)」，生成双语推荐草稿。", trans: "可到 M1-1 查看自动推荐结果" });
           }
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 发送了联调测试消息，系统判定为「${mkSess.status}」`, ok: true });

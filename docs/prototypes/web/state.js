@@ -41,6 +41,16 @@ export const PRODUCT_IMAGES = {
   "SKU-00418": makeSvgDataUri("#fef2f2", "#dc2626", "露营氛围灯串", `<path d="M68 82 Q120 120 172 82" fill="none" stroke="#475569" stroke-width="4"/><circle cx="80" cy="92" r="11" fill="#fbbf24"/><circle cx="106" cy="104" r="11" fill="#f87171"/><circle cx="134" cy="104" r="11" fill="#fbbf24"/><circle cx="160" cy="92" r="11" fill="#f87171"/>`),
 };
 
+export function getEvidenceImg(kind = "scratch", label = "买家实拍凭证") {
+  if (kind === "box") {
+    return makeSvgDataUri("#fff7ed", "#ea580c", label, `<rect x="66" y="72" width="108" height="84" rx="8" fill="#fed7aa" stroke="#ea580c" stroke-width="4"/><path d="M66 96 L112 72 M174 114 L142 156" stroke="#dc2626" stroke-width="5" stroke-linecap="round"/><circle cx="132" cy="112" r="22" fill="none" stroke="#dc2626" stroke-width="4" stroke-dasharray="6 4"/>`);
+  }
+  if (kind === "voucher") {
+    return makeSvgDataUri("#ecfdf5", "#059669", label, `<rect x="74" y="64" width="92" height="100" rx="10" fill="#d1fae5" stroke="#059669" stroke-width="3"/><line x1="90" y1="88" x2="150" y2="88" stroke="#047857" stroke-width="4"/><line x1="90" y1="108" x2="138" y2="108" stroke="#047857" stroke-width="4"/><path d="M102 134 L116 146 L142 122" fill="none" stroke="#059669" stroke-width="6" stroke-linecap="round"/>`);
+  }
+  return makeSvgDataUri("#fef2f2", "#dc2626", label, `<rect x="72" y="68" width="96" height="90" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/><path d="M92 92 L148 134 M144 96 L108 128" stroke="#dc2626" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="113" r="26" fill="none" stroke="#dc2626" stroke-width="4" stroke-dasharray="6 4"/>`);
+}
+
 export function daysOffsetDate(offsetDays) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
@@ -212,19 +222,21 @@ export function buildSystemConclusion(pageId, state) {
   }
   if (pageId === "m1a") {
     const pending = state.csSessions.filter(s => s.status === "待人工接管");
+    const aiAuto = state.csSessions.filter(s => s.status === "智能自动接待");
+    const humanBusy = state.csSessions.filter(s => s.status === "人工接待中");
     return {
       tone: pending.length ? "amber" : "green",
-      status: `当前 ${state.csSessions.length} 个会话中 ${pending.length} 个待人工接管、${state.csSessions.filter(s => s.mode === "MOCK").length} 个联调隔离会话`,
-      advice: pending.length ? `请优先接管「${pending[0].buyer}」会话，核对订单四要素后决定是否建售后工单` : "所有高风险买家会话已接管处理",
-      basis: `待接管 ${pending.length} 个 · 导购词库就绪 ${state.csCatalog.length} 款`
+      status: `共 ${state.csSessions.length} 组会话：智能自动接待 ${aiAuto.length} 组、待人工接管 ${pending.length} 组、人工接待中 ${humanBusy.length} 组`,
+      advice: pending.length ? `请先点击「立即接管并去回复」处理「${pending[0].buyer}」（${pending[0].shop}）` : "高风险人工队列已全部接管处理",
+      basis: `导购与说明书知识库就绪 ${state.csCatalog.length} 条 · 测试沙盒已隔离`
     };
   }
   if (pageId === "m1b") {
     return {
       tone: "blue",
-      status: `已建立本店专属导购商品索引 ${state.csCatalog.length} 款，导入失败 ${state.csImportLogs.reduce((s, l) => s + (l.failCount || 0), 0)} 条`,
-      advice: "回复买家前务必使用本页对应店铺链接，严禁跨店发送他店链接",
-      basis: `索引已就绪 ${state.csCatalog.length} 款 · 导入批次数 ${state.csImportLogs.length}`
+      status: `已建立本店专属导购与说明书排障知识库 ${state.csCatalog.length} 条，导入失败 ${state.csImportLogs.reduce((s, l) => s + (l.failCount || 0), 0)} 条`,
+      advice: "AI 自动回复仅引用本页已就绪的导购与说明书知识，严禁跨店发送他店链接",
+      basis: `知识索引就绪 ${state.csCatalog.length} 条 · 导入批次数 ${state.csImportLogs.length}`
     };
   }
   if (pageId === "m1c") {
@@ -451,7 +463,7 @@ export function getRoleTodos(state) {
 }
 
 /**
- * 动态计算当前登录岗位的「今日必办事项（3-5条）」——完全从 state 真实数据实时得出
+ * 动态计算当前登录岗位的「今日必办事项（3-5条）」，完全从 state 真实数据实时得出
  */
 export function computeRoleWorkbenchTodos(state) {
   const list = [];
@@ -971,35 +983,97 @@ export function createInitialState() {
     ],
 
     // M1
+    csViewMode: "queue",
+    csShopFilter: "ALL",
     csActiveId: "cs1",
-    csTakeoverMap: { cs1: { who: "李客服", at: "10:18:00" }, cs2: { who: "智能客服自动接待", at: "10:15:00" }, cs3: { who: "智能客服自动接待", at: "09:50:00" } },
+    csTakeoverMap: {
+      cs1: { who: "待客服接管", at: "尚未接管" },
+      cs4: { who: "待客服接管", at: "尚未接管" },
+      cs2: { who: "智能客服自动接待", at: "10:15:00" },
+      cs5: { who: "智能客服自动接待", at: "10:08:00" },
+      cs3: { who: "智能客服自动接待", at: "09:50:00" },
+    },
     csSessions: [
       {
         id: "cs1", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Emily Carter",
-        intent: "售后投诉 / 退货诉求", status: "待人工接管", conf: "88%",
+        bizType: "售后退换赔", intent: "收到包裹划痕 · 买家已提交仅退款清单", status: "待人工接管",
+        serviceMode: "WAIT_HUMAN", conf: "88%",
+        kbHit: "",
+        handoffReason: "买家点击【申请退款/退换货】提交仅退款 $34.50 并上传 2 张实拍照片，触发资金赔付熔断转人工",
         linkedOrder: "SYN9D-005671", linkVerified: false, linkChecks: { buyer: true, amount: true, product: true, time: true },
+        buyerAfterSales: {
+          submitted: true,
+          afterSalesType: "仅退款（不退货）",
+          goodsStatus: "已收到货（已拆封验货）",
+          reasonCategory: "商品破损或划痕",
+          amountUsd: 34.50,
+          note: "外箱压扁且背包正面有明显划痕，希望直接退款 $34.50",
+          photos: [
+            { kind: "scratch", label: "商品正面划痕特写.jpg" },
+            { kind: "box", label: "破损外箱+快递面单.jpg" },
+          ],
+          submittedAt: daysOffsetDateTime(0, "10:16")
+        },
         msgs: [
-          { who: "buyer", text: "Hello, my package arrived with a scratch. Can I get a refund of $34.50?", trans: "买家译文：您好，收到的包裹有划痕，可以退款 $34.50 吗？" },
-          { who: "ai", text: "拦截提示：检测到「退款」诉求，智能助手不代客承诺赔付，已转人工接管。", trans: "可先核对订单并转入售后工单由主管审批" },
+          { who: "buyer", text: "Hello, my package arrived with a scratch. I submitted a refund request of $34.50 with photos.", trans: "买家译文：您好，收到的包裹有划痕，我已上传照片并申请退款 $34.50。" },
+          { who: "ai", text: "熔断提示：检测到买家提交售后退款清单与举证照片，智能助手已停止自动答复并转交人工坐席。", trans: "请人工接管核对照片与订单四要素，并填写初审结论转主管审批" },
         ],
-        draftZh: "非常抱歉给您带来不便，已收到您反馈的 $34.50 订单问题，我们正在提交主管加急审核处理。",
-        draftEn: "We sincerely apologize for the inconvenience. We have received your request regarding the $34.50 order and escalated it for priority review."
+        draftZh: "非常抱歉给您带来不便，已收到您上传的破损实拍照片与 $34.50 退款申请，我已加急核验并提交主管审核。",
+        draftEn: "We sincerely apologize for the inconvenience. We have received your damage photos and $34.50 refund request, and escalated it for priority review."
+      },
+      {
+        id: "cs4", shop: "TikTok Shop 美区", mode: "REAL", buyer: "David Miller",
+        bizType: "物流履约异常", intent: "发货催单与清关超期咨询", status: "待人工接管",
+        serviceMode: "WAIT_HUMAN", conf: "76%",
+        kbHit: "",
+        handoffReason: "识别到「催单/待拣货超期」且AI置信度仅 76%（低于85%自动发送阈值），转人工跟进仓库",
+        linkedOrder: "TTUS-30291", linkVerified: true, linkChecks: { buyer: true, amount: true, product: true, time: true },
+        buyerAfterSales: null,
+        msgs: [
+          { who: "buyer", text: "Order TTUS-30291 was paid earlier today, why is tracking still pending?", trans: "买家译文：订单 TTUS-30291 今天已付款，为什么还没看到物流单号？" },
+          { who: "ai", text: "转人工说明：已关联订单 TTUS-30291（美西仓待拣货打包），因涉及履约催办已排队待人工客服跟进确认出库时间。", trans: "建议客服查询仓库波次后回复买家预计发货时间" },
+        ],
+        draftZh: "您好，订单 TTUS-30291（加厚防滑瑜伽垫）已进入美西仓今日下午拣货波次，预计今天 18:00 前生成 UPS 运单号并同步给您。",
+        draftEn: "Hello! Your order TTUS-30291 is scheduled for afternoon picking at our US West warehouse and your UPS tracking number will be updated before 6:00 PM today."
       },
       {
         id: "cs2", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Nattapong S.",
-        intent: "售前尺寸与防泼水咨询", status: "智能自动接待", conf: "94%",
+        bizType: "售前导购", intent: "售前尺寸与防泼水咨询", status: "智能自动接待",
+        serviceMode: "AI_AUTO", conf: "94%",
+        kbHit: "导购库 · BAG-108 防泼水牛津布与15.6寸电脑仓说明",
+        handoffReason: "",
         linkedOrder: "", linkVerified: false, linkChecks: { buyer: false, amount: false, product: false, time: false },
+        buyerAfterSales: null,
         msgs: [
           { who: "buyer", text: "Is BAG-108 waterproof for rainy commuting?", trans: "买家译文：BAG-108 这款双肩包雨天通勤防泼水吗？" },
-          { who: "ai", text: "匹配本店导购库：轻量通勤双肩包采用防泼水牛津布，可装 15.6 寸电脑，售价 ฿890。", trans: "已附上本店商品直达链接" },
+          { who: "ai", text: "匹配本店导购库：轻量通勤双肩包采用防泼水牛津布，可装 15.6 寸电脑，售价 ฿890。", trans: "知识来源：M1-2 导购词典（置信度 94%，已自动发送）" },
         ],
         draftZh: "您好，BAG-108 采用高密度防泼水面料，可容纳 15.6 寸笔记本电脑，本店售价 ฿890。",
         draftEn: "Hello! BAG-108 uses water-resistant fabric and fits a 15.6-inch laptop, priced at ฿890 in our store."
       },
       {
+        id: "cs5", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Ploy K.",
+        bizType: "使用说明与排障", intent: "循环扇拆洗步骤与红灯闪烁排障", status: "智能自动接待",
+        serviceMode: "AI_AUTO", conf: "96%",
+        kbHit: "说明书FAQ · FAN-203 前网罩拆洗与充电红灯提示",
+        handoffReason: "",
+        linkedOrder: "SPTH-2026-108", linkVerified: true, linkChecks: { buyer: true, amount: true, product: true, time: true },
+        buyerAfterSales: null,
+        msgs: [
+          { who: "buyer", text: "How do I remove the front cover of FAN-203 to clean, and why does the red indicator blink?", trans: "买家译文：FAN-203 循环扇前网罩怎么拆下来清洗？充电时红灯闪烁正常吗？" },
+          { who: "ai", text: "已命中 M1-2 使用说明库：① 断电后逆时针轻旋前网罩即可取下水洗（机身后壳勿浸水）；② 充电时红灯慢闪表示正在快充中，充满后自动转绿灯常亮，属于正常现象。", trans: "知识来源：FAN-203 官方使用说明书 FAQ（置信度 96%，无需人工介入）" },
+        ],
+        draftZh: "您好，FAN-203 前网罩可断电后逆时针旋转拆洗；充电时红灯慢闪属正常充电提示，充满后转绿灯。",
+        draftEn: "Hi! Power off FAN-203 and twist the front grille counter-clockwise to wash. A slow blinking red light means normal charging and turns solid green when full."
+      },
+      {
         id: "cs3", shop: "Amazon 演示沙盒店", mode: "MOCK", buyer: "Demo Buyer (测试)",
-        intent: "联调测试咨询", status: "仅限联调演示", conf: "91%",
+        bizType: "联调测试", intent: "联调测试咨询", status: "仅限联调演示",
+        serviceMode: "AI_AUTO", conf: "91%",
+        kbHit: "导购库 · BAG-108 (沙盒联调)",
+        handoffReason: "",
         linkedOrder: "AMZ-DEMO-9901", linkVerified: true, linkChecks: { buyer: true, amount: true, product: true, time: true },
+        buyerAfterSales: null,
         msgs: [
           { who: "buyer", text: "Hi, is this commuter backpack suitable for 15-inch laptops?", trans: "测试译文：这款通勤包适合放 15 寸电脑吗？" },
           { who: "ai", text: "测试回执：已命中导购库轻量通勤双肩包，本消息来自联调模拟入口，不计入实盘统计。", trans: "仅联调演示" },
@@ -1009,16 +1083,44 @@ export function createInitialState() {
       }
     ],
     csCatalog: [
-      { sku: "BAG-108", name: "轻量通勤双肩包", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$29.90", status: "索引已就绪", points: "防泼水牛津布 / 15.6寸电脑仓 / 轻量化 580g" },
-      { sku: "FAN-203", name: "便携静音循环扇", shop: "Shopee 泰国主店", domain: "shopee.co.th/cp-th", price: "฿590", status: "索引已就绪", points: "USB-C 续航12h / 32dB低噪 / 折叠桌面壁挂" },
-      { sku: "MAT-014", name: "加厚防滑瑜伽垫", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$24.90", status: "索引已就绪", points: "10mm加厚TPE / 双面防滑纹路 / 附收纳绑带" },
+      { sku: "BAG-108", name: "轻量通勤双肩包", docType: "商品导购", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$29.90", status: "索引已就绪", points: "防泼水牛津布 / 15.6寸独立加厚电脑仓 / 轻量化 580g / 侧袋可放700ml水杯" },
+      { sku: "FAN-203", name: "便携静音循环扇", docType: "使用说明与排障FAQ", shop: "Shopee 泰国主店", domain: "shopee.co.th/cp-th", price: "฿590", status: "索引已就绪", points: "【拆洗】断电逆时针旋开前网罩水洗，主机禁止浸水；【指示灯】红灯慢闪=充电中，绿灯=充满；USB-C 续航12h" },
+      { sku: "MAT-014", name: "加厚防滑瑜伽垫", docType: "使用说明与排障FAQ", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$24.90", status: "索引已就绪", points: "【开箱气味】环保TPE材质新拆封会有轻微原材料味，阴凉通风24小时即散；【保养】湿布擦拭勿暴晒" },
+      { sku: "LMP-418", name: "便携露营氛围灯串", docType: "使用说明与排障FAQ", shop: "Amazon 美国精品店", domain: "amazon.com/dp/cp-lmp", price: "$13.80", status: "索引已就绪", points: "【遥控配对】长按电池盒开关键3秒待灯闪后按遥控ON；【防水】灯珠IP65防雨，电池盒需防浸泡" },
     ],
     csImportLogs: [
-      { file: "本店在售导购词典_11月.xlsx", shop: "TikTok Shop 美区", total: 40, okCount: 40, failCount: 0, failReason: "全部校验通过，无失败行", status: "已完成 (40/40)", time: daysOffsetDateTime(0, "09:00") }
+      { file: "本店在售导购与说明书FAQ_11月.xlsx", shop: "全平台店铺(按店隔离)", total: 40, okCount: 40, failCount: 0, failReason: "全部校验通过，无失败行", status: "已完成 (40/40)", time: daysOffsetDateTime(0, "09:00") }
     ],
     tickets: [
-      { id: "TK-20261119-01", orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", buyer: "Emily Carter", reason: "收到包裹划痕申请退款", orderAmount: 34.50, refundAmount: 34.50, submitter: "李客服", approver: "待陈主管审批", approveNote: "待主管复核破损照片后审批", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: "待审批后上传打款截图" },
-      { id: "TK-20261119-02", orderNo: "SPTH-2026-108", shop: "Shopee 泰国主店", buyer: "Nattapong S.", reason: "风扇外盒轻微挤压部分补偿", orderAmount: 33.80, refundAmount: 8.00, submitter: "李客服", approver: "陈主管", approveNote: "同意补偿 $8.00 安抚券", status: "待上传退款凭证", refundSyncStatus: "已批待手工打款", voucher: "待财务/客服上传平台退款截图" },
+      {
+        id: "TK-20261119-01", orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", buyer: "Emily Carter",
+        sku: "BAG-108", afterSalesType: "仅退款（不退货）", goodsStatus: "已收到货（已拆封验货）",
+        reasonCategory: "商品破损或划痕", reason: "收到包裹外箱变形且背包正面有明显划痕，买家申请仅退款",
+        liability: "物流运输破损",
+        handoffReason: "买家上传破损照片并申请全额退款 $34.50，触发资金赔付熔断转人工",
+        evidencePhotos: [
+          { kind: "scratch", label: "商品正面划痕特写.jpg" },
+          { kind: "box", label: "破损外箱+快递面单.jpg" },
+        ],
+        skuCostUsd: 4.50, returnShipEstUsd: 14.20,
+        csReviewSummary: "已核验订单四要素（今早 08:40 签收），划痕特写与外箱快递面单同框真实无误；该品采购成本 $4.50，退回美西仓尾程运费约 $14.20（高于货值），曾尝试协商 $10 部分补偿被买家拒绝。建议批准「仅退款」$34.50，同步凭面单向 UPS 申报破损理赔。",
+        orderAmount: 34.50, refundAmount: 34.50, submitter: "李客服", approver: "待陈主管审批",
+        approveNote: "", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: "待审批后上传打款截图"
+      },
+      {
+        id: "TK-20261119-02", orderNo: "SPTH-2026-108", shop: "Shopee 泰国主店", buyer: "Nattapong S.",
+        sku: "FAN-203", afterSalesType: "部分补偿（安抚留货）", goodsStatus: "已收到货（已拆封验货）",
+        reasonCategory: "商品破损或划痕", reason: "风扇彩盒边角轻微挤压，机器功能完好，协商补偿 $8.00 留货",
+        liability: "物流运输破损",
+        handoffReason: "买家反馈外盒压损要求退货，人工协商改为小额补偿留货",
+        evidencePhotos: [
+          { kind: "box", label: "彩盒挤压照片.jpg" },
+        ],
+        skuCostUsd: 6.20, returnShipEstUsd: 9.80,
+        csReviewSummary: "经确认循环扇开机正常仅外盒挤压，成功说服买家留货不再退回，节省双向运费 $9.80，建议补偿 $8.00。",
+        orderAmount: 33.80, refundAmount: 8.00, submitter: "李客服", approver: "陈主管",
+        approveNote: "留货比退运划算，同意补偿 $8.00", status: "待上传退款凭证", refundSyncStatus: "已批待手工打款", voucher: "待财务/客服上传平台退款截图"
+      },
     ],
 
     // M2（全部从 computeLiveBusinessStats(state) 实时得出，零硬编码假数）
