@@ -1,5 +1,5 @@
 import { MODULE_DEFS, PAGE_META, PAGE_FLOW_META } from "./annotations.js";
-import { BIZ_ROLES, ROLE_PERSON_NAMES, createInitialState, getRoleTodos, computeRoleWorkbenchTodos, appendAuditLog } from "./state.js";
+import { BIZ_ROLES, ROLE_PERSON_NAMES, createInitialState, getRoleTodos, computeRoleWorkbenchTodos, computeLiveBusinessStats, buildSystemConclusion, appendAuditLog } from "./state.js";
 import { renderM0_M3 } from "./pages_m0_m3.js";
 import { renderM4_M6 } from "./pages_m4_m6.js";
 import { renderM7_M8 } from "./pages_m7_m8.js";
@@ -198,26 +198,15 @@ function record403(target, reason) {
   toast(`当前岗位「${curLabel}」无权执行：${reason}`, "error");
 }
 
-function computeLiveBusinessStats() {
-  const realOrders = state.orders.filter(o => o.mode === "REAL");
-  const syncedDeltaUsd = realOrders.filter(o => !o.historical).reduce((s, o) => s + o.amountUsd, 0);
-  const syncedDeltaCnt = realOrders.filter(o => !o.historical).length;
-  const gmv = +(125429.99 + syncedDeltaUsd).toFixed(2);
-  const ordersCnt = 1536 + syncedDeltaCnt;
-  const netProfit = +(65529.67 + syncedDeltaUsd * 0.52).toFixed(2);
-  const adSpend = 18650.16;
-  const marginPct = ((netProfit / gmv) * 100).toFixed(1);
-  const acosPct = ((adSpend / gmv) * 100).toFixed(1);
-  const aov = (gmv / ordersCnt).toFixed(2);
-  const realLowStocks = state.inventoryItems.filter(i => i.shopMode === "REAL" && i.avail < i.safety);
-  return { gmv, ordersCnt, netProfit, adSpend, marginPct, acosPct, aov, realLowStocks, syncedDeltaCnt };
+function getLiveBusinessStats() {
+  return computeLiveBusinessStats(state);
 }
 
 function renderHomeWorkbench(helpers) {
   const roleObj = BIZ_ROLES.find(r => r.key === state.role) || BIZ_ROLES[0];
   const personName = ROLE_PERSON_NAMES[state.role] || "业务同事";
   const todos = computeRoleWorkbenchTodos(state);
-  const stats = computeLiveBusinessStats();
+  const stats = getLiveBusinessStats();
 
   const pendingApprovals = state.tickets.filter(t => t.status === "待主管审批").length
     + state.m4Pool.filter(x => x.stage === "已提交待审").length
@@ -429,7 +418,7 @@ function rerender() {
 
   const helpers = {
     toast, goPage, openModal, closeModal, openDrawer, closeDetailDrawer,
-    rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats, record403
+    rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats: getLiveBusinessStats, record403
   };
   const pageResult =
     (state.pageId === "home" ? renderHomeWorkbench(helpers) : null) ||
@@ -455,7 +444,16 @@ function rerender() {
     hBox.appendChild(btn);
   });
 
-  document.getElementById("pageBody").innerHTML = pageResult.html;
+  const conc = buildSystemConclusion(state.pageId, state);
+  const concHtml = conc ? `
+    <div class="banner banner-${conc.tone || "blue"}" id="systemConclusionBar" style="margin-bottom:14px;">
+      <span>
+        <strong>💡 系统结论：</strong>【当前状态】${conc.status} ｜ <strong>【系统建议】${conc.advice}</strong> ｜ 【依据数字】${conc.basis}
+      </span>
+    </div>
+  ` : "";
+
+  document.getElementById("pageBody").innerHTML = concHtml + pageResult.html;
 
   document.querySelectorAll(".async-retry-btn").forEach(b => {
     b.onclick = () => {

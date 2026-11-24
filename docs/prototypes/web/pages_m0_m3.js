@@ -1,6 +1,6 @@
 import {
   BACKEND_SERVICE_URL, ROLE_PERSON_NAMES, getProductImg, genDocId, nowDateTimeStr, nowTimeStr, relTimeLabel, appendAuditLog,
-  daysOffsetDate, calcProductMargin, calcInvCoverage
+  daysOffsetDate, calcProductMargin, calcInvCoverage, evalShopHealth
 } from "./state.js";
 
 function daysUntilDateStr(dateStr) {
@@ -17,17 +17,12 @@ export function renderM0_M3(pageId, state, helpers) {
   // ==================== M0-1: 店铺授权管理 ====================
   if (pageId === "m0a") {
     const canManageShop = state.role === "manager" || state.role === "approver";
+    const stats = computeLiveBusinessStats();
     const realShops = state.shops.filter(s => s.mode === "REAL");
     const realCount = realShops.length;
-    const healthyCount = state.shops.filter(s => s.health === "连接正常").length;
-    const isShopPending = (s) => {
-      if (s.mode !== "REAL") return false;
-      const expDays = daysUntilDateStr(s.authExpireDate);
-      return s.health !== "连接正常" || (s.syncFailCount || 0) > 0 || expDays <= 7;
-    };
-    const pendingShops = state.shops.filter(isShopPending);
+    const healthyCount = state.shops.filter(s => !evalShopHealth(s).urgent && s.mode === "REAL").length;
+    const pendingShops = state.shops.filter(s => evalShopHealth(s).urgent);
     const issueCount = pendingShops.length;
-    const totalMonthlyGmv = realShops.reduce((sum, s) => sum + (s.monthlyGmv || 0), 0);
 
     const handleSyncShop = (s) => {
       runAsyncTask("m0_shop_conn", {
@@ -38,6 +33,7 @@ export function renderM0_M3(pageId, state, helpers) {
           s.lastSync = nowDateTimeStr();
           s.lastSyncTs = Date.now();
           s.syncFailCount = 0;
+          s.zeroOrderDays = 0;
           const expDays = daysUntilDateStr(s.authExpireDate);
           if (s.mode === "REAL") {
             s.health = expDays <= 7 ? "授权即将过期" : "连接正常";
@@ -60,7 +56,7 @@ export function renderM0_M3(pageId, state, helpers) {
             ["Charlotte Evans", "英国 · 利兹"], ["Darren Koh", "新加坡 · 碧山"],
             ["Ethan Brooks", "美国 · 丹佛"], ["Hana Lim", "新加坡 · 榜鹅"]
           ];
-          const pricedSkus = state.masterProducts.filter(p => p.salePriceUsd);
+          const pricedSkus = state.masterProducts;
           const currSym = s.currency === "THB" ? "฿" : s.currency === "MYR" ? "RM" : s.currency === "GBP" ? "£" : s.currency === "SGD" ? "S$" : "$";
           const fx = s.currency === "THB" ? 34.5 : s.currency === "MYR" ? 4.45 : s.currency === "GBP" ? 0.78 : s.currency === "SGD" ? 1.34 : 1;
 
@@ -93,7 +89,6 @@ export function renderM0_M3(pageId, state, helpers) {
               ]
             });
           }
-          if (s.mode === "REAL") s.orderCount = (s.orderCount || 0) + addedCount;
           const statMsg = `本次同步完成：新增 ${addedCount} 笔 / 去重 ${dupCount} 笔 / 失败 ${failCount} 笔`;
           if (s.mode === "MOCK") {
             return {
@@ -103,7 +98,7 @@ export function renderM0_M3(pageId, state, helpers) {
             };
           }
           return {
-            summary: `${statMsg}（实盘订单已写入 M0-2 订单台账，经营大屏营收已同步刷新）`,
+            summary: `${statMsg}（实盘订单已写入 M0-2 订单台账，M2/M3 总销售额已同步刷新）`,
             toastMsg: `${s.name}：新增 ${addedCount} 笔 / 去重 ${dupCount} 笔 / 失败 ${failCount} 笔`
           };
         }
@@ -200,15 +195,15 @@ export function renderM0_M3(pageId, state, helpers) {
                       lastSync: nowDateTimeStr(),
                       lastSyncTs: Date.now(),
                       errNote: "",
-                      monthlyGmv: mode === "REAL" ? 12800 : 0,
-                      orderCount: mode === "REAL" ? 140 : 0,
+                      monthlyGmv: 0, orderCount: 0,
                       mainCategory, owner,
                       currency: currMap[region] || "USD",
                       timezone: tzMap[region] || "UTC+8",
                       authExpireDate: mode === "REAL" ? daysOffsetDate(90) : "长期有效(沙盒)",
                       nextSyncAt: mode === "REAL" ? "每15分钟" : "手动联调",
                       syncFailCount: 0,
-                      openedAt: daysOffsetDate(0)
+                      openedAt: daysOffsetDate(0),
+                      perfScore: 95, disputeRate7d: 0.2, returnRate: 1.0, lateShipRate: 0.3, policyViolations: 0, zeroOrderDays: 0
                     });
                     return { summary: `店铺「${name}」连接成功（授权尾号 ${maskCode}）`, toastMsg: `店铺「${name}」已连接成功` };
                   }
@@ -225,7 +220,7 @@ export function renderM0_M3(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>集中管理多平台跨境店铺授权健康度、凭证到期预警与订单同步流水。<strong>数据来源：</strong>各店铺实时连接状态（最近核对：${state.lastDataRefreshAt}）。</span>
+          <span><strong>页面定位：</strong>集中管理多平台跨境店铺授权健康度、经营绩效指标与订单同步流水；店铺销售额直接由 M0-2 实盘订单台账实时汇总（与 M2/M3 完全一致）。<strong>数据来源：</strong>各店铺实时连接状态（最近核对：${state.lastDataRefreshAt}）。</span>
         </div>
 
         ${renderAsyncBox("m0_shop_conn")}
@@ -233,19 +228,19 @@ export function renderM0_M3(pageId, state, helpers) {
         ${pendingShops.length > 0 ? `
           <div class="card" style="border-color:#fca5a5;background:#fef2f2;">
             <div class="card-header">
-              <div class="card-title" style="color:var(--red-text);">🚨 店铺连接待处理事项（${pendingShops.length} 家实盘店需立即处理，防止订单漏同步）</div>
+              <div class="card-title" style="color:var(--red-text);">🚨 店铺连接与经营待处理事项（${pendingShops.length} 家实盘店触发预警）</div>
               <span class="pill p-red">系统主动预警</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;">
               ${pendingShops.map(ps => {
                 const idx = state.shops.indexOf(ps);
-                const expDays = daysUntilDateStr(ps.authExpireDate);
+                const h = evalShopHealth(ps);
                 return `
                   <div style="background:#fff;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
                     <div>
                       <strong>${ps.name}</strong>（${ps.platform} · ${ps.region} · 负责人：${ps.owner}）
-                      <span class="pill p-red" style="margin-left:6px;">${expDays <= 7 ? `授权仅剩 ${expDays} 天到期` : ps.syncFailCount > 0 ? `连续同步失败 ${ps.syncFailCount} 次` : ps.health}</span>
-                      <div style="font-size:12.5px;color:var(--red-text);margin-top:3px;">${ps.errNote || "请尽快续期授权或重试同步"}</div>
+                      <span class="pill ${h.pill}" style="margin-left:6px;">${h.badge}</span>
+                      <div style="font-size:12.5px;color:var(--red-text);margin-top:3px;">触发依据：${h.triggerText}</div>
                     </div>
                     <div style="display:flex;gap:8px;">
                       <button class="btn btn-sm btn-primary m0-reauth-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>🔑 一键重新授权</button>
@@ -265,25 +260,25 @@ export function renderM0_M3(pageId, state, helpers) {
             <div class="kpi-sub">实盘店 ${realCount} 家 · 演示测试店 ${state.shops.length - realCount} 家</div>
           </div>
           <div class="kpi-card highlight-green">
-            <div class="kpi-label">连接正常店铺</div>
+            <div class="kpi-label">连接与经营健康店</div>
             <div class="kpi-val" style="color:var(--green-text)">${healthyCount} 家</div>
             <div class="kpi-sub">可稳定自动拉取订单与库存</div>
           </div>
           <div class="kpi-card ${issueCount > 0 ? "highlight-red" : ""}">
-            <div class="kpi-label">凭证过期 / 同步异常</div>
+            <div class="kpi-label">预警 / 同步异常店</div>
             <div class="kpi-val" style="color:${issueCount > 0 ? "var(--red-text)" : "var(--text-dark)"}">${issueCount} 家</div>
-            <div class="kpi-sub">${issueCount > 0 ? "存在即将过期或同步失败店" : "当前全部实盘店健康"}</div>
+            <div class="kpi-sub">${issueCount > 0 ? "含限期授权、同步失败或绩效预警" : "当前全部实盘店健康"}</div>
           </div>
           <div class="kpi-card highlight-purple">
-            <div class="kpi-label">实盘店月度总 GMV</div>
-            <div class="kpi-val" style="color:var(--purple-text)">$${totalMonthlyGmv.toLocaleString()}</div>
-            <div class="kpi-sub">演示测试店已严格隔离不计入</div>
+            <div class="kpi-label">实盘台账累计 GMV</div>
+            <div class="kpi-val" style="color:var(--purple-text)">$${stats.gmv.toLocaleString()}</div>
+            <div class="kpi-sub">共 ${stats.ordersCnt} 笔实盘订单（与 M2/M3 同源）</div>
           </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title">多平台已接入店铺明细与授权状态（异常店已置顶标红预警）</div>
+            <div class="card-title">多平台已接入店铺明细与经营健康评估（异常店已置顶标红预警）</div>
             <span class="pill ${canManageShop ? "p-green" : "p-amber"}">${canManageShop ? "已解锁管理权限" : "当前岗位仅可查看状态"}</span>
           </div>
           <div class="table-wrap">
@@ -292,58 +287,62 @@ export function renderM0_M3(pageId, state, helpers) {
                 <tr>
                   <th>店铺名称 / 开店日</th>
                   <th>平台 / 站点 / 口径</th>
-                  <th>月GMV / 订单数</th>
+                  <th>实算 GMV / 订单数</th>
                   <th>主力品类 / 负责人</th>
                   <th>币种 / 时区</th>
                   <th>授权到期日</th>
-                  <th>连接状态与权限</th>
+                  <th>经营健康与权限</th>
                   <th>最近同步 / 下次计划</th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody>
-                ${[...state.shops].sort((a, b) => (isShopPending(b) ? 1 : 0) - (isShopPending(a) ? 1 : 0)).map(s => {
+                ${[...state.shops].sort((a, b) => (evalShopHealth(b).urgent ? 1 : 0) - (evalShopHealth(a).urgent ? 1 : 0)).map(s => {
                   const idx = state.shops.indexOf(s);
-                  const pending = isShopPending(s);
+                  const h = evalShopHealth(s);
+                  const shopStat = stats.byShop[s.name] || { gmv: 0, count: 0, aov: 0 };
                   const expDays = daysUntilDateStr(s.authExpireDate);
                   const expSoon = s.mode === "REAL" && expDays <= 7;
                   return `
-                    <tr style="${pending ? "background:#fef2f2;" : ""}">
+                    <tr style="${h.urgent ? "background:#fef2f2;" : ""}">
                       <td class="nowrap">
                         <strong>${s.name}</strong>
-                        <div style="font-size:12px;color:var(--text-soft);">凭证${s.credMask} · 开店 ${s.openedAt || "—"}</div>
+                        <div style="font-size:12px;color:var(--text-soft);">凭证${s.credMask} · 开店 ${s.openedAt || "已建档"}</div>
                       </td>
                       <td class="nowrap">
                         <div><strong>${s.platform} · ${s.region}</strong></div>
                         <span class="pill ${s.mode==="REAL"?"p-green":"p-amber"}" style="margin-top:2px;">${s.mode==="REAL"?"实盘(计营收)":"仅演示(不计营收)"}</span>
                       </td>
                       <td class="nowrap">
-                        <strong>${s.mode==="REAL" ? "$" + (s.monthlyGmv || 0).toLocaleString() : "$0 (隔离)"}</strong>
-                        <div style="font-size:12px;color:var(--text-soft);">${s.orderCount || 0} 单 / 月</div>
+                        <strong>${s.mode==="REAL" ? "$" + shopStat.gmv.toLocaleString() : "$0 (隔离)"}</strong>
+                        <div style="font-size:12px;color:var(--text-soft);">${s.mode==="REAL" ? `${shopStat.count} 笔 · 客单 $${shopStat.aov}` : "不计入实盘统计"}</div>
                       </td>
                       <td class="nowrap">
-                        <div>${s.mainCategory || "—"}</div>
-                        <div style="font-size:12px;color:var(--text-soft);">负责人：${s.owner || "—"}</div>
+                        <div>${s.mainCategory}</div>
+                        <div style="font-size:12px;color:var(--text-soft);">负责人：${s.owner}</div>
                       </td>
                       <td class="nowrap">
-                        <strong>${s.currency || "USD"}</strong>
-                        <div style="font-size:12px;color:var(--text-soft);">${s.timezone || "—"}</div>
+                        <strong>${s.currency}</strong>
+                        <div style="font-size:12px;color:var(--text-soft);">${s.timezone}</div>
                       </td>
                       <td class="nowrap">
-                        <div style="color:${expSoon?"var(--red-text)":"var(--text-dark)"};font-weight:${expSoon?"700":"500"};">${s.authExpireDate || "—"}</div>
-                        ${expSoon ? `<span class="pill p-red">即将过期(${expDays}天)</span>` : ""}
+                        <div style="color:${expSoon?"var(--red-text)":"var(--text-dark)"};font-weight:${expSoon?"700":"500"};">${s.authExpireDate}</div>
+                        ${expSoon ? `<span class="pill p-red">限期授权(${expDays}天)</span>` : ""}
                       </td>
                       <td>
-                        <span class="pill ${s.health==="连接正常"?"p-green":s.health==="仅演示环境"?"p-blue":"p-red"}">${s.health}${s.syncFailCount > 0 ? ` (失败${s.syncFailCount}次)` : ""}</span>
-                        ${s.errNote ? `<div style="font-size:12px;color:var(--red-text);margin-top:3px;max-width:200px;">${s.errNote}</div>` : ""}
+                        <span class="pill ${h.pill}">${h.badge}</span>
+                        <div style="font-size:12px;color:${h.urgent?"var(--red-text)":"var(--text-soft)"};margin-top:3px;max-width:230px;">${h.triggerText}</div>
                         <details style="margin-top:4px;font-size:12px;">
-                          <summary style="cursor:pointer;color:var(--blue-hover);">展开已开通权限(${s.permLabels.length})</summary>
+                          <summary style="cursor:pointer;color:var(--blue-hover);">展开健康明细与权限 (${s.permLabels.length})</summary>
+                          <div style="margin-top:4px;line-height:1.6;color:var(--text-muted);">
+                            绩效 ${s.perfScore}分 · 7天纠纷 ${s.disputeRate7d}% · 退货 ${s.returnRate}% · 迟发 ${s.lateShipRate}% · 违规 ${s.policyViolations}次 · 连续零单 ${s.zeroOrderDays}天
+                          </div>
                           <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">${s.permLabels.map(p => `<span class="pill p-gray">${p}</span>`).join("")}</div>
                         </details>
                       </td>
                       <td class="nowrap">
                         <div>${s.lastSync}</div>
-                        <div style="font-size:12px;color:var(--text-soft);">${relTimeLabel(s.lastSyncTs)} · ${s.nextSyncAt || "定时"}</div>
+                        <div style="font-size:12px;color:var(--text-soft);">${relTimeLabel(s.lastSyncTs)} · ${s.nextSyncAt}</div>
                       </td>
                       <td class="nowrap">
                         <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -418,35 +417,43 @@ export function renderM0_M3(pageId, state, helpers) {
 
     const openCostBreakdownDrawer = (p) => {
       const m = calcProductMargin(p);
-      openDrawer(`完整成本构成与毛利核算 · ${p.sku}`, `${p.name} · ${p.cat} · 负责人 ${p.owner}`, `
+      const src = p.costSources || {};
+      const estRev = +(p.sales30d * p.salePriceUsd).toFixed(2);
+      openDrawer(`8项完整成本构成与毛利核算 · ${p.sku}`, `${p.name} · ${p.cat} · 负责人 ${p.owner}`, `
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
           <img src="${getProductImg(p.sku)}" class="prod-thumb-lg" alt="${p.name}"/>
           <div>
             <div style="font-size:15.5px;font-weight:700;">${p.name}（${p.sku}）</div>
-            <div style="font-size:12.5px;color:var(--text-soft);margin-top:3px;">上架日期：${p.listedAt} ｜ 近30天销量：<strong>${p.sales30d} 件</strong> ｜ 标签：${p.tag}</div>
+            <div style="font-size:12.5px;color:var(--text-soft);margin-top:3px;">上架日期：${p.listedAt} ｜ 近30天销量：<strong>${p.sales30d} 件</strong>（预估销售额 <strong>$${estRev.toLocaleString()}</strong>）</div>
             <div style="margin-top:4px;">
               ${m.known
-                ? `<span class="pill ${m.marginPct < 12 ? "p-red" : "p-green"}">单件毛利 $${m.profitUsd.toFixed(2)} ｜ 毛利率 ${m.marginPct}%</span>`
-                : `<span class="pill p-amber">缺少采购与头程成本（暂无法核算毛利）</span>`}
+                ? `<span class="pill ${m.marginPct < 10 ? "p-red" : m.marginPct < 12 ? "p-amber" : "p-green"}">单件毛利 $${m.profitUsd.toFixed(2)} ｜ 净利率 ${m.marginPct}%（门槛 ≥10%）</span>`
+                : `<span class="pill p-amber">待复核最新核价信息</span>`}
             </div>
           </div>
         </div>
-        ${m.known ? `
-          <div class="formula-box" style="margin-bottom:12px;">
-            <strong>单件完整成本拆解（美元核算基准）：</strong><br/>
-            • 参考售价：<strong>$${p.salePriceUsd.toFixed(2)}</strong><br/>
-            • ① 采购成本：$${p.cost.toFixed(2)}<br/>
-            • ② 头程运费：$${p.freight.toFixed(2)}<br/>
-            • ③ 平台佣金（${p.commissionRate}%）：$${m.commissionUsd.toFixed(2)}<br/>
-            • ④ 尾程配送费：$${p.lastMile.toFixed(2)}<br/>
-            • ⑤ 进口关税：$${p.tariff.toFixed(2)}<br/>
-            • ⑥ 均摊广告费：$${p.adCost.toFixed(2)}<br/>
-            • ⑦ 退货损耗（${p.returnLossRate}%）：$${m.returnLossUsd.toFixed(2)}<br/>
-            <hr style="border:none;border-top:1px dashed var(--border-strong);margin:8px 0;"/>
-            <strong>核算明细：</strong>毛利额 = $${p.salePriceUsd.toFixed(2)} − $${m.totalCost.toFixed(2)} = <strong style="color:${m.marginPct<12?"var(--red-text)":"var(--green-text)"};">$${m.profitUsd.toFixed(2)}（毛利率 ${m.marginPct}%）</strong>
-          </div>
-          ${m.marginPct < 12 ? `<div class="banner banner-red"><span>⚠️ 利润偏薄预警（低于 12% 健康线）：建议提高目标站点售价、或联系供应商复核采购与物流报价。</span></div>` : ""}
-        ` : `<div class="banner banner-amber"><span>⚠️ 该商品缺少采购价与头程运费，严禁按 0 元估算利润。请点击「调整成本」补全。</span></div>`}
+        ${(p.rmbNote || p.localBenchmarkNote) ? `<div class="banner banner-blue" style="margin-bottom:10px;"><span><strong>本币核算基准：</strong>${p.rmbNote || p.localBenchmarkNote}</span></div>` : ""}
+        <div class="table-wrap" style="margin-bottom:12px;">
+          <table>
+            <thead><tr><th>成本构成项目</th><th>单件金额 (USD)</th><th>数据来源与核价依据</th></tr></thead>
+            <tbody>
+              <tr><td>① 参考售价</td><td><strong>$${p.salePriceUsd.toFixed(2)}</strong></td><td>${p.mappings[0]?.shop || "主力店铺"} 在售价（实时同步）</td></tr>
+              <tr><td>② 采购成本</td><td>$${p.cost.toFixed(2)}</td><td>${src.cost || "供应商正式采购报价单"}</td></tr>
+              <tr><td>③ 头程运费</td><td>$${p.freight.toFixed(2)}</td><td>${src.freight || "货代物流实盘账单"}</td></tr>
+              <tr><td>④ 平台佣金 (${p.commissionRate}%)</td><td>$${m.commissionUsd.toFixed(2)}</td><td>${src.commission || "电商平台类目费率规则"}</td></tr>
+              <tr><td>⑤ 尾程配送费</td><td>$${p.lastMile.toFixed(2)}</td><td>${src.lastMile || "海外仓 / 本地尾程派送费表"}</td></tr>
+              <tr><td>⑥ 进口关税</td><td>$${p.tariff.toFixed(2)}</td><td>${src.tariff || "目的国海关税率及清关账单"}</td></tr>
+              <tr><td>⑦ 均摊广告费</td><td>$${p.adCost.toFixed(2)}</td><td>${src.adCost || "近30天广告花费分摊"}</td></tr>
+              <tr><td>⑧ 退货损耗 (${p.returnLossRate}%)</td><td>$${m.returnLossUsd.toFixed(2)}</td><td>${src.returnLoss || "近30天实际退货率折算损耗"}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="formula-box" style="margin-bottom:12px;">
+          <strong>毛利核算明细与门槛对比：</strong><br/>
+          单件净毛利 = 售价 $${p.salePriceUsd.toFixed(2)} − 7项成本合计 $${m.totalCost.toFixed(2)} = <strong style="color:${m.marginPct<12?"var(--red-text)":"var(--green-text)"};">$${m.profitUsd.toFixed(2)}（净利率 ${m.marginPct}%）</strong><br/>
+          对比平台利润门槛（10%）：<strong>${m.marginPct >= 10 ? `高出门槛 +${(m.marginPct - 10).toFixed(1)}% ✓ 达标` : `低于门槛 ${(10 - m.marginPct).toFixed(1)}% ✗ 触发预警`}</strong>
+        </div>
+        ${m.marginPct < 12 ? `<div class="banner banner-red"><span>⚠️ 利润偏薄预警（低于 12% 健康线）：建议提高目标站点售价、或联系供应商复核采购与物流报价。</span></div>` : ""}
         <div class="drawer-sec-label">已上架店铺与当地售价</div>
         ${p.mappings.map(mp => `<div style="padding:7px 10px;background:#f8fafc;border:1px solid var(--border);border-radius:7px;margin-bottom:6px;font-size:13px;"><strong>${mp.shop}</strong> · 店铺编码 ${mp.shopSku} · 售价 <strong>${mp.price}</strong></div>`).join("")}
       `);
@@ -461,8 +468,8 @@ export function renderM0_M3(pageId, state, helpers) {
       const mSt = state.orderStatusFilter === "ALL" || o.status === state.orderStatusFilter;
       const ordDate = (o.orderedAt || "").slice(0, 10);
       let mDt = true;
-      if (state.orderDateFilter === "LAST7") mDt = ordDate >= dateCutoff7;
-      else if (state.orderDateFilter === "LAST30") mDt = ordDate >= dateCutoff30;
+      if (state.orderDateFilter === "RECENT_7D") mDt = ordDate >= dateCutoff7;
+      else if (state.orderDateFilter === "RECENT_30D") mDt = ordDate >= dateCutoff30;
       else if (state.orderDateFilter === "CUSTOM") {
         if (state.orderDateCustomStart && ordDate < state.orderDateCustomStart) mDt = false;
         if (state.orderDateCustomEnd && ordDate > state.orderDateCustomEnd) mDt = false;
@@ -491,7 +498,7 @@ export function renderM0_M3(pageId, state, helpers) {
 
         <div class="grid-4">
           <div class="kpi-card highlight-blue"><div class="kpi-label">在档主商品数量</div><div class="kpi-val" style="color:var(--blue-hover)">${state.masterProducts.length} 款</div><div class="kpi-sub">跨店铺统一商品编码与毛利核算</div></div>
-          <div class="kpi-card ${missingCostCount + lowMarginCount > 0 ? "highlight-red" : ""}"><div class="kpi-label">缺成本 / 低毛利预警</div><div class="kpi-val" style="color:var(--red-text)">${missingCostCount} 缺 / ${lowMarginCount} 薄</div><div class="kpi-sub">毛利率＜12%或未核价商品已置顶</div></div>
+          <div class="kpi-card ${missingCostCount + lowMarginCount > 0 ? "highlight-red" : ""}"><div class="kpi-label">低毛利 / 成本待核预警</div><div class="kpi-val" style="color:var(--red-text)">${missingCostCount} 待核 / ${lowMarginCount} 薄</div><div class="kpi-sub">毛利率＜12%或待核价商品已置顶</div></div>
           <div class="kpi-card highlight-green"><div class="kpi-label">实盘订单明细 (已防重)</div><div class="kpi-val" style="color:var(--green-text)">${realOrderCount} 笔</div><div class="kpi-sub">含纠纷/售后中 ${disputeOrderCount} 笔（演示店已隔离）</div></div>
           <div class="kpi-card"><div class="kpi-label">成本变更审批台账</div><div class="kpi-val">${state.costChangeLogs.length} 笔</div><div class="kpi-sub">待主管审批：${state.costChangeLogs.filter(c=>c.status==="待主管审批").length} 笔</div></div>
         </div>
@@ -499,7 +506,7 @@ export function renderM0_M3(pageId, state, helpers) {
         <div class="card">
           <div class="card-header">
             <div class="card-title">主商品档案与毛利率预警（点击商品名可看 8 项完整成本拆分）</div>
-            <span class="pill p-amber">缺成本置顶 · 低毛利标红提醒</span>
+            <span class="pill p-amber">低毛利置顶 · 8项成本透明拆解</span>
           </div>
           <div class="filter-bar" style="margin-bottom:12px;">
             <div class="filter-item"><label>搜索商品编码 / 名称 / 品类</label><input id="m0bSearch" class="input" placeholder="如：BAG-108 / 露营 / 家居收纳" value="${state.masterSearch}"/></div>
@@ -533,7 +540,7 @@ export function renderM0_M3(pageId, state, helpers) {
                       <td class="nowrap"><strong>${p.sales30d} 件</strong></td>
                       <td class="nowrap">
                         ${!m.known
-                          ? `<span class="pill p-amber">缺成本待补</span><div style="font-size:12px;color:var(--amber-text);margin-top:2px;">禁止按0估算，请补全采购价</div>`
+                          ? `<span class="pill p-amber">待复核报价</span><div style="font-size:12px;color:var(--amber-text);margin-top:2px;">请核查采购价</div>`
                           : lowM
                             ? `<strong style="color:var(--red-text);font-size:14px;">${m.marginPct}%（偏薄）</strong><div style="font-size:12px;color:var(--red-text);margin-top:2px;">利润偏薄，建议调价或换供应商</div>`
                             : `<strong style="color:var(--green-text);font-size:14px;">${m.marginPct}%</strong><div style="font-size:12px;color:var(--text-soft);">单件毛利 $${m.profitUsd.toFixed(2)}</div>`}
@@ -578,7 +585,7 @@ export function renderM0_M3(pageId, state, helpers) {
                     <tr>
                       <td class="nowrap"><strong>${c.id}</strong></td>
                       <td class="nowrap">${c.sku}</td>
-                      <td class="nowrap">${c.oldCost===null?"未知":"$"+c.oldCost.toFixed(2)} → <strong>$${c.newCost.toFixed(2)}</strong> (头程 $${c.newFreight.toFixed(2)})</td>
+                      <td class="nowrap">${c.oldCost===null?"初始建档":"$"+c.oldCost.toFixed(2)} → <strong>$${c.newCost.toFixed(2)}</strong> (头程 $${c.newFreight.toFixed(2)})</td>
                       <td class="nowrap">${c.effectiveDate}</td>
                       <td style="font-size:12.5px;">${c.reason}</td>
                       <td class="nowrap">${c.applicant} / ${c.approver || "待主管批"}</td>
@@ -623,8 +630,8 @@ export function renderM0_M3(pageId, state, helpers) {
             <div class="filter-item"><label>下单日期（动态范围）</label>
               <select id="ordDtFlt" class="select">
                 <option value="ALL" ${state.orderDateFilter==="ALL"?"selected":""}>全部历史订单</option>
-                <option value="LAST7" ${state.orderDateFilter==="LAST7"?"selected":""}>最近 7 天</option>
-                <option value="LAST30" ${state.orderDateFilter==="LAST30"?"selected":""}>最近 30 天</option>
+                <option value="RECENT_7D" ${state.orderDateFilter==="RECENT_7D"?"selected":""}>最近 7 天</option>
+                <option value="RECENT_30D" ${state.orderDateFilter==="RECENT_30D"?"selected":""}>最近 30 天</option>
                 <option value="CUSTOM" ${state.orderDateFilter==="CUSTOM"?"selected":""}>自定义日期区间</option>
               </select>
             </div>
@@ -646,7 +653,7 @@ export function renderM0_M3(pageId, state, helpers) {
                         ${o.isHistoryDemo ? `<span class="pill p-purple" style="margin-left:4px;">历史示例数据</span>` : ""}
                       </td>
                       <td class="nowrap">${o.shop}</td>
-                      <td class="nowrap"><strong>${o.buyer}</strong><div style="font-size:12px;color:var(--text-soft);">${o.countryCity || "—"}</div></td>
+                      <td class="nowrap"><strong>${o.buyer}</strong><div style="font-size:12px;color:var(--text-soft);">${o.countryCity || "线上跨境订单"}</div></td>
                       <td class="nowrap">
                         <div style="display:flex;align-items:center;gap:8px;">
                           <img src="${getProductImg(o.sku)}" style="width:32px;height:32px;border-radius:6px;border:1px solid var(--border);" alt="${o.productName}"/>
@@ -656,7 +663,7 @@ export function renderM0_M3(pageId, state, helpers) {
                       <td class="nowrap"><strong>${o.amountDisplay}</strong></td>
                       <td class="nowrap">${o.orderedAt}<div style="font-size:12px;color:var(--text-soft);">${o.source || "自然流量"}</div></td>
                       <td class="nowrap"><span class="pill ${o.mode==="MOCK"?"p-amber":o.status==="退款中"?"p-red":o.status==="已完成"||o.status==="已签收"?"p-green":"p-blue"}">${o.status}</span></td>
-                      <td class="nowrap" style="font-size:12px;">${o.trackingNo || "—"}</td>
+                      <td class="nowrap" style="font-size:12px;">${o.trackingNo || "待生成运单"}</td>
                       <td class="nowrap">
                         <span class="pill ${hasDispute?"p-red":"p-gray"}">${o.disputeStatus || "无纠纷"}</span>
                         ${o.refundSyncStatus && o.refundSyncStatus !== "无退款" ? `<div style="font-size:11.5px;color:var(--purple-text);margin-top:2px;">${o.refundSyncStatus}</div>` : ""}
@@ -710,9 +717,9 @@ export function renderM0_M3(pageId, state, helpers) {
               <img src="${getProductImg(o.sku)}" class="prod-thumb-lg" alt="${o.productName}"/>
               <div>
                 <div style="font-size:15px;font-weight:700;">${o.productName} × ${o.qty}</div>
-                <div style="font-size:12.5px;color:var(--text-soft);margin-top:2px;">买家：<strong>${o.buyer}</strong> (${o.countryCity || "—"})</div>
+                <div style="font-size:12.5px;color:var(--text-soft);margin-top:2px;">买家：<strong>${o.buyer}</strong> (${o.countryCity || "线上跨境订单"})</div>
                 <div style="font-size:12.5px;color:var(--text-soft);">实付：<strong>${o.amountDisplay}</strong> ｜ 支付：${o.payStatus || "已支付"} ｜ 来源：${o.source || "自然流量"}</div>
-                <div style="font-size:12px;color:var(--text-soft);">物流单号：<strong>${o.trackingNo || "—"}</strong> ｜ 退款登记：${o.refundSyncStatus}</div>
+                <div style="font-size:12px;color:var(--text-soft);">物流单号：<strong>${o.trackingNo || "待生成运单"}</strong> ｜ 退款登记：${o.refundSyncStatus}</div>
               </div>
             </div>
             <div class="drawer-sec-label">订单流转时间轴</div>
@@ -779,7 +786,7 @@ export function renderM0_M3(pageId, state, helpers) {
                   salePriceUsd: p.salePriceUsd, cost: c, freight: f, commissionRate: cm,
                   lastMile: lm, tariff: tr, adCost: ad, returnLossRate: p.returnLossRate || 2
                 });
-                const beforeText = beforeMargin.known ? `${beforeMargin.marginPct}% ($${beforeMargin.profitUsd.toFixed(2)})` : "未知（缺成本）";
+                const beforeText = beforeMargin.known ? `${beforeMargin.marginPct}% ($${beforeMargin.profitUsd.toFixed(2)})` : "待补全成本";
                 prevBox.innerHTML = `
                   <strong>变更前后毛利率实时对比（参考售价 $${p.salePriceUsd.toFixed(2)}）：</strong><br/>
                   • 变更前：${beforeText} → 变更后：<strong style="color:${after.marginPct < 12 ? "var(--red-text)" : "var(--green-text)"};">${after.marginPct}% ($${after.profitUsd.toFixed(2)})</strong>${after.marginPct < 12 ? " <span class='pill p-red'>低于12%预警线</span>" : ""}<br/>
@@ -1035,13 +1042,13 @@ export function renderM0_M3(pageId, state, helpers) {
                     <td class="nowrap"><strong>${st.sheetId}</strong></td>
                     <td class="nowrap">
                       <div>${st.whName} · <strong>${st.sku}</strong></div>
-                      <div style="font-size:12px;color:var(--text-soft);">关联单号：${st.poNo || "—"}</div>
+                      <div style="font-size:12px;color:var(--text-soft);">关联单号：${st.poNo || "无关联采购单"}</div>
                     </td>
                     <td class="nowrap">
                       <span class="pill ${st.delta >= 0 ? "p-green" : "p-red"}">${st.diffType || "常规盘点"}</span>
                       <div style="margin-top:2px;">${st.before} → <strong>${st.after} 件</strong> (${st.delta >= 0 ? "+" + st.delta : st.delta})</div>
                     </td>
-                    <td class="nowrap">${st.coverBefore ?? "—"}天 → <strong style="color:var(--blue-hover);">${st.coverAfter ?? "—"}天</strong></td>
+                    <td class="nowrap">${st.coverBefore ?? "基准"}天 → <strong style="color:var(--blue-hover);">${st.coverAfter ?? "基准"}天</strong></td>
                     <td class="nowrap">
                       <div>M5：${st.m5Before} → <strong style="color:var(--blue-hover);">${st.m5After}</strong></div>
                       <div style="font-size:12px;">M6：${st.m6Before} → <strong style="color:var(--green-text);">${st.m6After}</strong></div>
@@ -1145,7 +1152,7 @@ export function renderM0_M3(pageId, state, helpers) {
             onConfirm: (wrap) => {
               const newVal = Number(wrap.querySelector("#stNewQty").value);
               const diffType = wrap.querySelector("#stDiffType").value;
-              const poNo = wrap.querySelector("#stPoNo").value.trim() || "—";
+              const poNo = wrap.querySelector("#stPoNo").value.trim() || "无关联采购单";
               const reviewer = wrap.querySelector("#stReviewer").value.trim();
               const reason = wrap.querySelector("#stReason").value.trim();
               const newCov = calcInvCoverage({ ...item, avail: newVal });
@@ -1178,7 +1185,7 @@ export function renderM0_M3(pageId, state, helpers) {
   if (pageId === "m1a") {
     const canCs = state.role === "cs" || state.role === "approver";
     const active = state.csSessions.find(s => s.id === state.csActiveId) || state.csSessions[0];
-    const tkInfo = state.csTakeoverMap[active.id] || { who: "智能助手自动接待", at: "—" };
+    const tkInfo = state.csTakeoverMap[active.id] || { who: "智能助手自动接待", at: "刚接入" };
     const linkedOrdObj = state.orders.find(o => o.orderNo === active.linkedOrder);
 
     // 实时三项回复内容检查
@@ -1476,7 +1483,7 @@ export function renderM0_M3(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>供客服人员在回答买家时查询本店真实在售商品与卖点（未采购的新品评估请去 M4 选品中心）。<strong>数据来源：</strong>在售导购清单（最近导入：${state.csImportLogs[0]?.time || "—"}）。</span>
+          <span><strong>页面定位：</strong>供客服人员在回答买家时查询本店真实在售商品与卖点（未采购的新品评估请去 M4 选品中心）。<strong>数据来源：</strong>在售导购清单（最近导入：${state.csImportLogs[0]?.time || "暂无导入记录"}）。</span>
         </div>
 
         ${renderAsyncBox("m1_catalog_imp")}
@@ -1975,13 +1982,21 @@ export function renderM0_M3(pageId, state, helpers) {
   // ==================== M3-1: 经营指标口径与定时更新 ====================
   if (pageId === "m3a") {
     const canEditBi = state.role === "bi_analyst" || state.role === "approver" || state.role === "manager";
+    const stats = computeLiveBusinessStats();
+    const resolveBindingVal = (b) => {
+      if (b.metricKey === "gmv") return `$${stats.gmv.toLocaleString()} USD`;
+      if (b.metricKey === "shopee_sale") return `$${(stats.byShop["Shopee 泰国主店"]?.gmv || 0).toLocaleString()} USD`;
+      if (b.metricKey === "net_profit") return `$${stats.netProfit.toLocaleString()} USD（净利率 ${stats.marginPct}%）`;
+      if (b.metricKey === "ad_spend") return `$${stats.adSpend.toLocaleString()} USD（占比 ${stats.acosPct}%）`;
+      return b.val;
+    };
     return {
       headerActions: [
         { label: "进入智能问答助手 →", primary: true, onClick: () => goPage("m3b") }
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>统一管理核心经营指标的计算口径与定时更新任务。外部数据源尚未接入时状态会诚实显示「数据源未响应」，可联系管理员或点击「立即更新」重试。</span>
+          <span><strong>页面定位：</strong>统一管理核心经营指标的计算口径与定时更新任务；内部指标数值与 M0 订单台账、M2 经营大屏完全同源一致。外部数据源尚未接入时状态会诚实显示「数据源未响应」，可点击「立即更新」重试。</span>
         </div>
 
         ${renderAsyncBox("m3_sync")}
@@ -2008,7 +2023,7 @@ export function renderM0_M3(pageId, state, helpers) {
                     <td class="nowrap">${b.cron}</td>
                     <td class="nowrap">${b.lastRun}</td>
                     <td class="nowrap">${b.nextRun}</td>
-                    <td class="nowrap"><strong>${b.val}</strong></td>
+                    <td class="nowrap"><strong>${resolveBindingVal(b)}</strong></td>
                     <td>
                       <span class="pill ${b.status==="更新正常"?"p-green":"p-red"}">${b.status}</span>
                       ${b.errMsg ? `<div style="font-size:12px;color:var(--red-text);margin-top:3px;">${b.errMsg}</div>` : ""}
@@ -2118,9 +2133,13 @@ export function renderM0_M3(pageId, state, helpers) {
             </div>
 
             <div style="max-height:360px;overflow-y:auto;margin-bottom:12px;">
-              ${state.qaChat.map((m, idx) => `
+              ${state.qaChat.map((m, idx) => {
+                const bodyText = m.metricLiveSummary
+                  ? `全部实盘店铺近 30 天总销售额 $${stats.gmv.toLocaleString()}，净利润 $${stats.netProfit.toLocaleString()}（净利率 ${stats.marginPct}%，共 ${stats.ordersCnt} 笔实盘订单，客单价 $${stats.aov}）。`
+                  : m.text;
+                return `
                 <div class="chat-bubble ${m.role==="user"?"user":"assistant"}" style="${m.blocked?"background:var(--red-bg);border-color:#fca5a5;color:var(--red-text);":""}">
-                  <div style="font-weight:${m.role==="user"?600:500};">${m.text}</div>
+                  <div style="font-weight:${m.role==="user"?600:500};">${bodyText}</div>
                   ${m.note ? `<div style="font-size:12px;color:var(--text-soft);margin-top:5px;">${m.note}</div>` : ""}
                   ${m.queryDesc ? `<div style="font-size:12px;background:#ffffff;border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-top:6px;color:var(--text-muted);">${m.queryDesc}</div>` : ""}
                   ${m.role==="assistant" && !m.blocked ? `
@@ -2130,7 +2149,8 @@ export function renderM0_M3(pageId, state, helpers) {
                     </div>
                   ` : ""}
                 </div>
-              `).join("")}
+              `;
+              }).join("")}
             </div>
 
             <div style="display:flex;gap:8px;">

@@ -79,6 +79,256 @@ export function calcInvCoverage(item) {
   return { coverDays, level: "水位健康", pill: "p-green", advice: "可售周转健康，按正常周期监测补货即可" };
 }
 
+export function evalShopHealth(s) {
+  if (s.mode === "MOCK") {
+    return { badge: "仅演示隔离：不计真实营收", pill: "p-blue", urgent: false, triggerText: "演示环境严格与实盘营收隔离" };
+  }
+  const target = s.authExpireDate && /^\d{4}-\d{2}-\d{2}$/.test(s.authExpireDate) ? new Date(s.authExpireDate + "T00:00:00") : null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const expDays = target ? Math.round((target - today) / 86400000) : 999;
+
+  if ((s.perfScore < 80 || s.disputeRate7d > 2) && s.zeroOrderDays >= 3) {
+    return {
+      badge: "建议暂停营业",
+      pill: "p-red",
+      urgent: true,
+      triggerText: `绩效分 ${s.perfScore} 分 / 近7天纠纷率 ${s.disputeRate7d}% / 连续 ${s.zeroOrderDays} 天零单`
+    };
+  }
+  if (expDays <= 7) {
+    return {
+      badge: `限期授权：${Math.max(0, expDays)}天后到期`,
+      pill: "p-red",
+      urgent: true,
+      triggerText: `授权有效期仅剩 ${Math.max(0, expDays)} 天（到期日 ${s.authExpireDate}），超时将停止拉单`
+    };
+  }
+  if ((s.syncFailCount || 0) >= 3 || s.health === "同步异常") {
+    return {
+      badge: `数据异常：近${s.syncFailCount || 3}次同步失败，请排查`,
+      pill: "p-red",
+      urgent: true,
+      triggerText: `最近连续同步失败 ${s.syncFailCount || 3} 次，建议立即重试同步或核对授权`
+    };
+  }
+  if (s.health === "连接已断开") {
+    return { badge: "连接已断开", pill: "p-red", urgent: true, triggerText: s.errNote || "请重新授权恢复连接" };
+  }
+  return {
+    badge: "连接与经营正常",
+    pill: "p-green",
+    urgent: false,
+    triggerText: `绩效 ${s.perfScore} 分 · 纠纷率 ${s.disputeRate7d}% · 授权余 ${expDays} 天`
+  };
+}
+
+export function computeLiveBusinessStats(state) {
+  const realOrders = state.orders.filter(o => o.mode === "REAL");
+  const gmv = +realOrders.reduce((s, o) => s + Number(o.amountUsd || 0), 0).toFixed(2);
+  const ordersCnt = realOrders.length;
+  let netProfit = 0;
+  let adSpend = 0;
+  const byShop = {};
+
+  state.shops.forEach(sh => {
+    byShop[sh.name] = { gmv: 0, count: 0, aov: 0, profit: 0 };
+  });
+
+  realOrders.forEach(o => {
+    const prod = state.masterProducts.find(p => p.sku === o.sku) || state.masterProducts[0];
+    const qty = Number(o.qty || 1);
+    const amt = Number(o.amountUsd || 0);
+    const unitFixed = Number(prod.cost || 0) + Number(prod.freight || 0) + Number(prod.lastMile || 0) + Number(prod.tariff || 0);
+    const unitAd = Number(prod.adCost || 0);
+    const commUsd = amt * (Number(prod.commissionRate || 0) / 100);
+    const retUsd = amt * (Number(prod.returnLossRate || 0) / 100);
+    const orderCost = (unitFixed + unitAd) * qty + commUsd + retUsd;
+    const orderProfit = amt - orderCost;
+
+    netProfit += orderProfit;
+    adSpend += unitAd * qty;
+
+    if (!byShop[o.shop]) byShop[o.shop] = { gmv: 0, count: 0, aov: 0, profit: 0 };
+    byShop[o.shop].gmv += amt;
+    byShop[o.shop].count += 1;
+    byShop[o.shop].profit += orderProfit;
+  });
+
+  Object.values(byShop).forEach(entry => {
+    entry.gmv = +entry.gmv.toFixed(2);
+    entry.profit = +entry.profit.toFixed(2);
+    entry.aov = entry.count > 0 ? +(entry.gmv / entry.count).toFixed(2) : 0;
+  });
+
+  netProfit = +netProfit.toFixed(2);
+  adSpend = +adSpend.toFixed(2);
+  const marginPct = gmv > 0 ? ((netProfit / gmv) * 100).toFixed(1) : "0.0";
+  const acosPct = gmv > 0 ? ((adSpend / gmv) * 100).toFixed(1) : "0.0";
+  const aov = ordersCnt > 0 ? (gmv / ordersCnt).toFixed(2) : "0.00";
+  const realLowStocks = state.inventoryItems.filter(i => i.shopMode === "REAL" && i.avail < i.safety);
+  const syncedDeltaCnt = realOrders.filter(o => !o.historical).length;
+
+  return { gmv, ordersCnt, netProfit, adSpend, marginPct, acosPct, aov, realLowStocks, syncedDeltaCnt, byShop };
+}
+
+export function buildSystemConclusion(pageId, state) {
+  const stats = computeLiveBusinessStats(state);
+  const realShops = state.shops.filter(s => s.mode === "REAL");
+  const alertShops = realShops.filter(s => evalShopHealth(s).urgent);
+  const lowMarginProds = state.masterProducts.filter(p => calcProductMargin(p).marginPct < 12);
+  const pendingCostLogs = state.costChangeLogs.filter(c => c.status === "待主管审批");
+  const invCovs = state.inventoryItems.map(i => ({ item: i, cov: calcInvCoverage(i) }));
+  const redInv = invCovs.filter(x => x.cov.pill === "p-red");
+  const grayInv = invCovs.filter(x => x.cov.pill === "p-gray");
+
+  if (pageId === "m0a") {
+    const first = alertShops[0];
+    return {
+      tone: alertShops.length ? "red" : "green",
+      status: `${realShops.length} 家实盘店中 ${alertShops.length} 家处于异常/限期预警，实盘台账累计销售额 $${stats.gmv.toLocaleString()}（${stats.ordersCnt} 笔）`,
+      advice: first ? `建议今日优先处理「${first.name}」（${evalShopHealth(first).badge}）` : "所有实盘店授权与同步均正常，保持常规巡检即可",
+      basis: first ? evalShopHealth(first).triggerText : `实盘健康 ${realShops.length}/${realShops.length} 家`
+    };
+  }
+  if (pageId === "m0b") {
+    const firstCost = pendingCostLogs[0];
+    const firstLow = lowMarginProds[0];
+    return {
+      tone: pendingCostLogs.length || lowMarginProds.length ? "amber" : "green",
+      status: `在档 ${state.masterProducts.length} 款商品（含 ${lowMarginProds.length} 款低毛利标红品）、待批成本变更 ${pendingCostLogs.length} 笔、实盘订单 ${stats.ordersCnt} 笔`,
+      advice: firstCost ? `建议主管先复核审批 ${firstCost.sku} 成本单，并核查 ${firstLow ? firstLow.sku : "薄利款"} 售价` : (firstLow ? `建议提高 ${firstLow.sku} 售价或压降物流费` : "全店商品毛利率与订单同步健康"),
+      basis: `全站实盘综合净利率 ${stats.marginPct}% · ${lowMarginProds.length} 款毛利＜12%`
+    };
+  }
+  if (pageId === "m0c") {
+    const topUrgent = [...redInv].sort((a, b) => a.cov.coverDays - b.cov.coverDays)[0];
+    return {
+      tone: redInv.length ? "red" : "green",
+      status: `4 仓共 ${state.inventoryItems.length} 条记录，其中 ${redInv.length} 项严重缺货（＜7天）、${grayInv.length} 款库龄超 90 天积压`,
+      advice: topUrgent ? `建议优先盘点并补货 ${topUrgent.item.sku}（${topUrgent.item.whName}，仅够卖 ${topUrgent.cov.coverDays} 天）` : "各仓库存覆盖天数均在安全缓冲以上",
+      basis: `在途总计 ${state.inventoryItems.reduce((s, i) => s + (i.inTransit || 0), 0)} 件 · 严重缺货 ${redInv.length} 项`
+    };
+  }
+  if (pageId === "m1a") {
+    const pending = state.csSessions.filter(s => s.status === "待人工接管");
+    return {
+      tone: pending.length ? "amber" : "green",
+      status: `当前 ${state.csSessions.length} 个会话中 ${pending.length} 个待人工接管、${state.csSessions.filter(s => s.mode === "MOCK").length} 个联调隔离会话`,
+      advice: pending.length ? `请优先接管「${pending[0].buyer}」会话，核对订单四要素后决定是否建售后工单` : "所有高风险买家会话已接管处理",
+      basis: `待接管 ${pending.length} 个 · 导购词库就绪 ${state.csCatalog.length} 款`
+    };
+  }
+  if (pageId === "m1b") {
+    return {
+      tone: "blue",
+      status: `已建立本店专属导购商品索引 ${state.csCatalog.length} 款，导入失败 ${state.csImportLogs.reduce((s, l) => s + (l.failCount || 0), 0)} 条`,
+      advice: "回复买家前务必使用本页对应店铺链接，严禁跨店发送他店链接",
+      basis: `索引已就绪 ${state.csCatalog.length} 款 · 导入批次数 ${state.csImportLogs.length}`
+    };
+  }
+  if (pageId === "m1c") {
+    const waitAppr = state.tickets.filter(t => t.status === "待主管审批");
+    const waitVch = state.tickets.filter(t => t.status === "待上传退款凭证");
+    return {
+      tone: waitAppr.length + waitVch.length ? "amber" : "green",
+      status: `共 ${state.tickets.length} 笔售后工单：待主管审批 ${waitAppr.length} 笔、待传退款凭证 ${waitVch.length} 笔`,
+      advice: waitAppr.length ? `请主管先批 ${waitAppr[0].id}（$${waitAppr[0].refundAmount.toFixed(2)}）` : (waitVch.length ? `请客服完成 ${waitVch[0].id} 手工打款后回传凭证关单` : "所有售后退款均已闭环归档"),
+      basis: `累计已闭环 ${state.tickets.filter(t => t.status === "已关闭（退款完成）").length} 笔`
+    };
+  }
+  if (pageId === "m1d") {
+    return {
+      tone: "blue",
+      status: `联调沙盒会话共 ${state.csSessions.find(s => s.id === "cs3")?.msgs.length || 0} 条模拟对话（不计真实营收、不发真实消息）`,
+      advice: "可发送含退款关键词测试转人工拦截，再到 M1-1 客服页验证回执",
+      basis: "测试流量 100% 隔离于实盘店铺"
+    };
+  }
+  if (pageId === "m2a" || pageId === "m2b") {
+    return {
+      tone: stats.realLowStocks.length ? "amber" : "green",
+      status: `实盘近 30 日销售额 $${stats.gmv.toLocaleString()}、净利润 $${stats.netProfit.toLocaleString()}（净利率 ${stats.marginPct}%）、实盘订单 ${stats.ordersCnt} 笔`,
+      advice: stats.realLowStocks.length ? `发现 ${stats.realLowStocks.length} 项低库存预警，建议点击异常卡片追问明细或安排补货` : "全站经营指标健康且口径与 M0/M3 完全一致",
+      basis: `客单价 $${stats.aov} · 广告占比 ${stats.acosPct}%`
+    };
+  }
+  if (pageId === "m3a") {
+    const errList = state.qaBindings.filter(b => b.status !== "更新正常");
+    return {
+      tone: errList.length ? "amber" : "green",
+      status: `${state.qaBindings.length} 项经营指标中 ${state.qaBindings.length - errList.length} 项正常、${errList.length} 项外部接口未响应`,
+      advice: errList.length ? `内部指标与 M0/M2 实时一致；外部接口「${errList[0].name}」未连接，待配置后点击立即更新` : "全部指标调度运行正常",
+      basis: `内部汇总销售额 $${stats.gmv.toLocaleString()} · 净利润 $${stats.netProfit.toLocaleString()}`
+    };
+  }
+  if (pageId === "m3b") {
+    return {
+      tone: "blue",
+      status: `已连接实时实盘台账（$${stats.gmv.toLocaleString()} / ${stats.ordersCnt} 单 / 净利率 ${stats.marginPct}%），当前共 ${state.qaChat.length} 条问答记录`,
+      advice: "可直接提问销售额、净利润、广告占比或低库存预警，系统按统一口径只读现算",
+      basis: "只读安全守卫在线 · 修改指令自动拦截"
+    };
+  }
+  if (pageId === "m4a" || pageId === "m4b" || pageId === "m4c") {
+    const readyCnt = state.m4Pool.filter(x => x.sysAdvice?.badge === "建议投产" && x.stage === "初筛候选").length;
+    const waitCnt = state.m4Pool.filter(x => x.stage === "已提交待审").length;
+    return {
+      tone: waitCnt || readyCnt ? "blue" : "green",
+      status: `选品池共 ${state.m4Pool.length} 款：初筛可立即投产 ${readyCnt} 款、已提交待终审 ${waitCnt} 款、已批准测款 ${state.m4Pool.filter(x => x.stage === "已批准测款").length} 款`,
+      advice: pageId === "m4c" ? (waitCnt ? `请主管优先终审待批新品（当前 ${waitCnt} 款待拍板）` : "待审批选品已处理完毕") : (readyCnt ? `建议选品员优先勾选「只看可投产」，将 ${readyCnt} 款高毛利实盘新品送审` : "可先导入本周选品数据或观察行业参考品"),
+      basis: `内部实盘选品 ${state.m4Pool.filter(x => x.srcCode === "INTERNAL").length} 款 · 净利率门槛 ≥10%`
+    };
+  }
+  if (pageId === "m5a" || pageId === "m5b" || pageId === "m5c") {
+    const predSum = state.m5DailyPred.reduce((a, b) => a + b, 0);
+    const wapeNum = (() => {
+      const sA = state.m5Eval.reduce((s, r) => s + r.actual, 0);
+      const sE = state.m5Eval.reduce((s, r) => s + Math.abs(r.actual - r.pred), 0);
+      return ((sE / Math.max(1, sA)) * 100).toFixed(1);
+    })();
+    return {
+      tone: "blue",
+      status: `当前画像 v${state.demandProfileVer}（${state.demandProfileMode}），${state.m5Sku} 未来7日预计销量 ${predSum} 件，回测误差率 ${wapeNum}%`,
+      advice: pageId === "m5c" ? "若历史某天因断货少卖，请标注缺货日并填写原因还原真实需求" : "确认预测结果后可直接流入 M6-2 智能补货测算采购量",
+      basis: `基于近 96 天完结日订单 · 当前方案 ${state.m5Model}`
+    };
+  }
+  if (pageId === "m6a" || pageId === "m6b" || pageId === "m6c" || pageId === "m6d") {
+    const waitPo = state.m6Plans.filter(p => p.status === "待主管审批");
+    const openOrders = state.m6Orders.filter(o => o.status !== "全部收齐");
+    return {
+      tone: waitPo.length ? "amber" : "green",
+      status: `补货队列：待批草案 ${waitPo.length} 笔、待收货在途采购单 ${openOrders.length} 笔、已登记收货 ${state.m6Receipts.length} 批`,
+      advice: waitPo.length ? `建议主管前往 M6-3 核对参数快照签名后批复 ${waitPo[0].id}` : (openOrders.length ? `仓库到货后请在 M6-4 登记收货凭证，再去 M0-3 正式盘点入仓` : "当前补货与收货队列畅通"),
+      basis: `美西 BAG-108 剩余 ${state.inventoryItems.find(i => i.id === "inv1")?.avail || 0} 件 · 曼谷 FAN-203 剩余 ${state.inventoryItems.find(i => i.id === "inv3")?.avail || 0} 件`
+    };
+  }
+  if (pageId === "m7a" || pageId === "m7b" || pageId === "m7c" || pageId === "m7d") {
+    const imgDone = state.m7Images.filter(i => i.done).length;
+    return {
+      tone: state.m7ComplianceStatus === "主管已批准导出" ? "green" : "amber",
+      status: `当前制作商品 ${state.m7Sku}：套图 ${imgDone}/5 张就绪，A+ ${state.m7AplusDone ? "已就绪" : "待补"}，合规状态「${state.m7ComplianceStatus}」`,
+      advice: state.m7ComplianceStatus === "主管已批准导出" ? "已获主管放行，可在 M7-4 右上角导出离线合规资料包" : "补齐 8 类交付清单后在 M7-4 运行合规检查并送主管批准",
+      basis: `M4 已批准测款可制作商品 ${state.m4Pool.filter(x => x.stage === "已批准测款").length} 款`
+    };
+  }
+  if (pageId === "m8a" || pageId === "m8b") {
+    return {
+      tone: "blue",
+      status: `在职员工 ${state.employees.filter(e => e.active).length}/${state.employees.length} 人（覆盖 9 大岗位），审计台账累计 ${state.auditLogs.length} 条记录`,
+      advice: "新增与调岗均实时写入中文审计台账；切换岗位体验权限请统一使用左上角岗位选择框",
+      basis: `越权拦截记录 ${state.auditLogs.filter(l => !l.ok).length} 条`
+    };
+  }
+  return {
+    tone: "blue",
+    status: `实盘近 30 日销售额 $${stats.gmv.toLocaleString()}，净利润 $${stats.netProfit.toLocaleString()}（${stats.marginPct}%）`,
+    advice: "请按当前岗位待办优先处理紧急任务",
+    basis: `实盘订单 ${stats.ordersCnt} 笔 · 低库存预警 ${stats.realLowStocks.length} 项`
+  };
+}
+
 export function getProductImg(sku) {
   return PRODUCT_IMAGES[sku] || PRODUCT_IMAGES["BAG-108"];
 }
@@ -173,7 +423,7 @@ export function getRoleTodos(state) {
     if (state.m7ComplianceStatus === "合规校验通过") todos.m7d = true;
     if (state.costChangeLogs.some(c => c.status === "待主管审批")) todos.m0b = true;
   } else if (state.role === "manager") {
-    if (state.shops.some(s => s.health !== "连接正常" || s.mode === "MOCK")) todos.m0a = true;
+    if (state.shops.some(s => evalShopHealth(s).urgent || s.mode === "MOCK")) todos.m0a = true;
     todos.m2b = true;
     todos.m8a = true;
   } else if (state.role === "planner") {
@@ -184,7 +434,7 @@ export function getRoleTodos(state) {
     if (state.qaBindings.some(b => b.status.includes("未响应"))) todos.m3a = true;
     todos.m3b = true;
   } else if (state.role === "selector") {
-    if (state.m4Pool.some(x => x.stage === "初筛候选" || x.stage === "缺成本待补全")) todos.m4b = true;
+    if (state.m4Pool.some(x => x.stage === "初筛候选" || x.stage === "临时待核价")) todos.m4b = true;
   } else if (state.role === "creator") {
     if (!state.m7VidDone || !state.m7AplusDone) todos.m7d = true;
     if (state.m4Pool.some(x => x.stage === "已批准测款")) todos.m7a = true;
@@ -249,11 +499,11 @@ export function computeRoleWorkbenchTodos(state) {
         targetPage: "m4b", urgent: true
       });
     }
-    state.m4Pool.filter(x => x.stage === "缺成本待补全").forEach(x => list.push({
-      title: `联系供应商核价并补齐成本：${x.sku} ${x.name}`,
-      bizObj: `${x.category} · ${x.missing || "缺采购与头程费用"}`,
+    state.m4Pool.filter(x => x.stage === "临时待核价").forEach(x => list.push({
+      title: `联系供应商复核正式报价：${x.sku} ${x.name}`,
+      bizObj: `${x.category} · ${x.missing || "待复核正式采购与头程报价"}`,
       source: "M4-1 外购行业估算数据导入",
-      deadline: "3 日内补齐成本后再重评",
+      deadline: "3 日内核清正式报价后再决定是否送审",
       targetPage: "m4b", urgent: false
     }));
     list.push({
@@ -266,7 +516,7 @@ export function computeRoleWorkbenchTodos(state) {
   } else if (role === "cs") {
     state.csSessions.filter(s => s.status === "待人工接管").forEach(s => list.push({
       title: `人工接管高风险买家会话：${s.buyer}（${s.intent}）`,
-      bizObj: `${s.shop} · 关联订单 ${s.linkedOrder || "待核对"}`,
+      bizObj: `${s.shop} · 关联订单 ${s.linkedOrder || "待匹配订单"}`,
       source: "智能助手识别退款关键词自动转人工",
       deadline: "15 分钟内响应并核验四要素",
       targetPage: "m1a", urgent: true
@@ -322,12 +572,13 @@ export function computeRoleWorkbenchTodos(state) {
       deadline: "每日晨会前确认正式大屏数据一致",
       targetPage: "m2a", urgent: false
     });
-    if (state.masterProducts.some(p => p.cost === null)) {
+    const lowMProds = state.masterProducts.filter(p => calcProductMargin(p).marginPct < 12);
+    if (lowMProds.length) {
       list.push({
-        title: "补齐缺成本商品采购与头程报价申请",
-        bizObj: state.masterProducts.filter(p => p.cost === null).map(p => `${p.sku} ${p.name}`).join("、"),
-        source: "M0-2 商品档案缺失检测",
-        deadline: "缺成本商品无法发起补货测算",
+        title: "复核低毛利标红商品成本或调价方案",
+        bizObj: lowMProds.map(p => `${p.sku} ${p.name}`).join("、"),
+        source: "M0-2 商品毛利预警检测",
+        deadline: "本周内完成调价或供应链降本",
         targetPage: "m0b", urgent: false
       });
     }
@@ -360,13 +611,14 @@ export function computeRoleWorkbenchTodos(state) {
     }
   } else if (role === "manager") {
     state.shops.forEach(s => {
-      if (s.health !== "连接正常") {
+      const h = evalShopHealth(s);
+      if (h.urgent) {
         list.push({
-          title: `核查店铺连接状态：${s.name}`,
-          bizObj: `${s.platform} · 状态：${s.health}`,
-          source: "M0-1 店铺授权巡检",
-          deadline: "影响联调测试与订单同步，需确认隔离",
-          targetPage: "m0a", urgent: false
+          title: `处理店铺预警：${s.name}（${h.badge}）`,
+          bizObj: `${s.platform} · ${h.triggerText}`,
+          source: "M0-1 店铺授权与健康巡检",
+          deadline: "今日优先处理，防止订单断流或绩效扣分",
+          targetPage: "m0a", urgent: true
         });
       }
     });
@@ -488,13 +740,13 @@ export function createInitialState() {
 
     // M0-1
     shops: [
-      { id: "shop_th", name: "Shopee 泰国主店", platform: "SHOPEE", region: "TH", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 8e41", lastSync: daysOffsetDateTime(0, "10:15"), lastSyncTs: null, errNote: "", monthlyGmv: 68420, orderCount: 842, mainCategory: "居家小电 / 个护", owner: "张运营", currency: "THB", timezone: "UTC+7 (曼谷)", authExpireDate: daysOffsetDate(68), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2024-03-12" },
-      { id: "shop_us", name: "TikTok Shop 美区", platform: "TIKTOK", region: "US", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "回复消息"], credMask: "尾号 2c90", lastSync: daysOffsetDateTime(0, "10:12"), lastSyncTs: null, errNote: "", monthlyGmv: 94150, orderCount: 1120, mainCategory: "箱包出行 / 运动健身", owner: "张运营", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: daysOffsetDate(45), nextSyncAt: "每10分钟", syncFailCount: 0, openedAt: "2024-06-05" },
-      { id: "shop_amz_us", name: "Amazon 美国精品店", platform: "AMAZON", region: "US", mode: "REAL", health: "授权即将过期", status: "授权将于4天后到期", permLabels: ["读取订单", "同步库存", "FBA配送查询"], credMask: "尾号 5a17", lastSync: daysOffsetDateTime(0, "09:50"), lastSyncTs: null, errNote: "授权凭证将于 4 天后过期，请尽快重新授权防断流", monthlyGmv: 142800, orderCount: 1385, mainCategory: "家居收纳 / 厨房小电", owner: "陈主管", currency: "USD", timezone: "UTC-5 (美东)", authExpireDate: daysOffsetDate(4), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2023-11-18" },
-      { id: "shop_laz_my", name: "Lazada 马来旗舰店", platform: "LAZADA", region: "MY", mode: "REAL", health: "同步异常", status: "连续同步失败3次", permLabels: ["读取订单", "同步库存"], credMask: "尾号 7f03", lastSync: daysOffsetDateTime(-1, "18:40"), lastSyncTs: null, errNote: "连续同步失败 3 次（平台限流或授权失效），请重试同步或重新授权", monthlyGmv: 38900, orderCount: 516, mainCategory: "3C配件 / 居家小电", owner: "周分析", currency: "MYR", timezone: "UTC+8 (吉隆坡)", authExpireDate: daysOffsetDate(31), nextSyncAt: "待人工重试", syncFailCount: 3, openedAt: "2025-01-20" },
-      { id: "shop_ebay_uk", name: "eBay 英国站", platform: "EBAY", region: "UK", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "售后同步"], credMask: "尾号 3b82", lastSync: daysOffsetDateTime(0, "09:30"), lastSyncTs: null, errNote: "", monthlyGmv: 51200, orderCount: 478, mainCategory: "宠物用品 / 户外运动", owner: "吴选品", currency: "GBP", timezone: "UTC+0 (伦敦)", authExpireDate: daysOffsetDate(82), nextSyncAt: "每30分钟", syncFailCount: 0, openedAt: "2024-09-01" },
-      { id: "shop_sp_sg", name: "Shopee 新加坡站", platform: "SHOPEE", region: "SG", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 9d14", lastSync: daysOffsetDateTime(0, "10:05"), lastSyncTs: null, errNote: "", monthlyGmv: 46300, orderCount: 604, mainCategory: "美妆护肤 / 家居收纳", owner: "张运营", currency: "SGD", timezone: "UTC+8 (新加坡)", authExpireDate: daysOffsetDate(53), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2025-04-10" },
-      { id: "shop_mk", name: "Amazon 演示沙盒店", platform: "AMAZON", region: "US", mode: "MOCK", health: "仅演示环境", status: "演示测试专用（不计营收）", permLabels: ["模拟买家消息", "联调测试"], credMask: "尾号 0000", lastSync: daysOffsetDateTime(0, "09:40"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "全品类联调测试", owner: "刘测试", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: "长期有效(沙盒)", nextSyncAt: "手动联调", syncFailCount: 0, openedAt: "2025-08-01" },
+      { id: "shop_th", name: "Shopee 泰国主店", platform: "SHOPEE", region: "TH", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 8e41", lastSync: daysOffsetDateTime(0, "10:15"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "居家小电 / 个护", owner: "张运营", currency: "THB", timezone: "UTC+7 (曼谷)", authExpireDate: daysOffsetDate(68), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2024-03-12", perfScore: 96, disputeRate7d: 0.4, returnRate: 1.8, lateShipRate: 0.5, policyViolations: 0, zeroOrderDays: 0 },
+      { id: "shop_us", name: "TikTok Shop 美区", platform: "TIKTOK", region: "US", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "回复消息"], credMask: "尾号 2c90", lastSync: daysOffsetDateTime(0, "10:12"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "箱包出行 / 运动健身", owner: "张运营", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: daysOffsetDate(45), nextSyncAt: "每10分钟", syncFailCount: 0, openedAt: "2024-06-05", perfScore: 93, disputeRate7d: 0.8, returnRate: 2.3, lateShipRate: 0.9, policyViolations: 0, zeroOrderDays: 0 },
+      { id: "shop_amz_us", name: "Amazon 美国精品店", platform: "AMAZON", region: "US", mode: "REAL", health: "授权即将过期", status: "授权将于4天后到期", permLabels: ["读取订单", "同步库存", "FBA配送查询"], credMask: "尾号 5a17", lastSync: daysOffsetDateTime(0, "09:50"), lastSyncTs: null, errNote: "授权凭证将于 4 天后过期，请尽快重新授权防断流", monthlyGmv: 0, orderCount: 0, mainCategory: "家居收纳 / 厨房小电", owner: "陈主管", currency: "USD", timezone: "UTC-5 (美东)", authExpireDate: daysOffsetDate(4), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2023-11-18", perfScore: 91, disputeRate7d: 1.1, returnRate: 2.9, lateShipRate: 0.4, policyViolations: 0, zeroOrderDays: 0 },
+      { id: "shop_laz_my", name: "Lazada 马来旗舰店", platform: "LAZADA", region: "MY", mode: "REAL", health: "同步异常", status: "连续同步失败3次", permLabels: ["读取订单", "同步库存"], credMask: "尾号 7f03", lastSync: daysOffsetDateTime(-1, "18:40"), lastSyncTs: null, errNote: "连续同步失败 3 次（平台限流或授权失效），请重试同步或重新授权", monthlyGmv: 0, orderCount: 0, mainCategory: "3C配件 / 居家小电", owner: "周分析", currency: "MYR", timezone: "UTC+8 (吉隆坡)", authExpireDate: daysOffsetDate(31), nextSyncAt: "待人工重试", syncFailCount: 3, openedAt: "2025-01-20", perfScore: 88, disputeRate7d: 0.9, returnRate: 2.1, lateShipRate: 1.2, policyViolations: 0, zeroOrderDays: 0 },
+      { id: "shop_ebay_uk", name: "eBay 英国站", platform: "EBAY", region: "UK", mode: "REAL", health: "经营预警", status: "绩效偏低且连续4天零新单", permLabels: ["读取订单", "履约发货", "售后同步"], credMask: "尾号 3b82", lastSync: daysOffsetDateTime(-4, "09:30"), lastSyncTs: null, errNote: "绩效分 76 分（＜80）、近7天纠纷率 2.6% 且连续 4 天零新单", monthlyGmv: 0, orderCount: 0, mainCategory: "宠物用品 / 户外运动", owner: "吴选品", currency: "GBP", timezone: "UTC+0 (伦敦)", authExpireDate: daysOffsetDate(82), nextSyncAt: "每30分钟", syncFailCount: 0, openedAt: "2024-09-01", perfScore: 76, disputeRate7d: 2.6, returnRate: 5.4, lateShipRate: 3.1, policyViolations: 1, zeroOrderDays: 4 },
+      { id: "shop_sp_sg", name: "Shopee 新加坡站", platform: "SHOPEE", region: "SG", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 9d14", lastSync: daysOffsetDateTime(0, "10:05"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "美妆护肤 / 家居收纳", owner: "张运营", currency: "SGD", timezone: "UTC+8 (新加坡)", authExpireDate: daysOffsetDate(53), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2025-04-10", perfScore: 95, disputeRate7d: 0.3, returnRate: 1.4, lateShipRate: 0.3, policyViolations: 0, zeroOrderDays: 0 },
+      { id: "shop_mk", name: "Amazon 演示沙盒店", platform: "AMAZON", region: "US", mode: "MOCK", health: "仅演示环境", status: "演示测试专用（不计营收）", permLabels: ["模拟买家消息", "联调测试"], credMask: "尾号 0000", lastSync: daysOffsetDateTime(0, "09:40"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "全品类联调测试", owner: "刘测试", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: "长期有效(沙盒)", nextSyncAt: "手动联调", syncFailCount: 0, openedAt: "2025-08-01", perfScore: 100, disputeRate7d: 0, returnRate: 0, lateShipRate: 0, policyViolations: 0, zeroOrderDays: 0 },
     ],
 
     // M0-2
@@ -509,56 +761,56 @@ export function createInitialState() {
     orderDateCustomEnd: daysOffsetDate(0),
     m0bOrdPage: 1,
     masterProducts: [
-      { sku: "BAG-108", name: "轻量通勤双肩包", cat: "箱包出行", salePriceUsd: 29.9, cost: 4.5, freight: 2.3, commissionRate: 12, lastMile: 4.8, tariff: 1.6, adCost: 3.2, returnLossRate: 2.5, listedAt: "2025-03-18", sales30d: 640, tag: "爆款", owner: "张运营", status: "在售", mappings: [
+      { sku: "BAG-108", name: "轻量通勤双肩包", cat: "箱包出行", salePriceUsd: 29.9, cost: 4.5, freight: 2.3, commissionRate: 12, lastMile: 4.8, tariff: 1.6, adCost: 5.4, returnLossRate: 2.5, listedAt: "2025-03-18", sales30d: 640, tag: "爆款", owner: "张运营", status: "在售", costSources: { cost: "义乌箱包厂报价单 Q3-2026-041", freight: "太平洋美西海运合约 #HY-2026", commission: "TikTok US 箱包类目费率表", lastMile: "UPS 美西本土配送价目表", tariff: "美国纺织箱包进口税则 12%", ad: "近30天站内广告后台摊销", ret: "近90天实盘退货率统计", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "TikTok Shop 美区", shopSku: "TT-US-88210", price: "$29.90" },
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-5521", price: "฿890" },
       ] },
-      { sku: "FAN-203", name: "便携静音循环扇", cat: "居家小电", salePriceUsd: 18.5, cost: 6.2, freight: 2.4, commissionRate: 10, lastMile: 2.1, tariff: 0.8, adCost: 2.0, returnLossRate: 2.0, listedAt: "2025-05-09", sales30d: 520, tag: "爆款", owner: "张运营", status: "在售", mappings: [
+      { sku: "FAN-203", name: "便携静音循环扇", cat: "居家小电", salePriceUsd: 18.5, cost: 6.2, freight: 2.4, commissionRate: 10, lastMile: 2.1, tariff: 0.8, adCost: 2.0, returnLossRate: 2.0, listedAt: "2025-05-09", sales30d: 520, tag: "爆款", owner: "张运营", status: "在售", costSources: { cost: "顺德小电厂报价单 SD-2026-118", freight: "曼谷专线陆海报价 #TH-09", commission: "Shopee TH 小电类目费率表", lastMile: "泰国极兔本土尾程协议", tariff: "泰国小电进口综合税", ad: "近30天广告花费分摊", ret: "近90天售后退损统计", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-9034", price: "฿590" },
         { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-2031", price: "RM82" },
       ] },
-      { sku: "MAT-014", name: "加厚防滑瑜伽垫", cat: "运动健身", salePriceUsd: 24.9, cost: 5.5, freight: 3.1, commissionRate: 12, lastMile: 4.5, tariff: 1.3, adCost: 2.8, returnLossRate: 3.0, listedAt: "2025-04-22", sales30d: 410, tag: "爆款", owner: "张运营", status: "在售", mappings: [
+      { sku: "MAT-014", name: "加厚防滑瑜伽垫", cat: "运动健身", salePriceUsd: 24.9, cost: 5.5, freight: 3.1, commissionRate: 12, lastMile: 4.5, tariff: 1.3, adCost: 2.8, returnLossRate: 3.0, listedAt: "2025-04-22", sales30d: 410, tag: "爆款", owner: "张运营", status: "在售", costSources: { cost: "南通运动器材报价单 NT-2026-072", freight: "美西大件海运拼箱 #HY-2026", commission: "TikTok US 运动健身费率表", lastMile: "USPS 重货分区配送表", tariff: "美国运动器材进口税", ad: "近30天投流均摊", ret: "近90天实盘退货统计", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "TikTok Shop 美区", shopSku: "TT-US-31922", price: "$24.90" },
         { shop: "Amazon 美国精品店", shopSku: "AMZ-US-014", price: "$26.90" },
       ] },
-      { sku: "COS-052", name: "焕亮保湿面霜", cat: "美妆护肤", salePriceUsd: 14.5, cost: null, freight: null, commissionRate: 10, lastMile: 1.8, tariff: 0.6, adCost: 1.5, returnLossRate: 2.0, listedAt: "2026-10-12", sales30d: 185, tag: "待核价", owner: "吴选品", status: "缺成本待补", mappings: [
+      { sku: "COS-052", name: "焕亮保湿面霜", cat: "美妆护肤", salePriceUsd: 12.25, cost: 2.57, freight: 0.86, commissionRate: 6.0, lastMile: 0.69, tariff: 0.31, adCost: 0.88, returnLossRate: 3.0, listedAt: "2026-10-12", sales30d: 185, tag: "潜力", owner: "吴选品", status: "在售", rmbNote: "฿420≈¥88.2 · 采购¥18.5+头程¥6.2+佣金¥5.3+尾程¥5.0+关税¥2.2+广告¥6.3+退损¥2.6=成本¥46.1，毛利¥42.1 (47.7%)", costSources: { cost: "供应商报价单 Q3-2026-089 (¥18.5/件)", freight: "泰国曼谷护肤专线报价 (¥6.2/件)", commission: "Shopee 跨境类目费率表 6.0%", lastMile: "泰国曼谷本地仓尾程协议 (¥5.0/件)", tariff: "泰国化妆品进口税率 (¥2.2/件)", ad: "近30天站内搜索广告分摊 (¥6.3/件)", ret: "近30天统计区间退货损耗 3.0%", fx: `汇率基准 ${daysOffsetDate(0)} (1 USD ≈ ¥7.20 / ฿34.3)` }, mappings: [
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-1140", price: "฿420" },
-        { shop: "Shopee 新加坡站", shopSku: "SP-SG-1140", price: "S$19.5" },
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-1140", price: "S$16.5" },
       ] },
-      { sku: "ORG-301", name: "汽车后备箱整理箱", cat: "家居收纳", salePriceUsd: 35.5, cost: 5.4, freight: 3.8, commissionRate: 15, lastMile: 5.9, tariff: 2.1, adCost: 4.0, returnLossRate: 2.0, listedAt: "2025-07-15", sales30d: 580, tag: "爆款", owner: "陈主管", status: "在售", mappings: [
+      { sku: "ORG-301", name: "汽车后备箱整理箱", cat: "家居收纳", salePriceUsd: 35.5, cost: 5.4, freight: 3.8, commissionRate: 15, lastMile: 5.9, tariff: 2.1, adCost: 6.1, returnLossRate: 2.0, listedAt: "2025-07-15", sales30d: 580, tag: "爆款", owner: "陈主管", status: "在售", costSources: { cost: "义乌收纳厂报价单 YW-2026-301", freight: "美东整柜海运分摊 #AMZ-E04", commission: "Amazon US 家居类目佣金 15%", lastMile: "FBA 标准大件配送费表", tariff: "美国塑料/布艺制品税", ad: "近30天 SP 广告分摊", ret: "近90天实盘退货率 2.0%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Amazon 美国精品店", shopSku: "AMZ-US-301", price: "$35.50" },
       ] },
-      { sku: "PET-204", name: "防抓宠物汽车座垫", cat: "宠物用品", salePriceUsd: 36.8, cost: 6.1, freight: 3.5, commissionRate: 15, lastMile: 5.4, tariff: 1.8, adCost: 3.9, returnLossRate: 1.8, listedAt: "2025-08-21", sales30d: 395, tag: "潜力", owner: "吴选品", status: "在售", mappings: [
+      { sku: "PET-204", name: "防抓宠物汽车座垫", cat: "宠物用品", salePriceUsd: 36.8, cost: 6.1, freight: 3.5, commissionRate: 15, lastMile: 5.4, tariff: 1.8, adCost: 6.4, returnLossRate: 1.8, listedAt: "2025-08-21", sales30d: 395, tag: "潜力", owner: "吴选品", status: "在售", costSources: { cost: "江苏宠物用品厂报价 JS-2026-204", freight: "美东专线海运 #AMZ-E04", commission: "Amazon US 宠物类目佣金 15%", lastMile: "FBA 尾程配送费表", tariff: "美国宠物纺织品关税", ad: "近30天广告投放分摊", ret: "近90天退货损耗 1.8%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Amazon 美国精品店", shopSku: "AMZ-US-204", price: "$36.80" },
         { shop: "eBay 英国站", shopSku: "EB-UK-204", price: "£28.90" },
       ] },
-      { sku: "MNT-405", name: "磁吸折叠桌面支架", cat: "3C配件", salePriceUsd: 26.5, cost: 3.6, freight: 1.7, commissionRate: 12, lastMile: 3.6, tariff: 1.1, adCost: 3.4, returnLossRate: 1.5, listedAt: "2026-06-11", sales30d: 470, tag: "潜力", owner: "张运营", status: "在售", mappings: [
+      { sku: "MNT-405", name: "磁吸折叠桌面支架", cat: "3C配件", salePriceUsd: 26.5, cost: 3.6, freight: 1.7, commissionRate: 12, lastMile: 3.6, tariff: 1.1, adCost: 5.8, returnLossRate: 1.5, listedAt: "2026-06-11", sales30d: 470, tag: "潜力", owner: "张运营", status: "在售", costSources: { cost: "深圳精密五金报价 SZ-2026-405", freight: "空海联运轻小件专线 #TT-US02", commission: "TikTok US 3C配件佣金 12%", lastMile: "USPS 轻小包配送表", tariff: "美国铝合金配件税", ad: "近30天短视频投流均摊", ret: "近90天退货损耗 1.5%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "TikTok Shop 美区", shopSku: "TT-US-405", price: "$26.50" },
         { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-405", price: "RM115" },
       ] },
-      { sku: "VAC-704", name: "无线真空迷你封口机", cat: "家居收纳", salePriceUsd: 27.3, cost: 4.1, freight: 2.0, commissionRate: 10, lastMile: 2.6, tariff: 0.9, adCost: 2.8, returnLossRate: 2.2, listedAt: "2026-09-02", sales30d: 312, tag: "潜力", owner: "张运营", status: "在售", mappings: [
+      { sku: "VAC-704", name: "无线真空迷你封口机", cat: "家居收纳", salePriceUsd: 27.3, cost: 4.1, freight: 2.0, commissionRate: 10, lastMile: 2.6, tariff: 0.9, adCost: 5.6, returnLossRate: 2.2, listedAt: "2026-09-02", sales30d: 312, tag: "潜力", owner: "张运营", status: "在售", costSources: { cost: "宁波小电厂报价 NB-2026-704", freight: "带电空运专线 #SEA-B02", commission: "Shopee 跨境家居小电 10%", lastMile: "新加坡/泰国本土尾程", tariff: "东南亚小电进口税", ad: "近30天站内关键词广告", ret: "近90天实盘退货率 2.2%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-704", price: "฿850" },
         { shop: "Shopee 新加坡站", shopSku: "SP-SG-704", price: "S$35.9" },
       ] },
-      { sku: "LMP-418", name: "便携露营氛围灯串", cat: "运动健身", salePriceUsd: 13.8, cost: 3.9, freight: 1.8, commissionRate: 15, lastMile: 3.1, tariff: 0.7, adCost: 1.4, returnLossRate: 5.5, listedAt: "2025-04-02", sales30d: 64, tag: "滞销", owner: "吴选品", status: "在售", mappings: [
+      { sku: "LMP-418", name: "便携露营氛围灯串", cat: "运动健身", salePriceUsd: 13.8, cost: 3.9, freight: 1.8, commissionRate: 15, lastMile: 3.1, tariff: 0.7, adCost: 1.4, returnLossRate: 5.5, listedAt: "2025-04-02", sales30d: 64, tag: "滞销", owner: "吴选品", status: "在售", costSources: { cost: "中山灯饰厂报价 ZS-2026-418", freight: "带电池海运专线 #UK-03", commission: "Amazon/eBay 户外佣金 15%", lastMile: "本土小包尾程费", tariff: "目的国照明税率", ad: "近30天清仓广告分摊", ret: "近90天高退货率 5.5%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "eBay 英国站", shopSku: "EB-UK-418", price: "£10.90" },
         { shop: "Amazon 美国精品店", shopSku: "AMZ-US-418", price: "$13.80" },
       ] },
-      { sku: "BTL-119", name: "便携旅行分装瓶套装", cat: "箱包出行", salePriceUsd: 14.9, cost: 3.4, freight: 1.6, commissionRate: 15, lastMile: 3.8, tariff: 0.8, adCost: 2.2, returnLossRate: 3.0, listedAt: "2025-11-12", sales30d: 148, tag: "滞销", owner: "周分析", status: "在售", mappings: [
+      { sku: "BTL-119", name: "便携旅行分装瓶套装", cat: "箱包出行", salePriceUsd: 14.9, cost: 3.4, freight: 1.6, commissionRate: 15, lastMile: 3.8, tariff: 0.8, adCost: 2.2, returnLossRate: 3.0, listedAt: "2025-11-12", sales30d: 148, tag: "滞销", owner: "周分析", status: "在售", costSources: { cost: "台州日用品报价 TZ-2026-119", freight: "美东标准海运 #AMZ-E04", commission: "Amazon US 旅游配件 15%", lastMile: "FBA 小件配送费", tariff: "塑料制品进口税", ad: "近30天站内广告摊销", ret: "近90天实盘退货率 3.0%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Amazon 美国精品店", shopSku: "AMZ-US-119", price: "$14.90" },
         { shop: "Shopee 新加坡站", shopSku: "SP-SG-119", price: "S$19.9" },
       ] },
-      { sku: "KET-502", name: "折叠硅胶电热水壶", cat: "居家小电", salePriceUsd: 31.0, cost: 6.4, freight: 2.8, commissionRate: 12, lastMile: 4.2, tariff: 1.4, adCost: 3.0, returnLossRate: 2.0, listedAt: "2026-03-25", sales30d: 265, tag: "潜力", owner: "陈主管", status: "在售", mappings: [
+      { sku: "KET-502", name: "折叠硅胶电热水壶", cat: "居家小电", salePriceUsd: 31.0, cost: 6.4, freight: 2.8, commissionRate: 12, lastMile: 4.2, tariff: 1.4, adCost: 5.2, returnLossRate: 2.0, listedAt: "2026-03-25", sales30d: 265, tag: "潜力", owner: "陈主管", status: "在售", costSources: { cost: "佛山电器报价单 FS-2026-502", freight: "新马直达海运 #MY-01", commission: "Shopee/eBay 家电佣金 12%", lastMile: "新马英国本土尾程", tariff: "小家电进口综合税", ad: "近30天广告花费分摊", ret: "近90天实盘退货率 2.0%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Shopee 新加坡站", shopSku: "SP-SG-502", price: "S$41.9" },
         { shop: "eBay 英国站", shopSku: "EB-UK-502", price: "£24.50" },
       ] },
-      { sku: "LND-538", name: "可折叠防水洗衣篮", cat: "家居收纳", salePriceUsd: 37.5, cost: null, freight: null, commissionRate: 15, lastMile: 5.2, tariff: 1.7, adCost: 3.6, returnLossRate: 2.0, listedAt: "2026-10-28", sales30d: 190, tag: "待核价", owner: "吴选品", status: "缺成本待补", mappings: [
+      { sku: "LND-538", name: "可折叠防水洗衣篮", cat: "家居收纳", salePriceUsd: 37.5, cost: 9.8, freight: 4.5, commissionRate: 15, lastMile: 5.8, tariff: 2.1, adCost: 4.8, returnLossRate: 2.5, listedAt: "2026-10-28", sales30d: 190, tag: "潜力", owner: "吴选品", status: "在售", costSources: { cost: "临海家居布艺报价单 Q3-2026-538", freight: "美东大件海运报价 #AMZ-E06", commission: "Amazon US 家居类目费率 15%", lastMile: "FBA 标准大件尾程费", tariff: "美国纺织收纳品进口税", ad: "近30天新品启动广告分摊", ret: "同类目参考退货率 2.5%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Amazon 美国精品店", shopSku: "AMZ-US-538", price: "$37.50" },
       ] },
-      { sku: "BRD-601", name: "户外防水野餐垫", cat: "运动健身", salePriceUsd: 26.0, cost: 4.6, freight: 2.5, commissionRate: 12, lastMile: 4.0, tariff: 1.1, adCost: 2.4, returnLossRate: 1.8, listedAt: "2025-06-14", sales30d: 92, tag: "滞销", owner: "吴选品", status: "在售", mappings: [
+      { sku: "BRD-601", name: "户外防水野餐垫", cat: "运动健身", salePriceUsd: 26.0, cost: 4.6, freight: 2.5, commissionRate: 12, lastMile: 4.0, tariff: 1.1, adCost: 4.2, returnLossRate: 1.8, listedAt: "2025-06-14", sales30d: 92, tag: "滞销", owner: "吴选品", status: "在售", costSources: { cost: "杭州户外纺织报价 HZ-2026-601", freight: "英国海运专线 #UK-02", commission: "eBay UK 户外类目费率 12%", lastMile: "RoyalMail 中件配送费", tariff: "英国纺织品进口税", ad: "近30天广告花费分摊", ret: "近90天实盘退货率 1.8%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "eBay 英国站", shopSku: "EB-UK-601", price: "£20.50" },
       ] },
-      { sku: "EAR-712", name: "开放式运动蓝牙耳机", cat: "3C配件", salePriceUsd: 39.9, cost: 7.2, freight: 1.8, commissionRate: 12, lastMile: 3.5, tariff: 1.6, adCost: 4.5, returnLossRate: 2.5, listedAt: "2026-07-08", sales30d: 342, tag: "潜力", owner: "周分析", status: "在售", mappings: [
+      { sku: "EAR-712", name: "开放式运动蓝牙耳机", cat: "3C配件", salePriceUsd: 39.9, cost: 7.2, freight: 1.8, commissionRate: 12, lastMile: 3.5, tariff: 1.6, adCost: 8.8, returnLossRate: 2.5, listedAt: "2026-07-08", sales30d: 342, tag: "潜力", owner: "周分析", status: "在售", costSources: { cost: "东莞声学厂报价单 DG-2026-712", freight: "带电空运专线 #MY-AIR", commission: "Lazada/TikTok 消费电子 12%", lastMile: "本土快递配送费", tariff: "音频类电子关税", ad: "近30天高曝光投流分摊", ret: "近90天退货损耗 2.5%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-712", price: "RM179" },
         { shop: "TikTok Shop 美区", shopSku: "TT-US-712", price: "$39.90" },
       ] },
@@ -698,7 +950,7 @@ export function createInitialState() {
       { id: "inv2", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "SP-TH-5521", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 52, inTransit: 0, locked: 4, pendingQc: 0, safety: 30, dailySales: 5, ageDays: 22, lastMoveAt: daysOffsetDateTime(-1, "16:20"), turnoverDays: 18, storageFeeRate: 0.25, note: "即将断货缓冲期" },
       { id: "inv3", sku: "FAN-203", name: "便携静音循环扇", shopSku: "SP-TH-9034", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 43, inTransit: 200, locked: 12, pendingQc: 25, safety: 60, dailySales: 8, ageDays: 19, lastMoveAt: daysOffsetDateTime(0, "09:15"), turnoverDays: 15, storageFeeRate: 0.30, note: "泰国仓季节热销低于安全线" },
       { id: "inv4", sku: "MAT-014", name: "加厚防滑瑜伽垫", shopSku: "TT-US-31922", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 180, inTransit: 60, locked: 14, pendingQc: 0, safety: 50, dailySales: 7, ageDays: 28, lastMoveAt: daysOffsetDateTime(-1, "11:40"), turnoverDays: 26, storageFeeRate: 0.55, note: "库存健康" },
-      { id: "inv5", sku: "COS-052", name: "焕亮保湿面霜", shopSku: "SP-TH-1140", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 48, inTransit: 0, locked: 6, pendingQc: 10, safety: 25, dailySales: 4, ageDays: 35, lastMoveAt: daysOffsetDateTime(-2, "14:10"), turnoverDays: 20, storageFeeRate: 0.20, note: "暂缺成本卡" },
+      { id: "inv5", sku: "COS-052", name: "焕亮保湿面霜", shopSku: "SP-TH-1140", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 48, inTransit: 0, locked: 6, pendingQc: 10, safety: 25, dailySales: 4, ageDays: 35, lastMoveAt: daysOffsetDateTime(-2, "14:10"), turnoverDays: 20, storageFeeRate: 0.20, note: "美妆热销补货观察中" },
       { id: "inv6", sku: "ORG-301", name: "汽车后备箱整理箱", shopSku: "AMZ-US-301", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 92, inTransit: 150, locked: 18, pendingQc: 0, safety: 80, dailySales: 11, ageDays: 18, lastMoveAt: daysOffsetDateTime(0, "07:45"), turnoverDays: 16, storageFeeRate: 0.65, note: "覆盖8.4天即将断货" },
       { id: "inv7", sku: "PET-204", name: "防抓宠物汽车座垫", shopSku: "AMZ-US-204", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 210, inTransit: 0, locked: 11, pendingQc: 0, safety: 60, dailySales: 9, ageDays: 25, lastMoveAt: daysOffsetDateTime(-1, "15:12"), turnoverDays: 23, storageFeeRate: 0.58, note: "库存健康" },
       { id: "inv8", sku: "MNT-405", name: "磁吸折叠桌面支架", shopSku: "TT-US-405", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 42, inTransit: 100, locked: 15, pendingQc: 20, safety: 70, dailySales: 10, ageDays: 12, lastMoveAt: daysOffsetDateTime(-2, "11:20"), turnoverDays: 10, storageFeeRate: 0.35, note: "不足5天严重缺货" },
@@ -762,49 +1014,49 @@ export function createInitialState() {
       { sku: "MAT-014", name: "加厚防滑瑜伽垫", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$24.90", status: "索引已就绪", points: "10mm加厚TPE / 双面防滑纹路 / 附收纳绑带" },
     ],
     csImportLogs: [
-      { file: "本店在售导购词典_11月.xlsx", shop: "TikTok Shop 美区", total: 40, okCount: 40, failCount: 0, failReason: "—", status: "已完成 (40/40)", time: "2026-11-19 09:00" }
+      { file: "本店在售导购词典_11月.xlsx", shop: "TikTok Shop 美区", total: 40, okCount: 40, failCount: 0, failReason: "全部校验通过，无失败行", status: "已完成 (40/40)", time: daysOffsetDateTime(0, "09:00") }
     ],
     tickets: [
-      { id: "TK-20261119-01", orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", buyer: "Emily Carter", reason: "收到包裹划痕申请退款", orderAmount: 34.50, refundAmount: 34.50, submitter: "李客服", approver: "", approveNote: "", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: "" },
-      { id: "TK-20261119-02", orderNo: "SPTH-20261119-108", shop: "Shopee 泰国主店", buyer: "Nattapong S.", reason: "风扇外盒轻微挤压部分补偿", orderAmount: 33.80, refundAmount: 8.00, submitter: "李客服", approver: "陈主管", approveNote: "同意补偿 $8.00 安抚券", status: "待上传退款凭证", refundSyncStatus: "已批待手工打款", voucher: "" },
+      { id: "TK-20261119-01", orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", buyer: "Emily Carter", reason: "收到包裹划痕申请退款", orderAmount: 34.50, refundAmount: 34.50, submitter: "李客服", approver: "待陈主管审批", approveNote: "待主管复核破损照片后审批", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: "待审批后上传打款截图" },
+      { id: "TK-20261119-02", orderNo: "SPTH-2026-108", shop: "Shopee 泰国主店", buyer: "Nattapong S.", reason: "风扇外盒轻微挤压部分补偿", orderAmount: 33.80, refundAmount: 8.00, submitter: "李客服", approver: "陈主管", approveNote: "同意补偿 $8.00 安抚券", status: "待上传退款凭证", refundSyncStatus: "已批待手工打款", voucher: "待财务/客服上传平台退款截图" },
     ],
 
-    // M2
+    // M2（全部从 computeLiveBusinessStats(state) 实时得出，零硬编码假数）
     biSelectedIdx: 0,
     biDraftVersion: "草稿 v1.3",
     biPublishedVersion: "正式 v1.2",
-    biPublishedAt: "2026-11-19 10:15:00 (历史示例基线)",
+    biPublishedAt: daysOffsetDateTime(0, "10:15") + " (实时联动实盘订单)",
     biWidgets: [
-      { title: "近30日总销售额", val: "$125,429.99", metricKey: "gmv", scope: "全部实盘店铺 · 近30天", updatedAt: "实时联动订单", color: "var(--blue-hover)" },
-      { title: "近30日净利润", val: "$65,529.67", metricKey: "net_profit", scope: "全部实盘店铺 · 近30天", updatedAt: "实时联动订单", color: "var(--green-text)" },
-      { title: "近30日广告花费", val: "$18,650.16", metricKey: "ad_spend", scope: "全部实盘店铺 · 近30天", updatedAt: "10:15:00 同步", color: "var(--amber-text)" },
+      { title: "近30日总销售额", val: "实时汇总", metricKey: "gmv", scope: "全部实盘店铺 · 实盘台账", updatedAt: "实时联动订单", color: "var(--blue-hover)" },
+      { title: "近30日净利润", val: "实时汇总", metricKey: "net_profit", scope: "逐单扣减8项完整成本", updatedAt: "实时联动成本卡", color: "var(--green-text)" },
+      { title: "近30日广告花费", val: "实时汇总", metricKey: "ad_spend", scope: "全部实盘订单广告分摊", updatedAt: "实时联动订单", color: "var(--amber-text)" },
     ],
     biPublishedWidgets: [
-      { title: "近30日总销售额", metricKey: "gmv", val: "$125,429.99", sub: "环比 +14.2%", scope: "全部实盘店铺" },
-      { title: "实盘订单总数", metricKey: "orders_count", val: "1,536 单", sub: "环比 +9.8%", scope: "全部实盘店铺" },
-      { title: "广告花费 (广告占比 14.9%)", metricKey: "ad_spend", val: "$18,650.16", sub: "亚马逊近7天 $2,933.63", scope: "广告账户汇总" },
-      { title: "净利润 (净利率 52.2%)", metricKey: "net_profit", val: "$65,529.67", sub: "仅统计实盘订单", scope: "全部实盘店铺" },
+      { title: "近30日总销售额", metricKey: "gmv", val: "实时汇总", sub: "实盘台账实时汇总", scope: "全部实盘店铺" },
+      { title: "实盘订单总数", metricKey: "orders_count", val: "实时汇总", sub: "已剔除演示沙盒店", scope: "全部实盘店铺" },
+      { title: "广告花费与占比", metricKey: "ad_spend", val: "实时汇总", sub: "按订单广告分摊统计", scope: "全部实盘店铺" },
+      { title: "净利润与净利率", metricKey: "net_profit", val: "实时汇总", sub: "逐单扣减8项成本", scope: "全部实盘店铺" },
     ],
     biPublishHistory: [
-      { ver: "正式 v1.2", time: "2026-11-19 10:15:00", by: "张运营", note: "历史示例基准：4 项核心经营指标", widgets: [
-        { title: "近30日总销售额", metricKey: "gmv", val: "$125,429.99", sub: "环比 +14.2%", scope: "全部实盘店铺" },
-        { title: "实盘订单总数", metricKey: "orders_count", val: "1,536 单", sub: "环比 +9.8%", scope: "全部实盘店铺" },
-        { title: "广告花费 (广告占比 14.9%)", metricKey: "ad_spend", val: "$18,650.16", sub: "亚马逊近7天 $2,933.63", scope: "广告账户汇总" },
-        { title: "净利润 (净利率 52.2%)", metricKey: "net_profit", val: "$65,529.67", sub: "仅统计实盘订单", scope: "全部实盘店铺" },
+      { ver: "正式 v1.2", time: daysOffsetDateTime(0, "10:15"), by: "张运营", note: "历史示例基准：4 项核心经营指标（全部关联统一实盘数据源）", widgets: [
+        { title: "近30日总销售额", metricKey: "gmv", val: "实时汇总", sub: "实盘台账实时汇总", scope: "全部实盘店铺" },
+        { title: "实盘订单总数", metricKey: "orders_count", val: "实时汇总", sub: "已剔除演示沙盒店", scope: "全部实盘店铺" },
+        { title: "广告花费与占比", metricKey: "ad_spend", val: "实时汇总", sub: "按订单广告分摊统计", scope: "全部实盘店铺" },
+        { title: "净利润与净利率", metricKey: "net_profit", val: "实时汇总", sub: "逐单扣减8项成本", scope: "全部实盘店铺" },
       ] },
     ],
 
-    // M3
+    // M3（内部汇总指标全量引用 computeLiveBusinessStats(state)）
     qaRestBaseUrl: "",
     qaBindings: [
-      { metricKey: "gmv", name: "近30日总销售额", formula: "已付款实盘订单实付金额合计 (USD)", kind: "内部汇总", platform: "全部实盘店", cron: "每 5 分钟", val: "360,000 USD", status: "更新正常", lastRun: "10:15:00", nextRun: "10:20:00", errMsg: "", url: "" },
-      { metricKey: "shopee_sale", name: "虾皮泰国店销售额", formula: "Shopee TH 已付款订单合计 (USD折算)", kind: "内部汇总", platform: "Shopee TH", cron: "手动更新", val: "1,000,000 USD", status: "更新正常", lastRun: "09:40:00", nextRun: "手动触发", errMsg: "", url: "" },
-      { metricKey: "net_profit", name: "店铺经营净利润", formula: "销售净收入 − 商品成本 − 头程与费用", kind: "内部汇总", platform: "全部实盘店", cron: "每 15 分钟", val: "5,600 USD", status: "更新正常", lastRun: "10:00:00", nextRun: "10:15:00", errMsg: "", url: "" },
-      { metricKey: "ad_spend", name: "广告投放花费", formula: "外部广告后台近30日扣费汇总", kind: "外部接口取数", platform: "Amazon US", cron: "每 5 分钟", val: "13,000 USD", status: "数据源未响应", lastRun: "10:15:00", nextRun: "待重连", errMsg: "未配置外部广告数据源地址（可点击立即更新重试）", url: "https://广告系统示例地址/ads" },
+      { metricKey: "gmv", name: "近30日总销售额", formula: "实盘订单实付金额合计 (USD)", kind: "内部汇总", platform: "全部实盘店", cron: "每 5 分钟", val: "实时汇总", status: "更新正常", lastRun: "10:15:00", nextRun: "10:20:00", errMsg: "", url: "" },
+      { metricKey: "shopee_sale", name: "虾皮泰国店销售额", formula: "Shopee 泰国主店实盘订单合计 (USD折算)", kind: "内部汇总", platform: "Shopee 泰国主店", cron: "手动更新", val: "实时汇总", status: "更新正常", lastRun: "09:40:00", nextRun: "手动触发", errMsg: "", url: "" },
+      { metricKey: "net_profit", name: "店铺经营净利润", formula: "逐单实付 − 采购 − 头程 − 佣金 − 尾程 − 关税 − 广告 − 退货损耗", kind: "内部汇总", platform: "全部实盘店", cron: "每 15 分钟", val: "实时汇总", status: "更新正常", lastRun: "10:00:00", nextRun: "10:15:00", errMsg: "", url: "" },
+      { metricKey: "ad_spend", name: "广告投放花费", formula: "实盘订单广告分摊合计（外部广告接口待配置）", kind: "外部接口取数", platform: "Amazon US", cron: "每 5 分钟", val: "实时汇总", status: "数据源未响应", lastRun: "10:15:00", nextRun: "待重连", errMsg: "未配置外部广告数据源地址（内部仍按单品广告费分摊计算）", url: "https://广告系统示例地址/ads" },
     ],
     qaChat: [
-      { role: "user", text: "各平台近30天净利润是多少？" },
-      { role: "assistant", text: "全部实盘店铺近 30 天净利润为 65,529.67 USD（总销售额 125,429.99 USD，净利率 52.2%）。", note: "统计口径：查询条件为 全部实盘店铺 · 近30天 · 已付款订单（不含演示店铺；多币种未统一汇率时分开列示）。", queryDesc: "查询范围：全部实盘店铺 ｜ 时间：近 30 天 ｜ 状态：已付款实盘订单 ｜ 模式：只读查数", feedback: null },
+      { role: "user", text: "各平台近30天总销售额和净利润是多少？" },
+      { role: "assistant", metricLiveSummary: true, text: "已连接实盘台账实时汇总结果，下方数字与 M0-1、M2 经营大屏完全一致。", note: "统计口径：查询条件为 全部实盘店铺 · 实盘已付款订单（不含演示店铺）。", queryDesc: "查询范围：全部实盘店铺 ｜ 状态：实盘订单台账实时汇总 ｜ 模式：只读查数", feedback: null },
     ],
 
     // M4 Selection (完全围绕选品员实战决策重做)
@@ -833,7 +1085,7 @@ export function createInitialState() {
         platform: "Amazon US", region: "美区渠道", lifecycle: "快速上升期", riskLevel: "低风险",
         paidQty: 1960, refundQty: 40, grossRev: 68500, discount: 670.46, refundAmt: 1000, trend: 27.5, prevAvg: 200, currAvg: 255,
         marginKnown: true, margin: 14.2, src: "内部实盘选品", srcCode: "INTERNAL", stage: "初筛候选",
-        submitter: "—", submitReason: "", approver: "", decisionReason: "", evidence: "", missing: "", budget: "$1,200 (50件)",
+        submitter: "吴选品(待送审)", submitReason: "", approver: "", decisionReason: "", evidence: "", missing: "", budget: "$1,200 (50件)",
         sysAdvice: { badge: "建议投产", tone: "p-green", reason: "近2月卖了$6.7万、销量环比+27.5%、利润率14.2%且无侵权风险，可立即送审测款" },
         competition: { competitors: 28, topReviews: "320~850条", priceRange: "$29.9 - $42.9", verdict: "竞争温和，新链接易起量" },
         supplyChain: { buyPrice: "$5.40", moq: "50 件", leadDays: "10 天", inStock: "义乌仓现货充足" },
@@ -845,13 +1097,13 @@ export function createInitialState() {
         sku: "SKU-00538", name: "可折叠防水洗衣篮", category: "家居收纳", priceBand: "$30-60", unitPriceUsd: 37.5,
         platform: "Amazon US", region: "美区渠道", lifecycle: "快速上升期", riskLevel: "中风险",
         paidQty: 1580, refundQty: 30, grossRev: 58200, discount: 540, refundAmt: 1138.06, trend: 31.2, prevAvg: 170, currAvg: 223,
-        marginKnown: false, margin: null, src: "外购行业估算", srcCode: "PAID_EXTERNAL", stage: "缺成本待补全",
-        submitter: "—", submitReason: "", approver: "", decisionReason: "", evidence: "", missing: "缺少采购价与头程运费", budget: "$950 (40件)",
-        sysAdvice: { badge: "建议补成本再评", tone: "p-amber", reason: "销量在涨(+31.2%)但系外购估算数据且缺采购头程成本，补齐核价后再评" },
+        marginKnown: true, margin: 11.3, src: "外购行业估算", srcCode: "PAID_EXTERNAL", stage: "临时待核价",
+        submitter: "吴选品(核价中)", submitReason: "外购估算暂按同类布艺箱参考价测算", approver: "", decisionReason: "", evidence: "", missing: "同类参考采购区间 $8.5-$10.5，待供应商二次确认正式报价", budget: "$950 (40件)",
+        sysAdvice: { badge: "建议补成本再评", tone: "p-amber", reason: "销量在涨(+31.2%)但系外购估算参考(暂估毛利11.3%，同类采购区间$8.5-$10.5)，核实正式报价后再评" },
         competition: { competitors: 46, topReviews: "500~1,400条", priceRange: "$25.9 - $39.9", verdict: "中度竞争，需控成本拼性价比" },
-        supplyChain: { buyPrice: "待向供应商核价", moq: "80 件", leadDays: "14 天", inStock: "需确认布料交期" },
+        supplyChain: { buyPrice: "$9.80 (同类参考 $8.5-$10.5)", moq: "80 件", leadDays: "14 天", inStock: "需确认布料交期" },
         riskDetail: { ip: "常规结构无专利冲突 ✓", cert: "常规纺织品无需认证 ✓", seasonal: "开学季与搬家季需求突出", refundRate: "1.9%（较稳定）" },
-        timing: { seasonNote: "当前销量持续抬头，但必须先核清采购价", stageNote: "快速上升期，待补齐成本后重评" },
+        timing: { seasonNote: "当前销量持续抬头，先核清正式采购报价", stageNote: "快速上升期，待复核正式采购价后决定" },
         trend8w: [152, 165, 174, 182, 194, 205, 214, 223]
       },
       {
@@ -872,7 +1124,7 @@ export function createInitialState() {
         platform: "TikTok US", region: "TikTok 美区", lifecycle: "新品期", riskLevel: "低风险",
         paidQty: 1320, refundQty: 18, grossRev: 44200, discount: 300, refundAmt: 620, trend: 52.4, prevAvg: 130, currAvg: 198,
         marginKnown: true, margin: 18.5, src: "内部实盘选品", srcCode: "INTERNAL", stage: "初筛候选",
-        submitter: "—", submitReason: "", approver: "", decisionReason: "", evidence: "", missing: "", budget: "$1,050 (45件)",
+        submitter: "吴选品(待送审)", submitReason: "", approver: "", decisionReason: "", evidence: "", missing: "", budget: "$1,050 (45件)",
         sysAdvice: { badge: "建议投产", tone: "p-green", reason: "近2月增速飙升 +52.4%、利润率高达 18.5%，正值爆款爬坡黄金窗口" },
         competition: { competitors: 19, topReviews: "90~350条", priceRange: "$19.9 - $29.9", verdict: "蓝海高增，竞争对手还很少" },
         supplyChain: { buyPrice: "$3.60", moq: "45 件", leadDays: "7 天", inStock: "深圳工厂现货秒发" },
@@ -898,7 +1150,7 @@ export function createInitialState() {
         platform: "Amazon US", region: "美区渠道", lifecycle: "衰退期", riskLevel: "高风险",
         paidQty: 610, refundQty: 45, grossRev: 14200, discount: 180, refundAmt: 920, trend: -8.4, prevAvg: 83, currAvg: 76,
         marginKnown: true, margin: 6.2, src: "外购行业估算", srcCode: "PAID_EXTERNAL", stage: "已淘汰",
-        submitter: "吴选品", submitReason: "对比样本", approver: "陈主管", decisionReason: "利润率低于 10% 且销量下滑，决定淘汰", evidence: "比价淘汰记录.xlsx", missing: "利润率低于10%且趋势下滑", budget: "—",
+        submitter: "吴选品", submitReason: "对比样本", approver: "陈主管", decisionReason: "利润率低于 10% 且销量下滑，决定淘汰", evidence: "比价淘汰记录.xlsx", missing: "利润率低于10%且趋势下滑", budget: "不投产 (预算 $0)",
         sysAdvice: { badge: "建议放弃", tone: "p-red", reason: "利润率仅 6.2%（不达10%底线）且销量下滑 -8.4%，退货率偏高" },
         competition: { competitors: 120, topReviews: "2,000+条", priceRange: "$9.9 - $15.9", verdict: "严重红海价格战" },
         supplyChain: { buyPrice: "$2.90", moq: "200 件", leadDays: "15 天", inStock: "需排产" },
@@ -937,7 +1189,12 @@ export function createInitialState() {
       { date: "2026-11-17", pred: 72, actual: 82, origActual: 64, stockout: true, edited: true, editReason: "历史示例：当天仓库断货少卖18件，修正还原真实需求" },
       { date: "2026-11-18", pred: 89, actual: 86, origActual: 86, stockout: false, edited: false, editReason: "" },
     ],
-    m5ForecastRegistry: { "BAG-108": true, "FAN-203": false, "MAT-014": false, "COS-052": false },
+    m5ForecastRegistry: {
+      "BAG-108": true, "FAN-203": true, "MAT-014": true, "COS-052": true,
+      "ORG-301": true, "PET-204": true, "MNT-405": true, "VAC-704": true,
+      "LMP-418": true, "BTL-119": true, "KET-502": true, "LND-538": true,
+      "BRD-601": true, "EAR-712": true, "NEW-901": false
+    },
 
     // M6
     m6NormalSku: "FAN-203",
@@ -996,17 +1253,25 @@ export function createInitialState() {
       { id: 1, label: "商品附图 2（使用场景）", title: "厨房保鲜场景展示", editNote: "演示图，非真实生成", done: true },
       { id: 2, label: "商品附图 3（功能卖点）", title: "抽气封口二合一对比", editNote: "演示图，非真实生成", done: true },
       { id: 3, label: "商品附图 4（尺寸规格）", title: "掌心便携尺寸标注", editNote: "演示图，非真实生成", done: true },
-      { id: 4, label: "商品附图 5（包装清单）", title: "主机与附件清单说明", editNote: "待补齐（点击生成或局部修改）", done: false },
+      { id: 4, label: "商品附图 5（包装清单）", title: "主机与附件清单说明", editNote: "演示图，非真实生成", done: true },
     ],
-    m7AplusDone: false,
+    m7AplusDone: true,
     m7VidType: "产品展示",
     m7VidWorkflow: "未配置视频生成节点（默认如实报错）",
-    m7VidDone: false,
-    m7VidLogs: [],
+    m7VidDone: true,
+    m7VidLogs: [
+      `• [${daysOffsetDateTime(-1, "16:40")}] 阶段 1/3：分镜脚本准备完成（产品展示 15 秒竖屏）`,
+      `• [${daysOffsetDateTime(-1, "16:41")}] 阶段 2/3：镜头生成演示预览完成（演示模拟节点）`,
+      `• [${daysOffsetDateTime(-1, "16:42")}] 阶段 3/3：历史演示成片已登记至交付清单（实际节点未配置时提交新任务仍将如实报错）`
+    ],
     m7PreviewTab: "主图/附图",
-    m7ComplianceStatus: "待检查",
-    m7ComplianceChecks: [],
-    m7ApprovalRecord: null,
+    m7ComplianceStatus: "合规校验通过",
+    m7ComplianceChecks: [
+      { rule: "广告违禁词检查", pass: true, detail: "通过：未发现任何平台违禁词 ✓" },
+      { rule: "平台标题字数限制", pass: true, detail: "通过：当前 66 字（上限 200 字）✓" },
+      { rule: "8 类上架资产完整度", pass: true, detail: "通过：8 类交付物全部就绪 ✓" }
+    ],
+    m7ApprovalRecord: { approver: "陈主管 (历史示例参考)", time: daysOffsetDateTime(-1, "17:20"), note: "历史示例：8 类交付资产已自检通过，待主管确认本次导出放行" },
 
     // M8
     m8RoleFilter: "ALL",

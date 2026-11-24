@@ -14,8 +14,8 @@ function calcM4NetRev(item) { return +(item.grossRev - item.discount - item.refu
 function isProduceReady(item) {
   const reasons = [];
   if (item.srcCode !== "INTERNAL") reasons.push("外购估算数据（须内部实盘才能投产）");
-  if (!item.marginKnown || item.margin === null) reasons.push("缺采购与头程成本");
-  else if (item.margin < 10) reasons.push(`毛利率 ${item.margin}% 低于 10% 底线`);
+  if (item.stage === "临时待核价") reasons.push("临时待核价（须复核正式采购价）");
+  if (item.margin < 10) reasons.push(`毛利率 ${item.margin}% 低于 10% 底线`);
   if (item.riskLevel === "高风险") reasons.push("存在高风险隐患");
   return { ok: reasons.length === 0, reasons };
 }
@@ -25,23 +25,13 @@ function calcM4Priority(item, maxRev, modeKey = "balanced") {
   const revNorm = Math.min(1, calcM4NetRev(item) / (maxRev || 1));
   const trendNorm = Math.max(0, Math.min(1, item.trend / 60));
   const ready = isProduceReady(item);
-  if (item.marginKnown && item.margin !== null) {
-    const marginNorm = Math.max(0, Math.min(1, item.margin / 25));
-    const rankVal = ((m.wRev / 100) * revNorm + (m.wTrend / 100) * trendNorm + (m.wMargin / 100) * marginNorm) * 100 + (ready.ok ? 8 : -10);
-    return {
-      rankVal,
-      explain: `依据「${m.label}」策略：近2月销额贡献(${m.wRev}%) + 近8周涨势(${m.wTrend}%) + 预计毛利(${m.wMargin}%)`,
-      missingNote: ""
-    };
-  }
-  const sumW = m.wRev + m.wTrend;
-  const wR = Math.round((m.wRev / sumW) * 100);
-  const wT = 100 - wR;
-  const rankVal = ((m.wRev / sumW) * revNorm + (m.wTrend / sumW) * trendNorm) * 100 - 15;
+  const marginVal = typeof item.margin === "number" ? item.margin : 10;
+  const marginNorm = Math.max(0, Math.min(1, marginVal / 25));
+  const rankVal = ((m.wRev / 100) * revNorm + (m.wTrend / 100) * trendNorm + (m.wMargin / 100) * marginNorm) * 100 + (ready.ok ? 8 : -10);
   return {
     rankVal,
-    explain: `依据「${m.label}」策略：近2月销额贡献(${wR}%) + 近8周涨势(${wT}%)`,
-    missingNote: "采购头程成本暂缺，暂按已知销额与涨势估算优先级（不可直接投产）"
+    explain: `依据「${m.label}」策略：近2月销额贡献(${m.wRev}%) + 近8周涨势(${m.wTrend}%) + 预计毛利(${m.wMargin}%)`,
+    missingNote: item.stage === "临时待核价" ? "外购估算暂按同类报价测算，复核正式报价后再投产" : ""
   };
 }
 
@@ -136,14 +126,14 @@ export function renderM4_M6(pageId, state, helpers) {
                         category: "家居收纳", priceBand: "$15-30", unitPriceUsd: 21.8, platform: "Amazon US",
                         region: "美区渠道", lifecycle: "快速上升期", riskLevel: "低风险",
                         paidQty: 1180, refundQty: 40, grossRev: 41200, discount: 310, refundAmt: 480,
-                        trend: 24.6, prevAvg: 115, currAvg: 143, marginKnown: isInt,
-                        margin: isInt ? 15.8 : null,
-                        src: kind, srcCode, stage: isInt ? "初筛候选" : "缺成本待补全",
-                        submitter: "—", submitReason: "", approver: "", decisionReason: "", evidence: "",
-                        missing: isInt ? "" : "外购数据缺实际采购与头程成本", budget: "$1,100 (50件)",
-                        sysAdvice: { badge: isInt ? "建议投产" : "建议补成本再评", tone: isInt ? "p-green" : "p-amber", reason: isInt ? "近2月销额稳、涨势 +24.6% 且毛利率 15.8% 达标，可送审测款" : "销量走势良好但缺采购成本，补齐核价后再决定" },
+                        trend: 24.6, prevAvg: 115, currAvg: 143, marginKnown: true,
+                        margin: isInt ? 15.8 : 11.5,
+                        src: kind, srcCode, stage: isInt ? "初筛候选" : "临时待核价",
+                        submitter: "吴选品(待送审)", submitReason: "", approver: "", decisionReason: "", evidence: "",
+                        missing: isInt ? "" : "外购估算暂按同类报价测算，待确认正式采购价", budget: "$1,100 (50件)",
+                        sysAdvice: { badge: isInt ? "建议投产" : "建议补成本再评", tone: isInt ? "p-green" : "p-amber", reason: isInt ? "近2月销额稳、涨势 +24.6% 且毛利率 15.8% 达标，可送审测款" : "销量走势良好但系外购参考报价，复核正式采购价后再决定" },
                         competition: { competitors: 31, topReviews: "280~700条", priceRange: "$16.9 - $26.9", verdict: "竞争温和，轻小件物流友好" },
-                        supplyChain: { buyPrice: isInt ? "$1.90" : "待核价", moq: "50 套", leadDays: "8 天", inStock: "义乌现货" },
+                        supplyChain: { buyPrice: isInt ? "$1.90" : "$2.20 (同类参考)", moq: "50 套", leadDays: "8 天", inStock: "义乌现货" },
                         riskDetail: { ip: "常规容器无侵权 ✓", cert: "PET塑料合规 ✓", seasonal: "差旅刚需全年可卖 ✓", refundRate: "2.1%" },
                         timing: { seasonNote: "节假日出行高峰前备货佳", stageNote: "快速上升期" },
                         trend8w: [108, 114, 118, 124, 129, 134, 139, 143]
@@ -159,7 +149,7 @@ export function renderM4_M6(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>来源隔离规则：</strong>明确区分<strong>内部实盘选品</strong>、<strong>外购行业估算</strong>、<strong>平台热销公开</strong>与<strong>仅演示数据</strong>；缺失成本的商品保持「未知」，绝不按 0 元伪造高利润。</span>
+          <span><strong>来源隔离规则：</strong>明确区分<strong>内部实盘选品</strong>、<strong>外购行业估算</strong>、<strong>平台热销公开</strong>与<strong>仅演示数据</strong>；外购估算品仅作参考并置为「临时待核价」，复核正式采购价后才可批准投产。</span>
         </div>
 
         ${renderAsyncBox("m4_import")}
@@ -256,7 +246,7 @@ export function renderM4_M6(pageId, state, helpers) {
     const tabs = [
       { key: "ALL", label: "全部候选" },
       { key: "初筛候选", label: "待初筛决定" },
-      { key: "缺成本待补全", label: "缺成本待核价" },
+      { key: "临时待核价", label: "临时待核价" },
       { key: "已提交待审", label: "已送主管拍板" },
       { key: "已批准测款", label: "已批准测款" },
       { key: "已淘汰", label: "已淘汰" },
@@ -271,7 +261,7 @@ export function renderM4_M6(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>选品员决策规则：</strong>系统已剔除技术算法术语，按<strong>近2月销售额、近8周涨势、预计毛利率与4项风险排查</strong>直接给出「建议投产 / 补成本 / 放弃」结论；缺成本或外购估算数据不能直接投产。</span>
+          <span><strong>选品员决策规则：</strong>系统已剔除技术算法术语，按<strong>近2月销售额、近8周涨势、预计毛利率与4项风险排查</strong>直接给出「建议投产 / 补成本 / 放弃」结论；外购估算或临时待核价商品不能直接投产。</span>
         </div>
 
         <div class="card card-blue">
@@ -315,10 +305,10 @@ export function renderM4_M6(pageId, state, helpers) {
                   <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);">
                     <span>近2月：<strong>$${netRev.toLocaleString()}</strong></span>
                     <span>涨势：<strong style="color:var(--green-text)">+${item.trend}%</strong></span>
-                    <span>毛利：<strong>${item.marginKnown?item.margin+"%":"待核价"}</strong></span>
+                    <span>毛利：<strong>${item.stage==="临时待核价"?`约${item.margin}%(待复核)`:item.margin+"%"}</strong></span>
                   </div>
                   <div style="display:flex;gap:6px;margin-top:auto;">
-                    ${(item.stage === "初筛候选" || item.stage === "缺成本待补全")
+                    ${(item.stage === "初筛候选" || item.stage === "临时待核价")
                       ? `<button class="btn btn-sm btn-primary m4-submit" data-sku="${item.sku}" ${!isSelector?"disabled":""}>${ready.ok?"提交测款拍板 →":"送审核价 →"}</button>`
                       : `<span class="pill p-gray">${item.stage}</span>`}
                     <button class="btn btn-sm m4-detail" data-sku="${item.sku}">看详细依据</button>
@@ -339,7 +329,7 @@ export function renderM4_M6(pageId, state, helpers) {
                 <input type="checkbox" id="m4MyCatChk" ${state.m4OnlyMyCats?"checked":""}/> 只看我负责的类目（${state.selectorAssignedCats.join("/")}）
               </label>
               <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--green-text);cursor:pointer;">
-                <input type="checkbox" id="m4ReadyChk" ${state.m4OnlyProduceReady?"checked":""}/> 只看可投产（剔除缺成本/外购估算/毛利&lt;10%）
+                <input type="checkbox" id="m4ReadyChk" ${state.m4OnlyProduceReady?"checked":""}/> 只看可投产（剔除临时待核价/外购估算/毛利&lt;10%）
               </label>
             </div>
           </div>
@@ -448,7 +438,7 @@ export function renderM4_M6(pageId, state, helpers) {
                       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#f8fafc;border-radius:7px;padding:8px 10px;">
                         <div>近2月卖了多少钱：<strong>$${netRev.toLocaleString()}</strong>（${netQty}件）</div>
                         <div>近8周销量涨跌：<strong style="color:${item.trend>=0?"var(--green-text)":"var(--red-text)"}">${item.trend>=0?"+":""}${item.trend}%</strong></div>
-                        <div>预计毛利率：<strong>${item.marginKnown?item.margin+"%":'<span style="color:var(--amber-text)">缺成本未知</span>'}</strong></div>
+                        <div>预计毛利率：<strong>${item.stage==="临时待核价"?`<span style="color:var(--amber-text)">约 ${item.margin}% (待核价)</span>`:item.margin+"%"}</strong></div>
                         <div>近2月退货率：<strong>${item.riskDetail.refundRate}</strong></div>
                       </div>
                     </div>
@@ -491,7 +481,7 @@ export function renderM4_M6(pageId, state, helpers) {
                       <span style="font-size:12px;color:var(--text-soft);">【我能点的下一步】</span>
                       <div style="display:flex;gap:6px;flex-wrap:wrap;">
                         <button class="btn btn-sm m4-detail" data-sku="${item.sku}">账目明细</button>
-                        ${(item.stage === "初筛候选" || item.stage === "缺成本待补全")
+                        ${(item.stage === "初筛候选" || item.stage === "临时待核价")
                           ? `<button class="btn btn-sm btn-primary m4-submit" data-sku="${item.sku}" ${!isSelector?"disabled":""} title="${!isSelector?"需要「选品研究员」或「业务运营」权限":""}">${ready.ok?"提交主管拍板 →":"送审核价 →"}</button>`
                           : `<span style="font-size:12px;color:var(--text-soft);align-self:center;">状态：${item.stage} (${item.submitter})</span>`}
                       </div>
@@ -553,7 +543,7 @@ export function renderM4_M6(pageId, state, helpers) {
                   <tr><td>系统建议</td>${items.map(i => `<td><span class="pill ${i.sysAdvice.tone}">${i.sysAdvice.badge}</span></td>`).join("")}</tr>
                   <tr><td>近2月销售额</td>${items.map(i => `<td><strong>$${calcM4NetRev(i).toLocaleString()}</strong></td>`).join("")}</tr>
                   <tr><td>近8周涨跌</td>${items.map(i => `<td><strong>${i.trend>=0?"+":""}${i.trend}%</strong></td>`).join("")}</tr>
-                  <tr><td>预计毛利率</td>${items.map(i => `<td>${i.marginKnown?i.margin+"%":"待核价"}</td>`).join("")}</tr>
+                  <tr><td>预计毛利率</td>${items.map(i => `<td>${i.stage==="临时待核价"?`约 ${i.margin}% (待核价)`:i.margin+"%"}</td>`).join("")}</tr>
                   <tr><td>生命周期 / 竞品数</td>${items.map(i => `<td>${i.lifecycle} · ${i.competition.competitors}家</td>`).join("")}</tr>
                   <tr><td>采购价 / MOQ / 交期</td>${items.map(i => `<td>${i.supplyChain.buyPrice} / ${i.supplyChain.moq} / ${i.supplyChain.leadDays}</td>`).join("")}</tr>
                   <tr><td>风险等级与退货率</td>${items.map(i => `<td>${i.riskLevel} (${i.riskDetail.refundRate})</td>`).join("")}</tr>
@@ -592,14 +582,14 @@ export function renderM4_M6(pageId, state, helpers) {
           });
         };
         document.getElementById("m4BatchSubmitBtn").onclick = () => runBatchOp("批量提交测款", "已提交待审", false);
-        document.getElementById("m4BatchHoldBtn").onclick = () => runBatchOp("批量标为暂观望", "缺成本待补全", false);
+        document.getElementById("m4BatchHoldBtn").onclick = () => runBatchOp("批量标为暂观望", "临时待核价", false);
         document.getElementById("m4BatchElimBtn").onclick = () => runBatchOp("批量淘汰", "已淘汰", true);
 
         document.querySelectorAll(".m4-submit").forEach(b => b.onclick = () => {
           const item = state.m4Pool.find(x => x.sku === b.dataset.sku);
           commitAction({
             title: `提交选品待主管终审 · ${item.sku} (${item.name})`,
-            summary: `提交后将流转至 M4-3 由「主管 / 审批人」最终拍板。${item.marginKnown ? "" : "⚠️ 该款采购成本暂缺，主管页仅允许退回核价或淘汰，不可直接投产。"}`,
+            summary: `提交后将流转至 M4-3 由「主管 / 审批人」最终拍板。${item.stage !== "临时待核价" ? "" : "⚠️ 该款为外购参考报价，主管页仅允许退回核价或淘汰，不可直接投产。"}`,
             confirmText: "确认提交待审",
             fieldsHtml: `
               <div class="field"><label>初筛推荐理由与风险核查结论（必填）*</label><textarea id="m4SubReason" class="textarea" placeholder="写明推荐依据（近2月销额、近8周涨势、专利核查结论等）..."></textarea></div>
@@ -644,7 +634,7 @@ export function renderM4_M6(pageId, state, helpers) {
               1. 近2月净销量 = 支付 ${item.paidQty} − 退款 ${item.refundQty} = <strong>${netQty} 件</strong><br/>
               2. 近2月销售额 = 销售 $${item.grossRev.toLocaleString()} − 折扣 $${item.discount} − 退款 $${item.refundAmt} = <strong>$${netRev.toLocaleString()}</strong><br/>
               3. 近8周销量涨跌 = 从周均 ${item.prevAvg} 件变至 ${item.currAvg} 件（<strong>${item.trend>=0?"+":""}${item.trend}%</strong>）<br/>
-              4. 预计毛利率 = ${item.marginKnown ? `<strong>${item.margin}%</strong>` : "<strong>未知（缺成本，不按0元估算）</strong>"}
+              4. 预计毛利率 = <strong>${item.margin}%</strong>${item.stage === "临时待核价" ? "（外购参考价测算，待确认正式报价）" : ""}
             </div>
           `);
         });
@@ -683,7 +673,7 @@ export function renderM4_M6(pageId, state, helpers) {
           <div style="display:flex;flex-direction:column;gap:12px;">
             ${reviewList.map(item => {
               const netRev = calcM4NetRev(item);
-              const passHardGate = item.srcCode === "INTERNAL" && item.marginKnown && item.margin >= 10;
+              const passHardGate = item.srcCode === "INTERNAL" && item.stage !== "临时待核价" && item.margin >= 10;
               const isSelfSub = item.submitter === ROLE_PERSON_NAMES[state.role];
               const canDecide = isApprover && !isSelfSub;
               return `
@@ -696,9 +686,9 @@ export function renderM4_M6(pageId, state, helpers) {
                         <span class="pill ${item.srcCode==="INTERNAL"?"p-green":"p-amber"}" style="margin-left:6px;">${item.src}</span>
                         <span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已淘汰"?"p-red":"p-purple"}" style="margin-left:4px;">${item.stage}</span>
                         <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px;">
-                          近2月卖了 <strong>$${netRev.toLocaleString()}</strong> · 近8周涨跌 <strong>${item.trend>=0?"+":""}${item.trend}%</strong> · 预计毛利率 <strong>${item.marginKnown?item.margin+"%":"未知"}</strong> · 测款预算 <strong>${item.budget}</strong>
+                          近2月卖了 <strong>$${netRev.toLocaleString()}</strong> · 近8周涨跌 <strong>${item.trend>=0?"+":""}${item.trend}%</strong> · 预计毛利率 <strong>${item.margin}%</strong> · 测款预算 <strong>${item.budget}</strong>
                         </div>
-                        <div style="font-size:12.5px;margin-top:3px;">提交人：<strong>${item.submitter}</strong> ｜ 推荐理由：${item.submitReason || "—"}</div>
+                        <div style="font-size:12.5px;margin-top:3px;">提交人：<strong>${item.submitter}</strong> ｜ 推荐理由：${item.submitReason || "待补充推荐理由"}</div>
                         ${item.approver ? `<div style="font-size:12.5px;color:var(--green-text);margin-top:3px;">✓ 终审人：<strong>${item.approver}</strong> ｜ 意见：${item.decisionReason} ｜ 凭证：${item.evidence}</div>` : ""}
                         ${item.stage === "已批准测款" ? `<div style="font-size:12px;color:var(--blue-hover);margin-top:3px;">🔗 已创建 2 个下游任务：已加入 M5 销量预测池 & M7 商品内容创作队列</div>` : ""}
                       </div>
@@ -706,7 +696,7 @@ export function renderM4_M6(pageId, state, helpers) {
 
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
                       <button class="btn btn-sm btn-success m4c-decide" data-sku="${item.sku}" data-act="已批准测款" ${(!canDecide || !passHardGate)?"disabled":""} title="${!isApprover?"需主管权限":!passHardGate?"须满足内部实盘且毛利率≥10%":""}">✓ 同意测款</button>
-                      <button class="btn btn-sm btn-primary m4c-decide" data-sku="${item.sku}" data-act="缺成本待补全" ${!canDecide?"disabled":""}>退回补采成本</button>
+                      <button class="btn btn-sm btn-primary m4c-decide" data-sku="${item.sku}" data-act="临时待核价" ${!canDecide?"disabled":""}>退回补采成本</button>
                       <button class="btn btn-sm btn-danger m4c-decide" data-sku="${item.sku}" data-act="已淘汰" ${!canDecide?"disabled":""}>✕ 淘汰</button>
                     </div>
                   </div>
@@ -1165,9 +1155,10 @@ export function renderM4_M6(pageId, state, helpers) {
   // ==================== M6-1: 常规补货测算（完整参数快照 + 三方案对比） ====================
   if (pageId === "m6a") {
     const canPlan = state.role === "planner" || state.role === "approver";
+    const isUncostedNew = state.m6NormalSku === "NEW-901";
     const invRow = state.inventoryItems.find(i => i.sku === state.m6NormalSku && i.shopMode === "REAL") || state.inventoryItems[2];
     const prod = state.masterProducts.find(p => p.sku === state.m6NormalSku) || state.masterProducts[1];
-    const missingCost = prod.cost === null;
+    const missingCost = isUncostedNew || prod.cost === null;
     const baseDaily = 30;
     const adjDaily = Math.round(baseDaily * (1 + (state.m6NormalSeasonPct + state.m6NormalPromoPct) / 100));
     const targetInv = adjDaily * (state.m6NormalLeadDays + state.m6NormalSafetyDays);
@@ -1186,7 +1177,7 @@ export function renderM4_M6(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>常规补货说明：</strong>无预测数据时按近 30 天日均销量（30 件/天）作基线；任何季节或活动调高/调低必须填写业务依据，缺成本卡商品禁止提交。</span>
+          <span><strong>常规补货说明：</strong>无预测数据时按近 30 天日均销量（30 件/天）作基线；任何季节或活动调高/调低必须填写业务依据，未核定采购价的新品禁止提交采购草案。</span>
         </div>
 
         <div class="grid-4">
@@ -1201,8 +1192,8 @@ export function renderM4_M6(pageId, state, helpers) {
             <div class="card-header"><div class="card-title">补货商品与人工调节参数</div></div>
             <div class="field"><label>选择补货商品</label>
               <select id="m6nSku" class="select">
-                <option value="FAN-203" ${state.m6NormalSku==="FAN-203"?"selected":""}>FAN-203 · 便携静音循环扇 (成本完整)</option>
-                <option value="COS-052" ${state.m6NormalSku==="COS-052"?"selected":""}>COS-052 · 焕亮保湿面霜 (缺成本禁止提交)</option>
+                ${state.masterProducts.map(p => `<option value="${p.sku}" ${state.m6NormalSku===p.sku?"selected":""}>${p.sku} · ${p.name} (成本完整)</option>`).join("")}
+                <option value="NEW-901" ${state.m6NormalSku==="NEW-901"?"selected":""}>NEW-901 · 新品测试款 (待核正式采购价 · 禁提交)</option>
               </select>
             </div>
             <div class="grid-2" style="gap:8px;">
@@ -1311,9 +1302,8 @@ export function renderM4_M6(pageId, state, helpers) {
           <div class="filter-bar">
             <div class="filter-item"><label>选择补货商品</label>
               <select id="m6sSku" class="select">
-                <option value="BAG-108" ${state.m6SmartSku==="BAG-108"?"selected":""}>BAG-108 · 轻量通勤双肩包 (已有 M5 预测)</option>
-                <option value="COS-052" ${state.m6SmartSku==="COS-052"?"selected":""}>COS-052 · 焕亮保湿面霜 (无预测 · 将提示拦截)</option>
-                <option value="MAT-014" ${state.m6SmartSku==="MAT-014"?"selected":""}>MAT-014 · 加厚防滑瑜伽垫 (无预测 · 将提示拦截)</option>
+                ${state.masterProducts.map(p => `<option value="${p.sku}" ${state.m6SmartSku===p.sku?"selected":""}>${p.sku} · ${p.name} (${state.m5ForecastRegistry[p.sku]?"已有 M5 预测":"无预测 · 将提示拦截"})</option>`).join("")}
+                <option value="NEW-901" ${state.m6SmartSku==="NEW-901"?"selected":""}>NEW-901 · 新品待测款 (未完成 M5 预测 · 将提示拦截)</option>
               </select>
             </div>
             <div class="filter-item"><label>物流承运路线与报价</label>
