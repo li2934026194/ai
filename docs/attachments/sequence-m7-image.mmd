@@ -1,0 +1,29 @@
+sequenceDiagram
+    actor Creator as 创作人员 (creator)
+    participant UI as M7-2 套图工作台 (Vue3)
+    participant API as ImageService (FastAPI)
+    participant Eng as 云端API / Pillow适配器 & IPTC
+    participant Store as FileStorage & PostgreSQL
+
+    Creator->>UI: 同步M7-1卖点，选风格/视角/画幅/避坑，提交1+4出图
+    UI->>API: POST /images/batch (idempotency_key)
+    API->>Store: 锁定 workflow_version，保存 QUEUED 任务
+    API-->>UI: 202 返回 job_id
+    loop 轮询同步任务状态
+        UI->>API: POST /jobs/{job_id}/sync
+        API->>Eng: 获取生成结果并执行末端 IPTC/XMP 写入
+        alt 成功分支：合法 image/* 字节 + IPTC 写入
+            API->>Store: 写入磁盘 PNG + GenerationAsset + GenerationMedia
+            API-->>UI: SUCCEEDED (5/5 差异化套图就绪)
+        else 异常分支：无输出 / 非图片 MIME / 节点异常
+            API->>Store: 标记 FAILED 并记录 error_detail (不写假媒体)
+            API-->>UI: 返回失败原因并保留已有合格成果
+        end
+    end
+    Creator->>UI: (可选) 单独重绘当前图位 / 局部修改对比
+    UI->>API: POST /images/slots/{slot_idx}/regenerate 或 inpaint
+    API->>Store: 仅更新该图位新版本 (其余 4 张不变)
+    Creator->>UI: (测试校验) 模拟裁剪丢失元数据 -> 点击重新写入
+    UI->>API: POST /images/iptc/verify
+    API->>Eng: 真实打开磁盘图片读回/重写双标记
+    API-->>UI: 返回磁盘真实读回校验结论

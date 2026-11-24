@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="860" viewBox="0 0 1240 860" role="img" aria-label="M7 商品内容创作与合规交付 · 系统用例图 (Use Case)">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-open" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 1 2 L 10 6 L 1 10" fill="none" stroke="#475569" stroke-width="1.6"/>
+    </marker>
+    <marker id="diamond" viewBox="0 0 14 10" refX="1" refY="5" markerWidth="11" markerHeight="8" orient="auto">
+      <path d="M 1 5 L 7 1 L 13 5 L 7 9 z" fill="#475569"/>
+    </marker>
+    <marker id="odiamond" viewBox="0 0 14 10" refX="1" refY="5" markerWidth="11" markerHeight="8" orient="auto">
+      <path d="M 1 5 L 7 1 L 13 5 L 7 9 z" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+    </marker>
+  </defs>
+  <rect width="1240" height="860" fill="#f8fafc" rx="12"/>
+  <text x="620.0" y="34" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="800" fill="#0f172a">M7 商品内容创作与合规交付 · 系统用例图 (Use Case)</text>
+
+<rect x="230" y="58" width="760" height="780" rx="14" fill="#ffffff" stroke="#64748b" stroke-width="2" stroke-dasharray="7,4"/>
+<text x="610" y="82" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="14" font-weight="800" fill="#1e293b">«System» CrossPilot M7 商品内容创作与合规交付子系统</text>
+<rect x="250" y="96" width="720" height="168" rx="10" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2"/>
+<text x="264" y="116" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="800" fill="#334155">M7-1 多语言商品文案</text>
+<rect x="250" y="276" width="720" height="170" rx="10" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+<text x="264" y="296" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="800" fill="#334155">M7-2 主图与详情套图</text>
+<rect x="250" y="458" width="720" height="170" rx="10" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1.2"/>
+<text x="264" y="478" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="800" fill="#334155">M7-3 商品短视频与 A+</text>
+<rect x="250" y="640" width="720" height="184" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.2"/>
+<text x="264" y="660" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="800" fill="#334155">M7-4 合规检查与成品打包</text>
+<circle cx="110" cy="174" r="11" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <line x1="110" y1="185" x2="110" y2="208" stroke="#2563eb" stroke-width="1.8"/>
+  <line x1="94" y1="194" x2="126" y2="194" stroke="#2563eb" stroke-width="1.8"/>
+  <line x1="110" y1="208" x2="97" y2="226" stroke="#2563eb" stroke-width="1.8"/>
+  <line x1="110" y1="208" x2="123" y2="226" stroke="#2563eb" stroke-width="1.8"/>
+  <rect x="42" y="232" width="136" height="36" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="110" y="248" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">内容创作/审核人员</text>
+  <text x="110" y="262" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#475569">creator</text>
+<circle cx="110" cy="454" r="11" fill="#fef2f2" stroke="#dc2626" stroke-width="1.8"/>
+  <line x1="110" y1="465" x2="110" y2="488" stroke="#dc2626" stroke-width="1.8"/>
+  <line x1="94" y1="474" x2="126" y2="474" stroke="#dc2626" stroke-width="1.8"/>
+  <line x1="110" y1="488" x2="97" y2="506" stroke="#dc2626" stroke-width="1.8"/>
+  <line x1="110" y1="488" x2="123" y2="506" stroke="#dc2626" stroke-width="1.8"/>
+  <rect x="42" y="512" width="136" height="36" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="1.2"/>
+  <text x="110" y="528" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">主管 / 审批人</text>
+  <text x="110" y="542" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#475569">approver</text>
+<circle cx="110" cy="704" r="11" fill="#f1f5f9" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="110" y1="715" x2="110" y2="738" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="94" y1="724" x2="126" y2="724" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="110" y1="738" x2="97" y2="756" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="110" y1="738" x2="123" y2="756" stroke="#64748b" stroke-width="1.8"/>
+  <rect x="42" y="762" width="136" height="36" rx="6" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
+  <text x="110" y="778" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">只读岗位</text>
+  <text x="110" y="792" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#475569">manager/planner</text>
+<circle cx="1125" cy="334" r="11" fill="#ecfeff" stroke="#0891b2" stroke-width="1.8"/>
+  <line x1="1125" y1="345" x2="1125" y2="368" stroke="#0891b2" stroke-width="1.8"/>
+  <line x1="1109" y1="354" x2="1141" y2="354" stroke="#0891b2" stroke-width="1.8"/>
+  <line x1="1125" y1="368" x2="1112" y2="386" stroke="#0891b2" stroke-width="1.8"/>
+  <line x1="1125" y1="368" x2="1138" y2="386" stroke="#0891b2" stroke-width="1.8"/>
+  <rect x="1057" y="392" width="136" height="36" rx="6" fill="#ecfeff" stroke="#0891b2" stroke-width="1.2"/>
+  <text x="1125" y="408" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">生成引擎适配器</text>
+  <text x="1125" y="422" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#475569">CloudAPI/Pillow/FFmpeg</text>
+<ellipse cx="375" cy="148" rx="108" ry="26" fill="#fff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="375" y="145" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-01 选品与平台/语言</text>
+  <text x="375" y="160" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">承接M4-3/M0-2</text>
+<ellipse cx="375" cy="220" rx="108" ry="26" fill="#fff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="375" y="217" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-02 生成多语言文案</text>
+  <text x="375" y="232" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">多版本/双语</text>
+<ellipse cx="615" cy="148" rx="108" ry="26" fill="#fff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="615" y="145" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-03 三层词库扫描</text>
+  <text x="615" y="160" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">品牌/红线/商标监管</text>
+<ellipse cx="615" cy="220" rx="108" ry="26" fill="#fff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="615" y="217" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-04 就地微调与还原</text>
+  <text x="615" y="232" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">保留AI原稿</text>
+<ellipse cx="845" cy="184" rx="108" ry="26" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+  <text x="845" y="181" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-05 违禁/超长拦截</text>
+  <text x="845" y="196" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">异常阻断写审计</text>
+<ellipse cx="375" cy="330" rx="108" ry="26" fill="#fff" stroke="#10b981" stroke-width="1.6"/>
+  <text x="375" y="327" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-06 1+4套图生成</text>
+  <text x="375" y="342" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">风格/视角/画幅/避坑</text>
+<ellipse cx="375" cy="404" rx="108" ry="26" fill="#fff" stroke="#10b981" stroke-width="1.6"/>
+  <text x="375" y="401" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-07 单图重绘与局部修</text>
+  <text x="375" y="416" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">其余4张不变</text>
+<ellipse cx="625" cy="330" rx="112" ry="26" fill="#fff" stroke="#10b981" stroke-width="1.6"/>
+  <text x="625" y="327" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-08 IPTC写入与校验</text>
+  <text x="625" y="342" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">末端双标记读盘</text>
+<ellipse cx="845" cy="396" rx="108" ry="26" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+  <text x="845" y="393" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-09 裁剪丢失阻断</text>
+  <text x="845" y="408" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">缺失标记拦上架</text>
+<ellipse cx="375" cy="512" rx="108" ry="26" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="375" y="509" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-10 生成15s短视频</text>
+  <text x="375" y="524" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">3段分镜合成MP4</text>
+<ellipse cx="615" cy="512" rx="112" ry="26" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="615" y="509" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-11 分镜编辑与单镜重做</text>
+  <text x="615" y="524" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">引用M7-1/换图运镜</text>
+<ellipse cx="375" cy="586" rx="108" ry="26" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="375" y="583" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-12 生成A+图文长页</text>
+  <text x="375" y="598" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">横幅/对比模块</text>
+<ellipse cx="845" cy="560" rx="108" ry="26" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+  <text x="845" y="557" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-13 未配置节点阻断</text>
+  <text x="845" y="572" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">如实报错不造假</text>
+<ellipse cx="375" cy="692" rx="112" ry="26" fill="#fff" stroke="#d97706" stroke-width="1.6"/>
+  <text x="375" y="689" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-14 规则矩阵与资质</text>
+  <text x="375" y="704" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">站×类目/续期/TikTok</text>
+<ellipse cx="620" cy="692" rx="112" ry="26" fill="#fff" stroke="#d97706" stroke-width="1.6"/>
+  <text x="620" y="689" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-15 5项上架合规检查</text>
+  <text x="620" y="704" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">独立检查持久化</text>
+<ellipse cx="375" cy="774" rx="112" ry="26" fill="#fff" stroke="#d97706" stroke-width="1.6"/>
+  <text x="375" y="771" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-16 买家预览与8+N补齐</text>
+  <text x="375" y="786" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">预览未发布/缺项跳转</text>
+<ellipse cx="620" cy="774" rx="108" ry="26" fill="#fff" stroke="#d97706" stroke-width="1.6"/>
+  <text x="620" y="771" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-17 主管批准发布包</text>
+  <text x="620" y="786" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">职责分离门禁</text>
+<ellipse cx="845" cy="774" rx="108" ry="26" fill="#fff" stroke="#d97706" stroke-width="1.6"/>
+  <text x="845" y="771" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-18 导出本地离线包</text>
+  <text x="845" y="786" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">HTML/ZIP下载</text>
+<ellipse cx="845" cy="692" rx="108" ry="26" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+  <text x="845" y="689" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12" font-weight="700" fill="#0f172a">UC-19 过期/缺项/自批拦</text>
+  <text x="845" y="704" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" fill="#475569">阻断放行写审计</text>
+<line x1="178" y1="210" x2="267" y2="148" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="210" x2="267" y2="220" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="210" x2="507" y2="220" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="210" x2="267" y2="330" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="210" x2="267" y2="404" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="210" x2="267" y2="512" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="210" x2="503" y2="512" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="210" x2="267" y2="586" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="210" x2="508" y2="692" stroke="#475569" stroke-width="1.2"/>
+<line x1="178" y1="490" x2="263" y2="692" stroke="#dc2626" stroke-width="1.2"/>
+<line x1="178" y1="490" x2="508" y2="692" stroke="#dc2626" stroke-width="1.2"/>
+<line x1="178" y1="490" x2="512" y2="774" stroke="#dc2626" stroke-width="1.2"/>
+<line x1="178" y1="490" x2="737" y2="774" stroke="#dc2626" stroke-width="1.2"/>
+<line x1="178" y1="740" x2="263" y2="774" stroke="#64748b" stroke-width="1.2"/>
+<line x1="483" y1="220" x2="1056" y2="370" stroke="#0891b2" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="757.1" y="278.0" width="24.8" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="769.5" y="289.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#0891b2">调用</text>
+<line x1="483" y1="330" x2="1056" y2="370" stroke="#0891b2" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="757.1" y="333.0" width="24.8" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="769.5" y="344.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#0891b2">调用</text>
+<line x1="483" y1="512" x2="1056" y2="370" stroke="#0891b2" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="757.1" y="424.0" width="24.8" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="769.5" y="435.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#0891b2">调用</text>
+<line x1="483" y1="212" x2="507" y2="156" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="453.2" y="167.0" width="83.60000000000001" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="495.0" y="178.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#2563eb">«include»</text>
+<line x1="615" y1="194" x2="615" y2="174" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="607.2" y="173.0" width="83.60000000000001" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="649.0" y="184.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#2563eb">«include»</text>
+<line x1="737" y1="184" x2="723" y2="158" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-red)"/>
+  <rect x="714.4" y="152.0" width="75.2" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="752.0" y="163.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#dc2626">«extend»</text>
+<line x1="483" y1="330" x2="513" y2="330" stroke="#10b981" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="456.2" y="313.0" width="83.60000000000001" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="498.0" y="324.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#10b981">«include»</text>
+<line x1="745" y1="388" x2="720" y2="346" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-red)"/>
+  <rect x="718.9" y="356.0" width="75.2" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="756.5" y="367.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#dc2626">«extend»</text>
+<line x1="737" y1="554" x2="483" y2="520" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-red)"/>
+  <rect x="572.4" y="520.0" width="75.2" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="610.0" y="531.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#dc2626">«extend»</text>
+<line x1="737" y1="692" x2="732" y2="692" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-red)"/>
+  <rect x="696.9" y="671.0" width="75.2" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="734.5" y="682.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#dc2626">«extend»</text>
+<line x1="780" y1="712" x2="724" y2="764" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-red)"/>
+  <rect x="714.4" y="721.0" width="75.2" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="752.0" y="732.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#dc2626">«extend»</text>
+<line x1="728" y1="774" x2="737" y2="774" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="690.7" y="757.0" width="83.60000000000001" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="732.5" y="768.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#d97706">«include»</text>
+</svg>

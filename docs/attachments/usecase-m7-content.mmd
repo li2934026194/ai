@@ -1,0 +1,43 @@
+flowchart LR
+    Creator["内容创作/审核人员 (creator)"]
+    Approver["主管/审批人 (approver)"]
+    Reader["只读人员 (manager/planner/selector)"]
+    Engine["外部生成引擎 (云端API / Pillow & FFmpeg)"]
+
+    subgraph M7["CrossPilot M7 商品内容创作与合规交付子系统"]
+        UC1(("UC-01 选择商品与配置平台/语言"))
+        UC2(("UC-02 生成多语言文案草稿"))
+        UC3(("UC-03 三层词库合规扫描"))
+        UC4(("UC-04 就地微调与还原AI原稿"))
+        UC5(("UC-05 红线词/超长强拦截"))
+
+        UC6(("UC-06 配置1+4套图参数与生成"))
+        UC7(("UC-07 单图重绘与局部对比精修"))
+        UC8(("UC-08 IPTC/XMP末端写入与读回校验"))
+        UC9(("UC-09 裁剪丢失元数据阻断"))
+
+        UC10(("UC-10 生成15s三段分镜视频"))
+        UC11(("UC-11 分镜编辑/引用M7-1/单镜重做"))
+        UC12(("UC-12 组装A+图文详情长页"))
+        UC13(("UC-13 视频节点未配置报错阻断"))
+
+        UC14(("UC-14 站点×类目规则矩阵与资质管理"))
+        UC15(("UC-15 运行5项上架合规检查"))
+        UC16(("UC-16 买家视角预览与8+N补齐"))
+        UC17(("UC-17 主管批准发布包"))
+        UC18(("UC-18 导出本地离线交付包"))
+        UC19(("UC-19 资质过期/缺项/自批拦截"))
+    end
+
+    Creator --> UC1 & UC2 & UC4 & UC6 & UC7 & UC10 & UC11 & UC12 & UC15 & UC16 & UC18
+    Approver --> UC14 & UC15 & UC17 & UC18
+    Reader --> UC16
+    UC2 -.->|include| UC3
+    UC4 -.->|include| UC3
+    UC5 -.->|extend| UC3
+    UC6 -.->|include| UC8
+    UC9 -.->|extend| UC8
+    UC13 -.->|extend| UC10
+    UC19 -.->|extend| UC15
+    UC19 -.->|extend| UC17
+    UC2 & UC6 & UC10 --> Engine

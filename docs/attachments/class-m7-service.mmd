@@ -1,0 +1,79 @@
+classDiagram
+    class M7ApiRouter {
+        +getAvailableProducts(org_id)
+        +generateCopy(org_id, req)
+        +scanAndSaveCopy(org_id, req)
+        +submitImageBatch(org_id, req)
+        +syncJob(org_id, job_id)
+        +submitVideo(org_id, req)
+        +runComplianceCheck(org_id, req)
+        +approveAndExport(org_id, req)
+    }
+    class CopyService {
+        +generateDrafts()
+        +editAndSave()
+        +restoreOriginal()
+    }
+    class ImageService {
+        +createBatchJob()
+        +regenerateSingleSlot()
+        +inpaintSlot()
+        +verifyOrRewriteIptc()
+    }
+    class VideoAplusService {
+        +generateVideo()
+        +updateSegment()
+        +regenerateSegment()
+        +buildAplusPage()
+    }
+    class CompliancePackageService {
+        +getRuleMatrix()
+        +run5Checks()
+        +approvePackage()
+        +invalidateApproval()
+        +exportOfflineBundle()
+    }
+    class LexiconScanner {
+        +scanThreeLayers(text, must, ban, platform)
+    }
+    class IptcMetadataHandler {
+        +writeTagsToFile(path, ai_person)
+        +readAndVerifyFromDisk(path)
+    }
+    class GeneratorAdapter {
+        <<interface>>
+        +generateCopy(ctx)
+        +renderImages(ctx)
+        +renderVideoClips(ctx)
+    }
+    class CloudApiAdapter {
+        +callDashScopeOrVolc()
+    }
+    class LocalPillowFfmpegAdapter {
+        +composeImagesWithPillow()
+        +muxVideoWithFfmpeg()
+    }
+    class M7Repository {
+        +saveJobAndAssets()
+        +getSelectedAssets()
+        +saveComplianceCheck()
+    }
+    class CorePlatformFacade {
+        +requirePerm(role, perm_code)
+        +enqueueAsyncJob()
+        +saveBinaryToStorage()
+        +appendAuditLog()
+    }
+    M7ApiRouter --> CopyService
+    M7ApiRouter --> ImageService
+    M7ApiRouter --> VideoAplusService
+    M7ApiRouter --> CompliancePackageService
+    CopyService --> LexiconScanner
+    CopyService --> GeneratorAdapter
+    ImageService --> GeneratorAdapter
+    ImageService --> IptcMetadataHandler
+    VideoAplusService --> GeneratorAdapter
+    GeneratorAdapter <|.. CloudApiAdapter
+    GeneratorAdapter <|.. LocalPillowFfmpegAdapter
+    CopyService & ImageService & VideoAplusService & CompliancePackageService --> M7Repository
+    CopyService & ImageService & VideoAplusService & CompliancePackageService --> CorePlatformFacade

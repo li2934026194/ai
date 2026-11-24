@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor Creator as 创作人员 (creator)
+    actor Approver as 主管/审批人 (approver)
+    participant UI as M7-4 合规打包台 (Vue3)
+    participant API as CompliancePackageService
+    participant Disk as Disk/IPTC & DB
+
+    Creator->>UI: 切换站点×类目规则矩阵，查看买家视角预览(未发布)
+    Creator->>UI: 点击「1. 运行上架合规检查」
+    UI->>API: POST /compliance/check
+    API->>Disk: 核查红线词/字数/读盘IPTC/资质到期日/8项完整度
+    API->>Disk: 持久化独立 ComplianceCheck 记录 + 写审计
+    alt 不通过分支：存在缺项 / 过期资质 / IPTC丢失 / 违禁词
+        API-->>UI: 返回失败明细，禁用批准与导出 (提示跳转补齐)
+    else 通过分支：5 项全绿通过
+        API-->>UI: 合规校验通过，待办流转至主管
+    end
+    alt 越权分支：creator 尝试调用审批接口
+        Creator->>UI: (越权尝试) POST /packages/approve
+        API-->>UI: 403 Forbidden (禁自批) + 写入安全审计
+    else 合法批准与导出分支：approver 审批放行
+        Approver->>UI: 点击「2. 主管批准发布包」填意见提交
+        UI->>API: POST /packages/approve
+        API->>Disk: 校验非自批且已过检 -> 保存 ApprovalRecord
+        UI->>API: GET /packages/{sku}/export
+        API-->>UI: 返回本地离线交付包 (.html / .zip) + 写审计
+    end
