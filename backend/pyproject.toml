@@ -1,0 +1,26 @@
+[project]
+name = "crosspilot-m7-backend"
+version = "1.0.0"
+description = "CrossPilot M7 商品内容创作与合规交付后端服务"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.32.0",
+  "pydantic>=2.10.0",
+  "pydantic-settings>=2.6.0",
+  "sqlalchemy>=2.0.36",
+  "aiosqlite>=0.20.0",
+  "alembic>=1.14.0",
+  "httpx>=0.28.0",
+  "pillow>=11.0.0",
+]
+
+[project.optional-dependencies]
+postgres = ["asyncpg>=0.30.0", "psycopg2-binary>=2.9.9"]
+dev = ["pytest>=8.3.0", "pytest-asyncio>=0.25.0"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
