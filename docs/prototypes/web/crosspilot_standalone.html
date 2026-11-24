@@ -674,13 +674,11 @@ tr.row-selected td { background: #eff6ff; }
         </div>
         <div class="topbar-actions">
           <div id="headerActions" class="header-action-btns"></div>
-          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="查看本页业务规则与数据来源说明">
-            📖 业务规则与来源说明
+          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="查看上下游流程跳转、系统结论、业务规则与数据来源">
+            📖 规则与流程说明
           </button>
         </div>
       </header>
-
-      <div id="flowPositionBar" class="flow-bar"></div>
 
       <main id="pageBody" class="page-body"></main>
     </div>
@@ -688,15 +686,18 @@ tr.row-selected td { background: #eff6ff; }
 
   <!-- Slide-over Business Rule & Provenance Drawer -->
   <div id="annoDrawerBackdrop" class="drawer-backdrop hidden"></div>
-  <aside id="annoDrawer" class="slide-drawer hidden" aria-label="业务规则与来源说明">
+  <aside id="annoDrawer" class="slide-drawer hidden" aria-label="规则与流程说明">
     <div class="drawer-head dark">
       <div>
         <div class="drawer-title" id="annoPageTitle">本页业务说明</div>
-        <div class="drawer-sub">管理定位 · 约束红线 · 责任人与异常处理</div>
+        <div class="drawer-sub">流程位置 · 规则红线 · 责任人与数据来源</div>
       </div>
       <button class="btn btn-sm" id="closeAnnoDrawer">✕ 关闭</button>
     </div>
     <div class="drawer-body">
+      <div class="drawer-sec-label">🧭 业务流转位置（点击跳转上下游）</div>
+      <div id="flowPositionBar" class="flow-bar" style="margin:0 0 12px 0;flex-direction:column;align-items:stretch;gap:6px;"></div>
+      <div id="drawerSystemSummary" style="margin-bottom:14px;"></div>
       <div class="drawer-sec-label">📌 核心业务规则与责任说明</div>
       <div id="annoCards" class="anno-cards"></div>
       <div class="drawer-sec-label" style="margin-top:16px;">🧾 本页数据来源与更新说明</div>
@@ -2734,10 +2735,6 @@ function renderM0_M3(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>集中管理多平台跨境店铺授权健康度、经营绩效指标与订单同步流水；店铺销售额直接由 M0-2 实盘订单台账实时汇总（与 M2/M3 完全一致）。<strong>数据来源：</strong>各店铺实时连接状态（最近核对：${state.lastDataRefreshAt}）。</span>
-        </div>
-
         ${renderAsyncBox("m0_shop_conn")}
 
         ${pendingShops.length > 0 ? `
@@ -3007,10 +3004,6 @@ function renderM0_M3(pageId, state, helpers) {
         { label: "查看分店库存与盘点 →", primary: true, onClick: () => goPage("m0c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>管理全店商品完整成本与毛利预警、带审批的成本变更申请，以及多店铺订单全生命周期台账。<strong>数据来源：</strong>各店铺同步订单与商品档案（最近核对：${state.lastDataRefreshAt}）。</span>
-        </div>
-
         <div class="grid-4">
           <div class="kpi-card highlight-blue"><div class="kpi-label">在档主商品数量</div><div class="kpi-val" style="color:var(--blue-hover)">${state.masterProducts.length} 款</div><div class="kpi-sub">跨店铺统一商品编码与毛利核算</div></div>
           <div class="kpi-card ${missingCostCount + lowMarginCount > 0 ? "highlight-red" : ""}"><div class="kpi-label">低毛利 / 成本待核预警</div><div class="kpi-val" style="color:var(--red-text)">${missingCostCount} 待核 / ${lowMarginCount} 薄</div><div class="kpi-sub">毛利率＜12%或待核价商品已置顶</div></div>
@@ -3438,10 +3431,6 @@ function renderM0_M3(pageId, state, helpers) {
         { label: "去 M6 查看补货缺口联动 →", primary: true, onClick: () => goPage("m6b") }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span><strong>库存安全红线：</strong>仓库收货登记<strong>不会自动加减可售库存</strong>；只有在此处完成盘点并生成<strong>正式盘点单</strong>后，库存才生效，并立刻联动重算 M5 预测补货建议与 M6 缺口天数。</span>
-        </div>
-
         <div class="grid-4">
           <div class="kpi-card highlight-blue">
             <div class="kpi-label">分店独立库存台账</div>
@@ -3885,15 +3874,11 @@ function renderM0_M3(pageId, state, helpers) {
 
       return {
         headerActions: [
+          { label: "🛒 模拟买家提交退换货", primary: false, onClick: () => openBuyerAfterSalesForm(active) },
           { label: "导购与说明书知识库 →", primary: false, onClick: () => goPage("m1b") },
           { label: "售后主管审批台 →", primary: true, onClick: () => goPage("m1c") }
         ],
         html: `
-          <div class="banner banner-blue">
-            <span><strong>第 1 页 · 分店铺分流调度台：</strong>🤖 <strong>智能客服</strong>自动接待售前导购、使用说明排障与常规查单；🧑 <strong>触发退款/退换/物流异常/低置信度</strong>自动转人工队列，点击右侧按钮直接接管并进入第 2 页回复。</span>
-            <button class="btn btn-sm" id="qDemoPddBtn">🛒 模拟买家提交退换货清单</button>
-          </div>
-
           <div class="grid-${Math.min(4, shopSummaries.length + 1)}">
             <div class="shop-queue-card ${curShopFilter === "ALL" ? "active" : ""}" data-shop="ALL">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -4432,10 +4417,6 @@ function renderM0_M3(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>知识库定位：</strong>供<strong>智能客服自动应答</strong>与人工坐席检索，覆盖「商品导购卖点」与「使用说明/拆洗/排障FAQ」，严格按店铺隔离防发错链接。</span>
-        </div>
-
         ${renderAsyncBox("m1_catalog_imp")}
 
         <div class="card">
@@ -4499,10 +4480,6 @@ function renderM0_M3(pageId, state, helpers) {
         { label: "查看订单台账回填状态 →", primary: true, onClick: () => goPage("m0b") }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span><strong>主管审批与凭证闭环：</strong>① 主管可直接查看<strong>买家实拍照片、售后类型、转人工原因、定责与客服初审总结</strong>后拍板；② 批准确认后由人工去平台后台打款并回传退款截图关单，如证据不足可驳回退回客服补证。</span>
-        </div>
-
         <div class="grid-3">
           <div class="kpi-card highlight-red"><div class="kpi-label">待主管审批工单</div><div class="kpi-val" style="color:var(--red-text)">${state.tickets.filter(t=>t.status==="待主管审批").length} 单</div><div class="kpi-sub">需主管查看证据卷宗拍板</div></div>
           <div class="kpi-card highlight-amber"><div class="kpi-label">待上传退款凭证</div><div class="kpi-val" style="color:var(--amber-text)">${state.tickets.filter(t=>t.status==="待上传退款凭证").length} 单</div><div class="kpi-sub">需在平台后台手工打款并回传截图</div></div>
@@ -4875,10 +4852,6 @@ function renderM0_M3(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>草稿与正式版双轨隔离：</strong>您在当前<strong>${state.biDraftVersion}</strong>里的增删改动不会立即影响管理层正在看的<strong>${state.biPublishedVersion}</strong>大屏。<strong>数据来源：</strong>实时关联 M0 实盘订单与 M3 指标口径。</span>
-        </div>
-
         <div class="split-left-form">
           <div class="card">
             <div class="card-header"><div class="card-title">可添加指标组件库</div></div>
@@ -4968,10 +4941,6 @@ function renderM0_M3(pageId, state, helpers) {
         { label: "去调整驾驶舱布局 →", primary: true, onClick: () => goPage("m2a") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>正式经营大屏（${state.biPublishedVersion}）：</strong>发布于 ${state.biPublishedAt} ｜ <strong>数据截至时间：${state.lastDataRefreshAt}</strong>（点击任意带有「追问明细」提示的异常/核心卡片，可直达智能问数分析原因）。</span>
-        </div>
-
         <div class="grid-4">
           ${state.biPublishedWidgets.map(w => {
             const isAlert = w.metricKey === "ad_spend";
@@ -5045,10 +5014,6 @@ function renderM0_M3(pageId, state, helpers) {
         { label: "进入智能问答助手 →", primary: true, onClick: () => goPage("m3b") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>统一管理核心经营指标的计算口径与定时更新任务；内部指标数值与 M0 订单台账、M2 经营大屏完全同源一致。外部数据源尚未接入时状态会诚实显示「数据源未响应」，可点击「立即更新」重试。</span>
-        </div>
-
         ${renderAsyncBox("m3_sync")}
 
         <div class="grid-3">
@@ -5162,10 +5127,6 @@ function renderM0_M3(pageId, state, helpers) {
         { label: "返回正式经营大屏 →", primary: true, onClick: () => goPage("m2b") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>使用说明：</strong>您可以像问财务同事一样直接输入业务问题。本助手<strong>只查数、不改数据</strong>，多币种不会强行混加，每次回答均附带统计口径说明。</span>
-        </div>
-
         <div class="card" style="padding:0;overflow:hidden;">
           <div style="background:#0f172a;color:#fff;padding:13px 18px;display:flex;justify-content:space-between;align-items:center;">
             <div>
@@ -5383,10 +5344,6 @@ function renderM4_M6(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>来源隔离规则：</strong>明确区分<strong>内部实盘选品</strong>、<strong>外购行业估算</strong>、<strong>平台热销公开</strong>与<strong>仅演示数据</strong>；外购估算品仅作参考并置为「临时待核价」，复核正式采购价后才可批准投产。</span>
-        </div>
-
         ${renderAsyncBox("m4_import")}
 
         <div class="grid-3">
@@ -5495,10 +5452,6 @@ function renderM4_M6(pageId, state, helpers) {
         { label: "去 M4-3 主管拍板页 →", primary: true, onClick: () => goPage("m4c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>选品员决策规则：</strong>系统已剔除技术算法术语，按<strong>近2月销售额、近8周涨势、预计毛利率与4项风险排查</strong>直接给出「建议投产 / 补成本 / 放弃」结论；外购估算或临时待核价商品不能直接投产。</span>
-        </div>
-
         <div class="card card-blue">
           <div class="card-header">
             <div class="card-title">✨ 系统精选推荐 · 按经营策略挑选最值得先推的商品</div>
@@ -5890,10 +5843,6 @@ function renderM4_M6(pageId, state, helpers) {
         { label: `查看下游内容任务 (${approvedCnt}款) →`, primary: true, onClick: () => goPage("m7a") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>下游任务联动：</strong>已有 <strong>${approvedCnt} 款</strong>商品经主管批准测款，系统已自动为它们创建 <strong>${approvedCnt * 2} 个下游任务</strong>（分别进入 M5 销量预测池 与 M7 内容创作队列）。</span>
-        </div>
-
         <div class="grid-3">
           <div class="kpi-card highlight-purple"><div class="kpi-label">待主管终审选品</div><div class="kpi-val" style="color:var(--purple-text)">${state.m4Pool.filter(x=>x.stage==="已提交待审").length} 款</div><div class="kpi-sub">需主管填写意见拍板</div></div>
           <div class="kpi-card highlight-green"><div class="kpi-label">已批准测款（下游已建任务）</div><div class="kpi-val" style="color:var(--green-text)">${approvedCnt} 款</div><div class="kpi-sub">已创建 ${approvedCnt * 2} 个 M5/M7 任务</div></div>
@@ -5993,10 +5942,6 @@ function renderM4_M6(pageId, state, helpers) {
     return {
       headerActions: [{ label: "下一步：执行销量预测 →", primary: true, onClick: () => goPage("m5b") }],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>运营说明：</strong>系统按商品已有历史天数和出单规律为您匹配预测方案，您只需看<strong>「适合哪种商品」</strong>和<strong>「当前能否使用」</strong>；任何修改和启停均要求填写依据并留存变更记录。</span>
-        </div>
-
         <div class="banner banner-green">
           <span><strong>来自 M4 测款联动任务：</strong>当前共有 <strong>${approvedNewSkus.length} 款</strong>主管已批准测款新品（${approvedNewSkus.map(x=>`${x.sku} ${x.name}`).join("、")}），已进入待预测池。</span>
         </div>
@@ -6156,10 +6101,6 @@ function renderM4_M6(pageId, state, helpers) {
         { label: "下一步：误差复盘与修正 →", primary: true, onClick: () => goPage("m5c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>执行说明：</strong>本页根据历史已完成订单计算未来销量（自动剔除今日未结束销量），并实时联动 M0-3 当前可售库存给出建议补货参考量。</span>
-        </div>
-
         ${renderAsyncBox("m5_run")}
 
         <div class="card">
@@ -6289,10 +6230,6 @@ function renderM4_M6(pageId, state, helpers) {
         { label: "前往 M6-2 智能补货 →", primary: true, onClick: () => goPage("m6b") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>术语白话解释：</strong><strong>WAPE = 预测误差率</strong>（越低越准，代表平均差了百分之几）；<strong>修正 = 剔除缺货日影响</strong>（仓库断货那天没卖出去不代表没人想买，需标记缺货日还原真实需求，同时永久保留原始订单实销做对比）。</span>
-        </div>
-
         <div class="grid-3">
           <div class="kpi-card highlight-green">
             <div class="kpi-label">预测误差率（WAPE · 越小越准）</div>
@@ -6411,10 +6348,6 @@ function renderM4_M6(pageId, state, helpers) {
         { label: "前往 M6-3 审批队列 →", primary: true, onClick: () => goPage("m6c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>常规补货说明：</strong>无预测数据时按近 30 天日均销量（30 件/天）作基线；任何季节或活动调高/调低必须填写业务依据，未核定采购价的新品禁止提交采购草案。</span>
-        </div>
-
         <div class="grid-4">
           <div class="kpi-card"><div class="kpi-label">日均销量基线 (近30天)</div><div class="kpi-val">${adjDaily} 件/天</div><div class="kpi-sub">基准 30 × 调节 ${state.m6NormalSeasonPct + state.m6NormalPromoPct}%</div></div>
           <div class="kpi-card"><div class="kpi-label">M0-3 当前可售 / 在途</div><div class="kpi-val">${invRow.avail} / ${state.m6NormalInTransit} 件</div><div class="kpi-sub">${invRow.shopName} · ${invRow.whName}</div></div>
@@ -6529,10 +6462,6 @@ function renderM4_M6(pageId, state, helpers) {
         { label: "前往 M6-3 审批队列 →", primary: true, onClick: () => goPage("m6c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>智能补货规则：</strong>必须直接采用 M5 已完成的未来销量预测；若选择尚未做预测的商品，系统会直接提示先回 M5 完成预测，绝不私自退回拍脑袋估算。</span>
-        </div>
-
         <div class="card">
           <div class="filter-bar">
             <div class="filter-item"><label>选择补货商品</label>
@@ -6647,10 +6576,6 @@ function renderM4_M6(pageId, state, helpers) {
         { label: "去 M6-4 登记收货凭证 →", primary: true, onClick: () => goPage("m6d") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>审批把关规则：</strong>① 常规与智能补货计划严格分栏审批；② 主管审批前系统自动核对「审批签名一致/不一致」；③ 批准时必须填写意见，批准后自动生成采购单号并流转至 M6-4 收货登记。</span>
-        </div>
-
         <div class="card">
           <div class="utabs" style="margin-bottom:14px;">
             <div class="utab ${state.m6ApprovalTab==="NORMAL"?"active":""} m6c-tab" data-t="NORMAL">常规补货计划列表 <span class="utab-cnt">${state.m6Plans.filter(p=>p.mode==="NORMAL").length}</span></div>
@@ -6739,12 +6664,8 @@ function renderM4_M6(pageId, state, helpers) {
         { label: "去 M0-3 人工盘点校准库存 →", primary: true, onClick: () => goPage("m0c") }
       ],
       html: `
-        <div class="banner banner-red">
-          <span><strong>重要业务红线：</strong>在此登记到货实收数量与质检凭证<strong>绝对不会自动增加 M0-3 可售库存</strong>！卸货验货合格后，请前往 <strong>M0-3 分店库存页</strong>录入正式盘点单才算正式入仓可售。</span>
-        </div>
-
         <div class="card">
-          <div class="card-header"><div class="card-title">待收货采购单列表（点击登记本批次到货）</div></div>
+          <div class="card-header"><div class="card-title">待收货采购单列表（点击登记本批次到货 · 质检后须去 M0-3 盘点入仓）</div></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>采购单号</th><th>来源计划单</th><th>采购商品</th><th>采购总件数</th><th>已累计实收</th><th>收货状态</th><th>操作</th></tr></thead>
@@ -6973,10 +6894,6 @@ function renderM7_M8(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>直接承接 M4 主管同意测款的新品，按目标平台字数上限和品牌用语规范生成多版本文案，自动高亮命中词并拦截违禁词。</span>
-        </div>
-
         <div class="stepper">
           <div class="step-item done">① 选取 M4 主管已同意测款商品</div>
           <div class="step-item active">② 多版本文案与品牌用语扫描</div>
@@ -7371,11 +7288,6 @@ function renderM7_M8(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span><strong>上架把关规则：</strong>先逐条运行合规检查，再由主管批准并填写审批记录后才可导出资料包（严禁系统自动直推改写线上店铺）。</span>
-          <span class="pill ${doneCnt===8?"p-green":"p-amber"}">交付清单完整度：${doneCnt} / 8 类</span>
-        </div>
-
         <div class="split-right-panel">
           <div class="card">
             <div class="card-header">
@@ -7586,11 +7498,11 @@ function renderM7_M8(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner ${canManage?"banner-green":"banner-amber"}">
-          <span>${canManage
-            ? "组织管理权限已解锁：新增员工校验工号唯一与邮箱格式，调岗与停用账号均须二次确认并实时记录到 M8-2 审计台账。"
-            : "当前登录岗位为只读模式：新增员工、调岗与停用需要「大屏浏览者 / 管理者」或「主管 / 审批人」权限。"}</span>
-        </div>
+        ${!canManage ? `
+          <div class="banner banner-amber">
+            <span>当前登录岗位为只读模式：新增员工、调岗与停用需要「大屏浏览者 / 管理者」或「主管 / 审批人」权限。</span>
+          </div>
+        ` : ""}
 
         <div class="grid-4">
           <div class="kpi-card highlight-blue"><div class="kpi-label">在职 / 总员工数</div><div class="kpi-val" style="color:var(--blue-hover)">${activeCount} / ${state.employees.length} 人</div><div class="kpi-sub">已停用账号 ${state.employees.length - activeCount} 个</div></div>
@@ -7704,10 +7616,6 @@ function renderM7_M8(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>只读权限矩阵与操作审计台账：</strong>本页矩阵仅供核对（切换体验岗位请统一使用左上角「当前登录岗位」下拉框）；下方每条审计记录均为通俗可读的中文留痕，含越权拦截记录。当前高亮岗位：<strong>${curRoleObj.label}</strong></span>
-        </div>
-
         <div class="card">
           <div class="card-header">
             <div class="card-title">九大业务岗位 × 15 项功能权限矩阵（只读核对）</div>
@@ -7986,21 +7894,6 @@ function renderHomeWorkbench(helpers) {
       todos[0] ? { label: `立即处理第 1 项待办 →`, primary: true, onClick: () => goPage(todos[0].targetPage) } : null
     ].filter(Boolean),
     html: `
-      <div class="card card-blue">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-          <div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <span class="pill ${roleObj.pill}">${roleObj.tag}</span>
-              <strong style="font-size:17px;">你好，${personName}（${roleObj.label}）</strong>
-            </div>
-            <div style="font-size:13.5px;color:var(--text-muted);">${roleObj.desc}</div>
-          </div>
-          <div style="font-size:12.5px;color:var(--text-soft);text-align:right;">
-            工作台依据真实业务状态实时生成<br/>可在左上角切换不同岗位体验各自视图
-          </div>
-        </div>
-      </div>
-
       <div class="grid-4">
         <div class="kpi-card highlight-blue">
           <div class="kpi-label">本岗位今日必办</div>
@@ -8152,9 +8045,13 @@ function rerender() {
   const curPageObj = mod ? (mod.pages.find(p => p.id === state.pageId) || mod.pages[0]) : { label: "岗位工作台（今日待办）" };
   document.getElementById("breadcrumb").textContent = mod ? `${mod.label}  /  ${curPageObj.label}` : "工作台首页  /  我的今日待办";
   document.getElementById("pageTitle").textContent = meta.title;
-  document.getElementById("pageSubtitle").textContent = meta.subtitle;
+  const curPerson = ROLE_PERSON_NAMES[state.role] || "";
+  const curRoleLabel = BIZ_ROLES.find(r => r.key === state.role)?.label || "";
+  document.getElementById("pageSubtitle").textContent = state.pageId === "home"
+    ? `${curPerson}（${curRoleLabel}）· 今日待办实时汇总`
+    : meta.subtitle;
 
-  // Render compact single-line 3-stage Flow Position Bar (上游环节 → 本环节 → 下游环节)
+  // Render Flow Position Bar inside the Rule/Flow Drawer so main workspace stays clean
   const flowBar = document.getElementById("flowPositionBar");
   const flowInfo = PAGE_FLOW_META[state.pageId];
   if (flowBar && flowInfo) {
@@ -8164,19 +8061,17 @@ function rerender() {
         <span class="flow-node-tag">上游</span>
         <span>${flowInfo.up}${flowInfo.upPage ? ` <span style="color:var(--blue-hover);font-weight:700;">[跳转]</span>` : ""}</span>
       </div>
-      <span class="flow-arrow">→</span>
       <div class="flow-node current">
         <span class="flow-node-tag">当前</span>
         <strong>${flowInfo.cur}</strong>
       </div>
-      <span class="flow-arrow">→</span>
       <div class="flow-node ${flowInfo.downPage ? "clickable" : ""}" ${flowInfo.downPage ? `data-flowpage="${flowInfo.downPage}" title="点击跳转下游：${flowInfo.down}"` : ""}>
         <span class="flow-node-tag">下游</span>
         <span>${flowInfo.down}${flowInfo.downPage ? ` <span style="color:var(--blue-hover);font-weight:700;">[跳转]</span>` : ""}</span>
       </div>
     `;
     flowBar.querySelectorAll("[data-flowpage]").forEach(btn => {
-      btn.onclick = () => goPage(btn.dataset.flowpage);
+      btn.onclick = () => { state.showAnno = false; goPage(btn.dataset.flowpage); };
     });
   } else if (flowBar) {
     flowBar.style.display = "none";
@@ -8211,11 +8106,18 @@ function rerender() {
   });
 
   const conc = buildSystemConclusion(state.pageId, state);
-  const concHtml = conc ? `
-    <div class="banner banner-${conc.tone || "blue"}" id="systemConclusionBar" style="margin-bottom:4px;font-size:12px;">
-      <span>
-        <strong>💡 系统结论：</strong>${conc.status} ｜ <strong>建议：${conc.advice}</strong> ｜ 依据：${conc.basis}
-      </span>
+  const drawerSum = document.getElementById("drawerSystemSummary");
+  if (drawerSum) {
+    drawerSum.innerHTML = conc ? `
+      <div class="banner banner-${conc.tone || "blue"}" style="font-size:12px;">
+        <span><strong>💡 当前结论：</strong>${conc.status} ｜ <strong>建议：${conc.advice}</strong>（${conc.basis}）</span>
+      </div>
+    ` : "";
+  }
+  // Only surface critical red alerts directly in the main workspace; normal info stays inside the drawer
+  const concHtml = (conc && conc.tone === "red" && state.pageId !== "home") ? `
+    <div class="banner banner-red" id="systemConclusionBar" style="margin-bottom:2px;font-size:12px;">
+      <span><strong>⚠️ 紧急提示：</strong>${conc.status} ｜ <strong>${conc.advice}</strong></span>
     </div>
   ` : "";
 

@@ -122,10 +122,6 @@ export function renderM7_M8(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>直接承接 M4 主管同意测款的新品，按目标平台字数上限和品牌用语规范生成多版本文案，自动高亮命中词并拦截违禁词。</span>
-        </div>
-
         <div class="stepper">
           <div class="step-item done">① 选取 M4 主管已同意测款商品</div>
           <div class="step-item active">② 多版本文案与品牌用语扫描</div>
@@ -520,11 +516,6 @@ export function renderM7_M8(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span><strong>上架把关规则：</strong>先逐条运行合规检查，再由主管批准并填写审批记录后才可导出资料包（严禁系统自动直推改写线上店铺）。</span>
-          <span class="pill ${doneCnt===8?"p-green":"p-amber"}">交付清单完整度：${doneCnt} / 8 类</span>
-        </div>
-
         <div class="split-right-panel">
           <div class="card">
             <div class="card-header">
@@ -735,11 +726,11 @@ export function renderM7_M8(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner ${canManage?"banner-green":"banner-amber"}">
-          <span>${canManage
-            ? "组织管理权限已解锁：新增员工校验工号唯一与邮箱格式，调岗与停用账号均须二次确认并实时记录到 M8-2 审计台账。"
-            : "当前登录岗位为只读模式：新增员工、调岗与停用需要「大屏浏览者 / 管理者」或「主管 / 审批人」权限。"}</span>
-        </div>
+        ${!canManage ? `
+          <div class="banner banner-amber">
+            <span>当前登录岗位为只读模式：新增员工、调岗与停用需要「大屏浏览者 / 管理者」或「主管 / 审批人」权限。</span>
+          </div>
+        ` : ""}
 
         <div class="grid-4">
           <div class="kpi-card highlight-blue"><div class="kpi-label">在职 / 总员工数</div><div class="kpi-val" style="color:var(--blue-hover)">${activeCount} / ${state.employees.length} 人</div><div class="kpi-sub">已停用账号 ${state.employees.length - activeCount} 个</div></div>
@@ -853,10 +844,6 @@ export function renderM7_M8(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>只读权限矩阵与操作审计台账：</strong>本页矩阵仅供核对（切换体验岗位请统一使用左上角「当前登录岗位」下拉框）；下方每条审计记录均为通俗可读的中文留痕，含越权拦截记录。当前高亮岗位：<strong>${curRoleObj.label}</strong></span>
-        </div>
-
         <div class="card">
           <div class="card-header">
             <div class="card-title">九大业务岗位 × 15 项功能权限矩阵（只读核对）</div>

@@ -220,21 +220,6 @@ function renderHomeWorkbench(helpers) {
       todos[0] ? { label: `立即处理第 1 项待办 →`, primary: true, onClick: () => goPage(todos[0].targetPage) } : null
     ].filter(Boolean),
     html: `
-      <div class="card card-blue">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-          <div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <span class="pill ${roleObj.pill}">${roleObj.tag}</span>
-              <strong style="font-size:17px;">你好，${personName}（${roleObj.label}）</strong>
-            </div>
-            <div style="font-size:13.5px;color:var(--text-muted);">${roleObj.desc}</div>
-          </div>
-          <div style="font-size:12.5px;color:var(--text-soft);text-align:right;">
-            工作台依据真实业务状态实时生成<br/>可在左上角切换不同岗位体验各自视图
-          </div>
-        </div>
-      </div>
-
       <div class="grid-4">
         <div class="kpi-card highlight-blue">
           <div class="kpi-label">本岗位今日必办</div>
@@ -386,9 +371,13 @@ function rerender() {
   const curPageObj = mod ? (mod.pages.find(p => p.id === state.pageId) || mod.pages[0]) : { label: "岗位工作台（今日待办）" };
   document.getElementById("breadcrumb").textContent = mod ? `${mod.label}  /  ${curPageObj.label}` : "工作台首页  /  我的今日待办";
   document.getElementById("pageTitle").textContent = meta.title;
-  document.getElementById("pageSubtitle").textContent = meta.subtitle;
+  const curPerson = ROLE_PERSON_NAMES[state.role] || "";
+  const curRoleLabel = BIZ_ROLES.find(r => r.key === state.role)?.label || "";
+  document.getElementById("pageSubtitle").textContent = state.pageId === "home"
+    ? `${curPerson}（${curRoleLabel}）· 今日待办实时汇总`
+    : meta.subtitle;
 
-  // Render compact single-line 3-stage Flow Position Bar (上游环节 → 本环节 → 下游环节)
+  // Render Flow Position Bar inside the Rule/Flow Drawer so main workspace stays clean
   const flowBar = document.getElementById("flowPositionBar");
   const flowInfo = PAGE_FLOW_META[state.pageId];
   if (flowBar && flowInfo) {
@@ -398,19 +387,17 @@ function rerender() {
         <span class="flow-node-tag">上游</span>
         <span>${flowInfo.up}${flowInfo.upPage ? ` <span style="color:var(--blue-hover);font-weight:700;">[跳转]</span>` : ""}</span>
       </div>
-      <span class="flow-arrow">→</span>
       <div class="flow-node current">
         <span class="flow-node-tag">当前</span>
         <strong>${flowInfo.cur}</strong>
       </div>
-      <span class="flow-arrow">→</span>
       <div class="flow-node ${flowInfo.downPage ? "clickable" : ""}" ${flowInfo.downPage ? `data-flowpage="${flowInfo.downPage}" title="点击跳转下游：${flowInfo.down}"` : ""}>
         <span class="flow-node-tag">下游</span>
         <span>${flowInfo.down}${flowInfo.downPage ? ` <span style="color:var(--blue-hover);font-weight:700;">[跳转]</span>` : ""}</span>
       </div>
     `;
     flowBar.querySelectorAll("[data-flowpage]").forEach(btn => {
-      btn.onclick = () => goPage(btn.dataset.flowpage);
+      btn.onclick = () => { state.showAnno = false; goPage(btn.dataset.flowpage); };
     });
   } else if (flowBar) {
     flowBar.style.display = "none";
@@ -445,11 +432,18 @@ function rerender() {
   });
 
   const conc = buildSystemConclusion(state.pageId, state);
-  const concHtml = conc ? `
-    <div class="banner banner-${conc.tone || "blue"}" id="systemConclusionBar" style="margin-bottom:4px;font-size:12px;">
-      <span>
-        <strong>💡 系统结论：</strong>${conc.status} ｜ <strong>建议：${conc.advice}</strong> ｜ 依据：${conc.basis}
-      </span>
+  const drawerSum = document.getElementById("drawerSystemSummary");
+  if (drawerSum) {
+    drawerSum.innerHTML = conc ? `
+      <div class="banner banner-${conc.tone || "blue"}" style="font-size:12px;">
+        <span><strong>💡 当前结论：</strong>${conc.status} ｜ <strong>建议：${conc.advice}</strong>（${conc.basis}）</span>
+      </div>
+    ` : "";
+  }
+  // Only surface critical red alerts directly in the main workspace; normal info stays inside the drawer
+  const concHtml = (conc && conc.tone === "red" && state.pageId !== "home") ? `
+    <div class="banner banner-red" id="systemConclusionBar" style="margin-bottom:2px;font-size:12px;">
+      <span><strong>⚠️ 紧急提示：</strong>${conc.status} ｜ <strong>${conc.advice}</strong></span>
     </div>
   ` : "";
 

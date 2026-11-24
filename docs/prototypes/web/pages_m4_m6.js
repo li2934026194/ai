@@ -148,10 +148,6 @@ export function renderM4_M6(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>来源隔离规则：</strong>明确区分<strong>内部实盘选品</strong>、<strong>外购行业估算</strong>、<strong>平台热销公开</strong>与<strong>仅演示数据</strong>；外购估算品仅作参考并置为「临时待核价」，复核正式采购价后才可批准投产。</span>
-        </div>
-
         ${renderAsyncBox("m4_import")}
 
         <div class="grid-3">
@@ -260,10 +256,6 @@ export function renderM4_M6(pageId, state, helpers) {
         { label: "去 M4-3 主管拍板页 →", primary: true, onClick: () => goPage("m4c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>选品员决策规则：</strong>系统已剔除技术算法术语，按<strong>近2月销售额、近8周涨势、预计毛利率与4项风险排查</strong>直接给出「建议投产 / 补成本 / 放弃」结论；外购估算或临时待核价商品不能直接投产。</span>
-        </div>
-
         <div class="card card-blue">
           <div class="card-header">
             <div class="card-title">✨ 系统精选推荐 · 按经营策略挑选最值得先推的商品</div>
@@ -655,10 +647,6 @@ export function renderM4_M6(pageId, state, helpers) {
         { label: `查看下游内容任务 (${approvedCnt}款) →`, primary: true, onClick: () => goPage("m7a") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>下游任务联动：</strong>已有 <strong>${approvedCnt} 款</strong>商品经主管批准测款，系统已自动为它们创建 <strong>${approvedCnt * 2} 个下游任务</strong>（分别进入 M5 销量预测池 与 M7 内容创作队列）。</span>
-        </div>
-
         <div class="grid-3">
           <div class="kpi-card highlight-purple"><div class="kpi-label">待主管终审选品</div><div class="kpi-val" style="color:var(--purple-text)">${state.m4Pool.filter(x=>x.stage==="已提交待审").length} 款</div><div class="kpi-sub">需主管填写意见拍板</div></div>
           <div class="kpi-card highlight-green"><div class="kpi-label">已批准测款（下游已建任务）</div><div class="kpi-val" style="color:var(--green-text)">${approvedCnt} 款</div><div class="kpi-sub">已创建 ${approvedCnt * 2} 个 M5/M7 任务</div></div>
@@ -758,10 +746,6 @@ export function renderM4_M6(pageId, state, helpers) {
     return {
       headerActions: [{ label: "下一步：执行销量预测 →", primary: true, onClick: () => goPage("m5b") }],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>运营说明：</strong>系统按商品已有历史天数和出单规律为您匹配预测方案，您只需看<strong>「适合哪种商品」</strong>和<strong>「当前能否使用」</strong>；任何修改和启停均要求填写依据并留存变更记录。</span>
-        </div>
-
         <div class="banner banner-green">
           <span><strong>来自 M4 测款联动任务：</strong>当前共有 <strong>${approvedNewSkus.length} 款</strong>主管已批准测款新品（${approvedNewSkus.map(x=>`${x.sku} ${x.name}`).join("、")}），已进入待预测池。</span>
         </div>
@@ -921,10 +905,6 @@ export function renderM4_M6(pageId, state, helpers) {
         { label: "下一步：误差复盘与修正 →", primary: true, onClick: () => goPage("m5c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>执行说明：</strong>本页根据历史已完成订单计算未来销量（自动剔除今日未结束销量），并实时联动 M0-3 当前可售库存给出建议补货参考量。</span>
-        </div>
-
         ${renderAsyncBox("m5_run")}
 
         <div class="card">
@@ -1054,10 +1034,6 @@ export function renderM4_M6(pageId, state, helpers) {
         { label: "前往 M6-2 智能补货 →", primary: true, onClick: () => goPage("m6b") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>术语白话解释：</strong><strong>WAPE = 预测误差率</strong>（越低越准，代表平均差了百分之几）；<strong>修正 = 剔除缺货日影响</strong>（仓库断货那天没卖出去不代表没人想买，需标记缺货日还原真实需求，同时永久保留原始订单实销做对比）。</span>
-        </div>
-
         <div class="grid-3">
           <div class="kpi-card highlight-green">
             <div class="kpi-label">预测误差率（WAPE · 越小越准）</div>
@@ -1176,10 +1152,6 @@ export function renderM4_M6(pageId, state, helpers) {
         { label: "前往 M6-3 审批队列 →", primary: true, onClick: () => goPage("m6c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>常规补货说明：</strong>无预测数据时按近 30 天日均销量（30 件/天）作基线；任何季节或活动调高/调低必须填写业务依据，未核定采购价的新品禁止提交采购草案。</span>
-        </div>
-
         <div class="grid-4">
           <div class="kpi-card"><div class="kpi-label">日均销量基线 (近30天)</div><div class="kpi-val">${adjDaily} 件/天</div><div class="kpi-sub">基准 30 × 调节 ${state.m6NormalSeasonPct + state.m6NormalPromoPct}%</div></div>
           <div class="kpi-card"><div class="kpi-label">M0-3 当前可售 / 在途</div><div class="kpi-val">${invRow.avail} / ${state.m6NormalInTransit} 件</div><div class="kpi-sub">${invRow.shopName} · ${invRow.whName}</div></div>
@@ -1294,10 +1266,6 @@ export function renderM4_M6(pageId, state, helpers) {
         { label: "前往 M6-3 审批队列 →", primary: true, onClick: () => goPage("m6c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>智能补货规则：</strong>必须直接采用 M5 已完成的未来销量预测；若选择尚未做预测的商品，系统会直接提示先回 M5 完成预测，绝不私自退回拍脑袋估算。</span>
-        </div>
-
         <div class="card">
           <div class="filter-bar">
             <div class="filter-item"><label>选择补货商品</label>
@@ -1412,10 +1380,6 @@ export function renderM4_M6(pageId, state, helpers) {
         { label: "去 M6-4 登记收货凭证 →", primary: true, onClick: () => goPage("m6d") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>审批把关规则：</strong>① 常规与智能补货计划严格分栏审批；② 主管审批前系统自动核对「审批签名一致/不一致」；③ 批准时必须填写意见，批准后自动生成采购单号并流转至 M6-4 收货登记。</span>
-        </div>
-
         <div class="card">
           <div class="utabs" style="margin-bottom:14px;">
             <div class="utab ${state.m6ApprovalTab==="NORMAL"?"active":""} m6c-tab" data-t="NORMAL">常规补货计划列表 <span class="utab-cnt">${state.m6Plans.filter(p=>p.mode==="NORMAL").length}</span></div>
@@ -1504,12 +1468,8 @@ export function renderM4_M6(pageId, state, helpers) {
         { label: "去 M0-3 人工盘点校准库存 →", primary: true, onClick: () => goPage("m0c") }
       ],
       html: `
-        <div class="banner banner-red">
-          <span><strong>重要业务红线：</strong>在此登记到货实收数量与质检凭证<strong>绝对不会自动增加 M0-3 可售库存</strong>！卸货验货合格后，请前往 <strong>M0-3 分店库存页</strong>录入正式盘点单才算正式入仓可售。</span>
-        </div>
-
         <div class="card">
-          <div class="card-header"><div class="card-title">待收货采购单列表（点击登记本批次到货）</div></div>
+          <div class="card-header"><div class="card-title">待收货采购单列表（点击登记本批次到货 · 质检后须去 M0-3 盘点入仓）</div></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>采购单号</th><th>来源计划单</th><th>采购商品</th><th>采购总件数</th><th>已累计实收</th><th>收货状态</th><th>操作</th></tr></thead>

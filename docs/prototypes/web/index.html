@@ -59,13 +59,11 @@
         </div>
         <div class="topbar-actions">
           <div id="headerActions" class="header-action-btns"></div>
-          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="查看本页业务规则与数据来源说明">
-            📖 业务规则与来源说明
+          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="查看上下游流程跳转、系统结论、业务规则与数据来源">
+            📖 规则与流程说明
           </button>
         </div>
       </header>
-
-      <div id="flowPositionBar" class="flow-bar"></div>
 
       <main id="pageBody" class="page-body"></main>
     </div>
@@ -73,15 +71,18 @@
 
   <!-- Slide-over Business Rule & Provenance Drawer -->
   <div id="annoDrawerBackdrop" class="drawer-backdrop hidden"></div>
-  <aside id="annoDrawer" class="slide-drawer hidden" aria-label="业务规则与来源说明">
+  <aside id="annoDrawer" class="slide-drawer hidden" aria-label="规则与流程说明">
     <div class="drawer-head dark">
       <div>
         <div class="drawer-title" id="annoPageTitle">本页业务说明</div>
-        <div class="drawer-sub">管理定位 · 约束红线 · 责任人与异常处理</div>
+        <div class="drawer-sub">流程位置 · 规则红线 · 责任人与数据来源</div>
       </div>
       <button class="btn btn-sm" id="closeAnnoDrawer">✕ 关闭</button>
     </div>
     <div class="drawer-body">
+      <div class="drawer-sec-label">🧭 业务流转位置（点击跳转上下游）</div>
+      <div id="flowPositionBar" class="flow-bar" style="margin:0 0 12px 0;flex-direction:column;align-items:stretch;gap:6px;"></div>
+      <div id="drawerSystemSummary" style="margin-bottom:14px;"></div>
       <div class="drawer-sec-label">📌 核心业务规则与责任说明</div>
       <div id="annoCards" class="anno-cards"></div>
       <div class="drawer-sec-label" style="margin-top:16px;">🧾 本页数据来源与更新说明</div>

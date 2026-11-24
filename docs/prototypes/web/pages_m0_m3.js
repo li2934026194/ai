@@ -219,10 +219,6 @@ export function renderM0_M3(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>集中管理多平台跨境店铺授权健康度、经营绩效指标与订单同步流水；店铺销售额直接由 M0-2 实盘订单台账实时汇总（与 M2/M3 完全一致）。<strong>数据来源：</strong>各店铺实时连接状态（最近核对：${state.lastDataRefreshAt}）。</span>
-        </div>
-
         ${renderAsyncBox("m0_shop_conn")}
 
         ${pendingShops.length > 0 ? `
@@ -492,10 +488,6 @@ export function renderM0_M3(pageId, state, helpers) {
         { label: "查看分店库存与盘点 →", primary: true, onClick: () => goPage("m0c") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>管理全店商品完整成本与毛利预警、带审批的成本变更申请，以及多店铺订单全生命周期台账。<strong>数据来源：</strong>各店铺同步订单与商品档案（最近核对：${state.lastDataRefreshAt}）。</span>
-        </div>
-
         <div class="grid-4">
           <div class="kpi-card highlight-blue"><div class="kpi-label">在档主商品数量</div><div class="kpi-val" style="color:var(--blue-hover)">${state.masterProducts.length} 款</div><div class="kpi-sub">跨店铺统一商品编码与毛利核算</div></div>
           <div class="kpi-card ${missingCostCount + lowMarginCount > 0 ? "highlight-red" : ""}"><div class="kpi-label">低毛利 / 成本待核预警</div><div class="kpi-val" style="color:var(--red-text)">${missingCostCount} 待核 / ${lowMarginCount} 薄</div><div class="kpi-sub">毛利率＜12%或待核价商品已置顶</div></div>
@@ -923,10 +915,6 @@ export function renderM0_M3(pageId, state, helpers) {
         { label: "去 M6 查看补货缺口联动 →", primary: true, onClick: () => goPage("m6b") }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span><strong>库存安全红线：</strong>仓库收货登记<strong>不会自动加减可售库存</strong>；只有在此处完成盘点并生成<strong>正式盘点单</strong>后，库存才生效，并立刻联动重算 M5 预测补货建议与 M6 缺口天数。</span>
-        </div>
-
         <div class="grid-4">
           <div class="kpi-card highlight-blue">
             <div class="kpi-label">分店独立库存台账</div>
@@ -1370,15 +1358,11 @@ export function renderM0_M3(pageId, state, helpers) {
 
       return {
         headerActions: [
+          { label: "🛒 模拟买家提交退换货", primary: false, onClick: () => openBuyerAfterSalesForm(active) },
           { label: "导购与说明书知识库 →", primary: false, onClick: () => goPage("m1b") },
           { label: "售后主管审批台 →", primary: true, onClick: () => goPage("m1c") }
         ],
         html: `
-          <div class="banner banner-blue">
-            <span><strong>第 1 页 · 分店铺分流调度台：</strong>🤖 <strong>智能客服</strong>自动接待售前导购、使用说明排障与常规查单；🧑 <strong>触发退款/退换/物流异常/低置信度</strong>自动转人工队列，点击右侧按钮直接接管并进入第 2 页回复。</span>
-            <button class="btn btn-sm" id="qDemoPddBtn">🛒 模拟买家提交退换货清单</button>
-          </div>
-
           <div class="grid-${Math.min(4, shopSummaries.length + 1)}">
             <div class="shop-queue-card ${curShopFilter === "ALL" ? "active" : ""}" data-shop="ALL">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1917,10 +1901,6 @@ export function renderM0_M3(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>知识库定位：</strong>供<strong>智能客服自动应答</strong>与人工坐席检索，覆盖「商品导购卖点」与「使用说明/拆洗/排障FAQ」，严格按店铺隔离防发错链接。</span>
-        </div>
-
         ${renderAsyncBox("m1_catalog_imp")}
 
         <div class="card">
@@ -1984,10 +1964,6 @@ export function renderM0_M3(pageId, state, helpers) {
         { label: "查看订单台账回填状态 →", primary: true, onClick: () => goPage("m0b") }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span><strong>主管审批与凭证闭环：</strong>① 主管可直接查看<strong>买家实拍照片、售后类型、转人工原因、定责与客服初审总结</strong>后拍板；② 批准确认后由人工去平台后台打款并回传退款截图关单，如证据不足可驳回退回客服补证。</span>
-        </div>
-
         <div class="grid-3">
           <div class="kpi-card highlight-red"><div class="kpi-label">待主管审批工单</div><div class="kpi-val" style="color:var(--red-text)">${state.tickets.filter(t=>t.status==="待主管审批").length} 单</div><div class="kpi-sub">需主管查看证据卷宗拍板</div></div>
           <div class="kpi-card highlight-amber"><div class="kpi-label">待上传退款凭证</div><div class="kpi-val" style="color:var(--amber-text)">${state.tickets.filter(t=>t.status==="待上传退款凭证").length} 单</div><div class="kpi-sub">需在平台后台手工打款并回传截图</div></div>
@@ -2360,10 +2336,6 @@ export function renderM0_M3(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>草稿与正式版双轨隔离：</strong>您在当前<strong>${state.biDraftVersion}</strong>里的增删改动不会立即影响管理层正在看的<strong>${state.biPublishedVersion}</strong>大屏。<strong>数据来源：</strong>实时关联 M0 实盘订单与 M3 指标口径。</span>
-        </div>
-
         <div class="split-left-form">
           <div class="card">
             <div class="card-header"><div class="card-title">可添加指标组件库</div></div>
@@ -2453,10 +2425,6 @@ export function renderM0_M3(pageId, state, helpers) {
         { label: "去调整驾驶舱布局 →", primary: true, onClick: () => goPage("m2a") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>正式经营大屏（${state.biPublishedVersion}）：</strong>发布于 ${state.biPublishedAt} ｜ <strong>数据截至时间：${state.lastDataRefreshAt}</strong>（点击任意带有「追问明细」提示的异常/核心卡片，可直达智能问数分析原因）。</span>
-        </div>
-
         <div class="grid-4">
           ${state.biPublishedWidgets.map(w => {
             const isAlert = w.metricKey === "ad_spend";
@@ -2530,10 +2498,6 @@ export function renderM0_M3(pageId, state, helpers) {
         { label: "进入智能问答助手 →", primary: true, onClick: () => goPage("m3b") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>统一管理核心经营指标的计算口径与定时更新任务；内部指标数值与 M0 订单台账、M2 经营大屏完全同源一致。外部数据源尚未接入时状态会诚实显示「数据源未响应」，可点击「立即更新」重试。</span>
-        </div>
-
         ${renderAsyncBox("m3_sync")}
 
         <div class="grid-3">
@@ -2647,10 +2611,6 @@ export function renderM0_M3(pageId, state, helpers) {
         { label: "返回正式经营大屏 →", primary: true, onClick: () => goPage("m2b") }
       ],
       html: `
-        <div class="banner banner-blue">
-          <span><strong>使用说明：</strong>您可以像问财务同事一样直接输入业务问题。本助手<strong>只查数、不改数据</strong>，多币种不会强行混加，每次回答均附带统计口径说明。</span>
-        </div>
-
         <div class="card" style="padding:0;overflow:hidden;">
           <div style="background:#0f172a;color:#fff;padding:13px 18px;display:flex;justify-content:space-between;align-items:center;">
             <div>
