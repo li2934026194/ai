@@ -630,42 +630,51 @@ export function renderM4_M6(pageId, state, helpers) {
   if (pageId === "m5a") {
     const canEditM5 = state.role === "planner" || state.role === "bi_analyst" || state.role === "approver";
     const approvedNewSkus = state.m4Pool.filter(x => x.stage === "已批准测款");
+    const recMod = state.m5Models.find(m => m.name === state.m5Model) || state.m5Models[0];
     return {
       headerActions: [{ label: "下一步：销量预测执行与曲线 →", primary: true, onClick: () => goPage("m5b") }],
       html: `
         <div class="banner banner-blue">
-          <span><strong>下游联动队列：</strong>当前共收到 M4 主管已批准测款新品 <strong>${approvedNewSkus.length} 款</strong>（${approvedNewSkus.map(x=>`${x.sku} ${x.name}`).join("、")}），可纳入后续销量预测档案。</span>
+          <span><strong>运营看懂这一页：</strong>您不需要懂算法原理！系统会根据商品已经卖了多少天、平时出单稳不稳，自动帮您匹配合适方案；您只需看<strong>「适合哪种商品」</strong>和<strong>「当前能否使用」</strong>即可（浅灰英文为后台/SRS标准算法编号）。</span>
+        </div>
+
+        <div class="banner banner-green">
+          <span><strong>上游联动：</strong>当前已收到 M4 主管同意测款的新品 <strong>${approvedNewSkus.length} 款</strong>（${approvedNewSkus.map(x=>`${x.sku} ${x.name}`).join("、")}），可直接纳入预测清单。</span>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title">SKU 需求画像（DemandProfile · 行锁版本递增并记入审计）</div>
-            <button class="btn btn-sm btn-primary" id="editDpBtn" ${!canEditM5?"disabled":""}>保存人工画像 (版本 +1)</button>
+            <div class="card-title">商品销量特征画像（DemandProfile · 修改后自动重算推荐方案）</div>
+            <button class="btn btn-sm btn-primary" id="editDpBtn" ${!canEditM5?"disabled":""}>修改销量特征 (版本 +1)</button>
           </div>
           <div class="grid-4">
-            <div class="kpi-card"><div class="kpi-label">目标 SKU</div><div style="font-weight:700;margin-top:6px;">${state.m5Sku}</div></div>
-            <div class="kpi-card"><div class="kpi-label">真实已完成订单历史</div><div style="font-weight:700;margin-top:6px;">${state.m5History96.length} 天（排除今日未完结）</div></div>
-            <div class="kpi-card"><div class="kpi-label">当前需求模式</div><div style="font-weight:700;margin-top:6px;">${state.demandProfileMode}</div></div>
-            <div class="kpi-card highlight-blue"><div class="kpi-label">画像版本 (自动推荐)</div><div style="font-weight:700;margin-top:6px;color:var(--blue-hover)">v${state.demandProfileVer} · CatBoost / LightGBM</div></div>
+            <div class="kpi-card"><div class="kpi-label">当前分析商品</div><div style="font-weight:700;margin-top:6px;">${state.m5Sku}</div></div>
+            <div class="kpi-card"><div class="kpi-label">可用历史订单天数</div><div style="font-weight:700;margin-top:6px;">${state.m5History96.length} 天（已排除今日未完结）</div></div>
+            <div class="kpi-card"><div class="kpi-label">商品出单规律</div><div style="font-weight:700;margin-top:6px;">${state.demandProfileMode}</div></div>
+            <div class="kpi-card highlight-blue"><div class="kpi-label">系统推荐预测方案 (v${state.demandProfileVer})</div><div style="font-weight:700;margin-top:6px;color:var(--blue-hover)">${recMod.bizName} <span style="font-size:12px;font-weight:500;">(${recMod.name})</span></div></div>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-header"><div class="card-title">版本化模型注册表（9 个内置策略 · 最低历史门槛自动校验）</div></div>
+          <div class="card-header">
+            <div class="card-title">内置预测方案库（9 套业务策略 · 按销售天数自动判断是否可用）</div>
+            <span class="pill p-blue">当前商品已有 ${state.m5History96.length} 天记录</span>
+          </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>模型 / 版本</th><th>模型族</th><th>最低历史点</th><th>${state.m5History96.length}天门槛校验</th><th>状态</th><th>说明</th><th>操作</th></tr></thead>
+              <thead><tr><th>预测方案（括号内为后台算法）</th><th>策略类型</th><th>适合哪种商品（业务场景）</th><th>至少要卖几天</th><th>当前 ${state.m5History96.length} 天能否使用</th><th>开关状态</th><th>通俗说明</th><th>操作</th></tr></thead>
               <tbody>
                 ${state.m5Models.map((m, i) => {
                   const pass = state.m5History96.length >= m.minPts;
                   return `
                     <tr>
-                      <td class="nowrap"><strong>${m.name}</strong></td>
-                      <td class="nowrap">${m.family}</td>
-                      <td class="nowrap">≥ ${m.minPts} 点</td>
-                      <td class="nowrap"><span class="pill ${pass?"p-green":"p-amber"}">${pass?"满足可执行 ✓":"短样本警告 (<"+m.minPts+")"}</span></td>
+                      <td class="nowrap"><strong>${m.bizName}</strong><div style="font-size:12px;color:var(--text-soft);">${m.name}</div></td>
+                      <td class="nowrap"><span class="pill p-blue">${m.familyLabel}</span><div style="font-size:11.5px;color:var(--text-soft);margin-top:2px;">${m.family}</div></td>
+                      <td style="font-size:12.5px;min-width:170px;"><strong>${m.bestFor}</strong></td>
+                      <td class="nowrap">≥ ${m.minPts} 天</td>
+                      <td class="nowrap"><span class="pill ${pass?"p-green":"p-amber"}">${pass?"天数足够，可使用 ✓":"天数不足 (缺"+(m.minPts - state.m5History96.length)+"天)"}</span></td>
                       <td class="nowrap"><span class="pill ${m.enabled?"p-green":"p-gray"}">${m.enabled?"已启用":"已停用"}</span></td>
-                      <td style="font-size:12.5px;color:var(--text-muted)">${m.desc}</td>
+                      <td style="font-size:12.5px;color:var(--text-muted);min-width:180px;">${m.desc}</td>
                       <td class="nowrap"><button class="btn btn-sm m5-toggle" data-i="${i}" ${!canEditM5?"disabled":""}>${m.enabled?"停用":"启用"}</button></td>
                     </tr>
                   `;
@@ -781,15 +790,15 @@ export function renderM4_M6(pageId, state, helpers) {
               </select>
             </div>
             <div class="filter-item">
-              <label>推理模型</label>
+              <label>预测方案</label>
               <select id="m5ModSel" class="select">
-                ${state.m5Models.filter(m=>m.enabled).map(m=>`<option ${state.m5Model===m.name?"selected":""}>${m.name}</option>`).join("")}
+                ${state.m5Models.filter(m=>m.enabled).map(m=>`<option value="${m.name}" ${state.m5Model===m.name?"selected":""}>${m.bizName} (${m.name})</option>`).join("")}
               </select>
             </div>
             <div><button class="btn btn-primary" id="m5RunBtn" ${!canRunFc?"disabled":""}>▶ 运行预测 (实时计算并排除今日)</button></div>
           </div>
           <div style="font-size:12px;color:var(--text-soft);margin-top:8px;">
-            最近执行区间：<strong>${state.m5LastRunMeta.range}</strong> · 算法：<strong>${state.m5LastRunMeta.model}</strong> · 耗时：<strong>${state.m5LastRunMeta.runtimeMs}ms</strong> · 时间：${state.m5LastRunMeta.time}
+            最近执行区间：<strong>${state.m5LastRunMeta.range}</strong> · 方案：<strong>${(state.m5Models.find(m=>m.name===state.m5LastRunMeta.model)?.bizName || "")} (${state.m5LastRunMeta.model})</strong> · 耗时：<strong>${state.m5LastRunMeta.runtimeMs}ms</strong> · 时间：${state.m5LastRunMeta.time}
           </div>
         </div>
 
@@ -797,7 +806,7 @@ export function renderM4_M6(pageId, state, helpers) {
           <div class="kpi-card highlight-blue">
             <div class="kpi-label">未来 ${state.m5Horizon} 天预测总量</div>
             <div class="kpi-val" style="color:var(--blue-hover)">${totalPred} 件</div>
-            <div class="kpi-sub">${state.m5Model} 本地序列计算</div>
+            <div class="kpi-sub">${state.m5Models.find(m=>m.name===state.m5Model)?.bizName || state.m5Model}</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">M0-3 联动实时可售库存</div>
