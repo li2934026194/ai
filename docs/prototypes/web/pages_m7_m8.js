@@ -1,5 +1,5 @@
 import {
-  BACKEND_SERVICE_URL, BIZ_ROLES, ROLE_PERSON_NAMES, getProductImg, getM7SlotImg, resetM7CreationState, nowDateTimeStr, appendAuditLog
+  BACKEND_SERVICE_URL, BIZ_ROLES, ROLE_PERSON_NAMES, DEFAULT_M7_IMG_BRIEFS, getProductImg, getM7SlotImg, resetM7CreationState, nowDateTimeStr, appendAuditLog
 } from "./state.js";
 
 const MATRIX_ROWS = [
@@ -36,11 +36,14 @@ function getM7AvailableProducts(state) {
       unitPriceUsd: x.unitPriceUsd || 24.9, origin: "M4_APPROVED",
       approver: x.approver || "陈主管", reason: x.decisionReason || "实盘利润率达标批准测款"
     }));
-  const legacyInStore = state.masterProducts.map(p => ({
-    sku: p.sku, name: p.name, category: p.category || "家居收纳", platform: "Amazon US",
-    unitPriceUsd: p.salePriceUsd || 24.9, origin: "IN_STORE_REFRESH",
-    approver: "在售老品翻新", reason: "已上架在售商品详情升级"
-  }));
+  const seen = new Set(approvedNew.map(p => p.sku));
+  const legacyInStore = state.masterProducts
+    .filter(p => !seen.has(p.sku))
+    .map(p => ({
+      sku: p.sku, name: p.name, category: p.cat || p.category || "家居收纳", platform: "Amazon US",
+      unitPriceUsd: p.salePriceUsd || 24.9, origin: "IN_STORE_REFRESH",
+      approver: "在售老品翻新", reason: "已上架在售商品详情升级"
+    }));
   return [...approvedNew, ...legacyInStore];
 }
 
@@ -131,44 +134,214 @@ export function renderM7_M8(pageId, state, helpers) {
     const canCreate = state.role === "creator" || state.role === "approver";
     const mustList = state.m7MustTerm.split(/[,，]/).map(s => s.trim()).filter(Boolean);
     const verTag = Math.max(1, state.m7CopyGenCount);
-    const getCopyPool = (tab) => tab === "商品标题" ? [
-      `${curM7Prod.sku} | ${mustList.join(" ")} · Compact Everyday Essential for ${state.m7Platform} (热搜词版 v${verTag})`,
-      `${curM7Prod.name} (${curM7Prod.sku}) · ${mustList[0] || "Portable"} Design with Fast Setup & Reliable Quality (卖点版 v${verTag})`,
-      `New Arrival: ${mustList.slice(0,2).join(" & ")} ${curM7Prod.name} for Home & Travel (${state.m7Platform} 场景版 v${verTag})`,
-    ] : tab === "五点描述" ? [
-      `• [核心性能] Engineered with ${mustList.join(", ")}, delivering reliable everyday performance for busy shoppers.`,
-      `• [便捷体验] Lightweight body (${curM7Prod.sku}) enables easy one-hand operation for kitchen, dorm, and travel.`,
-      `• [测试拦截样例] Best choice with Miracle results and Free gift! (用于测试违禁词逐条拦截提醒)`,
-    ] : tab === "商品描述" ? [
-      `Upgrade your daily routine with ${curM7Prod.sku} (${curM7Prod.name}). Built around ${mustList.join(" and ")}, tailored for ${state.m7Platform} shoppers (v${verTag}).`,
-      `Designed for busy households, ${curM7Prod.name} combines ${mustList[0] || "durable material"} with effortless storage and low maintenance.`,
-      `From daily home prep to weekend trips, ${curM7Prod.sku} keeps essentials organized and ready.`,
-    ] : [
-      `${mustList.map(x=>x.toLowerCase()).join(", ")}, ${curM7Prod.sku.toLowerCase()}, compact home organizer, travel essential (20个合规词)`,
-      `portable gadget, ${curM7Prod.name}, gift for family, space saving organizer (20个长尾词)`,
-      `best miracle free gadget (包含违禁词样例：触发合规拦截)`,
-    ];
+    const m0Prod = state.masterProducts.find(p => p.sku === curM7Prod.sku) || null;
+    const csMatched = state.csCatalog.find(c => c.sku === curM7Prod.sku) || state.csCatalog.find(c => c.sku === "FAN-203") || state.csCatalog[0];
+    const csFaqList = state.csCatalog.filter(c => c.docType && c.docType.includes("FAQ"));
+
+    const getCopyPool = (tab) => {
+      if (tab === "商品标题") return [
+        {
+          text: `${curM7Prod.sku} | ${mustList.join(" ")} · Compact Everyday Essential for ${state.m7Platform} (热搜词版 v${verTag})`,
+          translation: `【中文对照】${curM7Prod.name}（${curM7Prod.sku}）｜便携无线真空封口机，小巧日常居家保鲜好物，专为${state.m7Platform}热搜词优化（第${verTag}版）`
+        },
+        {
+          text: `${curM7Prod.name} (${curM7Prod.sku}) · ${mustList[0] || "Portable"} Design with Fast Setup & Reliable Quality (卖点版 v${verTag})`,
+          translation: `【中文对照】${curM7Prod.name}（${curM7Prod.sku}）｜便携式快速上手设计，密封牢固耐用，突出核心功能卖点（第${verTag}版）`
+        },
+        {
+          text: `New Arrival: ${mustList.slice(0,2).join(" & ")} ${curM7Prod.name} for Home & Travel (${state.m7Platform} 场景版 v${verTag})`,
+          translation: `【中文对照】新品推荐：适用于居家厨房与差旅出行的便携无线${curM7Prod.name}，兼顾日常收纳与随行保鲜（第${verTag}版）`
+        }
+      ];
+      if (tab === "五点描述") return [
+        {
+          text: `• [核心性能] Engineered with ${mustList.join(", ")}, delivering reliable everyday performance for busy shoppers.`,
+          translation: `【中文对照】• [核心性能] 集便携、无线与强效真空封口于一体，8秒完成干湿食材锁鲜，满足快节奏家庭日常所需。`
+        },
+        {
+          text: `• [便捷体验] Lightweight body (${curM7Prod.sku}) enables easy one-hand operation for kitchen, dorm, and travel.`,
+          translation: `【中文对照】• [便捷体验] 轻巧掌心机身支持单手一键封口，无论是厨房备餐、宿舍零食保存还是露营出行都能轻松收纳。`
+        },
+        {
+          text: `• [测试拦截样例] Best choice with Miracle results and Free gift! (用于测试违禁词逐条拦截提醒)`,
+          translation: `【中文对照】• [违禁词测试样例] 含 Best / Miracle / Free 等平台禁用绝对化用词，用于验证系统自动拦截能力。`
+        }
+      ];
+      if (tab === "商品描述") return [
+        {
+          text: `Upgrade your daily routine with ${curM7Prod.sku} (${curM7Prod.name}). Built around ${mustList.join(" and ")}, tailored for ${state.m7Platform} shoppers (v${verTag}).`,
+          translation: `【中文对照】用 ${curM7Prod.name}（${curM7Prod.sku}）焕新您的日常保鲜体验：采用无线便携与高效真空封口设计，专为${state.m7Platform}买家习惯打造（第${verTag}版）。`
+        },
+        {
+          text: `Designed for busy households, ${curM7Prod.name} combines ${mustList[0] || "durable material"} with effortless storage and low maintenance.`,
+          translation: `【中文对照】专为繁忙家庭设计，兼具食品级耐用材质与磁吸免占空间收纳，日常清洁省心省力。`
+        },
+        {
+          text: `From daily home prep to weekend trips, ${curM7Prod.sku} keeps essentials organized and ready.`,
+          translation: `【中文对照】从工作日分装备餐到周末户外野餐，${curM7Prod.sku} 随时锁住食材新鲜与干爽。`
+        }
+      ];
+      if (tab === "后台搜索词") return [
+        {
+          text: `${mustList.map(x=>x.toLowerCase()).join(", ")}, ${curM7Prod.sku.toLowerCase()}, compact home organizer, travel essential (20个合规词)`,
+          translation: `【中文对照】后台检索词组（核心大词）：便携封口机、无线真空保鲜器、小型家居收纳神器、差旅零食封口必备。`
+        },
+        {
+          text: `portable gadget, ${curM7Prod.name}, gift for family, space saving organizer (20个长尾词)`,
+          translation: `【中文对照】后台检索词组（长尾场景词）：便携居家好物、${curM7Prod.name}、家庭实用礼品、省空间家居收纳工具。`
+        },
+        {
+          text: `best miracle free gadget (包含违禁词样例：触发合规拦截)`,
+          translation: `【中文对照】违禁搜索词测试样例：包含 best / miracle / free 等平台禁止写入后台词库的词汇。`
+        }
+      ];
+      if (tab === "使用说明与FAQ") return [
+        {
+          text: `[M1-2 知识库联动 · ${csMatched.sku}] ${csMatched.name} Usage & Troubleshooting: ${csMatched.points}`,
+          translation: `【中文对照】联动 M1-2 客服知识库（${csMatched.sku}）：确保上架页说明书与客服应答口径完全一致，减少买家误操作退货。`
+        },
+        {
+          text: `[M1-2 售后高频问答] Q: Red light blinking or weak suction? A: Charge via USB-C for 2h until green; wipe sealing strip dry before pressing firmly for 3s.`,
+          translation: `【中文对照】高频排障指引：红灯闪烁或吸力变弱时，请使用 USB-C 充电2小时至绿灯常亮，并擦干加热密封条后按压3秒。`
+        },
+        {
+          text: `[Care & Cleaning Guide] Do not submerge main motor unit in water. Wipe nozzle with a damp cloth after sealing moist snacks.`,
+          translation: `【中文对照】日常清洁保养：切勿将主机浸入水中清洗；封口含水渍零食后，请用微湿软布擦拭抽气口即可。`
+        }
+      ];
+      if (tab === "A+模块文案") return [
+        {
+          text: `A+ Hero: "Seal Freshness Anywhere" | Subhead: Cordless ${curM7Prod.name} keeps snacks & meal-prep 5x fresher | Comparison: USB-C 1200mAh vs Traditional Corded Sealers.`,
+          translation: `【中文对照】A+ 品牌横幅主标「随时随地锁住新鲜」，副标题突出5倍保鲜力，底部参数对比表突出无线1200mAh对比传统插电款优势。`
+        },
+        {
+          text: `A+ Lifestyle Trio: Module 1 Kitchen Pantry Organization · Module 2 Dry & Moist Dual-Mode · Module 3 Magnetic Fridge Storage.`,
+          translation: `【中文对照】A+ 三段式场景文案：模块1厨房干货收纳、模块2干湿两用模式切换、模块3背部磁吸贴冰箱省空间。`
+        },
+        {
+          text: `A+ Spec Callouts: 10W Fast Heating Strip · 0.35 lbs Ultra-Light Body · Includes 20 BPA-Free Vacuum Bags.`,
+          translation: `【中文对照】A+ 核心参数卖点条：10W 快速发热密封条、0.35磅超轻机身，开箱附赠20只不含双酚A真空袋。`
+        }
+      ];
+      if (tab === "规格变体命名") return [
+        {
+          text: `Variant A: Standard Single Unit (${curM7Prod.sku}-STD) — Compact Body + USB-C Cable | Variant B: Pro Gift Bundle (${curM7Prod.sku}-PRO) — Unit + 20 Vacuum Bags.`,
+          translation: `【中文对照】变体命名方案1（标准单机 vs 礼盒套装）：清晰区分单机入门款与含20只真空袋的家庭礼盒装，提升客单价。`
+        },
+        {
+          text: `Capacity Tier Naming: 3 Qt Mini Travel Pack (Ceramic White) / 6 Qt Family Kitchen Pack (Matte Gray + Extra Seal Roll).`,
+          translation: `【中文对照】变体命名方案2（按容量与配色区分）：3夸脱差旅便携白款 vs 6夸脱家庭厨房灰款（含备用封口卷袋）。`
+        },
+        {
+          text: `Color & Kit SKU Mapping: Classic Ceramic White (1 Pack) / Kitchen Value Duo (2-Pack Family Share).`,
+          translation: `【中文对照】变体命名方案3（单件装 vs 双件家庭分享装）：陶瓷白单件体验装与两件家庭分享装，便于多规格对比选购。`
+        }
+      ];
+      if (tab === "后台属性说明") {
+        const attrSummary = m0Prod
+          ? `Brand: ${m0Prod.brand || "待补"} | Material: ${m0Prod.material || "待补"} | Dimensions: ${m0Prod.dimensions || "待补"} | Wattage: ${m0Prod.wattage || "待补"} | Weight: ${m0Prod.weightLbs || "待补"} | Control: ${m0Prod.controlMethod || "待补"}`
+          : `Brand: CrossPilot Home | Material: Food-Grade ABS | Dimensions: 4.4 x 1.8 x 1.7 in | Wattage: 10W | Weight: 0.35 lbs`;
+        return [
+          {
+            text: `[M0-2 属性联动] ${attrSummary}`,
+            translation: `【中文对照】联动 M0-2 商品主档属性：品牌、材质、尺寸、瓦数（10W）、重量（0.35磅）及控制方式结构化字段，供后台属性表直接填报。`
+          },
+          {
+            text: `Power & Safety Specs: Input 5V/2A USB-C, Rated Power ${m0Prod?.wattage || "10W"}, Battery 1200mAh Li-ion, Auto-Shutoff Thermal Protection.`,
+            translation: `【中文对照】电气与安全属性：5V/2A USB-C 输入、额定功率 10W、内置 1200mAh 锂电池，支持过热自动断电保护。`
+          },
+          {
+            text: `Packaging & Logistics Attributes: Net Weight ${m0Prod?.weightLbs || "0.35 lbs"}, Color: ${m0Prod?.color || "Ceramic White"}, Origin: CN, HS Code Ready.`,
+            translation: `【中文对照】物流与包装属性：净重 0.35 磅、陶瓷白配色，含标准英文成分与海关编码申报说明。`
+          }
+        ];
+      }
+      if (tab === "图片ALT文本") return [
+        {
+          text: `IMG1: Cordless mini vacuum sealer in ceramic white on pure white background | IMG2: Woman sealing fresh strawberries in a home kitchen | IMG3: Close-up of dual dry/moist seal bar | IMG4: Compact 4.4-inch size comparison | IMG5: Flat-lay kit with USB-C cable and bags.`,
+          translation: `【中文对照】5张主附图无障碍 ALT 描述：逐张说明白底主机正面、厨房水果封鲜场景、干湿双模发热条细节、4.4英寸掌心尺寸及全套配件清单。`
+        },
+        {
+          text: `Accessible Screen-Reader Set: ${curM7Prod.name} front studio view, kitchen counter usage, LED indicator guide, dimension ruler overlay, and full box contents.`,
+          translation: `【中文对照】平台无障碍读屏标准 ALT 套装：覆盖棚拍主视、台面实操、指示灯引导、标尺尺寸与包装内容物五重语义标签。`
+        },
+        {
+          text: `SEO-Friendly ALT Set: Portable ${mustList[0] || "Cordless"} ${curM7Prod.name} white background photo and 4 lifestyle/spec infographics.`,
+          translation: `【中文对照】兼顾站内 SEO 检索的 ALT 描述：将核心词自然融入主图及 4 张信息图描述中，提升图片搜索收录权重。`
+        }
+      ];
+      return [
+        {
+          text: `Compliance & Warranty: UL/FCC/CE tested household appliance (${state.m7Platform} standard). Backed by 12-month manufacturer replacement warranty & 24/7 customer support.`,
+          translation: `【中文对照】合规认证与质保声明：通过${state.m7Platform}要求的 UL/FCC/CE 安全测试，提供12个月质保换新与全天候客服支持。`
+        },
+        {
+          text: `Safety & Battery Disclosure: Contains rechargeable lithium-ion battery (UN38.3 compliant). Keep out of reach of children; follow included multilingual manual.`,
+          translation: `【中文对照】电池运输与安全声明：内置符合 UN38.3 航运标准的充电锂电池，请放置在儿童接触不到的位置并按说明书规范使用。`
+        },
+        {
+          text: `Brand Authorization & Care Promise: Official CrossPilot Home genuine product with sealed retail packaging and 30-day hassle-free return coverage.`,
+          translation: `【中文对照】品牌授权与售后承诺：CrossPilot Home 官方正品密封包装，支持平台 30 天无忧退换保障。`
+        }
+      ];
+    };
+
     const drafts = getCopyPool(state.m7ResultTab);
+    const coreCopyTabs = ["商品标题", "五点描述", "商品描述", "后台搜索词"];
+    const extCopyTabs = ["使用说明与FAQ", "A+模块文案", "规格变体命名", "后台属性说明", "图片ALT文本", "认证与保修说明"];
     const copyFilledMap = {
       "商品标题": !!state.m7SelectedTitle,
       "五点描述": !!state.m7SelectedBullets,
       "商品描述": !!state.m7SelectedDesc,
       "后台搜索词": !!state.m7SelectedKeywords,
+      "使用说明与FAQ": !!state.m7SelectedFaq,
+      "A+模块文案": !!state.m7SelectedAplusCopy,
+      "规格变体命名": !!state.m7SelectedVariantCopy,
+      "后台属性说明": !!state.m7SelectedAttrCopy,
+      "图片ALT文本": !!state.m7SelectedAltCopy,
+      "认证与保修说明": !!state.m7SelectedWarrantyCopy,
     };
-    const copyCnt = Object.values(copyFilledMap).filter(Boolean).length;
+    const copyCnt = coreCopyTabs.filter(k => copyFilledMap[k]).length;
+    const extCopyCnt = extCopyTabs.filter(k => copyFilledMap[k]).length;
     const curImg = getProductImg(curM7Prod.sku, curM7Prod.name, curM7Prod.category);
+
+    const getPickedPair = (tab) => {
+      if (tab === "商品标题") return { text: state.m7SelectedTitle, cn: state.m7SelectedTitleCn };
+      if (tab === "五点描述") return { text: state.m7SelectedBullets, cn: state.m7SelectedBulletsCn };
+      if (tab === "商品描述") return { text: state.m7SelectedDesc, cn: state.m7SelectedDescCn };
+      if (tab === "后台搜索词") return { text: state.m7SelectedKeywords, cn: state.m7SelectedKeywordsCn };
+      if (tab === "使用说明与FAQ") return { text: state.m7SelectedFaq, cn: state.m7SelectedFaqCn };
+      if (tab === "A+模块文案") return { text: state.m7SelectedAplusCopy, cn: state.m7SelectedAplusCopyCn };
+      if (tab === "规格变体命名") return { text: state.m7SelectedVariantCopy, cn: state.m7SelectedVariantCopyCn };
+      if (tab === "后台属性说明") return { text: state.m7SelectedAttrCopy, cn: state.m7SelectedAttrCopyCn };
+      if (tab === "图片ALT文本") return { text: state.m7SelectedAltCopy, cn: state.m7SelectedAltCopyCn };
+      return { text: state.m7SelectedWarrantyCopy, cn: state.m7SelectedWarrantyCopyCn };
+    };
+    const setPickedPair = (tab, text, cn) => {
+      if (tab === "商品标题") { state.m7SelectedTitle = text; state.m7SelectedTitleCn = cn; }
+      else if (tab === "五点描述") { state.m7SelectedBullets = text; state.m7SelectedBulletsCn = cn; }
+      else if (tab === "商品描述") { state.m7SelectedDesc = text; state.m7SelectedDescCn = cn; }
+      else if (tab === "后台搜索词") { state.m7SelectedKeywords = text; state.m7SelectedKeywordsCn = cn; }
+      else if (tab === "使用说明与FAQ") { state.m7SelectedFaq = text; state.m7SelectedFaqCn = cn; }
+      else if (tab === "A+模块文案") { state.m7SelectedAplusCopy = text; state.m7SelectedAplusCopyCn = cn; }
+      else if (tab === "规格变体命名") { state.m7SelectedVariantCopy = text; state.m7SelectedVariantCopyCn = cn; }
+      else if (tab === "后台属性说明") { state.m7SelectedAttrCopy = text; state.m7SelectedAttrCopyCn = cn; }
+      else if (tab === "图片ALT文本") { state.m7SelectedAltCopy = text; state.m7SelectedAltCopyCn = cn; }
+      else { state.m7SelectedWarrantyCopy = text; state.m7SelectedWarrantyCopyCn = cn; }
+    };
 
     return {
       headerActions: [
-        { label: `⚡ 一键采纳 4 类推荐合规文案 (${copyCnt}/4)`, primary: false, disabled: !canCreate, onClick: () => {
+        { label: state.m7ShowCN ? "🈶 隐藏中文对照" : "🈶 显示中文对照", primary: false, onClick: () => { state.m7ShowCN = !state.m7ShowCN; rerender(); } },
+        { label: `⚡ 一键采纳 4 类核心文案 (${copyCnt}/4)`, primary: false, disabled: !canCreate, onClick: () => {
           state.m7CopyGenCount = Math.max(1, state.m7CopyGenCount);
-          state.m7SelectedTitle = getCopyPool("商品标题")[0];
-          state.m7SelectedBullets = getCopyPool("五点描述")[0];
-          state.m7SelectedDesc = getCopyPool("商品描述")[0];
-          state.m7SelectedKeywords = getCopyPool("后台搜索词")[0];
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 一键采纳了 ${curM7Prod.sku} 的 4 类合规文案`, ok: true });
+          coreCopyTabs.forEach(tb => {
+            const first = getCopyPool(tb)[0];
+            setPickedPair(tb, first.text, first.translation);
+          });
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 一键采纳了 ${curM7Prod.sku} 的 4 类核心合规文案`, ok: true });
           rerender();
-          toast("已写入全部 4 类合规文案，可点击「下一步：制作 1+4 套图」继续", "success");
+          toast("已写入全部 4 类核心合规文案，可继续选扩展文案或进入第 2 步", "success");
         }},
         { label: "下一步：制作 1+4 套图 →", primary: true, onClick: () => goPage("m7b") }
       ],
@@ -208,18 +381,38 @@ export function renderM7_M8(pageId, state, helpers) {
             <div class="field"><label>品牌用语规范（必须包含，绿底高亮）</label><input id="m7MustTerm" class="input" value="${state.m7MustTerm}"/></div>
             <div class="field"><label>平台违禁词（严禁出现，红底拦截）</label><input id="m7BanTerm" class="input" value="${state.m7BanTerm}"/></div>
             <button class="btn btn-primary" id="m7GenCopyBtn" style="width:100%;justify-content:center;" ${!canCreate?"disabled":""}>✨ 生成第 ${state.m7CopyGenCount + 1} 版多语言文案草稿</button>
+
+            <div style="margin-top:12px;padding:10px;border-radius:8px;background:#f8fafc;border:1px solid var(--border);font-size:12px;">
+              <strong>🔗 已联动 M1-2 客服知识库 FAQ（${csFaqList.length} 条可复用）：</strong>
+              <div style="color:var(--text-muted);margin-top:4px;line-height:1.5;">
+                ${csFaqList.slice(0,2).map(f => `• <strong>${f.sku} (${f.name})：</strong>${f.points.slice(0,48)}...`).join("<br/>")}
+              </div>
+            </div>
           </div>
 
           <div class="card">
             <div class="card-header">
-              <div class="card-title">${curM7Prod.sku} 多版本文案草稿（逐类点选写入交付清单）</div>
-              <span class="pill ${copyCnt===4?"p-green":"p-amber"}">已写入 ${copyCnt}/4 类文案</span>
+              <div class="card-title">${curM7Prod.sku} 全套上架文案（核心 4 类 + 扩展 6 类）</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <button type="button" class="btn btn-sm" id="m7ToggleCnBtn">${state.m7ShowCN ? "✓ 中文对照：开" : "中文对照：关"}</button>
+                <span class="pill ${copyCnt===4?"p-green":"p-amber"}">核心 ${copyCnt}/4 · 扩展 ${extCopyCnt}/6</span>
+              </div>
             </div>
 
-            <div class="utabs" style="margin-bottom:12px;">
-              ${["商品标题", "五点描述", "商品描述", "后台搜索词"].map(tb => `
+            <div style="font-size:11.5px;font-weight:700;color:var(--text-soft);margin-bottom:4px;">核心 4 类交付文案（计入 8 类上架交付主进度）：</div>
+            <div class="utabs" style="margin-bottom:8px;">
+              ${coreCopyTabs.map(tb => `
                 <div class="utab ${state.m7ResultTab===tb?"active":""} m7-rtab" data-tab="${tb}">
                   ${tb} ${copyFilledMap[tb] ? '<span class="utab-cnt" style="background:var(--green-bg);color:var(--green-text);">✓</span>' : '<span class="utab-cnt">待选</span>'}
+                </div>
+              `).join("")}
+            </div>
+
+            <div style="font-size:11.5px;font-weight:700;color:var(--text-soft);margin-bottom:4px;">真实上架扩展 6 类文案（独立记为 8+N 交付）：</div>
+            <div class="utabs" style="margin-bottom:12px;">
+              ${extCopyTabs.map(tb => `
+                <div class="utab ${state.m7ResultTab===tb?"active":""} m7-rtab" data-tab="${tb}">
+                  ${tb} ${copyFilledMap[tb] ? '<span class="utab-cnt" style="background:var(--green-bg);color:var(--green-text);">✓</span>' : '<span class="utab-cnt">可选</span>'}
                 </div>
               `).join("")}
             </div>
@@ -227,27 +420,31 @@ export function renderM7_M8(pageId, state, helpers) {
             ${state.m7CopyGenCount === 0 ? `
               <div style="padding:28px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:10px;">
                 <div style="font-weight:700;font-size:14.5px;margin-bottom:6px;">尚未生成「${curM7Prod.name}」文案草稿</div>
-                <div style="font-size:12.5px;color:var(--text-soft);margin-bottom:12px;">请点击左侧「✨ 生成第 1 版多语言文案草稿」，或点击右上角一键采纳 4 类合规文案。</div>
+                <div style="font-size:12.5px;color:var(--text-soft);margin-bottom:12px;">请点击左侧「✨ 生成第 1 版多语言文案草稿」，或点击右上角一键采纳 4 类核心合规文案。</div>
                 <button class="btn btn-primary btn-sm" id="m7EmptyGenBtn" ${!canCreate?"disabled":""}>✨ 立即生成文案草稿</button>
               </div>
             ` : `
               <div style="display:flex;flex-direction:column;gap:10px;">
-                ${drafts.map(txt => {
+                ${drafts.map((item, idx) => {
+                  const txt = item.text;
+                  const cn = item.translation;
                   const chk = checkCopyRules(txt, state.m7MustTerm, state.m7BanTerm, state.m7Platform);
-                  const blocked = chk.banHits > 0 || chk.overLen;
-                  const currentPickedVal = state.m7ResultTab === "商品标题" ? state.m7SelectedTitle : state.m7ResultTab === "五点描述" ? state.m7SelectedBullets : state.m7ResultTab === "商品描述" ? state.m7SelectedDesc : state.m7SelectedKeywords;
-                  const isPicked = currentPickedVal === txt;
+                  const isCore = coreCopyTabs.includes(state.m7ResultTab);
+                  const blocked = chk.banHits > 0 || (isCore && chk.overLen);
+                  const curPicked = getPickedPair(state.m7ResultTab);
+                  const isPicked = curPicked.text === txt;
                   return `
                     <div style="background:${isPicked?"#f0fdf4":"#f8fafc"};border:1px solid ${blocked?"#fca5a5":isPicked?"#86efac":"var(--border)"};border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
                       <div style="flex:1;min-width:240px;">
                         <div style="font-weight:600;line-height:1.5;">${chk.safeHtml}</div>
+                        ${state.m7ShowCN ? `<div style="margin-top:6px;padding:6px 9px;background:#ffffff;border-left:3px solid var(--blue);border-radius:4px;font-size:12.5px;color:var(--text-muted);line-height:1.5;">${cn}</div>` : ""}
                         <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;font-size:12px;">
                           <span class="pill p-green">品牌用语 ${chk.mustHits}/${chk.totalMust} 项</span>
                           <span class="pill ${chk.banHits>0?"p-red":"p-green"}">${chk.banHits>0 ? `命中违禁词：${chk.banHitsDetail.join("、")}` : "违禁词 0 命中 ✓"}</span>
-                          <span class="pill ${chk.overLen?"p-red":"p-gray"}">字符数 ${chk.len} / ${chk.maxTitleLen}</span>
+                          <span class="pill ${isCore && chk.overLen?"p-red":"p-gray"}">字符数 ${chk.len}${isCore ? " / " + chk.maxTitleLen : ""}</span>
                         </div>
                       </div>
-                      <button class="btn ${blocked?"btn-danger":isPicked?"btn-success":"btn-primary"} btn-sm m7-pick-copy" data-txt="${txt.replace(/"/g, "&quot;")}" data-ban="${chk.banHits}" data-over="${chk.overLen?1:0}" ${!canCreate?"disabled":""}>
+                      <button class="btn ${blocked?"btn-danger":isPicked?"btn-success":"btn-primary"} btn-sm m7-pick-copy" data-idx="${idx}" data-ban="${chk.banHits}" data-over="${isCore && chk.overLen?1:0}" ${!canCreate?"disabled":""}>
                         ${blocked ? "含违禁/超长(拦截)" : isPicked ? "已写入清单 ✓" : "写入交付清单 ✓"}
                       </button>
                     </div>
@@ -255,11 +452,24 @@ export function renderM7_M8(pageId, state, helpers) {
                 }).join("")}
               </div>
             `}
+
+            ${(() => {
+              const curPicked = getPickedPair(state.m7ResultTab);
+              if (!curPicked.text) return "";
+              return `
+                <div style="margin-top:14px;padding:11px 14px;border-radius:8px;border:1px solid #a7f3d0;background:#ecfdf5;">
+                  <div style="font-size:12px;font-weight:700;color:#065f46;margin-bottom:4px;">✓ 当前「${state.m7ResultTab}」已写入交付清单：</div>
+                  <div style="font-size:13px;font-weight:600;">${curPicked.text}</div>
+                  ${state.m7ShowCN && curPicked.cn ? `<div style="font-size:12px;color:#047857;margin-top:4px;">${curPicked.cn}</div>` : ""}
+                </div>
+              `;
+            })()}
           </div>
         </div>
       `,
       bind: () => {
         bindM7StepBar(state, curM7Prod, goPage, rerender, toast);
+        document.getElementById("m7ToggleCnBtn").onclick = () => { state.m7ShowCN = !state.m7ShowCN; rerender(); };
         document.getElementById("m7ProdSel").onchange = (e) => {
           const picked = availProds.find(p => p.sku === e.target.value);
           resetM7CreationState(state, e.target.value, picked);
@@ -272,7 +482,7 @@ export function renderM7_M8(pageId, state, helpers) {
         const triggerCopyGen = () => {
           state.m7MustTerm = document.getElementById("m7MustTerm").value;
           state.m7BanTerm = document.getElementById("m7BanTerm").value;
-          state.m7CopyGenCount += 1; rerender(); toast(`已生成第 ${state.m7CopyGenCount} 版文案并完成用语扫描`);
+          state.m7CopyGenCount += 1; rerender(); toast(`已生成第 ${state.m7CopyGenCount} 版文案并完成中英对照与用语扫描`);
         };
         document.getElementById("m7GenCopyBtn").onclick = triggerCopyGen;
         const empBtn = document.getElementById("m7EmptyGenBtn");
@@ -284,22 +494,17 @@ export function renderM7_M8(pageId, state, helpers) {
             toast("拦截：该版本文案包含违禁词或超过平台字数上限，不可写入交付清单！", "error");
             return;
           }
-          const val = b.dataset.txt;
-          if (state.m7ResultTab === "商品标题") state.m7SelectedTitle = val;
-          else if (state.m7ResultTab === "五点描述") state.m7SelectedBullets = val;
-          else if (state.m7ResultTab === "商品描述") state.m7SelectedDesc = val;
-          else state.m7SelectedKeywords = val;
-          const nextOrder = ["商品标题", "五点描述", "商品描述", "后台搜索词"];
-          const curIdx = nextOrder.indexOf(state.m7ResultTab);
+          const pickedItem = drafts[Number(b.dataset.idx)];
+          if (!pickedItem) return;
+          setPickedPair(state.m7ResultTab, pickedItem.text, pickedItem.translation);
+          const curIdx = coreCopyTabs.indexOf(state.m7ResultTab);
           if (curIdx >= 0 && curIdx < 3) {
-            const nextEmpty = nextOrder.slice(curIdx + 1).find(t =>
-              (t==="五点描述" && !state.m7SelectedBullets) || (t==="商品描述" && !state.m7SelectedDesc) || (t==="后台搜索词" && !state.m7SelectedKeywords)
-            );
+            const nextEmpty = coreCopyTabs.slice(curIdx + 1).find(t => !getPickedPair(t).text);
             if (nextEmpty) state.m7ResultTab = nextEmpty;
           }
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 将 ${curM7Prod.sku} 的「${state.m7ResultTab}」写入 M7-4 上架交付清单`, ok: true });
           rerender();
-          toast("已写入！请继续选其余文案或进入第 2 步", "success");
+          toast("已写入交付清单（含中文对照）！", "success");
         });
       }
     };
@@ -308,9 +513,22 @@ export function renderM7_M8(pageId, state, helpers) {
   // ==================== M7-2: 主图与详情套图制作（1+4 差异构图 + 局部对比 + ComfyUI/IPTC） ====================
   if (pageId === "m7b") {
     const canCreate = state.role === "creator" || state.role === "approver";
-    const pickedImg = state.m7Images[state.m7PickedImgIdx] || state.m7Images[0];
+    const pickedIdx = Number(state.m7PickedImgIdx) || 0;
+    const pickedImg = state.m7Images[pickedIdx] || state.m7Images[0];
     const prodImg = getProductImg(curM7Prod.sku, curM7Prod.name, curM7Prod.category);
     const anyImgDone = state.m7Images.some(x => x.done);
+    if (!Array.isArray(state.m7ImgBriefs) || state.m7ImgBriefs.length !== 5) {
+      state.m7ImgBriefs = [...DEFAULT_M7_IMG_BRIEFS];
+    }
+    const curSlotBrief = state.m7ImgBriefs[pickedIdx] ?? DEFAULT_M7_IMG_BRIEFS[pickedIdx];
+    const platPrefix = state.m7Platform === "亚马逊美国站"
+      ? "Amazon US Compliance (Pure #FFFFFF Main, No Promotional Badges, 2000x2000px)"
+      : state.m7Platform === "TikTok 美区"
+        ? "TikTok Shop US High-Contrast Lifestyle Framing, 1:1 Mobile-First"
+        : "Shopee TH Clean Studio + Bilingual Infographic Callout Ready";
+    const wfStyleToken = state.m7ImgWorkflow.includes("场景")
+      ? "warm editorial daylight, lifestyle home interior, soft depth-of-field"
+      : "clean commercial studio lighting, sharp product silhouette, crisp commercial shadows";
 
     return {
       headerActions: [
@@ -332,7 +550,7 @@ export function renderM7_M8(pageId, state, helpers) {
                   im.edited = false;
                   im.editNote = idx === 0 ? `白底棚拍主图 v${state.m7ImgVersion}` : `第 ${state.m7ImgVersion} 版差异化附图`;
                 });
-                return { summary: `已生成 5 张不同构图电商套图（第 ${state.m7ImgVersion} 版），可点击单张查看或局部修改`, toastMsg: "1+4 差异化套图生成完成 ✓" };
+                return { summary: `已生成 5 张不同构图电商套图（第 ${state.m7ImgVersion} 版 · 演示图），可查看下方参数编排或点击单张局部修改`, toastMsg: "1+4 差异化套图生成完成 ✓" };
               }
             });
           }
@@ -358,10 +576,17 @@ export function renderM7_M8(pageId, state, helpers) {
                 <option ${state.m7ImgWorkflow.includes("场景")?"selected":""}>欧美居家生活方式高转化套图模板</option>
               </select>
             </div>
-            <div class="field"><label>画面设计要求说明</label><textarea class="textarea">图1纯白棚拍占85%；图2居家实景；图3双卖点标注；图4长宽高净重标尺；图5主机配件清单。</textarea></div>
+            <div class="field">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <label style="margin:0;">画面设计要求说明（当前图位：${pickedImg.label}）</label>
+                <button type="button" class="btn btn-sm" id="m7ResetBriefBtn">↺ 恢复推荐文案</button>
+              </div>
+              <textarea id="m7ImgBriefInput" class="textarea" rows="3">${curSlotBrief}</textarea>
+              <div style="font-size:11.5px;color:var(--text-soft);margin-top:4px;">支持按图位独立编辑（点击右侧任意图位切换，实时保存至当前图位）。</div>
+            </div>
             <div class="formula-box" style="margin-bottom:10px;">
               <strong>当前选中图位：</strong>${pickedImg.label}<br/>
-              当前状态：<strong>${pickedImg.done ? (pickedImg.edited ? "✓ 已完成局部精修对比" : "✓ 已生成差异化套图") : "待生成（请点右上角生成按钮）"}</strong>
+              当前状态：<strong>${pickedImg.done ? (pickedImg.edited ? "✓ 已完成局部精修对比（演示图）" : "✓ 已生成差异化套图（演示图）") : "待生成（请点右上角生成按钮）"}</strong>
             </div>
             <button class="btn btn-primary" id="m7EditPickedBtn" style="width:100%;justify-content:center;margin-bottom:8px;" ${(!canCreate || !pickedImg.done)?"disabled":""}>✏️ 局部修改当前选中图位（修改前后对比）</button>
             <button class="btn btn-sm" id="m7GotoM7c" style="width:100%;justify-content:center;">进入第 3 步：制作短视频与 A+ 详情页 →</button>
@@ -369,8 +594,8 @@ export function renderM7_M8(pageId, state, helpers) {
 
           <div class="card">
             <div class="card-header">
-              <div class="card-title">1 张白底主图 + 4 张不同构图附图（第 ${state.m7ImgVersion} 版）</div>
-              <span class="pill ${anyImgDone?"p-green":"p-amber"}">${anyImgDone?"5 张已差异化出图":"待点击右上角生成套图"}</span>
+              <div class="card-title">1 张白底主图 + 4 张不同构图附图（第 ${state.m7ImgVersion} 版 · 演示图）</div>
+              <span class="pill ${anyImgDone?"p-green":"p-amber"}">${anyImgDone?"5 张已出图 (演示图)":"待点击右上角生成套图"}</span>
             </div>
 
             ${!anyImgDone ? `
@@ -386,13 +611,14 @@ export function renderM7_M8(pageId, state, helpers) {
                   const m = state.m7Images[0];
                   const slot0Url = getM7SlotImg(curM7Prod, 0, m.edited);
                   return `
-                    <div class="gal-tile large ${state.m7PickedImgIdx===0?"picked":""}" data-imgi="0">
-                      <div class="gal-canvas" style="background:#fff;">
+                    <div class="gal-tile large ${pickedIdx===0?"picked":""}" data-imgi="0">
+                      <div class="gal-canvas" style="background:#fff;position:relative;">
+                        <span class="pill p-gray" style="position:absolute;top:8px;left:8px;font-size:10.5px;">演示图</span>
                         <img src="${slot0Url}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;" alt="${m.label}"/>
                       </div>
                       <div style="display:flex;justify-content:space-between;align-items:center;">
                         <div><strong>${m.label}</strong> <span style="font-size:12px;color:var(--text-soft)">${m.editNote}</span></div>
-                        <span class="pill p-green">${m.edited?"已局部精修 ✓":"主图 ✓"}</span>
+                        <span class="pill p-green">${m.edited?"已局部精修 ✓":"主图 · 演示图"}</span>
                       </div>
                     </div>
                   `;
@@ -403,13 +629,14 @@ export function renderM7_M8(pageId, state, helpers) {
                     const realIdx = idx + 1;
                     const slotUrl = getM7SlotImg(curM7Prod, realIdx, m.edited);
                     return `
-                      <div class="gal-tile ${state.m7PickedImgIdx===realIdx?"picked":""}" data-imgi="${realIdx}">
-                        <div class="gal-canvas" style="background:#f8fafc;">
+                      <div class="gal-tile ${pickedIdx===realIdx?"picked":""}" data-imgi="${realIdx}">
+                        <div class="gal-canvas" style="background:#f8fafc;position:relative;">
+                          <span class="pill p-gray" style="position:absolute;top:6px;left:6px;font-size:10px;">演示图</span>
                           <img src="${slotUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:6px;" alt="${m.label}"/>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
                           <strong style="font-size:12px;">${m.label}</strong>
-                          <span class="pill p-green">${m.edited?"已精修✓":"已出图✓"}</span>
+                          <span class="pill p-green">${m.edited?"已精修✓":"演示图✓"}</span>
                         </div>
                       </div>
                     `;
@@ -419,6 +646,34 @@ export function renderM7_M8(pageId, state, helpers) {
             `}
           </div>
         </div>
+
+        ${anyImgDone ? `
+          <div class="card" style="margin-top:14px;">
+            <div class="card-header">
+              <div class="card-title">🧩 系统 Prompt 编排可视化（业务语言 → 图像参数）</div>
+              <span class="pill p-amber">演示模拟：以下参数为系统拼接示意，未调用真实图像服务</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+              展示系统如何把「平台合规前缀 (${state.m7Platform}) + 模板 (${state.m7ImgWorkflow}) + 各图位设计要求说明」拼接为 5 张图的生图参数：
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              ${state.m7Images.map((im, i) => {
+                const slotText = state.m7ImgBriefs[i] || DEFAULT_M7_IMG_BRIEFS[i];
+                const assembled = `[${platPrefix}] + [${wfStyleToken}] + [Subject: ${curM7Prod.sku} ${curM7Prod.name}] + [Slot ${i + 1} (${im.label}): ${slotText}]`;
+                return `
+                  <div style="padding:9px 12px;border-radius:8px;border:1px solid ${pickedIdx===i?"var(--blue)":"var(--border)"};background:${pickedIdx===i?"#eff6ff":"#f8fafc"};font-size:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                      <strong>图位 ${i + 1} · ${im.label}</strong>
+                      <span class="pill p-gray">演示模拟参数</span>
+                    </div>
+                    <div style="color:var(--text-muted);margin-bottom:4px;"><strong>你的业务要求：</strong>${slotText}</div>
+                    <div style="font-family:ui-monospace,monospace;font-size:11.5px;background:#fff;padding:6px 8px;border-radius:6px;border:1px solid var(--border);word-break:break-word;">${assembled}</div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        ` : ""}
 
         <div class="grid-2" style="margin-top:14px;">
           <div class="card">
@@ -486,8 +741,29 @@ export function renderM7_M8(pageId, state, helpers) {
       `,
       bind: () => {
         bindM7StepBar(state, curM7Prod, goPage, rerender, toast);
-        document.getElementById("m7ImgWfSel").onchange = (e) => { state.m7ImgWorkflow = e.target.value; };
-        document.querySelectorAll(".gal-tile").forEach(el => el.onclick = () => { state.m7PickedImgIdx = Number(el.dataset.imgi); rerender(); });
+        document.getElementById("m7ImgWfSel").onchange = (e) => { state.m7ImgWorkflow = e.target.value; rerender(); };
+        const briefEl = document.getElementById("m7ImgBriefInput");
+        if (briefEl) {
+          briefEl.oninput = (e) => {
+            state.m7ImgBriefs[pickedIdx] = e.target.value;
+            state.m7ImgBrief = e.target.value;
+          };
+        }
+        const resetBriefBtn = document.getElementById("m7ResetBriefBtn");
+        if (resetBriefBtn) {
+          resetBriefBtn.onclick = () => {
+            state.m7ImgBriefs[pickedIdx] = DEFAULT_M7_IMG_BRIEFS[pickedIdx];
+            state.m7ImgBrief = DEFAULT_M7_IMG_BRIEFS[pickedIdx];
+            rerender();
+            toast(`已恢复「${pickedImg.label}」推荐设计要求说明`, "info");
+          };
+        }
+        document.querySelectorAll(".gal-tile").forEach(el => el.onclick = () => {
+          const nextIdx = Number(el.dataset.imgi);
+          state.m7PickedImgIdx = nextIdx;
+          state.m7ImgBrief = state.m7ImgBriefs[nextIdx] || DEFAULT_M7_IMG_BRIEFS[nextIdx];
+          rerender();
+        });
         document.getElementById("m7GotoM7c").onclick = () => goPage("m7c");
         const empImgBtn = document.getElementById("m7EmptyImgGenBtn");
         if (empImgBtn) empImgBtn.onclick = () => {
@@ -498,7 +774,7 @@ export function renderM7_M8(pageId, state, helpers) {
             onSuccess: () => {
               state.m7ImgVersion += 1;
               state.m7Images.forEach((im, idx) => { im.done = true; im.edited = false; im.editNote = idx===0 ? `白底棚拍主图 v${state.m7ImgVersion}` : `第 ${state.m7ImgVersion} 版差异化附图`; });
-              return { summary: "已完成 5 张差异化套图生成", toastMsg: "1+4 差异化套图已就绪 ✓" };
+              return { summary: "已完成 5 张差异化套图生成（演示图）", toastMsg: "1+4 差异化套图已就绪 ✓" };
             }
           });
         };
@@ -626,9 +902,13 @@ export function renderM7_M8(pageId, state, helpers) {
                   <div class="vid-player-frame">
                     <div class="vid-stage" style="background:${curSeg.bg};">
                       <span class="pill p-blue" style="position:absolute;top:10px;left:10px;">${curSeg.range} · ${curSeg.title}</span>
+                      <span class="pill p-gray" style="position:absolute;top:38px;left:10px;font-size:10.5px;">演示视频</span>
                       <span class="pill ${state.m7VidPlaying?"p-green":"p-gray"}" style="position:absolute;top:10px;right:10px;">${state.m7VidPlaying?"● 播放中":"⏸ 已暂停"}</span>
                       <img src="${curFrameImg}" alt="${curM7Prod.name}" style="${state.m7VidPlaying?"transform:scale(1.06);transition:transform 0.6s ease;":""}"/>
                       <div class="vid-sub-bar">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:2px;">
+                          <span style="font-size:10px;color:#93c5fd;">字幕取自你选定的文案（演示示意）</span>
+                        </div>
                         <div style="font-weight:700;">${curSeg.subEN}</div>
                         <div style="font-size:11px;color:#cbd5e1;">${curSeg.subCN}</div>
                       </div>
@@ -648,6 +928,16 @@ export function renderM7_M8(pageId, state, helpers) {
                         <strong>${sg.range}</strong> · ${sg.title}（${sg.subCN}）
                       </button>
                     `).join("")}
+                    <div style="font-size:12px;color:var(--text-muted);background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 10px;line-height:1.6;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <strong>🎞️ 本视频使用的素材来源</strong>
+                        <span class="pill p-gray" style="font-size:10.5px;">仅展示来源关系，当前为演示图</span>
+                      </div>
+                      • 0-5s 分镜1 → M7-2 图位2（使用场景图 · 演示图）<br/>
+                      • 5-10s 分镜2 → M7-2 图位3（核心卖点标注图 · 演示图）<br/>
+                      • 10-15s 分镜3 → M7-2 图位5（包装清单图 · 演示图）<br/>
+                      <span style="color:var(--text-soft);">• 字幕来源：字幕取自你选定的文案（展示映射关系，当前分镜脚本为演示文案）</span>
+                    </div>
                     <div style="font-size:12px;color:var(--text-muted);background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 10px;line-height:1.6;">
                       <strong>分镜一致性校验：</strong>3 段镜头主体外观一致 ✓<br/>
                       ${(state.m7VidLogs || []).slice(-2).join("<br/>")}
@@ -809,9 +1099,32 @@ export function renderM7_M8(pageId, state, helpers) {
     ];
     const doneCnt = checklist.filter(c => c.done).length;
 
+    const extChecklist = [
+      { label: "扩展 1. 使用说明与 FAQ", tab: "使用说明与FAQ", val: state.m7SelectedFaq },
+      { label: "扩展 2. A+ 模块文案", tab: "A+模块文案", val: state.m7SelectedAplusCopy },
+      { label: "扩展 3. 规格变体命名", tab: "规格变体命名", val: state.m7SelectedVariantCopy },
+      { label: "扩展 4. 后台属性说明", tab: "后台属性说明", val: state.m7SelectedAttrCopy },
+      { label: "扩展 5. 图片 ALT 文本", tab: "图片ALT文本", val: state.m7SelectedAltCopy },
+      { label: "扩展 6. 认证与保修说明", tab: "认证与保修说明", val: state.m7SelectedWarrantyCopy },
+    ];
+    const extDoneCnt = extChecklist.filter(x => !!x.val).length;
+    const m0Prod = state.masterProducts.find(p => p.sku === curM7Prod.sku) || null;
+    const buyerImgIdx = Math.min(4, Math.max(0, Number(state.m7BuyerImgIdx) || 0));
+    const buyerVarList = Array.isArray(m0Prod?.variants) && m0Prod.variants.length ? m0Prod.variants : null;
+    const buyerVarIdx = buyerVarList ? Math.min(buyerVarList.length - 1, Math.max(0, Number(state.m7BuyerVariantIdx) || 0)) : 0;
+    const activeVariant = buyerVarList ? buyerVarList[buyerVarIdx] : null;
+    const activePrice = activeVariant?.priceUsd ?? m0Prod?.salePriceUsd ?? null;
+    const activeListPrice = activeVariant?.listPriceUsd ?? m0Prod?.listPriceUsd ?? null;
+    const activeStock = activeVariant?.stock ?? m0Prod?.stockQty ?? null;
+    const discountPct = (activePrice && activeListPrice && activeListPrice > activePrice)
+      ? Math.round((1 - activePrice / activeListPrice) * 100)
+      : null;
+
+    const m0MissingBadge = `<button type="button" class="btn btn-sm m7d-jmp" data-pg="m0b" style="padding:2px 8px;font-size:11.5px;color:#b45309;background:#fffbeb;border-color:#fcd34d;">待补（去 M0-2）</button>`;
+
     const downloadDeliverableHtml = () => {
       if (typeof Blob === "undefined" || typeof URL === "undefined" || !URL.createObjectURL) return;
-      const htmlDoc = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"/><title>${curM7Prod.sku} 合规上架素材交付包</title><style>body{font-family:sans-serif;max-width:960px;margin:24px auto;padding:0 16px;color:#0f172a}h1{font-size:22px}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.card{border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:14px}img{width:100%;border-radius:6px;border:1px solid #e2e8f0}</style></head><body><h1>CrossPilot 合规上架素材交付包 · ${curM7Prod.sku} ${curM7Prod.name}</h1><p>目标平台：${state.m7Platform} ｜ 类目：${state.m7ComplianceCategory} ｜ 批准主管：${state.m7ApprovalRecord?.approver || "已校验"} (${nowDateTimeStr()})</p><div class="card"><h2>1. 多语言商品文案 (4/4)</h2><p><strong>标题：</strong>${state.m7SelectedTitle || "未填"}</p><p><strong>五点：</strong>${state.m7SelectedBullets || "未填"}</p><p><strong>详情：</strong>${state.m7SelectedDesc || "未填"}</p><p><strong>搜索词：</strong>${state.m7SelectedKeywords || "未填"}</p></div><div class="card"><h2>2. 1+4 差异化电商套图 (5/5)</h2><div class="grid">${state.m7Images.map((m, i) => `<div><img src="${getM7SlotImg(curM7Prod, i, m.edited)}"/><div style="font-size:12px;margin-top:4px;">${m.label}</div></div>`).join("")}</div></div><div class="card"><h2>3. A+ 详情与短视频交付</h2><p>A+ 图文长页：${state.m7AplusDone ? "已包含" : "未生成"} ｜ 15秒短视频：${state.m7VidDone ? state.m7VidType + " (3段分镜)" : "未生成"}</p></div></body></html>`;
+      const htmlDoc = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"/><title>${curM7Prod.sku} 合规上架素材交付包</title><style>body{font-family:sans-serif;max-width:960px;margin:24px auto;padding:0 16px;color:#0f172a}h1{font-size:22px}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.card{border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:14px}img{width:100%;border-radius:6px;border:1px solid #e2e8f0}.cn{color:#475569;font-size:13px;margin-top:4px}</style></head><body><h1>CrossPilot 合规上架素材交付包 · ${curM7Prod.sku} ${curM7Prod.name}</h1><p>目标平台：${state.m7Platform} ｜ 类目：${state.m7ComplianceCategory} ｜ 批准主管：${state.m7ApprovalRecord?.approver || "已校验"} (${nowDateTimeStr()})</p><div class="card"><h2>1. 多语言商品文案 (核心 4/4 + 扩展 ${extDoneCnt}/6)</h2><p><strong>标题：</strong>${state.m7SelectedTitle || "未填"}</p>${state.m7SelectedTitleCn?`<div class="cn">${state.m7SelectedTitleCn}</div>`:""}<p><strong>五点：</strong>${state.m7SelectedBullets || "未填"}</p>${state.m7SelectedBulletsCn?`<div class="cn">${state.m7SelectedBulletsCn}</div>`:""}<p><strong>详情：</strong>${state.m7SelectedDesc || "未填"}</p>${state.m7SelectedDescCn?`<div class="cn">${state.m7SelectedDescCn}</div>`:""}<p><strong>搜索词：</strong>${state.m7SelectedKeywords || "未填"}</p>${state.m7SelectedKeywordsCn?`<div class="cn">${state.m7SelectedKeywordsCn}</div>`:""}</div><div class="card"><h2>2. 1+4 差异化电商套图 (5/5 · 演示图)</h2><div class="grid">${state.m7Images.map((m, i) => `<div><img src="${getM7SlotImg(curM7Prod, i, m.edited)}"/><div style="font-size:12px;margin-top:4px;">${m.label}</div></div>`).join("")}</div></div><div class="card"><h2>3. A+ 详情与短视频交付</h2><p>A+ 图文长页：${state.m7AplusDone ? "已包含" : "未生成"} ｜ 15秒短视频：${state.m7VidDone ? state.m7VidType + " (3段分镜)" : "未生成"}</p></div></body></html>`;
       const blob = new Blob([htmlDoc], { type: "text/html;charset=utf-8" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -823,6 +1136,7 @@ export function renderM7_M8(pageId, state, helpers) {
 
     return {
       headerActions: [
+        { label: state.m7ShowCN ? "🈶 隐藏中文对照" : "🈶 显示中文对照", primary: false, onClick: () => { state.m7ShowCN = !state.m7ShowCN; rerender(); } },
         { label: "← 第 3 步：视频与 A+", primary: false, onClick: () => goPage("m7c") },
         {
           label: "📦 导出合规上架素材包", primary: true,
@@ -838,14 +1152,14 @@ export function renderM7_M8(pageId, state, helpers) {
                   • <strong>归属商品：</strong>${curM7Prod.sku} · ${curM7Prod.name}<br/>
                   • <strong>适用站点与规则：</strong>${state.m7Platform} · ${state.m7ComplianceCategory}（${activeRule.ver}）<br/>
                   • <strong>批准主管：</strong>${state.m7ApprovalRecord?.approver}（${state.m7ApprovalRecord?.time}）<br/>
-                  • <strong>导出包清单 (${doneCnt}/8 类)：</strong>多语言文案 4 类 + 1+4 差异化套图 + A+图文页面 + 15s 分镜视频
+                  • <strong>导出包清单 (8+${extDoneCnt} 类)：</strong>核心 8 类资产 + ${extDoneCnt} 项扩展上架文案
                 </div>
               `,
               onConfirm: () => {
                 downloadDeliverableHtml();
-                return { toastMsg: `已下载 ${curM7Prod.sku}_合规上架素材包.html (${doneCnt}/8 类资产)` };
+                return { toastMsg: `已下载 ${curM7Prod.sku}_合规上架素材包.html (8+${extDoneCnt} 类资产)` };
               },
-              audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 导出了 ${curM7Prod.sku} 的合规上架素材包（共 ${doneCnt}/8 类资产）`, ok: true }
+              audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 导出了 ${curM7Prod.sku} 的合规上架素材包（核心 8/8 + 扩展 ${extDoneCnt}/6）`, ok: true }
             });
           }
         }
@@ -860,11 +1174,14 @@ export function renderM7_M8(pageId, state, helpers) {
                 <strong style="font-size:16px;">${curM7Prod.sku} · ${curM7Prod.name} (${state.m7Platform}) 成品总览</strong>
                 <div style="font-size:12px;color:var(--text-soft);">${state.m7Lang} · ${curM7Prod.origin==="M4_APPROVED"?"✓ 来自 M4 主管已同意测款":"在售老品翻新"}</div>
               </div>
-              <span class="pill ${doneCnt===8?"p-green":"p-amber"}">${doneCnt}/8 已制作完成</span>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span class="pill ${doneCnt===8?"p-green":"p-amber"}">${doneCnt}/8 已制作完成</span>
+                ${extDoneCnt > 0 ? `<span class="pill p-blue">+${extDoneCnt} 扩展</span>` : ""}
+              </div>
             </div>
 
             <div class="utabs" style="margin-bottom:12px;">
-              ${["主图/附图", "商品文案", "后台搜索词", "A+ 图文", "种草视频"].map(tb => `
+              ${["主图/附图", "商品文案", "后台搜索词", "A+ 图文", "种草视频", "买家视角预览"].map(tb => `
                 <div class="utab ${state.m7PreviewTab===tb?"active":""} m7d-ptab" data-t="${tb}">${tb}</div>
               `).join("")}
             </div>
@@ -878,13 +1195,19 @@ export function renderM7_M8(pageId, state, helpers) {
               ` : `
                 <div class="gallery-1plus4">
                   <div class="gal-tile large picked">
-                    <div class="gal-canvas"><img src="${getM7SlotImg(curM7Prod, 0, state.m7Images[0].edited)}" style="width:100%;height:100%;object-fit:contain;" alt="商品主图 1"/></div>
+                    <div class="gal-canvas" style="position:relative;">
+                      <span class="pill p-gray" style="position:absolute;top:8px;left:8px;font-size:10.5px;">演示图</span>
+                      <img src="${getM7SlotImg(curM7Prod, 0, state.m7Images[0].edited)}" style="width:100%;height:100%;object-fit:contain;" alt="商品主图 1"/>
+                    </div>
                     <div style="font-size:12.5px;"><strong>${state.m7Images[0].label}</strong> (${state.m7Images[0].editNote})</div>
                   </div>
                   <div class="gallery-4small">
                     ${state.m7Images.slice(1).map((m, idx) => `
                       <div class="gal-tile">
-                        <div class="gal-canvas"><img src="${getM7SlotImg(curM7Prod, idx + 1, m.edited)}" style="width:100%;height:100%;object-fit:contain;opacity:${m.done?1:0.25};" alt="${m.label}"/></div>
+                        <div class="gal-canvas" style="position:relative;">
+                          <span class="pill p-gray" style="position:absolute;top:6px;left:6px;font-size:10px;">演示图</span>
+                          <img src="${getM7SlotImg(curM7Prod, idx + 1, m.edited)}" style="width:100%;height:100%;object-fit:contain;opacity:${m.done?1:0.25};" alt="${m.label}"/>
+                        </div>
                         <span style="font-size:12px;">${m.label} ${m.done?"✓":"(缺)"}</span>
                       </div>
                     `).join("")}
@@ -893,14 +1216,33 @@ export function renderM7_M8(pageId, state, helpers) {
               `}
             ` : state.m7PreviewTab === "商品文案" ? `
               <div style="display:flex;flex-direction:column;gap:10px;background:#f8fafc;padding:14px;border-radius:9px;border:1px solid var(--border);">
-                <div><span class="pill p-blue">商品标题</span><div style="font-weight:700;margin-top:4px;">${state.m7SelectedTitle || "（未写入，请去第 1 步选定）"}</div></div>
-                <div><span class="pill p-blue">五点描述</span><div style="margin-top:4px;">${state.m7SelectedBullets || "（未写入，请去第 1 步选定）"}</div></div>
-                <div><span class="pill p-blue">商品详情描述</span><div style="margin-top:4px;">${state.m7SelectedDesc || "（未写入，请去第 1 步选定）"}</div></div>
+                <div>
+                  <span class="pill p-blue">商品标题</span>
+                  <div style="font-weight:700;margin-top:4px;">${state.m7SelectedTitle || "（未写入，请去第 1 步选定）"}</div>
+                  ${state.m7ShowCN && state.m7SelectedTitleCn ? `<div style="font-size:12.5px;color:var(--text-muted);margin-top:3px;">${state.m7SelectedTitleCn}</div>` : ""}
+                </div>
+                <div>
+                  <span class="pill p-blue">五点描述</span>
+                  <div style="margin-top:4px;">${state.m7SelectedBullets || "（未写入，请去第 1 步选定）"}</div>
+                  ${state.m7ShowCN && state.m7SelectedBulletsCn ? `<div style="font-size:12.5px;color:var(--text-muted);margin-top:3px;">${state.m7SelectedBulletsCn}</div>` : ""}
+                </div>
+                <div>
+                  <span class="pill p-blue">商品详情描述</span>
+                  <div style="margin-top:4px;">${state.m7SelectedDesc || "（未写入，请去第 1 步选定）"}</div>
+                  ${state.m7ShowCN && state.m7SelectedDescCn ? `<div style="font-size:12.5px;color:var(--text-muted);margin-top:3px;">${state.m7SelectedDescCn}</div>` : ""}
+                </div>
+                ${extDoneCnt > 0 ? `
+                  <div style="border-top:1px dashed var(--border-strong);padding-top:10px;margin-top:4px;">
+                    <span class="pill p-purple">已选扩展文案 (${extDoneCnt}/6)</span>
+                    ${extChecklist.filter(x=>x.val).map(x => `<div style="font-size:12.5px;margin-top:6px;"><strong>${x.label}：</strong>${x.val}</div>`).join("")}
+                  </div>
+                ` : ""}
               </div>
             ` : state.m7PreviewTab === "后台搜索词" ? `
               <div style="background:#f8fafc;padding:14px;border-radius:9px;border:1px solid var(--border);">
                 <span class="pill p-purple">后台搜索词</span>
                 <div style="margin-top:8px;">${state.m7SelectedKeywords || "（未写入，请去第 1 步选定）"}</div>
+                ${state.m7ShowCN && state.m7SelectedKeywordsCn ? `<div style="font-size:12.5px;color:var(--text-muted);margin-top:6px;">${state.m7SelectedKeywordsCn}</div>` : ""}
               </div>
             ` : state.m7PreviewTab === "A+ 图文" ? `
               ${state.m7AplusDone ? `
@@ -911,16 +1253,142 @@ export function renderM7_M8(pageId, state, helpers) {
                   </div>
                 </div>
               ` : `<div style="padding:24px;text-align:center;background:#f8fafc;border-radius:8px;">A+ 图文尚未生成，可在右侧清单直接一键生成。</div>`}
-            ` : `
+            ` : state.m7PreviewTab === "种草视频" ? `
               ${state.m7VidDone ? `
                 <div class="vid-player-frame">
                   <div class="vid-stage" style="height:210px;background:linear-gradient(135deg,#0f172a,#1e3a8a);">
-                    <span class="pill p-green" style="position:absolute;top:10px;left:10px;">15s 成品可交付 (${state.m7VidType})</span>
+                    <span class="pill p-green" style="position:absolute;top:10px;left:10px;">15s 成品可交付 (${state.m7VidType}) · 演示视频</span>
                     <img src="${getM7SlotImg(curM7Prod, 2, false)}" alt="${curM7Prod.name}"/>
                     <div class="vid-sub-bar"><strong>${curM7Prod.sku} · 3段分镜双语字幕成片</strong></div>
                   </div>
                 </div>
               ` : `<div style="padding:24px;text-align:center;background:#f8fafc;border-radius:8px;">短视频尚未生成，请前往第 3 步生成。</div>`}
+            ` : `
+              <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;">
+                <div style="background:#fffbeb;border-bottom:1px solid #fde68a;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                  <div style="font-size:12.5px;font-weight:700;color:#92400e;">🛍️ 买家视角预览 · 预览，尚未发布（模拟 ${state.m7Platform} 详情页排版，非真实上架）</div>
+                  <span class="pill p-amber">${m0Prod?.demoNote ? `含 M0-2 ${m0Prod.demoNote}` : "按 M0-2 商品主档实时渲染"}</span>
+                </div>
+
+                <div style="padding:14px;display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:16px;align-items:start;">
+                  <div>
+                    ${!state.m7Images.some(x=>x.done) ? `
+                      <div style="padding:28px 12px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:8px;">
+                        <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">商品主图与附图待生成</div>
+                        <button type="button" class="btn btn-primary btn-sm m7d-jmp" data-pg="m7b">待补（去 M7-2）</button>
+                      </div>
+                    ` : `
+                      <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:#fff;position:relative;text-align:center;">
+                        <span class="pill p-gray" style="position:absolute;top:8px;left:8px;font-size:10px;">演示图</span>
+                        <img src="${getM7SlotImg(curM7Prod, buyerImgIdx, state.m7Images[buyerImgIdx]?.edited)}" style="width:100%;max-height:240px;object-fit:contain;" alt="买家视角主图"/>
+                      </div>
+                      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px;">
+                        ${state.m7Images.map((m, idx) => `
+                          <button type="button" class="m7d-buyer-thumb" data-idx="${idx}" style="border:2px solid ${buyerImgIdx===idx?"var(--blue)":"var(--border)"};border-radius:6px;padding:2px;background:#fff;cursor:pointer;opacity:${m.done?1:0.35};">
+                            <img src="${getM7SlotImg(curM7Prod, idx, m.edited)}" style="width:100%;height:42px;object-fit:contain;" alt="${m.label}"/>
+                          </button>
+                        `).join("")}
+                      </div>
+                      <div style="font-size:11.5px;color:var(--text-soft);margin-top:6px;">当前预览：${state.m7Images[buyerImgIdx]?.label}（点击缩略图切换 · 演示图）</div>
+                    `}
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div style="border-bottom:1px solid var(--border);padding-bottom:10px;">
+                      <div style="font-size:11.5px;color:var(--text-soft);margin-bottom:2px;">1. 商品标题 · Brand: ${m0Prod?.brand || m0MissingBadge}</div>
+                      ${state.m7SelectedTitle ? `
+                        <div style="font-size:16px;font-weight:800;line-height:1.4;">${state.m7SelectedTitle}</div>
+                        ${state.m7ShowCN && state.m7SelectedTitleCn ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;">${state.m7SelectedTitleCn}</div>` : ""}
+                      ` : `<div style="font-size:13px;color:#b45309;">尚未选定商品标题 <button type="button" class="btn btn-sm m7d-jmp" data-pg="m7a" style="margin-left:6px;">去 M7-1 选定 →</button></div>`}
+                    </div>
+
+                    <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+                      <div style="font-size:11.5px;color:var(--text-soft);margin-bottom:4px;">2. 售价 / 划线价 / 实时折扣与库存（联动 M0-2 ${m0Prod?.demoNote ? "· 演示数据" : ""}）</div>
+                      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+                        ${activePrice != null ? `<span style="font-size:22px;font-weight:800;color:#b91c1c;">$${Number(activePrice).toFixed(2)}</span>` : m0MissingBadge}
+                        ${activeListPrice != null ? `<span style="font-size:13px;color:var(--text-soft);text-decoration:line-through;">$${Number(activeListPrice).toFixed(2)}</span>` : `<span style="font-size:12px;">划线价：${m0MissingBadge}</span>`}
+                        ${discountPct != null ? `<span class="pill p-red">-${discountPct}% OFF</span>` : ""}
+                        <span style="font-size:12px;color:var(--green-text);font-weight:700;">库存：${activeStock != null ? `${activeStock} 件可售` : m0MissingBadge}</span>
+                      </div>
+                    </div>
+
+                    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:#f8fafc;border:1px solid var(--border);font-size:12px;color:var(--text-muted);">
+                      <strong>3. 买家评分与累计销量：</strong>
+                      <span>暂无评分与销量（上架后由平台生成）</span>
+                    </div>
+
+                    <div>
+                      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">4. 规格变体选择（联动 M0-2）：</div>
+                      ${buyerVarList ? `
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                          ${buyerVarList.map((v, vi) => `
+                            <button type="button" class="btn btn-sm m7d-buyer-var ${buyerVarIdx===vi?"btn-primary":""}" data-vi="${vi}">
+                              ${v.name} · $${Number(v.priceUsd).toFixed(2)}
+                            </button>
+                          `).join("")}
+                        </div>
+                      ` : `<div>${m0MissingBadge}</div>`}
+                      ${state.m7SelectedVariantCopy ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;">文案变体命名：${state.m7SelectedVariantCopy}</div>` : ""}
+                    </div>
+
+                    <div>
+                      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">5. 关键属性表（联动 M0-2 商品主档${m0Prod?.demoNote ? " · 演示数据" : ""}）：</div>
+                      <div class="table-wrap">
+                        <table>
+                          <tbody>
+                            <tr><td><strong>品牌 Brand</strong></td><td>${m0Prod?.brand || m0MissingBadge}</td><td><strong>容量 Capacity</strong></td><td>${m0Prod?.capacity || m0MissingBadge}</td></tr>
+                            <tr><td><strong>材质 Material</strong></td><td>${m0Prod?.material || m0MissingBadge}</td><td><strong>颜色 Color</strong></td><td>${m0Prod?.color || m0MissingBadge}</td></tr>
+                            <tr><td><strong>尺寸 Dimensions</strong></td><td>${m0Prod?.dimensions || m0MissingBadge}</td><td><strong>瓦数 Wattage</strong></td><td>${m0Prod?.wattage || m0MissingBadge}</td></tr>
+                            <tr><td><strong>重量 Weight</strong></td><td>${m0Prod?.weightLbs || m0MissingBadge}</td><td><strong>控制方式 Control</strong></td><td>${m0Prod?.controlMethod || m0MissingBadge}</td></tr>
+                            <tr><td><strong>核心功能 Features</strong></td><td colspan="3">${m0Prod?.features || m0MissingBadge}</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      ${state.m7SelectedAttrCopy ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;">已选后台属性说明：${state.m7SelectedAttrCopy}</div>` : ""}
+                    </div>
+
+                    <div>
+                      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">6. 五点核心卖点 (About this item)：</div>
+                      ${state.m7SelectedBullets ? `
+                        <div style="font-size:13px;line-height:1.5;background:#f8fafc;padding:8px 10px;border-radius:6px;">
+                          ${state.m7SelectedBullets}
+                          ${state.m7ShowCN && state.m7SelectedBulletsCn ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${state.m7SelectedBulletsCn}</div>` : ""}
+                        </div>
+                      ` : `<button type="button" class="btn btn-sm m7d-jmp" data-pg="m7a">待选定五点描述（去 M7-1）→</button>`}
+                    </div>
+
+                    <div>
+                      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">7. 商品详细描述：</div>
+                      ${state.m7SelectedDesc ? `
+                        <div style="font-size:13px;line-height:1.5;background:#f8fafc;padding:8px 10px;border-radius:6px;">
+                          ${state.m7SelectedDesc}
+                          ${state.m7ShowCN && state.m7SelectedDescCn ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${state.m7SelectedDescCn}</div>` : ""}
+                        </div>
+                      ` : `<button type="button" class="btn btn-sm m7d-jmp" data-pg="m7a">待选定商品描述（去 M7-1）→</button>`}
+                    </div>
+
+                    <div>
+                      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">8. A+ 品牌图文详情模块：</div>
+                      ${state.m7AplusDone ? `
+                        <div class="aplus-hero" style="padding:10px 12px;">
+                          <div><strong style="font-size:13px;">${curM7Prod.name} · A+ Story</strong><div style="font-size:11.5px;color:#cbd5e1;margin-top:2px;">${state.m7SelectedAplusCopy || "已配置品牌横幅 + 场景卖点 + 参数对比表"}</div></div>
+                          <img src="${getM7SlotImg(curM7Prod, 1, false)}" style="width:58px;height:58px;border-radius:6px;background:#fff;" alt="A+缩略"/>
+                        </div>
+                      ` : `<button type="button" class="btn btn-sm m7d-jmp" data-pg="m7c">待生成 A+ 图文（去 M7-3）→</button>`}
+                    </div>
+
+                    <div>
+                      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">9. 商品主图视频 (15s)：</div>
+                      ${state.m7VidDone ? `
+                        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:#0f172a;color:#fff;font-size:12px;">
+                          <span class="pill p-green">▶ 15s 演示视频</span>
+                          <span>${state.m7VidType} · 3段分镜双语字幕成片</span>
+                        </div>
+                      ` : `<button type="button" class="btn btn-sm m7d-jmp" data-pg="m7c">待生成 15s 短视频（去 M7-3）→</button>`}
+                    </div>
+                  </div>
+                </div>
+              </div>
             `}
           </div>
 
@@ -940,6 +1408,21 @@ export function renderM7_M8(pageId, state, helpers) {
                     <span class="pill ${c.done?"p-green":"p-amber"}">${c.done?"已就绪 ✓":"去补齐 →"}</span>
                   </div>
                 `).join("")}
+              </div>
+
+              <div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-strong);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <strong style="font-size:12.5px;">扩展上架文案清单（8+N 类 · 独立计数）</strong>
+                  <span class="pill p-blue">${extDoneCnt}/6 已选</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  ${extChecklist.map(ec => `
+                    <div class="m7d-ext-chk" data-tab="${ec.tab}" style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:${ec.val?"#f0fdf4":"#f8fafc"};cursor:pointer;font-size:12px;">
+                      <span>${ec.label}</span>
+                      <span class="pill ${ec.val?"p-green":"p-gray"}">${ec.val?"已写入 ✓":"去选 →"}</span>
+                    </div>
+                  `).join("")}
+                </div>
               </div>
             </div>
 
@@ -1003,6 +1486,13 @@ export function renderM7_M8(pageId, state, helpers) {
       bind: () => {
         bindM7StepBar(state, curM7Prod, goPage, rerender, toast);
         document.querySelectorAll(".m7d-ptab").forEach(t => t.onclick = () => { state.m7PreviewTab = t.dataset.t; rerender(); });
+        document.querySelectorAll(".m7d-buyer-thumb").forEach(b => b.onclick = () => { state.m7BuyerImgIdx = Number(b.dataset.idx) || 0; rerender(); });
+        document.querySelectorAll(".m7d-buyer-var").forEach(b => b.onclick = () => { state.m7BuyerVariantIdx = Number(b.dataset.vi) || 0; rerender(); });
+        document.querySelectorAll(".m7d-jmp").forEach(b => b.onclick = () => goPage(b.dataset.pg));
+        document.querySelectorAll(".m7d-ext-chk").forEach(el => el.onclick = () => {
+          state.m7ResultTab = el.dataset.tab;
+          goPage("m7a");
+        });
         const goImgBtn = document.getElementById("m7dGoImgBtn");
         if (goImgBtn) goImgBtn.onclick = () => goPage("m7b");
         document.getElementById("m7dPlatSel").onchange = (e) => { state.m7Platform = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };

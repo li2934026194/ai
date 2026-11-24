@@ -531,18 +531,45 @@ export function buildM4BatchItems(count = 120, kindLabel = "外购行业估算",
   return out;
 }
 
+export const DEFAULT_M7_IMG_BRIEFS = [
+  "纯白棚拍主图，商品主体占画面 85%，光线柔和清晰，无多余文字与促销水印。",
+  "居家厨房或桌面日常使用场景，自然侧光拍摄，展示真实摆放体积与氛围感。",
+  "突出核心功能卖点对比与细节特写，留白清晰便于放置 2 处卖点标注。",
+  "正视视角展示产品轮廓，清晰保留长宽高尺寸与净重标注辅助线空间。",
+  "俯拍平铺展示主机、电源线、说明书及附赠配件全家福清单。"
+];
+
 export function resetM7CreationState(state, sku, prodMeta = null) {
   if (sku) state.m7Sku = sku;
   if (prodMeta?.platform) {
     state.m7Platform = prodMeta.platform.includes("Shopee") ? "虾皮泰国站" : prodMeta.platform.includes("TikTok") ? "TikTok 美区" : "亚马逊美国站";
   }
   if (prodMeta?.category) state.m7ComplianceCategory = prodMeta.category;
+  state.m7ShowCN = true;
   state.m7CopyGenCount = 0;
   state.m7ResultTab = "商品标题";
   state.m7SelectedTitle = "";
+  state.m7SelectedTitleCn = "";
   state.m7SelectedBullets = "";
+  state.m7SelectedBulletsCn = "";
   state.m7SelectedDesc = "";
+  state.m7SelectedDescCn = "";
   state.m7SelectedKeywords = "";
+  state.m7SelectedKeywordsCn = "";
+  state.m7SelectedFaq = "";
+  state.m7SelectedFaqCn = "";
+  state.m7SelectedAplusCopy = "";
+  state.m7SelectedAplusCopyCn = "";
+  state.m7SelectedVariantCopy = "";
+  state.m7SelectedVariantCopyCn = "";
+  state.m7SelectedAttrCopy = "";
+  state.m7SelectedAttrCopyCn = "";
+  state.m7SelectedAltCopy = "";
+  state.m7SelectedAltCopyCn = "";
+  state.m7SelectedWarrantyCopy = "";
+  state.m7SelectedWarrantyCopyCn = "";
+  state.m7ImgBriefs = [...DEFAULT_M7_IMG_BRIEFS];
+  state.m7ImgBrief = DEFAULT_M7_IMG_BRIEFS[0];
   state.m7ImgVersion = 0;
   state.m7PickedImgIdx = 0;
   state.m7Images = [
@@ -557,6 +584,8 @@ export function resetM7CreationState(state, sku, prodMeta = null) {
   state.m7VidPlaying = false;
   state.m7VidTimeSec = 0;
   state.m7VidLogs = [];
+  state.m7BuyerImgIdx = 0;
+  state.m7BuyerVariantIdx = 0;
   state.m7ComplianceStatus = "待制作完成";
   state.m7ComplianceChecks = [];
   state.m7ApprovalRecord = null;
@@ -1020,6 +1049,12 @@ export function createInitialState() {
       { sku: "VAC-704", name: "无线真空迷你封口机", cat: "家居收纳", salePriceUsd: 27.3, cost: 4.1, freight: 2.0, commissionRate: 10, lastMile: 2.6, tariff: 0.9, adCost: 5.6, returnLossRate: 2.2, listedAt: "2026-09-02", sales30d: 312, tag: "潜力", owner: "张运营", status: "在售", costSources: { cost: "宁波小电厂报价 NB-2026-704", freight: "带电空运专线 #SEA-B02", commission: "Shopee 跨境家居小电 10%", lastMile: "新加坡/泰国本土尾程", tariff: "东南亚小电进口税", ad: "近30天站内关键词广告", ret: "近90天实盘退货率 2.2%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-704", price: "฿850" },
         { shop: "Shopee 新加坡站", shopSku: "SP-SG-704", price: "S$35.9" },
+      ] },
+      { sku: "SKU-00704", name: "无线真空迷你封口机", cat: "厨房小电", salePriceUsd: 24.9, listPriceUsd: 34.9, stockQty: 180, brand: "CrossPilot Home", capacity: "12cm 封口宽幅 / 1200mAh 电池", material: "食品级 ABS + 陶瓷发热丝", color: "陶瓷白 / 哑光灰", dimensions: "4.4 × 1.8 × 1.7 in (11.2 × 4.5 × 4.2 cm)", features: "干湿两用抽气封口 · USB-C 快充 · 磁吸冰箱贴", wattage: "10W", weightLbs: "0.35 lbs", controlMethod: "一键双模触控按键", variants: [
+        { name: "标准单机版 (Standard)", priceUsd: 24.9, listPriceUsd: 34.9, stock: 180 },
+        { name: "旗舰礼盒装+20只真空袋 (Pro Bundle)", priceUsd: 31.9, listPriceUsd: 42.9, stock: 95 },
+      ], demoNote: "演示数据", cost: 4.1, freight: 2.0, commissionRate: 15, lastMile: 3.1, tariff: 0.9, adCost: 3.5, returnLossRate: 2.0, listedAt: "2026-11-10", sales30d: 120, tag: "测款新品", owner: "张运营", status: "测款待上架", costSources: { cost: "宁波小电厂报价 NB-2026-704 (演示数据)", freight: "带电空运专线 #US-B02 (演示数据)", commission: "Amazon US 厨房小电 15%", lastMile: "FBA 轻小件尾程费", tariff: "美国小电进口税", ad: "新品测款预算摊销", ret: "同类目参考退货率 2.0%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-00704", price: "$24.90" },
       ] },
       { sku: "LMP-418", name: "便携露营氛围灯串", cat: "运动健身", salePriceUsd: 13.8, cost: 3.9, freight: 1.8, commissionRate: 15, lastMile: 3.1, tariff: 0.7, adCost: 1.4, returnLossRate: 5.5, listedAt: "2025-04-02", sales30d: 64, tag: "滞销", owner: "吴选品", status: "在售", costSources: { cost: "中山灯饰厂报价 ZS-2026-418", freight: "带电池海运专线 #UK-03", commission: "Amazon/eBay 户外佣金 15%", lastMile: "本土小包尾程费", tariff: "目的国照明税率", ad: "近30天清仓广告分摊", ret: "近90天高退货率 5.5%", fx: `汇率基准 ${daysOffsetDate(0)}` }, mappings: [
         { shop: "eBay 英国站", shopSku: "EB-UK-418", price: "£10.90" },
@@ -1566,16 +1601,35 @@ export function createInitialState() {
     m7Sku: "SKU-00704",
     m7Platform: "亚马逊美国站",
     m7Lang: "English (US)",
+    m7ShowCN: true,
     m7MustTerm: "Portable, Cordless, Vacuum Sealer",
     m7BanTerm: "Best, #1, Miracle, Free",
     m7CopyGenCount: 0,
     m7ResultTab: "商品标题",
     m7SelectedTitle: "",
+    m7SelectedTitleCn: "",
     m7SelectedBullets: "",
+    m7SelectedBulletsCn: "",
     m7SelectedDesc: "",
+    m7SelectedDescCn: "",
     m7SelectedKeywords: "",
+    m7SelectedKeywordsCn: "",
+    m7SelectedFaq: "",
+    m7SelectedFaqCn: "",
+    m7SelectedAplusCopy: "",
+    m7SelectedAplusCopyCn: "",
+    m7SelectedVariantCopy: "",
+    m7SelectedVariantCopyCn: "",
+    m7SelectedAttrCopy: "",
+    m7SelectedAttrCopyCn: "",
+    m7SelectedAltCopy: "",
+    m7SelectedAltCopyCn: "",
+    m7SelectedWarrantyCopy: "",
+    m7SelectedWarrantyCopyCn: "",
 
     m7ImgWorkflow: "标准白底主图模板 (支持 1+4 差异构图演示)",
+    m7ImgBriefs: [...DEFAULT_M7_IMG_BRIEFS],
+    m7ImgBrief: DEFAULT_M7_IMG_BRIEFS[0],
     m7ImgVersion: 0,
     m7PickedImgIdx: 0,
     m7Images: [
@@ -1592,6 +1646,8 @@ export function createInitialState() {
     m7VidPlaying: false,
     m7VidTimeSec: 0,
     m7VidLogs: [],
+    m7BuyerImgIdx: 0,
+    m7BuyerVariantIdx: 0,
     m7PreviewTab: "主图/附图",
     m7ComplianceStatus: "待制作完成",
     m7ComplianceCategory: "厨房小电",
