@@ -341,8 +341,225 @@ export function buildSystemConclusion(pageId, state) {
   };
 }
 
-export function getProductImg(sku) {
-  return PRODUCT_IMAGES[sku] || PRODUCT_IMAGES["BAG-108"];
+function pickProductIconByMeta(name = "", category = "") {
+  const txt = `${name} ${category}`;
+  if (/整理|收纳|洗衣|箱|篮/.test(txt)) {
+    return { bg: "#fff7ed", accent: "#ea580c", svg: `<rect x="68" y="76" width="104" height="72" rx="10" fill="#fb923c"/><rect x="64" y="66" width="112" height="16" rx="6" fill="#ea580c"/><line x1="103" y1="82" x2="103" y2="148" stroke="#ffedd5" stroke-width="4"/><line x1="137" y1="82" x2="137" y2="148" stroke="#ffedd5" stroke-width="4"/>` };
+  }
+  if (/宠物|猫|狗|座垫/.test(txt)) {
+    return { bg: "#fefce8", accent: "#ca8a04", svg: `<path d="M70 68 H170 V142 L156 156 H84 L70 142 Z" fill="#eab308"/><rect x="84" y="84" width="72" height="44" rx="8" fill="#fef08a"/><circle cx="104" cy="106" r="6" fill="#a16207"/><circle cx="136" cy="106" r="6" fill="#a16207"/><circle cx="120" cy="118" r="8" fill="#a16207"/>` };
+  }
+  if (/封口|水壶|厨房|咖啡|研磨|保鲜/.test(txt)) {
+    return { bg: "#ecfdf5", accent: "#059669", svg: `<rect x="62" y="92" width="116" height="42" rx="20" fill="#10b981"/><rect x="76" y="106" width="68" height="12" rx="6" fill="#ecfdf5"/><circle cx="158" cy="113" r="8" fill="#047857"/>` };
+  }
+  if (/支架|3C|耳机|充电|灯|风扇|吸尘/.test(txt)) {
+    return { bg: "#f5f3ff", accent: "#7c3aed", svg: `<rect x="88" y="144" width="64" height="12" rx="6" fill="#6d28d9"/><line x1="120" y1="144" x2="106" y2="102" stroke="#7c3aed" stroke-width="10" stroke-linecap="round"/><rect x="86" y="64" width="68" height="46" rx="10" fill="#8b5cf6"/><circle cx="120" cy="87" r="14" fill="#ede9fe"/>` };
+  }
+  if (/面霜|护肤|美妆|精华|防晒/.test(txt)) {
+    return { bg: "#fdf2f8", accent: "#db2777", svg: `<rect x="82" y="84" width="76" height="66" rx="14" fill="#f472b6"/><rect x="76" y="66" width="88" height="22" rx="8" fill="#db2777"/><rect x="96" y="104" width="48" height="26" rx="6" fill="#fff1f2"/><circle cx="120" cy="117" r="7" fill="#db2777"/>` };
+  }
+  if (/垫|户外|露营|运动|瑜伽/.test(txt)) {
+    return { bg: "#f0fdf4", accent: "#10b981", svg: `<rect x="64" y="88" width="112" height="44" rx="22" fill="#10b981"/><ellipse cx="78" cy="110" rx="12" ry="22" fill="#047857"/><ellipse cx="78" cy="110" rx="5" ry="11" fill="#a7f3d0"/><path d="M94 94 H158 M94 126 H158" stroke="#ecfdf5" stroke-width="3" stroke-linecap="round"/>` };
+  }
+  return { bg: "#eff6ff", accent: "#2563eb", svg: `<rect x="82" y="64" width="76" height="92" rx="18" fill="#2563eb"/><path d="M98 64 C98 44 142 44 142 64" fill="none" stroke="#1d4ed8" stroke-width="7"/><rect x="94" y="102" width="52" height="36" rx="8" fill="#93c5fd"/>` };
+}
+
+export function getProductImg(sku, name = "", category = "") {
+  if (PRODUCT_IMAGES[sku]) return PRODUCT_IMAGES[sku];
+  const meta = pickProductIconByMeta(name, category);
+  const label = (name || sku || "待创作商品").slice(0, 8);
+  return makeSvgDataUri(meta.bg, meta.accent, label, meta.svg);
+}
+
+export function getM7SlotImg(prod, slotIdx, edited = false) {
+  const name = prod?.name || prod?.sku || "推荐商品";
+  const category = prod?.category || "";
+  const meta = pickProductIconByMeta(name, category);
+  const shortName = name.slice(0, 9);
+  const ac = edited ? "#059669" : meta.accent;
+
+  if (slotIdx === 0) {
+    // 1. 白底棚拍主图（85%主体占比）
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+      <rect width="320" height="320" fill="#ffffff"/>
+      <ellipse cx="160" cy="246" rx="82" ry="14" fill="#e2e8f0"/>
+      <g transform="translate(20,24) scale(1.18)">${meta.svg}</g>
+      ${edited ? `<rect x="44" y="34" width="232" height="232" rx="18" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="6 4"/><rect x="18" y="14" width="128" height="24" rx="12" fill="#dcfce7"/><text x="82" y="30" font-family="sans-serif" font-size="11" font-weight="700" fill="#065f46" text-anchor="middle">已局部提亮去标 ✓</text>` : `<rect x="196" y="14" width="108" height="22" rx="11" fill="#fef3c7"/><text x="250" y="29" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#92400e" text-anchor="middle">白底主图(待精修)</text>`}
+      <text x="160" y="295" font-family="PingFang SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">${shortName} · 纯白主图</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+  if (slotIdx === 1) {
+    // 2. 使用场景实拍示意图
+    const bgTop = edited ? "#ecfeff" : "#fff7ed";
+    const desk = edited ? "#cffafe" : "#fed7aa";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240">
+      <rect width="320" height="240" fill="${bgTop}"/>
+      <polygon points="20,0 130,0 90,155 0,155" fill="#ffffff" opacity="0.55"/>
+      <rect x="0" y="155" width="320" height="85" fill="${desk}"/>
+      <rect x="208" y="56" width="84" height="98" rx="8" fill="#ffffff" opacity="0.7" stroke="#cbd5e1"/>
+      <circle cx="250" cy="96" r="18" fill="#bbf7d0"/>
+      <g transform="translate(30,22) scale(0.95)">${meta.svg}</g>
+      <rect x="14" y="14" width="136" height="24" rx="12" fill="#0f172a" opacity="0.78"/>
+      <text x="82" y="30" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">${edited?"清晨高亮场景(已改)":"居家日常使用场景"}</text>
+      <text x="160" y="218" font-family="PingFang SC,sans-serif" font-size="13" font-weight="700" fill="#1e293b" text-anchor="middle">${shortName} · 场景实拍构图</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+  if (slotIdx === 2) {
+    // 3. 功能卖点标注图
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240">
+      <rect width="320" height="240" fill="#eff6ff"/>
+      <g transform="translate(18,22) scale(0.9)">${meta.svg}</g>
+      <line x1="168" y1="74" x2="205" y2="54" stroke="${ac}" stroke-width="2"/>
+      <rect x="195" y="38" width="112" height="28" rx="8" fill="${ac}"/>
+      <text x="251" y="56" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">核心卖点① 高效省心</text>
+      <line x1="176" y1="112" x2="205" y2="112" stroke="#2563eb" stroke-width="2"/>
+      <rect x="195" y="96" width="112" height="28" rx="8" fill="#1d4ed8"/>
+      <text x="251" y="114" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">核心卖点② 耐用便携</text>
+      <line x1="168" y1="146" x2="205" y2="164" stroke="#0891b2" stroke-width="2"/>
+      <rect x="195" y="150" width="112" height="28" rx="8" fill="#0891b2"/>
+      <text x="251" y="168" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">核心卖点③ 多场景用</text>
+      <text x="160" y="218" font-family="PingFang SC,sans-serif" font-size="13" font-weight="700" fill="#1e3a8a" text-anchor="middle">${shortName} · 三大功能卖点图</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+  if (slotIdx === 3) {
+    // 4. 尺寸规格与参数标尺图
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240">
+      <rect width="320" height="240" fill="#f8fafc"/>
+      <path d="M0 40 H320 M0 80 H320 M0 120 H320 M0 160 H320 M80 0 V240 M160 0 V240 M240 0 V240" stroke="#e2e8f0" stroke-width="1"/>
+      <g transform="translate(52,16) scale(0.88)">${meta.svg}</g>
+      <line x1="78" y1="176" x2="242" y2="176" stroke="#2563eb" stroke-width="2.5"/>
+      <line x1="78" y1="168" x2="78" y2="184" stroke="#2563eb" stroke-width="2.5"/>
+      <line x1="242" y1="168" x2="242" y2="184" stroke="#2563eb" stroke-width="2.5"/>
+      <rect x="124" y="164" width="72" height="22" rx="6" fill="#2563eb"/>
+      <text x="160" y="179" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">长 24.5 cm</text>
+      <line x1="258" y1="54" x2="258" y2="154" stroke="#059669" stroke-width="2.5"/>
+      <rect x="234" y="92" width="76" height="22" rx="6" fill="#059669"/>
+      <text x="272" y="107" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">净重 380g</text>
+      <text x="160" y="218" font-family="PingFang SC,sans-serif" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">${shortName} · 尺寸与净重参数图</text>
+    </svg>`;
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+  // 5. 包装清单平铺图
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240">
+    <rect width="320" height="240" fill="#f0fdf4"/>
+    <rect x="20" y="24" width="128" height="156" rx="10" fill="#ffffff" stroke="#86efac" stroke-width="2"/>
+    <g transform="translate(-8,12) scale(0.74)">${meta.svg}</g>
+    <text x="84" y="166" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#166534" text-anchor="middle">主机主体 ×1</text>
+    <rect x="162" y="24" width="138" height="44" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
+    <text x="231" y="50" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#1e293b" text-anchor="middle">🔌 专用配件/线材 ×1</text>
+    <rect x="162" y="78" width="138" height="44" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
+    <text x="231" y="104" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#1e293b" text-anchor="middle">📖 多语言说明书 ×1</text>
+    <rect x="162" y="132" width="138" height="48" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
+    <text x="231" y="160" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#1e293b" text-anchor="middle">📦 彩盒外包装 ×1</text>
+    <text x="160" y="218" font-family="PingFang SC,sans-serif" font-size="13" font-weight="700" fill="#166534" text-anchor="middle">${shortName} · 包装清单全览图</text>
+  </svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+export function buildM4BatchItems(count = 120, kindLabel = "外购行业估算", srcCode = "PAID_EXTERNAL", startNum = 1001) {
+  const templates = [
+    { name: "折叠抽屉式衣物收纳盒", cat: "家居收纳", plat: "Amazon US", price: 24.9, band: "$15-30", buy: 4.2 },
+    { name: "车载吸尘器无线迷你款", cat: "3C配件", plat: "TikTok US", price: 32.5, band: "$30-60", buy: 7.4 },
+    { name: "自动感应宠物喂水器", cat: "宠物用品", plat: "Amazon US", price: 38.0, band: "$30-60", buy: 8.6 },
+    { name: "便携电动咖啡研磨杯", cat: "厨房小电", plat: "Shopee TH", price: 22.8, band: "$15-30", buy: 5.5 },
+    { name: "防水折叠牛津布野餐篮", cat: "户外运动", plat: "Amazon US", price: 28.9, band: "$15-30", buy: 5.1 },
+    { name: "壁挂免打孔吹风机架", cat: "家居收纳", plat: "Shopee TH", price: 13.5, band: "<$15", buy: 2.3 },
+    { name: "磁吸无线桌面快充座", cat: "3C配件", plat: "TikTok US", price: 29.9, band: "$15-30", buy: 6.1 },
+    { name: "宠物硅胶防滑舔食垫", cat: "宠物用品", plat: "TikTok US", price: 14.2, band: "<$15", buy: 2.0 },
+  ];
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const t = templates[i % templates.length];
+    const num = startNum + i;
+    const isInt = srcCode === "INTERNAL" || (srcCode === "MIXED" && i % 5 === 0);
+    const isRisk = i % 9 === 4;
+    const missingCost = !isInt && i % 2 === 0;
+    const trend = isRisk ? -6.5 + (i % 4) : +(8 + (i * 7) % 44).toFixed(1);
+    const margin = isRisk ? 6.8 : missingCost ? 12.1 : +(11.5 + ((i * 3) % 14)).toFixed(1);
+    const paidQty = 450 + ((i * 137) % 1600);
+    const refundQty = isRisk ? Math.round(paidQty * 0.08) : Math.round(paidQty * 0.02);
+    const grossRev = +(paidQty * t.price).toFixed(2);
+    const refundAmt = +(refundQty * t.price).toFixed(2);
+    const stage = isRisk ? "初筛候选" : missingCost ? "临时待核价" : "初筛候选";
+    const riskLevel = isRisk ? "高风险" : (i % 4 === 1 ? "中风险" : "低风险");
+    const sysAdvice = isRisk
+      ? { badge: "建议淘汰", tone: "p-red", reason: `退货偏高或毛利仅 ${margin}%（低于10%底线）` }
+      : !isInt || missingCost
+      ? { badge: "建议补成本再评", tone: "p-amber", reason: `涨势 +${trend}% 但需核清正式采购报价后再评` }
+      : { badge: "建议投产", tone: "p-green", reason: `内部实盘净增 +${trend}%、毛利 ${margin}% 达标，可立即送审` };
+    out.push({
+      sku: `SKU-${num}`,
+      name: `${t.name} #${(i % 12) + 1}`,
+      category: t.cat,
+      priceBand: t.band,
+      unitPriceUsd: t.price,
+      platform: t.plat,
+      region: t.plat.includes("TH") ? "东南亚渠道" : "美区渠道",
+      lifecycle: trend >= 25 ? "快速上升期" : trend < 0 ? "衰退期" : "成熟期",
+      riskLevel,
+      paidQty,
+      refundQty,
+      grossRev,
+      discount: +(grossRev * 0.015).toFixed(2),
+      refundAmt,
+      trend,
+      prevAvg: Math.round(paidQty / 8),
+      currAvg: Math.round((paidQty / 8) * (1 + trend / 100)),
+      marginKnown: !missingCost,
+      margin,
+      src: isInt ? "内部实盘选品" : kindLabel,
+      srcCode: isInt ? "INTERNAL" : "PAID_EXTERNAL",
+      stage,
+      submitter: "吴选品(批量入池)",
+      submitReason: "",
+      approver: "",
+      decisionReason: "",
+      evidence: "",
+      missing: missingCost ? "采购成本与头程费用待供应商核价" : "",
+      budget: `$${Math.round(t.buy * 80 + 300)} (80件)`,
+      sysAdvice,
+      competition: { competitors: 18 + (i % 55), topReviews: "200~900条", priceRange: `$${(t.price*0.8).toFixed(1)} - $${(t.price*1.2).toFixed(1)}`, verdict: isRisk ? "竞争较激烈" : "竞争温和有机会" },
+      supplyChain: { buyPrice: missingCost ? "待核价 (估算$" + t.buy + ")" : "$" + t.buy, moq: "50 件", leadDays: `${8 + (i % 7)} 天`, inStock: missingCost ? "待供应商报价" : "工厂现货" },
+      riskDetail: { ip: isRisk ? "存在类似外观隐患" : "专利排查无冲突 ✓", cert: t.cat === "3C配件" || t.cat === "厨房小电" ? "需常规电气/带电合规核验" : "常规材质无特殊门槛 ✓", seasonal: "四季稳销", refundRate: `${((refundQty / paidQty) * 100).toFixed(1)}%` },
+      timing: { seasonNote: "当前类目搜索保持活跃", stageNote: trend >= 25 ? "上升期窗口" : "常规跟进" },
+      trend8w: Array.from({ length: 8 }, (_, k) => Math.max(20, Math.round((paidQty / 8) * (0.82 + (k * trend) / 700))))
+    });
+  }
+  return out;
+}
+
+export function resetM7CreationState(state, sku, prodMeta = null) {
+  if (sku) state.m7Sku = sku;
+  if (prodMeta?.platform) {
+    state.m7Platform = prodMeta.platform.includes("Shopee") ? "虾皮泰国站" : prodMeta.platform.includes("TikTok") ? "TikTok 美区" : "亚马逊美国站";
+  }
+  if (prodMeta?.category) state.m7ComplianceCategory = prodMeta.category;
+  state.m7CopyGenCount = 0;
+  state.m7ResultTab = "商品标题";
+  state.m7SelectedTitle = "";
+  state.m7SelectedBullets = "";
+  state.m7SelectedDesc = "";
+  state.m7SelectedKeywords = "";
+  state.m7ImgVersion = 0;
+  state.m7PickedImgIdx = 0;
+  state.m7Images = [
+    { id: 0, label: "商品主图 1（白底主图）", title: "纯白棚拍主图 (主体占85%)", editNote: "待生成", done: false, edited: false },
+    { id: 1, label: "商品附图 2（使用场景）", title: "居家使用场景展示", editNote: "待生成", done: false, edited: false },
+    { id: 2, label: "商品附图 3（功能卖点）", title: "核心功能卖点标注", editNote: "待生成", done: false, edited: false },
+    { id: 3, label: "商品附图 4（尺寸规格）", title: "尺寸规格与净重标尺", editNote: "待生成", done: false, edited: false },
+    { id: 4, label: "商品附图 5（包装清单）", title: "主机与配件清单图", editNote: "待生成", done: false, edited: false },
+  ];
+  state.m7AplusDone = false;
+  state.m7VidDone = false;
+  state.m7VidPlaying = false;
+  state.m7VidTimeSec = 0;
+  state.m7VidLogs = [];
+  state.m7ComplianceStatus = "待制作完成";
+  state.m7ComplianceChecks = [];
+  state.m7ApprovalRecord = null;
 }
 
 export function nowTimeStr(d = new Date()) {
@@ -1172,6 +1389,12 @@ export function createInitialState() {
     ],
     selectorAssignedCats: ["家居收纳", "宠物用品", "厨房小电"],
     m4Mode: "balanced",
+    m4QuickFilter: "ALL",
+    m4SortBy: "priority",
+    m4ViewMode: "table",
+    m4PageSize: 15,
+    m4ShowAdvPanel: false,
+    m4LastImportSummary: null,
     m4Tab: "ALL",
     m4CatTab: "ALL",
     m4PriceFilter: "ALL",
@@ -1339,40 +1562,38 @@ export function createInitialState() {
       { po: "PO-20261119-03", sku: "FAN-203", batch: "第2批 (历史示例)", planQty: 620, gotQty: 215, diff: -5, diffReason: "外箱受潮短装 5 件", qc: "QC-20261119-02", voucher: "第2批签收异常单.jpg", who: "赵仓管", time: "2026-11-19 09:10:00" },
     ],
 
-    // M7
+    // M7（默认 0/8 待创作状态，支持从第 1 步走到第 4 步并随时重置）
     m7Sku: "SKU-00704",
     m7Platform: "亚马逊美国站",
     m7Lang: "English (US)",
     m7MustTerm: "Portable, Cordless, Vacuum Sealer",
     m7BanTerm: "Best, #1, Miracle, Free",
-    m7CopyGenCount: 1,
+    m7CopyGenCount: 0,
     m7ResultTab: "商品标题",
-    m7SelectedTitle: "SKU-00704 | Portable Cordless Vacuum Sealer for Kitchen Food Storage",
-    m7SelectedBullets: "• [核心卖点] Portable & Cordless design seals dry/moist bags in 8 seconds.",
-    m7SelectedDesc: "Crafted for daily kitchen organization, SKU-00704 extends food freshness up to 5x.",
-    m7SelectedKeywords: "portable vacuum sealer, cordless food saver, mini bag sealer (20个搜索词)",
+    m7SelectedTitle: "",
+    m7SelectedBullets: "",
+    m7SelectedDesc: "",
+    m7SelectedKeywords: "",
 
-    m7ImgWorkflow: "标准白底主图模板 (未接入外部绘图服务 · 演示图)",
-    m7ImgVersion: 1,
+    m7ImgWorkflow: "标准白底主图模板 (支持 1+4 差异构图演示)",
+    m7ImgVersion: 0,
     m7PickedImgIdx: 0,
     m7Images: [
-      { id: 0, label: "商品主图 1（白底主图）", title: "纯白棚拍主图 (主体占85%)", editNote: "演示图，非真实生成", done: true },
-      { id: 1, label: "商品附图 2（使用场景）", title: "厨房保鲜场景展示", editNote: "演示图，非真实生成", done: true },
-      { id: 2, label: "商品附图 3（功能卖点）", title: "抽气封口二合一对比", editNote: "演示图，非真实生成", done: true },
-      { id: 3, label: "商品附图 4（尺寸规格）", title: "掌心便携尺寸标注", editNote: "演示图，非真实生成", done: true },
-      { id: 4, label: "商品附图 5（包装清单）", title: "主机与附件清单说明", editNote: "演示图，非真实生成", done: true },
+      { id: 0, label: "商品主图 1（白底主图）", title: "纯白棚拍主图 (主体占85%)", editNote: "待生成", done: false, edited: false },
+      { id: 1, label: "商品附图 2（使用场景）", title: "居家使用场景展示", editNote: "待生成", done: false, edited: false },
+      { id: 2, label: "商品附图 3（功能卖点）", title: "核心功能卖点标注", editNote: "待生成", done: false, edited: false },
+      { id: 3, label: "商品附图 4（尺寸规格）", title: "尺寸规格与净重标尺", editNote: "待生成", done: false, edited: false },
+      { id: 4, label: "商品附图 5（包装清单）", title: "主机与配件清单图", editNote: "待生成", done: false, edited: false },
     ],
-    m7AplusDone: true,
+    m7AplusDone: false,
     m7VidType: "产品展示",
-    m7VidWorkflow: "未配置视频生成节点（默认如实报错）",
-    m7VidDone: true,
-    m7VidLogs: [
-      `• [${daysOffsetDateTime(-1, "16:40")}] 阶段 1/3：分镜脚本准备完成（产品展示 15 秒竖屏）`,
-      `• [${daysOffsetDateTime(-1, "16:41")}] 阶段 2/3：镜头生成演示预览完成（演示模拟节点）`,
-      `• [${daysOffsetDateTime(-1, "16:42")}] 阶段 3/3：历史演示成片已登记至交付清单（实际节点未配置时提交新任务仍将如实报错）`
-    ],
+    m7VidWorkflow: "模拟已配置视频服务（可播放分镜演示）",
+    m7VidDone: false,
+    m7VidPlaying: false,
+    m7VidTimeSec: 0,
+    m7VidLogs: [],
     m7PreviewTab: "主图/附图",
-    m7ComplianceStatus: "合规校验通过",
+    m7ComplianceStatus: "待制作完成",
     m7ComplianceCategory: "厨房小电",
     m7AiPersonInAsset: true,
     m7IptcWritten: true,
@@ -1397,14 +1618,8 @@ export function createInitialState() {
       { sku: "BAG-108", name: "轻量通勤双肩包", node: "GPU-节点02", wf: "WF-IMG-v2.1", seed: "3910442", status: "已完成 (5/5图)", ok: true },
       { sku: "FAN-203", name: "便携静音循环扇", node: "GPU-节点01", wf: "WF-IMG-v2.1", seed: "5520189", status: "单品失败(显存超限)，不影响前两项结果", ok: false },
     ],
-    m7ComplianceChecks: [
-      { rule: "广告违禁词检查", pass: true, detail: "通过：未发现任何平台违禁词 ✓" },
-      { rule: "平台标题字数限制", pass: true, detail: "通过：当前 66 字（上限 200 字）✓" },
-      { rule: "AI 人物标识元数据核验", pass: true, detail: "通过：最终待发布图含标准合成人物与训练标识 ✓" },
-      { rule: "站点 × 类目认证与资质有效期", pass: true, detail: "通过：厨房小电检测报告与品牌授权均在有效期内 ✓" },
-      { rule: "8 类上架资产完整度", pass: true, detail: "通过：8 类交付物全部就绪 ✓" }
-    ],
-    m7ApprovalRecord: { approver: "陈主管 (历史示例参考)", time: daysOffsetDateTime(-1, "17:20"), note: "历史示例：8 类交付资产已自检通过，待主管确认本次导出放行" },
+    m7ComplianceChecks: [],
+    m7ApprovalRecord: null,
 
     // M8
     m8RoleFilter: "ALL",

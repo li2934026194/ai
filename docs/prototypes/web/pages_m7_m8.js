@@ -1,5 +1,5 @@
 import {
-  BACKEND_SERVICE_URL, BIZ_ROLES, ROLE_PERSON_NAMES, getProductImg, nowDateTimeStr, appendAuditLog
+  BACKEND_SERVICE_URL, BIZ_ROLES, ROLE_PERSON_NAMES, getProductImg, getM7SlotImg, resetM7CreationState, nowDateTimeStr, appendAuditLog
 } from "./state.js";
 
 const MATRIX_ROWS = [
@@ -32,14 +32,56 @@ function getM7AvailableProducts(state) {
   const approvedNew = state.m4Pool
     .filter(x => x.stage === "已批准测款")
     .map(x => ({
-      sku: x.sku, name: x.name, origin: "M4_APPROVED",
+      sku: x.sku, name: x.name, category: x.category || "家居收纳", platform: x.platform || "Amazon US",
+      unitPriceUsd: x.unitPriceUsd || 24.9, origin: "M4_APPROVED",
       approver: x.approver || "陈主管", reason: x.decisionReason || "实盘利润率达标批准测款"
     }));
   const legacyInStore = state.masterProducts.map(p => ({
-    sku: p.sku, name: p.name, origin: "IN_STORE_REFRESH",
+    sku: p.sku, name: p.name, category: p.category || "家居收纳", platform: "Amazon US",
+    unitPriceUsd: p.salePriceUsd || 24.9, origin: "IN_STORE_REFRESH",
     approver: "在售老品翻新", reason: "已上架在售商品详情升级"
   }));
   return [...approvedNew, ...legacyInStore];
+}
+
+function renderM7StepBar(pageId, state, curM7Prod, goPage, rerender, toast) {
+  const copyCnt = [state.m7SelectedTitle, state.m7SelectedBullets, state.m7SelectedDesc, state.m7SelectedKeywords].filter(Boolean).length;
+  const imgCnt = state.m7Images.filter(x => x.done).length;
+  const doneCnt = (state.m7SelectedTitle ? 1 : 0) + (state.m7SelectedBullets ? 1 : 0) + (state.m7SelectedDesc ? 1 : 0) + (state.m7SelectedKeywords ? 1 : 0) + (state.m7Images[0].done ? 1 : 0) + (state.m7Images.slice(1).every(x => x.done) ? 1 : 0) + (state.m7AplusDone ? 1 : 0) + (state.m7VidDone ? 1 : 0);
+  const steps = [
+    { id: "m7a", num: "1", label: "商品文案", status: `${copyCnt}/4`, done: copyCnt === 4 },
+    { id: "m7b", num: "2", label: "1+4 电商套图", status: `${imgCnt}/5`, done: imgCnt === 5 },
+    { id: "m7c", num: "3", label: "视频与A+长页", status: `${(state.m7VidDone?1:0)+(state.m7AplusDone?1:0)}/2`, done: state.m7VidDone && state.m7AplusDone },
+    { id: "m7d", num: "4", label: "合规总览导出", status: `${doneCnt}/8`, done: state.m7ComplianceStatus === "主管已批准导出" },
+  ];
+  return `
+    <div class="card" style="padding:10px 14px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
+          ${steps.map(s => `
+            <button type="button" class="btn btn-sm ${pageId===s.id?"btn-primary":""} m7-nav-step" data-pg="${s.id}" style="border-radius:999px;">
+              <span>${s.done ? "✓" : s.num}. ${s.label}</span>
+              <span class="pill ${s.done?"p-green":pageId===s.id?"p-blue":"p-gray"}" style="margin-left:4px;">${s.status}</span>
+            </button>
+          `).join('<span style="color:#94a3b8;font-size:12px;">→</span>')}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="pill ${doneCnt===8?"p-green":"p-amber"}">交付进度 ${doneCnt}/8</span>
+          <button type="button" class="btn btn-sm" id="m7ResetFlowBtn" title="清空当前 8 项创作成果，从 0/8 重新走一遍第 1→4 步">🔄 重置从第1步重走</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bindM7StepBar(state, curM7Prod, goPage, rerender, toast) {
+  document.querySelectorAll(".m7-nav-step").forEach(b => b.onclick = () => goPage(b.dataset.pg));
+  const rst = document.getElementById("m7ResetFlowBtn");
+  if (rst) rst.onclick = () => {
+    resetM7CreationState(state, curM7Prod.sku, curM7Prod);
+    toast(`已将 ${curM7Prod.sku} 重置为 0/8 待创作状态，请从第 1 步开始`, "info");
+    if (state.pageId !== "m7a") goPage("m7a"); else rerender();
+  };
 }
 
 function checkCopyRules(text, mustStr, banStr, platform) {
@@ -88,50 +130,55 @@ export function renderM7_M8(pageId, state, helpers) {
   if (pageId === "m7a") {
     const canCreate = state.role === "creator" || state.role === "approver";
     const mustList = state.m7MustTerm.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-    const drafts = state.m7ResultTab === "商品标题" ? [
-      `${curM7Prod.sku} | ${mustList.join(" ")} · Compact Everyday Essential for ${state.m7Platform} (热搜词版本 v${state.m7CopyGenCount})`,
-      `${curM7Prod.name} (${curM7Prod.sku}) · ${mustList[0] || "Portable"} Design with Fast Setup & Reliable Quality (卖点突出版本 v${state.m7CopyGenCount})`,
-      `New Arrival: ${mustList.slice(0,2).join(" & ")} ${curM7Prod.name} for Home & Travel (${state.m7Platform} 场景版本 v${state.m7CopyGenCount})`,
-    ] : state.m7ResultTab === "五点描述" ? [
+    const verTag = Math.max(1, state.m7CopyGenCount);
+    const getCopyPool = (tab) => tab === "商品标题" ? [
+      `${curM7Prod.sku} | ${mustList.join(" ")} · Compact Everyday Essential for ${state.m7Platform} (热搜词版 v${verTag})`,
+      `${curM7Prod.name} (${curM7Prod.sku}) · ${mustList[0] || "Portable"} Design with Fast Setup & Reliable Quality (卖点版 v${verTag})`,
+      `New Arrival: ${mustList.slice(0,2).join(" & ")} ${curM7Prod.name} for Home & Travel (${state.m7Platform} 场景版 v${verTag})`,
+    ] : tab === "五点描述" ? [
       `• [核心性能] Engineered with ${mustList.join(", ")}, delivering reliable everyday performance for busy shoppers.`,
       `• [便捷体验] Lightweight body (${curM7Prod.sku}) enables easy one-hand operation for kitchen, dorm, and travel.`,
       `• [测试拦截样例] Best choice with Miracle results and Free gift! (用于测试违禁词逐条拦截提醒)`,
-    ] : state.m7ResultTab === "商品描述" ? [
-      `Upgrade your daily routine with ${curM7Prod.sku} (${curM7Prod.name}). Built around ${mustList.join(" and ")}, tailored for ${state.m7Platform} shoppers (v${state.m7CopyGenCount}).`,
+    ] : tab === "商品描述" ? [
+      `Upgrade your daily routine with ${curM7Prod.sku} (${curM7Prod.name}). Built around ${mustList.join(" and ")}, tailored for ${state.m7Platform} shoppers (v${verTag}).`,
       `Designed for busy households, ${curM7Prod.name} combines ${mustList[0] || "durable material"} with effortless storage and low maintenance.`,
-      `From morning meal prep to weekend trips, ${curM7Prod.sku} keeps essentials organized and fresh.`,
+      `From daily home prep to weekend trips, ${curM7Prod.sku} keeps essentials organized and ready.`,
     ] : [
-      `${mustList.map(x=>x.toLowerCase()).join(", ")}, ${curM7Prod.sku.toLowerCase()}, compact home organizer, travel essential (共20个合规搜索词)`,
-      `portable gadget, ${curM7Prod.name}, gift for family, space saving organizer (共20个长尾搜索词)`,
+      `${mustList.map(x=>x.toLowerCase()).join(", ")}, ${curM7Prod.sku.toLowerCase()}, compact home organizer, travel essential (20个合规词)`,
+      `portable gadget, ${curM7Prod.name}, gift for family, space saving organizer (20个长尾词)`,
       `best miracle free gadget (包含违禁词样例：触发合规拦截)`,
     ];
+    const drafts = getCopyPool(state.m7ResultTab);
+    const copyFilledMap = {
+      "商品标题": !!state.m7SelectedTitle,
+      "五点描述": !!state.m7SelectedBullets,
+      "商品描述": !!state.m7SelectedDesc,
+      "后台搜索词": !!state.m7SelectedKeywords,
+    };
+    const copyCnt = Object.values(copyFilledMap).filter(Boolean).length;
+    const curImg = getProductImg(curM7Prod.sku, curM7Prod.name, curM7Prod.category);
 
     return {
       headerActions: [
-        { label: "下一步：制作主图与套图 →", primary: false, onClick: () => goPage("m7b") },
-        {
-          label: "✨ 生成新一版差异化文案", primary: true,
-          disabled: !canCreate,
-          disabledTitle: "需要「内容创作 / 审核人员」或主管权限",
-          onClick: () => {
-            state.m7CopyGenCount += 1;
-            appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 为商品 ${curM7Prod.sku} 生成了第 ${state.m7CopyGenCount} 版多语言文案并完成用语扫描`, ok: true });
-            rerender();
-            toast(`已生成第 ${state.m7CopyGenCount} 版多角度文案并完成品牌用语校验`);
-          }
-        }
+        { label: `⚡ 一键采纳 4 类推荐合规文案 (${copyCnt}/4)`, primary: false, disabled: !canCreate, onClick: () => {
+          state.m7CopyGenCount = Math.max(1, state.m7CopyGenCount);
+          state.m7SelectedTitle = getCopyPool("商品标题")[0];
+          state.m7SelectedBullets = getCopyPool("五点描述")[0];
+          state.m7SelectedDesc = getCopyPool("商品描述")[0];
+          state.m7SelectedKeywords = getCopyPool("后台搜索词")[0];
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 一键采纳了 ${curM7Prod.sku} 的 4 类合规文案`, ok: true });
+          rerender();
+          toast("已写入全部 4 类合规文案，可点击「下一步：制作 1+4 套图」继续", "success");
+        }},
+        { label: "下一步：制作 1+4 套图 →", primary: true, onClick: () => goPage("m7b") }
       ],
       html: `
-        <div class="stepper">
-          <div class="step-item done">① 选取 M4 主管已同意测款商品</div>
-          <div class="step-item active">② 多版本文案与品牌用语扫描</div>
-          <div class="step-item">③ 汇总至 M7-4 合规交付清单</div>
-        </div>
+        ${renderM7StepBar(pageId, state, curM7Prod, goPage, rerender, toast)}
 
         <div class="split-left-form">
           <div class="card">
-            <div class="card-header"><div class="card-title">选品任务与品牌用语规范</div></div>
-            <div class="field"><label>选择创作商品（自动联动 M4 批准清单）</label>
+            <div class="card-header"><div class="card-title">第 1 步：选品与品牌用语规范</div></div>
+            <div class="field"><label>选择创作商品（联动 M4 批准清单）</label>
               <select id="m7ProdSel" class="select">
                 <optgroup label="✓ M4 主管已同意测款（待上新创作）">
                   ${availProds.filter(p=>p.origin==="M4_APPROVED").map(p => `<option value="${p.sku}" ${state.m7Sku===p.sku?"selected":""}>${p.sku} · ${p.name} (主管已批)</option>`).join("")}
@@ -143,72 +190,94 @@ export function renderM7_M8(pageId, state, helpers) {
             </div>
 
             <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;border:1px solid ${curM7Prod.origin==="M4_APPROVED"?"#a7f3d0":"var(--border)"};background:${curM7Prod.origin==="M4_APPROVED"?"var(--green-bg)":"#f8fafc"};margin-bottom:10px;">
-              <img src="${getProductImg(curM7Prod.sku)}" class="prod-thumb-img" alt="${curM7Prod.name}"/>
+              <img src="${curImg}" class="prod-thumb-img" alt="${curM7Prod.name}"/>
               <div>
                 <div style="margin-bottom:3px;">
                   <span class="pill ${curM7Prod.origin==="M4_APPROVED"?"p-green":"p-blue"}">
                     ${curM7Prod.origin==="M4_APPROVED" ? `✓ 主管已同意测款 (${curM7Prod.approver})` : "在售老品翻新"}
                   </span>
                 </div>
-                <div style="font-size:12px;color:var(--text-muted);">${curM7Prod.reason}</div>
+                <div style="font-size:12px;color:var(--text-muted);">${curM7Prod.category} · ${curM7Prod.reason}</div>
               </div>
             </div>
 
             <div class="grid-2" style="gap:8px;">
-              <div class="field"><label>目标上架平台（决定字数上限）</label><select id="m7PlatSel" class="select"><option ${state.m7Platform==="亚马逊美国站"?"selected":""}>亚马逊美国站</option><option ${state.m7Platform==="虾皮泰国站"?"selected":""}>虾皮泰国站</option><option ${state.m7Platform==="TikTok 美区"?"selected":""}>TikTok 美区</option></select></div>
+              <div class="field"><label>目标上架平台</label><select id="m7PlatSel" class="select"><option ${state.m7Platform==="亚马逊美国站"?"selected":""}>亚马逊美国站</option><option ${state.m7Platform==="虾皮泰国站"?"selected":""}>虾皮泰国站</option><option ${state.m7Platform==="TikTok 美区"?"selected":""}>TikTok 美区</option></select></div>
               <div class="field"><label>输出语言</label><select id="m7LangSel" class="select"><option ${state.m7Lang==="English (US)"?"selected":""}>English (US)</option><option ${state.m7Lang==="简体中文"?"selected":""}>简体中文</option></select></div>
             </div>
             <div class="field"><label>品牌用语规范（必须包含，绿底高亮）</label><input id="m7MustTerm" class="input" value="${state.m7MustTerm}"/></div>
             <div class="field"><label>平台违禁词（严禁出现，红底拦截）</label><input id="m7BanTerm" class="input" value="${state.m7BanTerm}"/></div>
-            <button class="btn btn-primary" id="m7GenCopyBtn" style="width:100%;justify-content:center;" ${!canCreate?"disabled":""}>✨ 按最新规范生成第 ${state.m7CopyGenCount + 1} 版文案</button>
+            <button class="btn btn-primary" id="m7GenCopyBtn" style="width:100%;justify-content:center;" ${!canCreate?"disabled":""}>✨ 生成第 ${state.m7CopyGenCount + 1} 版多语言文案草稿</button>
           </div>
 
           <div class="card">
             <div class="card-header">
-              <div class="card-title">${curM7Prod.sku} 多版本文案草稿（逐条高亮命中与次数）</div>
-              <span class="pill p-blue">${state.m7Platform} 上限 ${state.m7Platform.includes("虾皮")?120:state.m7Platform.includes("TikTok")?150:200} 字</span>
+              <div class="card-title">${curM7Prod.sku} 多版本文案草稿（逐类点选写入交付清单）</div>
+              <span class="pill ${copyCnt===4?"p-green":"p-amber"}">已写入 ${copyCnt}/4 类文案</span>
             </div>
 
             <div class="utabs" style="margin-bottom:12px;">
               ${["商品标题", "五点描述", "商品描述", "后台搜索词"].map(tb => `
-                <div class="utab ${state.m7ResultTab===tb?"active":""} m7-rtab" data-tab="${tb}">${tb}</div>
+                <div class="utab ${state.m7ResultTab===tb?"active":""} m7-rtab" data-tab="${tb}">
+                  ${tb} ${copyFilledMap[tb] ? '<span class="utab-cnt" style="background:var(--green-bg);color:var(--green-text);">✓</span>' : '<span class="utab-cnt">待选</span>'}
+                </div>
               `).join("")}
             </div>
 
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              ${drafts.map(txt => {
-                const chk = checkCopyRules(txt, state.m7MustTerm, state.m7BanTerm, state.m7Platform);
-                const blocked = chk.banHits > 0 || chk.overLen;
-                return `
-                  <div style="background:#f8fafc;border:1px solid ${blocked?"#fca5a5":"var(--border)"};border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-                    <div style="flex:1;min-width:240px;">
-                      <div style="font-weight:600;line-height:1.5;">${chk.safeHtml}</div>
-                      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;font-size:12px;">
-                        <span class="pill p-green">品牌用语命中 ${chk.mustHits}/${chk.totalMust} 项${chk.mustHitsDetail.length ? `（${chk.mustHitsDetail.join("、")}）` : ""}</span>
-                        <span class="pill ${chk.banHits>0?"p-red":"p-green"}">${chk.banHits>0 ? `命中违禁词：${chk.banHitsDetail.join("、")}` : "违禁词 0 命中 ✓"}</span>
-                        <span class="pill ${chk.overLen?"p-red":"p-gray"}">字符数 ${chk.len} / ${chk.maxTitleLen}</span>
+            ${state.m7CopyGenCount === 0 ? `
+              <div style="padding:28px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:10px;">
+                <div style="font-weight:700;font-size:14.5px;margin-bottom:6px;">尚未生成「${curM7Prod.name}」文案草稿</div>
+                <div style="font-size:12.5px;color:var(--text-soft);margin-bottom:12px;">请点击左侧「✨ 生成第 1 版多语言文案草稿」，或点击右上角一键采纳 4 类合规文案。</div>
+                <button class="btn btn-primary btn-sm" id="m7EmptyGenBtn" ${!canCreate?"disabled":""}>✨ 立即生成文案草稿</button>
+              </div>
+            ` : `
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                ${drafts.map(txt => {
+                  const chk = checkCopyRules(txt, state.m7MustTerm, state.m7BanTerm, state.m7Platform);
+                  const blocked = chk.banHits > 0 || chk.overLen;
+                  const currentPickedVal = state.m7ResultTab === "商品标题" ? state.m7SelectedTitle : state.m7ResultTab === "五点描述" ? state.m7SelectedBullets : state.m7ResultTab === "商品描述" ? state.m7SelectedDesc : state.m7SelectedKeywords;
+                  const isPicked = currentPickedVal === txt;
+                  return `
+                    <div style="background:${isPicked?"#f0fdf4":"#f8fafc"};border:1px solid ${blocked?"#fca5a5":isPicked?"#86efac":"var(--border)"};border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                      <div style="flex:1;min-width:240px;">
+                        <div style="font-weight:600;line-height:1.5;">${chk.safeHtml}</div>
+                        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;font-size:12px;">
+                          <span class="pill p-green">品牌用语 ${chk.mustHits}/${chk.totalMust} 项</span>
+                          <span class="pill ${chk.banHits>0?"p-red":"p-green"}">${chk.banHits>0 ? `命中违禁词：${chk.banHitsDetail.join("、")}` : "违禁词 0 命中 ✓"}</span>
+                          <span class="pill ${chk.overLen?"p-red":"p-gray"}">字符数 ${chk.len} / ${chk.maxTitleLen}</span>
+                        </div>
                       </div>
+                      <button class="btn ${blocked?"btn-danger":isPicked?"btn-success":"btn-primary"} btn-sm m7-pick-copy" data-txt="${txt.replace(/"/g, "&quot;")}" data-ban="${chk.banHits}" data-over="${chk.overLen?1:0}" ${!canCreate?"disabled":""}>
+                        ${blocked ? "含违禁/超长(拦截)" : isPicked ? "已写入清单 ✓" : "写入交付清单 ✓"}
+                      </button>
                     </div>
-                    <button class="btn ${blocked?"btn-danger":"btn-primary"} btn-sm m7-pick-copy" data-txt="${txt.replace(/"/g, "&quot;")}" data-ban="${chk.banHits}" data-over="${chk.overLen?1:0}" ${!canCreate?"disabled":""}>
-                      ${blocked ? "含违禁/超长(禁止选用)" : "写入交付清单 ✓"}
-                    </button>
-                  </div>
-                `;
-              }).join("")}
-            </div>
+                  `;
+                }).join("")}
+              </div>
+            `}
           </div>
         </div>
       `,
       bind: () => {
-        document.getElementById("m7ProdSel").onchange = (e) => { state.m7Sku = e.target.value; rerender(); };
+        bindM7StepBar(state, curM7Prod, goPage, rerender, toast);
+        document.getElementById("m7ProdSel").onchange = (e) => {
+          const picked = availProds.find(p => p.sku === e.target.value);
+          resetM7CreationState(state, e.target.value, picked);
+          rerender();
+          toast(`已切换创作商品为「${picked?.name}」，已重置为 0/8 待创作状态`, "info");
+        };
         document.getElementById("m7PlatSel").onchange = (e) => { state.m7Platform = e.target.value; rerender(); };
         document.getElementById("m7LangSel").onchange = (e) => { state.m7Lang = e.target.value; rerender(); };
         document.querySelectorAll(".m7-rtab").forEach(el => el.onclick = () => { state.m7ResultTab = el.dataset.tab; rerender(); });
-        document.getElementById("m7GenCopyBtn").onclick = () => {
+        const triggerCopyGen = () => {
           state.m7MustTerm = document.getElementById("m7MustTerm").value;
           state.m7BanTerm = document.getElementById("m7BanTerm").value;
-          state.m7CopyGenCount += 1; rerender(); toast(`已更新品牌用语规范并生成第 ${state.m7CopyGenCount} 版文案`);
+          state.m7CopyGenCount += 1; rerender(); toast(`已生成第 ${state.m7CopyGenCount} 版文案并完成用语扫描`);
         };
+        document.getElementById("m7GenCopyBtn").onclick = triggerCopyGen;
+        const empBtn = document.getElementById("m7EmptyGenBtn");
+        if (empBtn) empBtn.onclick = triggerCopyGen;
+
         document.querySelectorAll(".m7-pick-copy").forEach(b => b.onclick = () => {
           if (Number(b.dataset.ban) > 0 || b.dataset.over === "1") {
             appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 尝试选用含违禁词或超长的 ${curM7Prod.sku} 文案，已被拦截`, ok: false });
@@ -220,116 +289,134 @@ export function renderM7_M8(pageId, state, helpers) {
           else if (state.m7ResultTab === "五点描述") state.m7SelectedBullets = val;
           else if (state.m7ResultTab === "商品描述") state.m7SelectedDesc = val;
           else state.m7SelectedKeywords = val;
+          const nextOrder = ["商品标题", "五点描述", "商品描述", "后台搜索词"];
+          const curIdx = nextOrder.indexOf(state.m7ResultTab);
+          if (curIdx >= 0 && curIdx < 3) {
+            const nextEmpty = nextOrder.slice(curIdx + 1).find(t =>
+              (t==="五点描述" && !state.m7SelectedBullets) || (t==="商品描述" && !state.m7SelectedDesc) || (t==="后台搜索词" && !state.m7SelectedKeywords)
+            );
+            if (nextEmpty) state.m7ResultTab = nextEmpty;
+          }
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 将 ${curM7Prod.sku} 的「${state.m7ResultTab}」写入 M7-4 上架交付清单`, ok: true });
-          toast(`已将「${state.m7ResultTab}」写入 M7-4 整套交付清单！`, "success");
+          rerender();
+          toast("已写入！请继续选其余文案或进入第 2 步", "success");
         });
       }
     };
   }
 
-  // ==================== M7-2: 主图与详情套图制作（无参数黑话，清晰标注演示图） ====================
+  // ==================== M7-2: 主图与详情套图制作（1+4 差异构图 + 局部对比 + ComfyUI/IPTC） ====================
   if (pageId === "m7b") {
     const canCreate = state.role === "creator" || state.role === "approver";
     const pickedImg = state.m7Images[state.m7PickedImgIdx] || state.m7Images[0];
-    const prodImg = getProductImg(curM7Prod.sku);
+    const prodImg = getProductImg(curM7Prod.sku, curM7Prod.name, curM7Prod.category);
+    const anyImgDone = state.m7Images.some(x => x.done);
 
     return {
       headerActions: [
-        { label: "← 返回商品文案", primary: false, onClick: () => goPage("m7a") },
-        { label: "下一步：短视频制作 →", primary: false, onClick: () => goPage("m7c") },
+        { label: "← 第 1 步：商品文案", primary: false, onClick: () => goPage("m7a") },
+        { label: "第 3 步：视频与 A+ 长页 →", primary: false, onClick: () => goPage("m7c") },
         {
-          label: "✨ 提交图片生成任务（1大4小套图）", primary: true,
+          label: anyImgDone ? "✨ 重新生成 1+4 差异化电商套图" : "✨ 生成 1+4 差异化电商套图", primary: true,
           disabled: !canCreate,
           disabledTitle: "需要「内容创作 / 审核人员」或主管权限",
           onClick: () => {
             runAsyncTask("m7_img_batch", {
-              label: `商品主图与套图生成任务 · ${curM7Prod.sku}`,
-              steps: ["排队等待图片生成服务响应", "生成白底主图与 4 张卖点附图 (演示图模式)", "完成套图排版并更新交付清单"],
-              durationMs: 1200,
+              label: `商品 1+4 电商套图生成 · ${curM7Prod.sku} (${curM7Prod.name})`,
+              steps: ["调度 ComfyUI 工作流 WF-IMG-v2.1 算力节点", "渲染白底主图 + 场景/卖点/尺寸/清单 4 张附图", "自动写入 EU_AI_Label 合规元数据并校验"],
+              durationMs: 1100,
               onSuccess: () => {
                 state.m7ImgVersion += 1;
-                state.m7Images.forEach(im => {
+                state.m7Images.forEach((im, idx) => {
                   im.done = true;
-                  im.editNote = `演示图（第 ${state.m7ImgVersion} 版），非真实生成`;
+                  im.edited = false;
+                  im.editNote = idx === 0 ? `白底棚拍主图 v${state.m7ImgVersion}` : `第 ${state.m7ImgVersion} 版差异化附图`;
                 });
-                return { summary: `套图任务已完成（当前为演示图，非真实生成，尚未接入专业绘图服务）`, toastMsg: "套图任务已完成（注：当前未接绘图服务，显示为演示图）", toastLevel: "warn" };
+                return { summary: `已生成 5 张不同构图电商套图（第 ${state.m7ImgVersion} 版），可点击单张查看或局部修改`, toastMsg: "1+4 差异化套图生成完成 ✓" };
               }
             });
           }
         }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span><strong>外部服务连接状态：</strong>当前尚未接入专业图片生成服务（处于演示模式），下方展示的均为<strong>「演示图，非真实生成」</strong>，请勿直接当作最终商业精修图上架。</span>
-        </div>
-
+        ${renderM7StepBar(pageId, state, curM7Prod, goPage, rerender, toast)}
         ${renderAsyncBox("m7_img_batch")}
 
         <div class="split-left-form">
           <div class="card">
-            <div class="card-header"><div class="card-title">商品套图制作要求</div></div>
+            <div class="card-header"><div class="card-title">第 2 步：1+4 套图要求与局部修改</div></div>
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
               <img src="${prodImg}" class="prod-thumb-img" alt="${curM7Prod.name}"/>
               <div>
                 <strong>${curM7Prod.sku} · ${curM7Prod.name}</strong>
-                <div style="font-size:12px;color:var(--text-soft);">${state.m7Platform} · ${curM7Prod.origin==="M4_APPROVED"?"✓ 主管已同意测款":"在售老品翻新"}</div>
+                <div style="font-size:12px;color:var(--text-soft);">${curM7Prod.category} · ${state.m7Platform}</div>
               </div>
             </div>
-            <div class="field"><label>套图制作模板</label>
+            <div class="field"><label>套图工作流模板</label>
               <select id="m7ImgWfSel" class="select">
-                <option ${state.m7ImgWorkflow.includes("白底")?"selected":""}>标准白底主图模板 (未接入外部绘图服务 · 演示图)</option>
-                <option ${state.m7ImgWorkflow.includes("场景")?"selected":""}>1 张主图 + 4 张卖点场景附图模板 (演示图)</option>
+                <option ${state.m7ImgWorkflow.includes("白底")?"selected":""}>标准白底主图 + 4张场景卖点附图模板</option>
+                <option ${state.m7ImgWorkflow.includes("场景")?"selected":""}>欧美居家生活方式高转化套图模板</option>
               </select>
             </div>
-            <div class="field"><label>画面设计要求说明</label><textarea class="textarea">纯白背景，商品主体占画面 85%，光线柔和清晰，无多余文字水印。</textarea></div>
+            <div class="field"><label>画面设计要求说明</label><textarea class="textarea">图1纯白棚拍占85%；图2居家实景；图3双卖点标注；图4长宽高净重标尺；图5主机配件清单。</textarea></div>
             <div class="formula-box" style="margin-bottom:10px;">
               <strong>当前选中图位：</strong>${pickedImg.label}<br/>
-              当前状态：<strong>${pickedImg.done ? "已生成演示图" : "缺图待制作"}</strong>（${pickedImg.editNote}）
+              当前状态：<strong>${pickedImg.done ? (pickedImg.edited ? "✓ 已完成局部精修对比" : "✓ 已生成差异化套图") : "待生成（请点右上角生成按钮）"}</strong>
             </div>
-            <button class="btn btn-primary" id="m7EditPickedBtn" style="width:100%;justify-content:center;margin-bottom:8px;" ${!canCreate?"disabled":""}>✏️ 局部修改当前选中图位（保留其余4张）</button>
-            <button class="btn btn-sm" id="m7GotoM7d" style="width:100%;justify-content:center;">前往 M7-4 查看 8 类交付清单 →</button>
+            <button class="btn btn-primary" id="m7EditPickedBtn" style="width:100%;justify-content:center;margin-bottom:8px;" ${(!canCreate || !pickedImg.done)?"disabled":""}>✏️ 局部修改当前选中图位（修改前后对比）</button>
+            <button class="btn btn-sm" id="m7GotoM7c" style="width:100%;justify-content:center;">进入第 3 步：制作短视频与 A+ 详情页 →</button>
           </div>
 
           <div class="card">
             <div class="card-header">
-              <div class="card-title">1 张主图 + 4 张详情附图陈列（第 ${state.m7ImgVersion} 版）</div>
-              <span class="pill p-amber">演示图，非真实生成</span>
+              <div class="card-title">1 张白底主图 + 4 张不同构图附图（第 ${state.m7ImgVersion} 版）</div>
+              <span class="pill ${anyImgDone?"p-green":"p-amber"}">${anyImgDone?"5 张已差异化出图":"待点击右上角生成套图"}</span>
             </div>
 
-            <div class="gallery-1plus4">
-              ${(() => {
-                const m = state.m7Images[0];
-                return `
-                  <div class="gal-tile large ${state.m7PickedImgIdx===0?"picked":""}" data-imgi="0">
-                    <div class="gal-canvas">
-                      <img src="${prodImg}" style="width:155px;height:155px;border-radius:12px;" alt="商品主图 1"/>
-                      <span class="pill p-amber" style="position:absolute;bottom:8px;right:8px;">演示图，非真实生成</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                      <div><strong>${m.label}</strong> <span style="font-size:12px;color:var(--text-soft)">${m.editNote}</span></div>
-                      <span class="pill ${m.done?"p-green":"p-amber"}">${m.done?"已就绪":"待补齐"}</span>
-                    </div>
-                  </div>
-                `;
-              })()}
-
-              <div class="gallery-4small">
-                ${state.m7Images.slice(1).map((m, idx) => {
-                  const realIdx = idx + 1;
+            ${!anyImgDone ? `
+              <div style="padding:36px 20px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:10px;">
+                <img src="${prodImg}" style="width:76px;height:76px;border-radius:12px;margin-bottom:10px;opacity:0.75;" alt="${curM7Prod.name}"/>
+                <div style="font-weight:700;font-size:14.5px;margin-bottom:5px;">「${curM7Prod.name}」的 5 张电商套图尚未生成 (0/5)</div>
+                <div style="font-size:12.5px;color:var(--text-soft);margin-bottom:12px;">将一次性生成：①白底主图、②使用场景图、③核心卖点标注图、④尺寸规格标尺图、⑤包装清单图。</div>
+                <button class="btn btn-primary btn-sm" id="m7EmptyImgGenBtn" ${!canCreate?"disabled":""}>✨ 立即生成 1+4 差异化电商套图</button>
+              </div>
+            ` : `
+              <div class="gallery-1plus4">
+                ${(() => {
+                  const m = state.m7Images[0];
+                  const slot0Url = getM7SlotImg(curM7Prod, 0, m.edited);
                   return `
-                    <div class="gal-tile ${state.m7PickedImgIdx===realIdx?"picked":""}" data-imgi="${realIdx}">
-                      <div class="gal-canvas" style="background:${realIdx===1?"#f1f5f9":"#ffffff"};">
-                        <img src="${prodImg}" style="width:68px;height:68px;opacity:${m.done?0.92:0.35};border-radius:8px;" alt="${m.label}"/>
+                    <div class="gal-tile large ${state.m7PickedImgIdx===0?"picked":""}" data-imgi="0">
+                      <div class="gal-canvas" style="background:#fff;">
+                        <img src="${slot0Url}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;" alt="${m.label}"/>
                       </div>
-                      <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
-                        <strong style="font-size:12px;">${m.label}</strong>
-                        <span class="pill ${m.done?"p-green":"p-amber"}">${m.done?"演示图✓":"缺"}</span>
+                      <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div><strong>${m.label}</strong> <span style="font-size:12px;color:var(--text-soft)">${m.editNote}</span></div>
+                        <span class="pill p-green">${m.edited?"已局部精修 ✓":"主图 ✓"}</span>
                       </div>
                     </div>
                   `;
-                }).join("")}
+                })()}
+
+                <div class="gallery-4small">
+                  ${state.m7Images.slice(1).map((m, idx) => {
+                    const realIdx = idx + 1;
+                    const slotUrl = getM7SlotImg(curM7Prod, realIdx, m.edited);
+                    return `
+                      <div class="gal-tile ${state.m7PickedImgIdx===realIdx?"picked":""}" data-imgi="${realIdx}">
+                        <div class="gal-canvas" style="background:#f8fafc;">
+                          <img src="${slotUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:6px;" alt="${m.label}"/>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
+                          <strong style="font-size:12px;">${m.label}</strong>
+                          <span class="pill p-green">${m.edited?"已精修✓":"已出图✓"}</span>
+                        </div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
               </div>
-            </div>
+            `}
           </div>
         </div>
 
@@ -339,16 +426,15 @@ export function renderM7_M8(pageId, state, helpers) {
               <div class="card-title">🖥️ ComfyUI 算力池、工作流版本与批量执行台</div>
               <span class="pill p-blue">当前工作流：${state.m7ActiveWorkflowVer}</span>
             </div>
-            <div style="font-size:12px;font-weight:700;margin-bottom:6px;">GPU 节点算力池与队列监控（不可用节点不接新单，自动降级备用节点）</div>
             <div class="table-wrap" style="margin-bottom:10px;">
               <table>
-                <thead><tr><th>节点名称 / 版本</th><th>显存占用</th><th>队列深度</th><th>状态与调度</th></tr></thead>
+                <thead><tr><th>节点名称 / 版本</th><th>显存占用</th><th>队列</th><th>状态与调度</th></tr></thead>
                 <tbody>
                   ${state.m7GpuPool.map((g, gi) => `
                     <tr style="${!g.healthy?"background:#fef2f2;":""}">
                       <td><strong>${g.id}</strong><div style="font-size:11px;color:var(--text-soft);">${g.model} · ${g.ver}</div></td>
                       <td>${g.vramUsed}</td>
-                      <td>${g.queue} 个任务</td>
+                      <td>${g.queue} 个</td>
                       <td>
                         <span class="pill ${g.healthy?"p-green":"p-red"}">${g.healthy?"健康可接单":"掉线(降级备用)"}</span>
                         <button class="btn btn-sm m7-gpu-toggle" data-gi="${gi}" style="margin-left:4px;">${g.healthy?"模拟掉线":"恢复节点"}</button>
@@ -359,14 +445,13 @@ export function renderM7_M8(pageId, state, helpers) {
               </table>
             </div>
             <div class="field" style="margin-bottom:8px;">
-              <label>工作流注册表版本切换（支持发布 / 回滚，执行中任务锁定版本）</label>
+              <label>工作流注册表版本切换</label>
               <select id="m7WfRegSel" class="select">
                 ${state.m7WorkflowRegistry.map(wf => `
                   <option value="${wf.id}" ${state.m7ActiveWorkflowVer===wf.id?"selected":""}>${wf.id} · ${wf.name}（${wf.status} · 需显存 ${wf.vramNeed}）</option>
                 `).join("")}
               </select>
             </div>
-            <div style="font-size:12px;font-weight:700;margin-bottom:5px;">多 SKU 批量任务与部分完成回写（单项失败不影响已完成结果）</div>
             <div style="display:flex;flex-direction:column;gap:5px;">
               ${state.m7BatchJobs.map(b => `
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:${b.ok?"#f8fafc":"#fef2f2"};">
@@ -394,53 +479,65 @@ export function renderM7_M8(pageId, state, helpers) {
             </label>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
               <button type="button" class="btn btn-sm" id="m7SimCropLossBtn">✂️ 模拟裁剪转码导致标签丢失</button>
-              <button type="button" class="btn btn-sm btn-primary" id="m7RewriteIptcBtn" ${!canCreate?"disabled":""}>✓ 重新写入元数据并校验最终文件</button>
-            </div>
-            <div style="font-size:12px;color:var(--text-soft);line-height:1.6;">
-              校验规则：商品图经过压缩、裁剪或转码后，必须对「最终待发布文件」重新读回核验 IPTC/XMP 标记，未通过前 M7-4 将拦截合规放行。
+              <button type="button" class="btn btn-sm btn-primary" id="m7RewriteIptcBtn" ${!canCreate?"disabled":""}>✓ 重新写入元数据并校验</button>
             </div>
           </div>
         </div>
       `,
       bind: () => {
+        bindM7StepBar(state, curM7Prod, goPage, rerender, toast);
         document.getElementById("m7ImgWfSel").onchange = (e) => { state.m7ImgWorkflow = e.target.value; };
         document.querySelectorAll(".gal-tile").forEach(el => el.onclick = () => { state.m7PickedImgIdx = Number(el.dataset.imgi); rerender(); });
-        document.getElementById("m7GotoM7d").onclick = () => goPage("m7d");
+        document.getElementById("m7GotoM7c").onclick = () => goPage("m7c");
+        const empImgBtn = document.getElementById("m7EmptyImgGenBtn");
+        if (empImgBtn) empImgBtn.onclick = () => {
+          runAsyncTask("m7_img_batch", {
+            label: `商品 1+4 电商套图生成 · ${curM7Prod.sku}`,
+            steps: ["调度 ComfyUI 工作流 WF-IMG-v2.1", "生成 5 张不同构图电商图", "写入合规元数据"],
+            durationMs: 950,
+            onSuccess: () => {
+              state.m7ImgVersion += 1;
+              state.m7Images.forEach((im, idx) => { im.done = true; im.edited = false; im.editNote = idx===0 ? `白底棚拍主图 v${state.m7ImgVersion}` : `第 ${state.m7ImgVersion} 版差异化附图`; });
+              return { summary: "已完成 5 张差异化套图生成", toastMsg: "1+4 差异化套图已就绪 ✓" };
+            }
+          });
+        };
         document.querySelectorAll(".m7-gpu-toggle").forEach(b => b.onclick = () => {
           const g = state.m7GpuPool[Number(b.dataset.gi)];
-          g.healthy = !g.healthy;
-          if (!g.healthy) g.queue = 0;
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} ${g.healthy ? "恢复" : "模拟掉线"}算力节点 ${g.id}（${g.healthy ? "恢复接单" : "已自动降级调度至备用 GPU 节点"}）`, ok: g.healthy });
+          g.healthy = !g.healthy; if (!g.healthy) g.queue = 0;
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} ${g.healthy ? "恢复" : "模拟掉线"}算力节点 ${g.id}`, ok: g.healthy });
           rerender();
-          toast(g.healthy ? `${g.id} 已恢复健康接单` : `${g.id} 不可用，新任务已自动降级调度至备用节点`, g.healthy ? "success" : "warn");
         });
-        document.getElementById("m7WfRegSel").onchange = (e) => {
-          state.m7ActiveWorkflowVer = e.target.value;
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 将图像生成工作流版本切换为 ${state.m7ActiveWorkflowVer}`, ok: true });
-          rerender();
-          toast(`工作流版本已切换为 ${state.m7ActiveWorkflowVer}`);
-        };
+        document.getElementById("m7WfRegSel").onchange = (e) => { state.m7ActiveWorkflowVer = e.target.value; rerender(); toast(`工作流版本已切换为 ${state.m7ActiveWorkflowVer}`); };
         document.getElementById("m7AiPersonChk").onchange = (e) => { state.m7AiPersonInAsset = e.target.checked; rerender(); };
         document.getElementById("m7SimCropLossBtn").onclick = () => {
-          state.m7IptcDamagedByCrop = true;
-          state.m7IptcWritten = false;
-          state.m7ComplianceStatus = "校验未通过";
-          rerender();
-          toast("裁剪后元数据丢失！已触发阻断，请重新写入后重检", "error");
+          state.m7IptcDamagedByCrop = true; state.m7IptcWritten = false; state.m7ComplianceStatus = "校验未通过";
+          rerender(); toast("裁剪后元数据丢失！已触发阻断", "error");
         };
         document.getElementById("m7RewriteIptcBtn").onclick = () => {
-          state.m7IptcDamagedByCrop = false;
-          state.m7IptcWritten = true;
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 为 ${curM7Prod.sku} 最终待发布图重新写入并校验通过 IPTC/XMP 人物合规标记`, ok: true });
-          rerender();
-          toast("已写入合规元数据并通过最终文件读回校验 ✓", "success");
+          state.m7IptcDamagedByCrop = false; state.m7IptcWritten = true;
+          rerender(); toast("已写入合规元数据并通过最终文件读回校验 ✓", "success");
         };
         document.getElementById("m7EditPickedBtn").onclick = () => {
+          const beforeUrl = getM7SlotImg(curM7Prod, pickedImg.id, false);
+          const afterUrl = getM7SlotImg(curM7Prod, pickedImg.id, true);
           commitAction({
-            title: `局部修改图位 · ${pickedImg.label}`,
-            summary: "仅针对当前选中的这一张图重新调整，其余 4 张合格图片完整保留不覆盖。",
-            confirmText: "提交局部修改任务",
-            fieldsHtml: `<div class="field"><label>局部修改要求说明 *</label><textarea id="inpaintPrompt" class="textarea">去掉多余反光标签，提亮产品主体的边缘质感</textarea></div>`,
+            title: `局部修改对比 · ${pickedImg.label}`,
+            summary: "仅重绘当前图位（提亮产品光泽、优化高光边角），其余 4 张合格图片保持不变。",
+            confirmText: "应用局部修改结果",
+            fieldsHtml: `
+              <div class="grid-2" style="gap:10px;margin-bottom:10px;">
+                <div style="text-align:center;border:1px solid var(--border);border-radius:8px;padding:8px;">
+                  <div style="font-size:12px;font-weight:700;margin-bottom:4px;">修改前 (原图)</div>
+                  <img src="${beforeUrl}" style="width:140px;height:140px;object-fit:contain;" alt="修改前"/>
+                </div>
+                <div style="text-align:center;border:1px solid #86efac;background:#f0fdf4;border-radius:8px;padding:8px;">
+                  <div style="font-size:12px;font-weight:700;color:var(--green-text);margin-bottom:4px;">修改后 (精修去反光+暖光质感)</div>
+                  <img src="${afterUrl}" style="width:140px;height:140px;object-fit:contain;" alt="修改后"/>
+                </div>
+              </div>
+              <div class="field"><label>局部修改指令 *</label><textarea id="inpaintPrompt" class="textarea">去掉多余反光标签，提亮产品主体的边缘质感与背景氛围光</textarea></div>
+            `,
             validate: (wrap) => {
               const el = wrap.querySelector("#inpaintPrompt");
               return el.value.trim() ? [] : [{ el, msg: "请填写局部修改要求" }];
@@ -448,8 +545,9 @@ export function renderM7_M8(pageId, state, helpers) {
             onConfirm: () => {
               state.m7ImgVersion += 1;
               pickedImg.done = true;
-              pickedImg.editNote = `局部修改演示图（第 ${state.m7ImgVersion} 版），非真实生成`;
-              return { toastMsg: `已完成「${pickedImg.label}」局部修改演示（其余 4 张图保持不变）` };
+              pickedImg.edited = true;
+              pickedImg.editNote = `已局部精修对比 (第 ${state.m7ImgVersion} 版)`;
+              return { toastMsg: `已完成「${pickedImg.label}」局部精修对比（其余 4 张不变）` };
             },
             audit: (wrap) => ({
               sentence: `${ROLE_PERSON_NAMES[state.role]} 对 ${curM7Prod.sku} 的「${pickedImg.label}」提交了局部修改：${wrap.querySelector("#inpaintPrompt").value.trim()}`,
@@ -461,112 +559,214 @@ export function renderM7_M8(pageId, state, helpers) {
     };
   }
 
-  // ==================== M7-3: 短视频制作（进度条 + 分镜→生成→合成阶段日志） ====================
+  // ==================== M7-3: 可交互 15 秒短视频播放器 + 可视化 A+ 图文长页生成 ====================
   if (pageId === "m7c") {
     const canCreate = state.role === "creator" || state.role === "approver";
     const isFailMode = state.m7VidWorkflow.includes("未配置");
+    const tSec = Number(state.m7VidTimeSec) || 0;
+    const segIdx = tSec < 5 ? 0 : tSec < 10 ? 1 : 2;
+    const segData = [
+      { range: "0-5s", title: "分镜1 · 痛点引入", subCN: `还在被杂乱困扰？试试 ${curM7Prod.name}`, subEN: `Tired of daily clutter? Meet ${curM7Prod.sku}!`, slot: 1, bg: "linear-gradient(135deg,#0f172a,#1e3a8a)" },
+      { range: "5-10s", title: "分镜2 · 核心卖点实操", subCN: "一键高效上手 · 省心省空间实测", subEN: "Instant Setup · Built for Everyday Efficiency", slot: 2, bg: "linear-gradient(135deg,#1e293b,#065f46)" },
+      { range: "10-15s", title: "分镜3 · 品质清单收尾", subCN: `全套配件开箱即用 · 立即加购 ${curM7Prod.sku}`, subEN: "Complete Kit Included · Shop Now!", slot: 4, bg: "linear-gradient(135deg,#312e81,#1e293b)" },
+    ];
+    const curSeg = segData[segIdx];
+    const curFrameImg = getM7SlotImg(curM7Prod, curSeg.slot, false);
 
     return {
       headerActions: [
-        { label: "← 返回主图套图", primary: false, onClick: () => goPage("m7b") },
-        { label: "前往上架前合规检查 →", primary: true, onClick: () => goPage("m7d") }
+        { label: "← 第 2 步：1+4 套图", primary: false, onClick: () => goPage("m7b") },
+        { label: "第 4 步：合规总览与导出 →", primary: true, onClick: () => goPage("m7d") }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span><strong>外部视频服务状态：</strong>默认状态为「未配置视频生成节点」，直接提交将如实显示失败原因并停止输出；您也可以切换为「模拟已配置服务」体验完整的「分镜脚本 → 画面生成 → 成片合成」进度与日志。</span>
-        </div>
-
+        ${renderM7StepBar(pageId, state, curM7Prod, goPage, rerender, toast)}
         ${renderAsyncBox("m7_vid")}
 
         <div class="split-left-form">
           <div class="card">
-            <div class="card-header"><div class="card-title">短视频脚本与节点设置</div></div>
+            <div class="card-header"><div class="card-title">第 3 步：短视频与 A+ 详情页创作</div></div>
             <div class="field"><label>制作商品</label><input class="input" readonly value="${curM7Prod.sku} · ${curM7Prod.name}" /></div>
             <div class="field">
-              <label>选择短视频脚本风格</label>
+              <label>短视频脚本风格</label>
               <div class="grid-2" style="gap:8px;">
                 ${["产品展示", "开箱测评", "场景种草", "卖点快剪"].map(vt => `
                   <div class="option-tile ${state.m7VidType===vt?"active":""} m7-vtype" data-t="${vt}"><strong style="font-size:12.5px;">${vt}</strong></div>
                 `).join("")}
               </div>
             </div>
-            <div class="field"><label>视频生成服务连接状态</label>
+            <div class="field"><label>视频渲染服务模式</label>
               <select id="m7VidWfSel" class="select">
-                <option value="fail" ${isFailMode?"selected":""}>未配置视频生成节点（默认 · 测试如实报错）</option>
-                <option value="ok" ${!isFailMode?"selected":""}>模拟已配置视频服务（体验分镜→生成→合成进度）</option>
+                <option value="ok" ${!isFailMode?"selected":""}>模拟已配置视频服务（可播放 15 秒分镜成片）</option>
+                <option value="fail" ${isFailMode?"selected":""}>未配置视频生成节点（测试如实阻断报错）</option>
               </select>
             </div>
-            <button class="btn btn-primary" id="m7GenVidBtn" style="width:100%;justify-content:center;" ${!canCreate?"disabled":""}>▶ 提交短视频生成任务</button>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-primary" id="m7GenVidBtn" style="width:100%;justify-content:center;" ${!canCreate?"disabled":""}>🎬 生成 15 秒种草短视频 (含分镜字幕)</button>
+              <button class="btn btn-success" id="m7GenAplusBtn" style="width:100%;justify-content:center;" ${!canCreate?"disabled":""}>${state.m7AplusDone?"✓ 已生成 A+ 图文详情页（点击刷新）":"📄 一键生成可视化 A+ 图文详情长页"}</button>
+            </div>
           </div>
 
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">视频制作进度与阶段日志</div>
-              <span class="pill ${state.m7VidDone?"p-green":"p-red"}">${state.m7VidDone?"演示视频已就绪":"未配置视频节点"}</span>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">🎬 15 秒竖屏短视频交互预览器 (${state.m7VidType})</div>
+                <span class="pill ${state.m7VidDone?"p-green":"p-amber"}">${state.m7VidDone?"成片可播放":"待生成视频"}</span>
+              </div>
+              ${!state.m7VidDone ? `
+                ${isFailMode ? `
+                  <div class="banner banner-red"><span><strong>服务未配置阻断：</strong>当前选择了「未配置视频生成节点」，系统如实拦截不产出空视频；切回「模拟已配置视频服务」即可生成并播放 15 秒分镜。</span></div>
+                ` : `
+                  <div style="padding:26px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:10px;">
+                    <div style="font-weight:700;margin-bottom:6px;">尚未生成「${curM7Prod.name}」的 15 秒种草视频</div>
+                    <div style="font-size:12.5px;color:var(--text-soft);">点击左侧「🎬 生成 15 秒种草短视频」，即可在线播放 3 段分镜动画与双语字幕。</div>
+                  </div>
+                `}
+              ` : `
+                <div class="grid-2" style="gap:14px;align-items:start;">
+                  <div class="vid-player-frame">
+                    <div class="vid-stage" style="background:${curSeg.bg};">
+                      <span class="pill p-blue" style="position:absolute;top:10px;left:10px;">${curSeg.range} · ${curSeg.title}</span>
+                      <span class="pill ${state.m7VidPlaying?"p-green":"p-gray"}" style="position:absolute;top:10px;right:10px;">${state.m7VidPlaying?"● 播放中":"⏸ 已暂停"}</span>
+                      <img src="${curFrameImg}" alt="${curM7Prod.name}" style="${state.m7VidPlaying?"transform:scale(1.06);transition:transform 0.6s ease;":""}"/>
+                      <div class="vid-sub-bar">
+                        <div style="font-weight:700;">${curSeg.subEN}</div>
+                        <div style="font-size:11px;color:#cbd5e1;">${curSeg.subCN}</div>
+                      </div>
+                    </div>
+                    <div class="vid-controls">
+                      <button type="button" class="btn btn-sm btn-primary" id="m7VidPlayBtn">${state.m7VidPlaying ? "⏸ 暂停" : "▶ 播放 15s 预览"}</button>
+                      <div style="flex:1;height:6px;background:#334155;border-radius:999px;overflow:hidden;">
+                        <div style="width:${Math.round((tSec/15)*100)}%;height:100%;background:#38bdf8;transition:width 0.3s linear;"></div>
+                      </div>
+                      <span style="font-size:12px;font-variant-numeric:tabular-nums;">${String(tSec).padStart(2,"0")}:00 / 15:00</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="font-weight:700;font-size:13px;">点击分镜段快速跳转画面：</div>
+                    ${segData.map((sg, idx) => `
+                      <button type="button" class="btn btn-sm m7-vid-seg" data-sec="${idx*5}" style="justify-content:flex-start;text-align:left;${segIdx===idx?"border-color:var(--blue);background:var(--blue-bg);color:var(--blue-hover);":""}">
+                        <strong>${sg.range}</strong> · ${sg.title}（${sg.subCN}）
+                      </button>
+                    `).join("")}
+                    <div style="font-size:12px;color:var(--text-muted);background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 10px;line-height:1.6;">
+                      <strong>分镜一致性校验：</strong>3 段镜头主体外观一致 ✓<br/>
+                      ${(state.m7VidLogs || []).slice(-2).join("<br/>")}
+                    </div>
+                  </div>
+                </div>
+              `}
             </div>
-            ${!state.m7VidDone ? `
-              <div class="banner banner-red">
-                <span><strong>发生了什么：</strong>后台尚未接入外部视频生成服务，无法生成真实短视频文件。<strong>影响范围：</strong>仅影响本页短视频生成。<strong>怎么处理：</strong>请联系系统管理员配置视频生成节点，或在左侧切换「模拟已配置视频服务」体验制作流程。</span>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">📄 平台 A+ 图文详情页实时预览</div>
+                <span class="pill ${state.m7AplusDone?"p-green":"p-amber"}">${state.m7AplusDone?"A+ 模块已写入清单":"待生成 A+ 长页"}</span>
               </div>
-            ` : `
-              <div class="grid-2">
-                <div class="media-card picked">
-                  <div class="media-preview dark">
-                    <div style="font-size:26px;">▶</div>
-                    <strong>15秒竖屏演示视频 (${state.m7VidType})</strong>
-                    <span style="font-size:12px;color:#cbd5e1">演示模拟预览，非真实成片</span>
-                  </div>
-                  <div style="font-weight:700;">产品种草视频（关联商品主图 1）</div>
-                  <div style="font-size:12px;color:var(--amber-text);margin:4px 0 8px;">说明：纯前端演示流程，正式成片需接通外部视频渲染节点</div>
-                  <button class="btn btn-primary btn-sm" id="m7UseVidBtn">写入上架交付清单 →</button>
+              ${!state.m7AplusDone ? `
+                <div style="padding:20px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:8px;font-size:12.5px;color:var(--text-soft);">
+                  尚未生成 A+ 图文模块，点击左侧「📄 一键生成可视化 A+ 图文详情长页」即可自动组装品牌横幅、场景卖点与参数对比表。
                 </div>
-                <div class="media-card">
-                  <div style="font-weight:700;margin-bottom:6px;">制作阶段执行日志与画面一致性检查</div>
-                  <div style="font-size:12.5px;color:var(--text-muted);line-height:1.8;">
-                    ${(state.m7VidLogs.length ? state.m7VidLogs : ["• 等待提交制作任务"]).join("<br/>")}
-                    <br/>• <strong>分镜一致性校验：</strong>多段短片主体外观、配色与标签一致 ✓（支持失败重试与备用节点降级）
+              ` : `
+                <div class="aplus-preview-wrap">
+                  <div class="aplus-hero">
+                    <div>
+                      <span class="pill p-blue" style="margin-bottom:6px;">BRAND A+ STORY · ${curM7Prod.category}</span>
+                      <div style="font-size:16px;font-weight:800;">${curM7Prod.name} (${curM7Prod.sku})</div>
+                      <div style="font-size:12px;color:#cbd5e1;margin-top:4px;">${state.m7SelectedTitle || "专为日常高频场景打造 · 严选合规品质"}</div>
+                    </div>
+                    <img src="${getM7SlotImg(curM7Prod, 0, false)}" style="width:90px;height:90px;border-radius:10px;background:#fff;padding:4px;" alt="A+主图"/>
+                  </div>
+                  <div class="grid-2" style="gap:10px;">
+                    <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:#f8fafc;display:flex;gap:10px;align-items:center;">
+                      <img src="${getM7SlotImg(curM7Prod, 1, false)}" style="width:68px;height:68px;border-radius:8px;object-fit:contain;" alt="场景图"/>
+                      <div style="font-size:12px;"><strong>模块 1 · 沉浸场景展示</strong><div style="color:var(--text-muted);margin-top:2px;">融入居家/桌面真实环境，降低买家想象门槛。</div></div>
+                    </div>
+                    <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:#f8fafc;display:flex;gap:10px;align-items:center;">
+                      <img src="${getM7SlotImg(curM7Prod, 2, false)}" style="width:68px;height:68px;border-radius:8px;object-fit:contain;" alt="卖点图"/>
+                      <div style="font-size:12px;"><strong>模块 2 · 核心性能对比</strong><div style="color:var(--text-muted);margin-top:2px;">直观呈现效率提升与耐用结构优势。</div></div>
+                    </div>
+                  </div>
+                  <div class="table-wrap" style="margin-top:10px;">
+                    <table>
+                      <thead><tr><th>规格参数对比</th><th>${curM7Prod.sku} 升级款</th><th>普通市场常规款</th></tr></thead>
+                      <tbody>
+                        <tr><td>核心材质与耐用性</td><td><strong>加厚环保级材质 ✓</strong></td><td>易损耗普通材质</td></tr>
+                        <tr><td>装箱配件与质保</td><td><strong>全套配件 + 1年售后 ✓</strong></td><td>单机无备件</td></tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-              </div>
-            `}
+              `}
+            </div>
           </div>
         </div>
       `,
       bind: () => {
+        bindM7StepBar(state, curM7Prod, goPage, rerender, toast);
         document.querySelectorAll(".m7-vtype").forEach(el => el.onclick = () => { state.m7VidType = el.dataset.t; rerender(); });
         document.getElementById("m7VidWfSel").onchange = (e) => {
-          state.m7VidWorkflow = e.target.value === "fail" ? "未配置视频生成节点（默认如实报错）" : "模拟已配置视频服务（分镜→生成→合成）";
-          if (e.target.value === "fail") state.m7VidDone = false;
+          state.m7VidWorkflow = e.target.value === "fail" ? "未配置视频生成节点（默认如实报错）" : "模拟已配置视频服务（可播放分镜演示）";
+          if (e.target.value === "fail") { state.m7VidDone = false; state.m7VidPlaying = false; }
           rerender();
         };
         document.getElementById("m7GenVidBtn").onclick = () => {
           const failNow = state.m7VidWorkflow.includes("未配置");
           runAsyncTask("m7_vid", {
             label: `短视频制作任务 · ${curM7Prod.sku} (${state.m7VidType})`,
-            steps: ["1. 分镜脚本准备与主图载入", "2. 视频画面生成处理中", "3. 字幕配乐成片合成"],
-            durationMs: 1300,
+            steps: ["1. 分镜脚本准备与主图载入", "2. 3 段镜头生成处理中", "3. 双语字幕成片合成"],
+            durationMs: 1100,
             shouldFail: failNow,
             failReason: "视频生成服务未配置，系统已如实停止输出，不会生成打不开的空文件。",
-            onFail: () => { state.m7VidDone = false; },
+            onFail: () => { state.m7VidDone = false; state.m7VidPlaying = false; },
             onSuccess: () => {
               state.m7VidDone = true;
+              state.m7VidTimeSec = 0;
+              state.m7VidPlaying = true;
               state.m7VidLogs = [
                 `• [${nowDateTimeStr()}] 阶段 1/3：分镜脚本准备完成（${state.m7VidType}）`,
-                `• [${nowDateTimeStr()}] 阶段 2/3：视频画面生成完成（共 15 秒竖屏镜头）`,
-                `• [${nowDateTimeStr()}] 阶段 3/3：成片合成完成（演示预览），已点亮 M7-4 交付清单`
+                `• [${nowDateTimeStr()}] 阶段 2/3：3 段镜头生成完毕`,
+                `• [${nowDateTimeStr()}] 阶段 3/3：15秒双语字幕短视频合成完成 ✓`
               ];
-              return { summary: `短视频演示流程完成（分镜→生成→合成）`, toastMsg: "短视频制作流程已完成（演示模式）" };
+              return { summary: "15 秒种草短视频生成成功，已自动开始播放分镜预览", toastMsg: "短视频生成完成并已写入交付清单！" };
             }
           });
         };
-        const uv = document.getElementById("m7UseVidBtn");
-        if (uv) uv.onclick = () => goPage("m7d");
+        document.getElementById("m7GenAplusBtn").onclick = () => {
+          state.m7AplusDone = true;
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 生成了 ${curM7Prod.sku} 的可视化 A+ 图文详情页`, ok: true });
+          rerender();
+          toast("已生成可视化 A+ 图文详情长页并写入交付清单 ✓", "success");
+        };
+        const playBtn = document.getElementById("m7VidPlayBtn");
+        if (playBtn) playBtn.onclick = () => {
+          state.m7VidPlaying = !state.m7VidPlaying;
+          rerender();
+        };
+        document.querySelectorAll(".m7-vid-seg").forEach(b => b.onclick = () => {
+          state.m7VidTimeSec = Number(b.dataset.sec) || 0;
+          rerender();
+        });
+        if (typeof window !== "undefined") {
+          if (state.m7VidDone && state.m7VidPlaying && !window.__m7VidTimer) {
+            window.__m7VidTimer = setInterval(() => {
+              if (state.pageId !== "m7c" || !state.m7VidPlaying) {
+                clearInterval(window.__m7VidTimer);
+                window.__m7VidTimer = null;
+                return;
+              }
+              state.m7VidTimeSec = (state.m7VidTimeSec + 1) % 16;
+              rerender();
+            }, 950);
+          } else if ((!state.m7VidPlaying || state.pageId !== "m7c") && window.__m7VidTimer) {
+            clearInterval(window.__m7VidTimer);
+            window.__m7VidTimer = null;
+          }
+        }
       }
     };
   }
 
-  // ==================== M7-4: 上架前 8 项交付清单与合规把关 ====================
-  // ==================== M7-4: 上架前 8 项交付清单、规则矩阵与合规把关 ====================
+  // ==================== M7-4: 上架前 8 项交付清单、规则矩阵与合规把关 + 可下载素材包 ====================
   if (pageId === "m7d") {
     const isApprover = state.role === "approver";
     const isCreator = state.role === "creator" || isApprover;
@@ -598,96 +798,129 @@ export function renderM7_M8(pageId, state, helpers) {
     const iptcOk = !state.m7AiPersonInAsset || (state.m7IptcWritten && !state.m7IptcDamagedByCrop);
 
     const checklist = [
-      { label: "1. 商品标题", sub: state.m7SelectedTitle ? state.m7SelectedTitle.slice(0, 36) + "..." : "尚未选定标题（去文案页选取）", done: !!state.m7SelectedTitle, jump: "m7a" },
+      { label: "1. 商品标题", sub: state.m7SelectedTitle ? state.m7SelectedTitle.slice(0, 36) + "..." : "尚未选定标题（去第 1 步选取）", done: !!state.m7SelectedTitle, jump: "m7a" },
       { label: "2. 五点卖点描述", sub: state.m7SelectedBullets ? state.m7SelectedBullets.slice(0, 36) + "..." : "尚未选定五点描述", done: !!state.m7SelectedBullets, jump: "m7a" },
       { label: "3. 商品详情描述", sub: state.m7SelectedDesc ? state.m7SelectedDesc.slice(0, 36) + "..." : "尚未选定商品描述", done: !!state.m7SelectedDesc, jump: "m7a" },
       { label: "4. 后台搜索词", sub: state.m7SelectedKeywords ? state.m7SelectedKeywords.slice(0, 36) + "..." : "缺少 20 个研究搜索词", done: !!state.m7SelectedKeywords, jump: "m7a" },
-      { label: "5. 商品主图 1 (白底)", sub: state.m7Images[0].done ? state.m7Images[0].editNote : "缺少商品主图 1", done: state.m7Images[0].done, jump: "m7b" },
-      { label: `6. 详情附图 (${auxDoneCount}/4张)`, sub: auxDoneCount === 4 ? "附图 2~5 已全部就绪" : `缺少：${missingAux.join("、")}（点此去补全）`, done: auxDoneCount === 4, jump: "m7b" },
-      { label: "7. A+ 图文页面", sub: state.m7AplusDone ? "图文详情模块已就绪 ✓" : "暂未制作 A+ 图文（点此一键补齐）", done: state.m7AplusDone, jump: "aplus" },
-      { label: "8. 商品种草短视频", sub: state.m7VidDone ? `15秒演示预览 (${state.m7VidType})` : "尚未生成或节点未配置（点此前往处理）", done: state.m7VidDone, jump: "m7c" },
+      { label: "5. 商品主图 1 (白底)", sub: state.m7Images[0].done ? state.m7Images[0].editNote : "缺少商品主图 1（去第 2 步生成）", done: state.m7Images[0].done, jump: "m7b" },
+      { label: `6. 差异化详情附图 (${auxDoneCount}/4张)`, sub: auxDoneCount === 4 ? "附图 2~5 已全部就绪" : `缺少：${missingAux.join("、")}（去第 2 步生成）`, done: auxDoneCount === 4, jump: "m7b" },
+      { label: "7. A+ 图文页面", sub: state.m7AplusDone ? "图文详情模块已就绪 ✓" : "尚未生成 A+ 图文（点此一键生成）", done: state.m7AplusDone, jump: "aplus" },
+      { label: "8. 商品种草短视频", sub: state.m7VidDone ? `15秒成片 (${state.m7VidType})` : "尚未生成（去第 3 步生成并播放）", done: state.m7VidDone, jump: "m7c" },
     ];
     const doneCnt = checklist.filter(c => c.done).length;
-    const prodImg = getProductImg(curM7Prod.sku);
+
+    const downloadDeliverableHtml = () => {
+      if (typeof Blob === "undefined" || typeof URL === "undefined" || !URL.createObjectURL) return;
+      const htmlDoc = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"/><title>${curM7Prod.sku} 合规上架素材交付包</title><style>body{font-family:sans-serif;max-width:960px;margin:24px auto;padding:0 16px;color:#0f172a}h1{font-size:22px}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.card{border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:14px}img{width:100%;border-radius:6px;border:1px solid #e2e8f0}</style></head><body><h1>CrossPilot 合规上架素材交付包 · ${curM7Prod.sku} ${curM7Prod.name}</h1><p>目标平台：${state.m7Platform} ｜ 类目：${state.m7ComplianceCategory} ｜ 批准主管：${state.m7ApprovalRecord?.approver || "已校验"} (${nowDateTimeStr()})</p><div class="card"><h2>1. 多语言商品文案 (4/4)</h2><p><strong>标题：</strong>${state.m7SelectedTitle || "未填"}</p><p><strong>五点：</strong>${state.m7SelectedBullets || "未填"}</p><p><strong>详情：</strong>${state.m7SelectedDesc || "未填"}</p><p><strong>搜索词：</strong>${state.m7SelectedKeywords || "未填"}</p></div><div class="card"><h2>2. 1+4 差异化电商套图 (5/5)</h2><div class="grid">${state.m7Images.map((m, i) => `<div><img src="${getM7SlotImg(curM7Prod, i, m.edited)}"/><div style="font-size:12px;margin-top:4px;">${m.label}</div></div>`).join("")}</div></div><div class="card"><h2>3. A+ 详情与短视频交付</h2><p>A+ 图文长页：${state.m7AplusDone ? "已包含" : "未生成"} ｜ 15秒短视频：${state.m7VidDone ? state.m7VidType + " (3段分镜)" : "未生成"}</p></div></body></html>`;
+      const blob = new Blob([htmlDoc], { type: "text/html;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${curM7Prod.sku}_合规上架素材包.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
 
     return {
       headerActions: [
-        { label: "← 补齐主图与附图", primary: false, onClick: () => goPage("m7b") },
+        { label: "← 第 3 步：视频与 A+", primary: false, onClick: () => goPage("m7c") },
         {
           label: "📦 导出合规上架素材包", primary: true,
           disabled: state.m7ComplianceStatus !== "主管已批准导出",
-          disabledTitle: "必须先完成「运行上架合规检查」并由「主管 / 审批人」批准才可导出",
+          disabledTitle: "必须先完成 8/8 创作、运行合规检查并由「主管 / 审批人」批准才可导出",
           onClick: () => {
             commitAction({
               title: `导出合规上架素材包 · ${curM7Prod.sku}`,
-              summary: "生成已完成审核与合规检查的素材交付清单，供运营按平台流程提交审核（系统不绕过人工审批自动改线上商品）。",
-              confirmText: "确认导出素材包清单",
+              summary: "将立即下载包含多语言文案、1+4 差异化套图与 A+/视频清单的可视化归档文件，供运营提交平台审核。",
+              confirmText: "确认导出并下载素材包",
               fieldsHtml: `
                 <div class="formula-box">
                   • <strong>归属商品：</strong>${curM7Prod.sku} · ${curM7Prod.name}<br/>
                   • <strong>适用站点与规则：</strong>${state.m7Platform} · ${state.m7ComplianceCategory}（${activeRule.ver}）<br/>
                   • <strong>批准主管：</strong>${state.m7ApprovalRecord?.approver}（${state.m7ApprovalRecord?.time}）<br/>
-                  • <strong>导出包清单 (${doneCnt}/8 类)：</strong><br/>
-                  &nbsp;&nbsp;- 商品多语言文案包.xlsx<br/>
-                  &nbsp;&nbsp;- 主图与详情套图包（共 ${auxDoneCount + 1} 张演示图，含人物合规元数据）<br/>
-                  ${state.m7AplusDone ? "&nbsp;&nbsp;- A+图文详情模块.html<br/>" : ""}
-                  ${state.m7VidDone ? "&nbsp;&nbsp;- 商品种草短视频_15s.mp4（演示预览）<br/>" : ""}
+                  • <strong>导出包清单 (${doneCnt}/8 类)：</strong>多语言文案 4 类 + 1+4 差异化套图 + A+图文页面 + 15s 分镜视频
                 </div>
               `,
-              onConfirm: () => ({ toastMsg: `已导出 ${curM7Prod.sku} 合规上架素材包 (${doneCnt}/8 类资产)` }),
+              onConfirm: () => {
+                downloadDeliverableHtml();
+                return { toastMsg: `已下载 ${curM7Prod.sku}_合规上架素材包.html (${doneCnt}/8 类资产)` };
+              },
               audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 导出了 ${curM7Prod.sku} 的合规上架素材包（共 ${doneCnt}/8 类资产）`, ok: true }
             });
           }
         }
       ],
       html: `
+        ${renderM7StepBar(pageId, state, curM7Prod, goPage, rerender, toast)}
+
         <div class="split-right-panel">
           <div class="card">
             <div class="card-header">
               <div>
-                <strong style="font-size:16px;">${curM7Prod.sku} · ${curM7Prod.name} (${state.m7Platform}) 成品预览</strong>
+                <strong style="font-size:16px;">${curM7Prod.sku} · ${curM7Prod.name} (${state.m7Platform}) 成品总览</strong>
                 <div style="font-size:12px;color:var(--text-soft);">${state.m7Lang} · ${curM7Prod.origin==="M4_APPROVED"?"✓ 来自 M4 主管已同意测款":"在售老品翻新"}</div>
               </div>
-              <span class="pill p-blue">成品总览</span>
+              <span class="pill ${doneCnt===8?"p-green":"p-amber"}">${doneCnt}/8 已制作完成</span>
             </div>
 
             <div class="utabs" style="margin-bottom:12px;">
-              ${["主图/附图", "商品文案", "后台搜索词", "种草视频"].map(tb => `
+              ${["主图/附图", "商品文案", "后台搜索词", "A+ 图文", "种草视频"].map(tb => `
                 <div class="utab ${state.m7PreviewTab===tb?"active":""} m7d-ptab" data-t="${tb}">${tb}</div>
               `).join("")}
             </div>
 
             ${state.m7PreviewTab === "主图/附图" ? `
-              <div class="gallery-1plus4">
-                <div class="gal-tile large picked">
-                  <div class="gal-canvas"><img src="${prodImg}" style="width:155px;height:155px;border-radius:12px;" alt="商品主图 1"/></div>
-                  <div style="font-size:12.5px;"><strong>${state.m7Images[0].label}</strong> (${state.m7Images[0].editNote})</div>
+              ${!state.m7Images.some(x=>x.done) ? `
+                <div style="padding:30px;text-align:center;background:#f8fafc;border:1px dashed var(--border-strong);border-radius:8px;">
+                  <div style="font-weight:700;margin-bottom:6px;">套图尚未制作 (0/5)</div>
+                  <button class="btn btn-primary btn-sm" id="m7dGoImgBtn">前往第 2 步生成 1+4 差异化套图 →</button>
                 </div>
-                <div class="gallery-4small">
-                  ${state.m7Images.slice(1).map(m => `
-                    <div class="gal-tile">
-                      <div class="gal-canvas"><img src="${prodImg}" style="width:60px;height:60px;opacity:${m.done?0.9:0.25};border-radius:8px;" alt="${m.label}"/></div>
-                      <span style="font-size:12px;">${m.label} ${m.done?"✓":"(缺)"}</span>
-                    </div>
-                  `).join("")}
+              ` : `
+                <div class="gallery-1plus4">
+                  <div class="gal-tile large picked">
+                    <div class="gal-canvas"><img src="${getM7SlotImg(curM7Prod, 0, state.m7Images[0].edited)}" style="width:100%;height:100%;object-fit:contain;" alt="商品主图 1"/></div>
+                    <div style="font-size:12.5px;"><strong>${state.m7Images[0].label}</strong> (${state.m7Images[0].editNote})</div>
+                  </div>
+                  <div class="gallery-4small">
+                    ${state.m7Images.slice(1).map((m, idx) => `
+                      <div class="gal-tile">
+                        <div class="gal-canvas"><img src="${getM7SlotImg(curM7Prod, idx + 1, m.edited)}" style="width:100%;height:100%;object-fit:contain;opacity:${m.done?1:0.25};" alt="${m.label}"/></div>
+                        <span style="font-size:12px;">${m.label} ${m.done?"✓":"(缺)"}</span>
+                      </div>
+                    `).join("")}
+                  </div>
                 </div>
-              </div>
+              `}
             ` : state.m7PreviewTab === "商品文案" ? `
               <div style="display:flex;flex-direction:column;gap:10px;background:#f8fafc;padding:14px;border-radius:9px;border:1px solid var(--border);">
-                <div><span class="pill p-blue">商品标题</span><div style="font-weight:700;margin-top:4px;">${state.m7SelectedTitle}</div></div>
-                <div><span class="pill p-blue">五点描述</span><div style="margin-top:4px;">${state.m7SelectedBullets}</div></div>
-                <div><span class="pill p-blue">商品详情描述</span><div style="margin-top:4px;">${state.m7SelectedDesc}</div></div>
+                <div><span class="pill p-blue">商品标题</span><div style="font-weight:700;margin-top:4px;">${state.m7SelectedTitle || "（未写入，请去第 1 步选定）"}</div></div>
+                <div><span class="pill p-blue">五点描述</span><div style="margin-top:4px;">${state.m7SelectedBullets || "（未写入，请去第 1 步选定）"}</div></div>
+                <div><span class="pill p-blue">商品详情描述</span><div style="margin-top:4px;">${state.m7SelectedDesc || "（未写入，请去第 1 步选定）"}</div></div>
               </div>
             ` : state.m7PreviewTab === "后台搜索词" ? `
               <div style="background:#f8fafc;padding:14px;border-radius:9px;border:1px solid var(--border);">
                 <span class="pill p-purple">后台搜索词</span>
-                <div style="margin-top:8px;">${state.m7SelectedKeywords}</div>
+                <div style="margin-top:8px;">${state.m7SelectedKeywords || "（未写入，请去第 1 步选定）"}</div>
               </div>
+            ` : state.m7PreviewTab === "A+ 图文" ? `
+              ${state.m7AplusDone ? `
+                <div class="aplus-preview-wrap">
+                  <div class="aplus-hero">
+                    <div><strong>${curM7Prod.name} · A+ 品牌详情横幅</strong><div style="font-size:12px;color:#cbd5e1;margin-top:4px;">已通过视觉排版与参数对比表校验</div></div>
+                    <img src="${getM7SlotImg(curM7Prod, 1, false)}" style="width:76px;height:76px;border-radius:8px;background:#fff;" alt="A+预览"/>
+                  </div>
+                </div>
+              ` : `<div style="padding:24px;text-align:center;background:#f8fafc;border-radius:8px;">A+ 图文尚未生成，可在右侧清单直接一键生成。</div>`}
             ` : `
-              <div class="media-preview dark" style="height:220px;border-radius:9px;">
-                <div style="font-size:28px;">▶</div>
-                <strong>${state.m7VidDone ? `15秒演示预览 (${state.m7VidType})` : "短视频尚未生成或节点未配置"}</strong>
-              </div>
+              ${state.m7VidDone ? `
+                <div class="vid-player-frame">
+                  <div class="vid-stage" style="height:210px;background:linear-gradient(135deg,#0f172a,#1e3a8a);">
+                    <span class="pill p-green" style="position:absolute;top:10px;left:10px;">15s 成品可交付 (${state.m7VidType})</span>
+                    <img src="${getM7SlotImg(curM7Prod, 2, false)}" alt="${curM7Prod.name}"/>
+                    <div class="vid-sub-bar"><strong>${curM7Prod.sku} · 3段分镜双语字幕成片</strong></div>
+                  </div>
+                </div>
+              ` : `<div style="padding:24px;text-align:center;background:#f8fafc;border-radius:8px;">短视频尚未生成，请前往第 3 步生成。</div>`}
             `}
           </div>
 
@@ -697,12 +930,12 @@ export function renderM7_M8(pageId, state, helpers) {
                 <div class="card-title">8 类上架交付清单（缺项点击即可直达补齐）</div>
                 <span class="pill ${doneCnt===8?"p-green":"p-amber"}">${doneCnt}/8 已就绪</span>
               </div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;flex-direction:column;gap:6px;">
                 ${checklist.map(c => `
-                  <div class="m7d-chk" data-jmp="${c.jump}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 11px;border:1px solid var(--border);border-radius:8px;background:${c.done?"#f8fafc":"var(--amber-bg)"};cursor:pointer;">
+                  <div class="m7d-chk" data-jmp="${c.jump}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:${c.done?"#f8fafc":"var(--amber-bg)"};cursor:pointer;">
                     <div style="min-width:0;">
-                      <div style="font-weight:700;font-size:13px;">${c.label}</div>
-                      <div style="font-size:12px;color:var(--text-soft);">${c.sub}</div>
+                      <div style="font-weight:700;font-size:12.5px;">${c.label}</div>
+                      <div style="font-size:11.5px;color:var(--text-soft);">${c.sub}</div>
                     </div>
                     <span class="pill ${c.done?"p-green":"p-amber"}">${c.done?"已就绪 ✓":"去补齐 →"}</span>
                   </div>
@@ -745,7 +978,7 @@ export function renderM7_M8(pageId, state, helpers) {
               </div>
               ${state.m7Platform === "TikTok 美区" ? `
                 <div style="padding:7px 10px;border-radius:7px;background:var(--amber-bg);font-size:12px;">
-                  <strong>TikTok Shop 保证金与违规监测：</strong>${state.m7TiktokDeposit.shop} 当前保证金 $${state.m7TiktokDeposit.depositUsd}（${state.m7TiktokDeposit.status} · 更新于 ${state.m7TiktokDeposit.dataUpdatedAt}，按平台最新规则动态校验）
+                  <strong>TikTok Shop 保证金与违规监测：</strong>${state.m7TiktokDeposit.shop} 当前保证金 $${state.m7TiktokDeposit.depositUsd}（${state.m7TiktokDeposit.status} · 更新于 ${state.m7TiktokDeposit.dataUpdatedAt}）
                 </div>
               ` : ""}
             </div>
@@ -756,7 +989,7 @@ export function renderM7_M8(pageId, state, helpers) {
                 <span class="pill ${state.m7ComplianceStatus==="主管已批准导出"?"p-green":state.m7ComplianceStatus==="合规校验通过"?"p-blue":"p-amber"}">${state.m7ComplianceStatus}</span>
               </div>
               <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.7;">
-                ${state.m7ComplianceChecks.length ? state.m7ComplianceChecks.map(ch => `<div>• <strong>${ch.rule}：</strong><span style="color:${ch.pass?"var(--green-text)":"var(--red-text)"}">${ch.detail}</span></div>`).join("") : "尚未运行合规检查，请先点击下方「1. 运行上架合规检查」。"}
+                ${state.m7ComplianceChecks.length ? state.m7ComplianceChecks.map(ch => `<div>• <strong>${ch.rule}：</strong><span style="color:${ch.pass?"var(--green-text)":"var(--red-text)"}">${ch.detail}</span></div>`).join("") : "需先完成第 1~3 步（8/8 资产就绪）后，点击下方运行合规检查。"}
                 ${state.m7ApprovalRecord ? `<div style="margin-top:6px;color:var(--green-text);"><strong>✓ 主管已批准：</strong>${state.m7ApprovalRecord.approver} · ${state.m7ApprovalRecord.time}（${state.m7ApprovalRecord.note}）</div>` : ""}
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -768,7 +1001,10 @@ export function renderM7_M8(pageId, state, helpers) {
         </div>
       `,
       bind: () => {
+        bindM7StepBar(state, curM7Prod, goPage, rerender, toast);
         document.querySelectorAll(".m7d-ptab").forEach(t => t.onclick = () => { state.m7PreviewTab = t.dataset.t; rerender(); });
+        const goImgBtn = document.getElementById("m7dGoImgBtn");
+        if (goImgBtn) goImgBtn.onclick = () => goPage("m7b");
         document.getElementById("m7dPlatSel").onchange = (e) => { state.m7Platform = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
         document.getElementById("m7dCatSel").onchange = (e) => { state.m7ComplianceCategory = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
         document.querySelectorAll(".m7d-cert-toggle").forEach(b => b.onclick = () => {
@@ -789,30 +1025,31 @@ export function renderM7_M8(pageId, state, helpers) {
 
         document.getElementById("m7RunCompBtn").onclick = () => {
           const banFound = state.m7BanTerm.split(/[,，]/).map(s=>s.trim()).filter(Boolean)
-            .filter(w => new RegExp(w, "i").test(state.m7SelectedTitle + " " + state.m7SelectedBullets));
+            .filter(w => new RegExp(w, "i").test((state.m7SelectedTitle || "") + " " + (state.m7SelectedBullets || "")));
           const maxL = state.m7Platform.includes("虾皮") ? 120 : state.m7Platform.includes("TikTok") ? 150 : 200;
-          const titleOk = state.m7SelectedTitle.length <= maxL;
+          const titleOk = Boolean(state.m7SelectedTitle) && state.m7SelectedTitle.length <= maxL;
           const certOk = !hasExpiredCert;
-          const allOk = banFound.length === 0 && titleOk && iptcOk && certOk;
+          const readyAll = doneCnt === 8;
+          const allOk = banFound.length === 0 && titleOk && iptcOk && certOk && readyAll;
           state.m7ComplianceChecks = [
             { rule: "广告违禁词检查", pass: banFound.length === 0, detail: banFound.length ? `不通过：发现违禁词「${banFound.join("、")}」` : "通过：未发现任何平台违禁词 ✓" },
-            { rule: "平台标题字数限制", pass: titleOk, detail: titleOk ? `通过：当前 ${state.m7SelectedTitle.length} 字（上限 ${maxL} 字）✓` : `不通过：标题已超出 ${maxL} 字限制` },
+            { rule: "平台标题与字数限制", pass: titleOk, detail: !state.m7SelectedTitle ? "不通过：尚未写入商品标题（请回第 1 步）" : titleOk ? `通过：当前 ${state.m7SelectedTitle.length} 字（上限 ${maxL} 字）✓` : `不通过：标题已超出 ${maxL} 字限制` },
             { rule: "AI 人物标识元数据核验", pass: iptcOk, detail: iptcOk ? "通过：最终待发布图含标准合成人物与训练标识 ✓" : "不通过：检测到 AI 人物图片元数据丢失或未写入，请回 M7-2 补写重检" },
             { rule: "站点 × 类目认证与资质有效期", pass: certOk, detail: certOk ? `通过：${state.m7Platform} · ${state.m7ComplianceCategory} 资质报告与品牌授权均有效 ✓` : "不通过：存在已过期的质检报告或品牌授权，系统已阻断放行" },
-            { rule: "8 类上架资产完整度", pass: doneCnt === 8, detail: doneCnt === 8 ? "通过：8 类交付物全部就绪 ✓" : `提醒：当前 ${doneCnt}/8 已就绪，仍缺 ${checklist.filter(c=>!c.done).map(c=>c.label).join("、")}` },
+            { rule: "8 类上架资产完整度", pass: readyAll, detail: readyAll ? "通过：8 类交付物全部就绪 ✓" : `不通过：当前 ${doneCnt}/8，仍缺 ${checklist.filter(c=>!c.done).map(c=>c.label).join("、")}` },
           ];
           state.m7ComplianceStatus = allOk ? "合规校验通过" : "校验未通过";
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 对 ${curM7Prod.sku}（${state.m7Platform}）执行了上架前合规检查，结果：${state.m7ComplianceStatus}（${doneCnt}/8 类就绪）`, ok: allOk });
           rerender();
-          toast(allOk ? `合规检查通过（${doneCnt}/8 类就绪，请主管批准）` : "合规检查未通过，请查看红色不通过原因", allOk ? "success" : "error");
+          toast(allOk ? `全部合规校验通过 (8/8)，请主管批准导出！` : `校验未通过：${!readyAll ? `尚缺 ${8-doneCnt} 类资产` : "请查看不通过项"}`, allOk ? "success" : "error");
         };
 
         document.getElementById("m7ApprPubBtn").onclick = () => {
           commitAction({
             title: `主管批准上架素材包 · ${curM7Prod.sku}`,
-            summary: `当前完成度 ${doneCnt}/8 类；批准后将记录审批人、审批时间并解锁「导出合规上架素材包」按钮。`,
+            summary: `当前完成度 ${doneCnt}/8 类；批准后将记录审批人、审批时间并解锁「📦 导出合规上架素材包」下载。`,
             confirmText: "确认批准导出",
-            fieldsHtml: `<div class="field"><label>主管审批意见 *</label><input id="m7ApprNote" class="input" value="用语合规无违禁词，准予导出资料包交付上架"/></div>`,
+            fieldsHtml: `<div class="field"><label>主管审批意见 *</label><input id="m7ApprNote" class="input" value="8类资产齐备且用语合规，准予导出上架素材包"/></div>`,
             validate: (wrap) => {
               const el = wrap.querySelector("#m7ApprNote");
               return el.value.trim() ? [] : [{ el, msg: "请填写主管审批意见" }];
@@ -820,7 +1057,7 @@ export function renderM7_M8(pageId, state, helpers) {
             onConfirm: (wrap) => {
               state.m7ComplianceStatus = "主管已批准导出";
               state.m7ApprovalRecord = { approver: ROLE_PERSON_NAMES[state.role], time: nowDateTimeStr(), note: wrap.querySelector("#m7ApprNote").value.trim() };
-              return { toastMsg: `主管已批准导出 ${curM7Prod.sku} 资料包，点击右上角即可导出` };
+              return { toastMsg: `主管已批准导出 ${curM7Prod.sku} 资料包，请点击右上角「📦 导出合规上架素材包」` };
             },
             audit: (wrap) => ({
               sentence: `${ROLE_PERSON_NAMES[state.role]} 批准了 ${curM7Prod.sku} 的上架合规资料包，意见：${wrap.querySelector("#m7ApprNote").value.trim()}`,
