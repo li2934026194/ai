@@ -539,6 +539,32 @@ export const DEFAULT_M7_IMG_BRIEFS = [
   "俯拍平铺展示主机、电源线、说明书及附赠配件全家福清单。"
 ];
 
+export function buildDefaultM7VidSegs(sku = "SKU-00704", name = "无线真空迷你封口机") {
+  return [
+    {
+      id: 0, range: "0-5s", title: "分镜1 · 痛点引入", slot: 1,
+      motion: "缓慢推近 (Zoom-In)", duration: 5,
+      subEN: `Tired of daily clutter? Meet ${sku}!`,
+      subCN: `还在被杂乱与受潮困扰？试试 ${name}`,
+      bg: "linear-gradient(135deg,#0f172a,#1e3a8a)", ver: 1
+    },
+    {
+      id: 1, range: "5-10s", title: "分镜2 · 核心卖点实操", slot: 2,
+      motion: "卖点特写高亮", duration: 5,
+      subEN: "Instant Setup · Built for Everyday Efficiency",
+      subCN: "一键高效上手 · 8秒锁鲜省空间实测",
+      bg: "linear-gradient(135deg,#1e293b,#065f46)", ver: 1
+    },
+    {
+      id: 2, range: "10-15s", title: "分镜3 · 品质清单收尾", slot: 4,
+      motion: "全景平移 (Pan)", duration: 5,
+      subEN: "Complete Kit Included · Shop Now!",
+      subCN: `全套配件开箱即用 · 立即加购 ${sku}`,
+      bg: "linear-gradient(135deg,#312e81,#1e293b)", ver: 1
+    },
+  ];
+}
+
 export function resetM7CreationState(state, sku, prodMeta = null) {
   if (sku) state.m7Sku = sku;
   if (prodMeta?.platform) {
@@ -548,6 +574,10 @@ export function resetM7CreationState(state, sku, prodMeta = null) {
   state.m7ShowCN = true;
   state.m7CopyGenCount = 0;
   state.m7ResultTab = "商品标题";
+  state.m7CopyEditing = false;
+  state.m7CopyEditDraft = "";
+  state.m7CopyEditDraftCn = "";
+  state.m7SelectedOrigMap = {};
   state.m7SelectedTitle = "";
   state.m7SelectedTitleCn = "";
   state.m7SelectedBullets = "";
@@ -568,6 +598,12 @@ export function resetM7CreationState(state, sku, prodMeta = null) {
   state.m7SelectedAltCopyCn = "";
   state.m7SelectedWarrantyCopy = "";
   state.m7SelectedWarrantyCopyCn = "";
+  state.m7ImgStyle = "亚马逊极简白底棚拍";
+  state.m7ImgAngle = "正面平视";
+  state.m7ImgRatio = "1:1 (2000×2000 主图)";
+  state.m7ImgNegatives = ["禁止促销贴纸", "禁止畸形手指", "禁止AI乱码文字", "禁止多余配件"];
+  state.m7ImgSyncCopy = true;
+  state.m7ShowAdvPrompt = false;
   state.m7ImgBriefs = [...DEFAULT_M7_IMG_BRIEFS];
   state.m7ImgBrief = DEFAULT_M7_IMG_BRIEFS[0];
   state.m7ImgVersion = 0;
@@ -584,6 +620,9 @@ export function resetM7CreationState(state, sku, prodMeta = null) {
   state.m7VidPlaying = false;
   state.m7VidTimeSec = 0;
   state.m7VidLogs = [];
+  state.m7VidVoice = "美式女声配音";
+  state.m7VidBgm = "轻快家居种草";
+  state.m7VidSegs = buildDefaultM7VidSegs(state.m7Sku, prodMeta?.name || state.m7Sku);
   state.m7BuyerImgIdx = 0;
   state.m7BuyerVariantIdx = 0;
   state.m7ComplianceStatus = "待制作完成";
@@ -1606,6 +1645,10 @@ export function createInitialState() {
     m7BanTerm: "Best, #1, Miracle, Free",
     m7CopyGenCount: 0,
     m7ResultTab: "商品标题",
+    m7CopyEditing: false,
+    m7CopyEditDraft: "",
+    m7CopyEditDraftCn: "",
+    m7SelectedOrigMap: {},
     m7SelectedTitle: "",
     m7SelectedTitleCn: "",
     m7SelectedBullets: "",
@@ -1628,6 +1671,12 @@ export function createInitialState() {
     m7SelectedWarrantyCopyCn: "",
 
     m7ImgWorkflow: "标准白底主图模板 (支持 1+4 差异构图演示)",
+    m7ImgStyle: "亚马逊极简白底棚拍",
+    m7ImgAngle: "正面平视",
+    m7ImgRatio: "1:1 (2000×2000 主图)",
+    m7ImgNegatives: ["禁止促销贴纸", "禁止畸形手指", "禁止AI乱码文字", "禁止多余配件"],
+    m7ImgSyncCopy: true,
+    m7ShowAdvPrompt: false,
     m7ImgBriefs: [...DEFAULT_M7_IMG_BRIEFS],
     m7ImgBrief: DEFAULT_M7_IMG_BRIEFS[0],
     m7ImgVersion: 0,
@@ -1646,6 +1695,9 @@ export function createInitialState() {
     m7VidPlaying: false,
     m7VidTimeSec: 0,
     m7VidLogs: [],
+    m7VidVoice: "美式女声配音",
+    m7VidBgm: "轻快家居种草",
+    m7VidSegs: buildDefaultM7VidSegs("SKU-00704", "无线真空迷你封口机"),
     m7BuyerImgIdx: 0,
     m7BuyerVariantIdx: 0,
     m7PreviewTab: "主图/附图",
