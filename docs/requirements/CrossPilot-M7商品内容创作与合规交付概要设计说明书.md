@@ -336,19 +336,25 @@ flowchart LR
 | 1 | `GET` | `/products/available` | 同步 | `creator`, `approver`, 只读岗 | 拉取 M4-3 已批准测款新品与 M0-2 老品列表及摘要 |
 | 2 | `POST` | `/copy/generate` | 同步/异步 | `creator`, `approver` | 生成当前 SKU 的多版本多语言文案草稿（幂等保护） |
 | 3 | `POST` | `/copy/scan` | 同步 | `creator`, `approver` | 按三层词库与站点字符/字节口径实时扫描指定文本 |
-| 4 | `PUT` | `/copy/assets/{asset_id}` | 同步 | `creator`, `approver` | 校验并保存人工就地微调后的文案版本 |
-| 5 | `POST` | `/copy/assets/{asset_id}/restore` | 同步 | `creator`, `approver` | 将已微调文案无损还原为 AI 原稿快照 |
-| 6 | `POST` | `/images/batch` | 异步 | `creator`, `approver` | 提交 1+4 差异化电商套图生成任务 |
-| 7 | `POST` | `/images/slots/{slot_idx}/regenerate` | 异步 | `creator`, `approver` | 单独重绘指定图位（其余 4 张图保持不变） |
-| 8 | `POST` | `/images/slots/{slot_idx}/inpaint` | 异步 | `creator`, `approver` | 对指定图位执行局部精修并生成修改前后对比结果 |
-| 9 | `GET` | `/engines/status` | 同步 | `creator`, `approver`, 只读岗 | 查询当前生成引擎（云端 API / 本地 Pillow&FFmpeg / 预留节点池）与批量队列状态 |
-| 10 | `POST` | `/jobs/{job_id}/sync` | 同步 | `creator`, `approver` | 轮询异步生成进度并在 MIME 校验通过后落盘真实媒体文件 |
-| 11 | `POST` | `/images/iptc/verify` | 同步 | `creator`, `approver` | 读盘核验或重新写入图片末端 IPTC/XMP 合规标记 |
-| 12 | `POST` | `/videos/generate` | 异步 | `creator`, `approver` | 提交 15 秒 3 段分镜短视频生成与 FFmpeg 音画合成任务 |
-| 13 | `PUT` / `POST` | `/videos/segments/{seg_idx}` 与 `.../regenerate` | 同步/异步 | `creator`, `approver` | 更新单段分镜图位/运镜/字幕（含引用 M7-1）或单独重做本镜 |
-| 14 | `POST` | `/aplus/generate` | 同步 | `creator`, `approver` | 聚合 M7-1 文案与 M7-2 套图组装可视化 A+ 图文详情结构 |
-| 15 | `GET` / `POST` | `/compliance/matrix` 与 `/compliance/check` | 同步 | `creator`, `approver`（矩阵含只读） | 查询站点×类目规则与资质（含主管更新资质接口）；执行 5 项上架合规检查并落库 |
-| 16 | `POST` / `GET` | `/packages/approve` 与 `/packages/{sku}/export` | 同步 | `approve` 仅 `approver`；`export` 需已批准 | 主管审批放行上架素材包；校验批准状态后打包下载本地离线交付包 |
+| 4 | `POST` | `/copy/assets/{asset_id}/select` | 同步 | `creator`, `approver` | 采纳候选草稿写入交付清单（并校验红线/上限） |
+| 5 | `PUT` | `/copy/assets/{asset_id}` | 同步 | `creator`, `approver` | 校验并保存人工就地微调后的文案版本 |
+| 6 | `POST` | `/copy/assets/{asset_id}/restore` | 同步 | `creator`, `approver` | 将已微调文案无损还原为 AI 原稿快照 |
+| 7 | `POST` | `/images/batch` | 异步 | `creator`, `approver` | 提交 1+4 差异化电商套图生成任务 |
+| 8 | `POST` | `/images/slots/{slot_idx}/regenerate` | 异步 | `creator`, `approver` | 单独重绘指定图位（其余 4 张图保持不变） |
+| 9 | `POST` | `/images/slots/{slot_idx}/inpaint` | 异步 | `creator`, `approver` | 对指定图位执行局部精修并生成修改前后对比结果 |
+| 10 | `GET` | `/engines/status` | 同步 | `creator`, `approver`, 只读岗 | 查询当前生成引擎（云端 API / 本地 Pillow&FFmpeg / 预留节点池）与批量队列状态 |
+| 11 | `POST` | `/jobs/{job_id}/sync` | 同步 | `creator`, `approver` | 轮询异步生成进度并在 MIME 校验通过后落盘真实媒体文件 |
+| 12 | `POST` | `/images/iptc/verify` | 同步 | `creator`, `approver` | 读盘核验或重新写入图片末端 IPTC/XMP 合规标记 |
+| 13 | `POST` | `/videos/generate` | 异步 | `creator`, `approver` | 提交 15 秒 3 段分镜短视频生成与 FFmpeg 音画合成任务 |
+| 14 | `PUT` | `/videos/segments/{seg_idx}` | 同步 | `creator`, `approver` | 更新单段分镜图位/运镜/字幕（含引用 M7-1） |
+| 15 | `POST` | `/videos/segments/{seg_idx}/regenerate` | 异步 | `creator`, `approver` | 单独重做指定分镜并重新合成 MP4 |
+| 16 | `POST` | `/aplus/generate` | 同步 | `creator`, `approver` | 聚合 M7-1 文案与 M7-2 套图组装可视化 A+ 图文详情结构 |
+| 17 | `GET` | `/compliance/matrix` | 同步 | `creator`, `approver`, 只读岗 | 查询站点×类目规则矩阵及商品资质有效期台账 |
+| 18 | `PUT` | `/compliance/matrix/{rule_id}` | 同步 | 仅 `approver` | 维护站点×类目规则与三层词库（写入不可篡改审计） |
+| 19 | `POST` | `/certs/renew` | 同步 | 仅 `approver` | 维护或续期商品类目资质与授权有效期 |
+| 20 | `POST` | `/compliance/check` | 同步 | `creator`, `approver` | 执行 5 项上架合规检查并生成独立检查记录 |
+| 21 | `GET` | `/packages/{sku}/summary` | 同步 | `creator`, `approver`, 只读岗 | 获取 `8+N` 清单就绪度与买家视角预览数据 |
+| 22 | `POST` / `GET` | `/packages/approve` 与 `/packages/{sku}/export` | 同步 | `approve` 仅 `approver`；`export` 需已批准 | 主管审批放行上架素材包；校验批准状态后打包下载本地离线交付包 |
 
 ---
 

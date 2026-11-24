@@ -234,11 +234,12 @@
 - **RBAC 权限码**：`m7:content:read`、`m7:content:edit`、`m7:compliance:run`、`m7:publish:approve`、`m7:package:export`（统一挂载组织作用域校验）。
 - **核心接口路径（前缀 `/api/v1/orgs/{org_id}/m7`）**：
   - `GET /products/available`：聚合 M4-3 已批准测款新品 + M0-2 老品主档 + M1-2 FAQ。
-  - `POST /copy/generate`、`POST /copy/scan`、`PUT /copy/assets/{asset_id}`、`POST /copy/assets/{asset_id}/restore`：多版本文案生成、三层词库扫描、就地编辑保存校验、还原原稿。
+  - `POST /copy/generate`、`POST /copy/scan`、`POST /copy/assets/{asset_id}/select`、`PUT /copy/assets/{asset_id}`、`POST /copy/assets/{asset_id}/restore`：多版本文案生成、三层词库扫描、采纳写入、就地编辑保存校验、还原原稿。
   - `POST /images/batch`、`POST /images/slots/{slot_idx}/regenerate`、`POST /images/slots/{slot_idx}/inpaint`：1+4 批量出图、单图位重绘、局部对比精修。
-  - `GET /comfyui/pool`、`POST /comfyui/sync/{job_id}`、`POST /images/iptc/verify`：GPU 算力池状态、ComfyUI `/history` 与 `/view` 轮询入库、最终文件 IPTC/XMP 读回校验。
+  - `GET /engines/status`、`POST /jobs/{job_id}/sync`、`POST /images/iptc/verify`：统一生成引擎状态（云端 API / 本地 Pillow&FFmpeg / 可选 ComfyUI 池）、异步任务轮询校验落盘、最终文件 IPTC/XMP 读回校验。
   - `POST /videos/generate`、`PUT /videos/segments/{seg_idx}`、`POST /videos/segments/{seg_idx}/regenerate`、`POST /aplus/generate`：短视频生成、3 段分镜编辑/单镜重做、A+ 页面生成。
-  - `GET /compliance/matrix`、`POST /compliance/check`、`POST /packages/approve`、`GET /packages/{sku}/export`：规则矩阵查询、5 项合规检查持久化、主管批准、离线素材包导出。
+  - `GET /compliance/matrix`、`PUT /compliance/matrix/{rule_id}`、`POST /certs/renew`、`POST /compliance/check`：规则矩阵查询与主管维护、资质续期、5 项合规检查持久化。
+  - `GET /packages/{sku}/summary`、`POST /packages/approve`、`GET /packages/{sku}/export`：打包汇总预览、主管批准、离线素材包导出。
 
 ---
 

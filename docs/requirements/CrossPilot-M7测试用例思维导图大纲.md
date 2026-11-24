@@ -124,7 +124,7 @@
 - POST /copy/generate（idempotency_key 防重提交）
 - POST /copy/scan & PUT /copy/assets/{id} & POST .../restore
 - POST /images/batch & POST .../regenerate & POST .../inpaint
-- POST /comfyui/sync/{job_id}（运行中/失败/无输出/MIME 伪装）
+- POST /jobs/{job_id}/sync（运行中/失败/无输出/MIME 伪装）
 - POST /images/iptc/verify（双标签读回核验）
 - POST /videos/generate & PUT/POST /videos/segments/{idx}
 - POST /compliance/check（服务端读选定版本独立落库）

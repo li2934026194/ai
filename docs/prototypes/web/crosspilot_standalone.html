@@ -674,6 +674,8 @@ tr.row-selected td { background: #eff6ff; }
 }
 .m7-chip.active { background: #fef2f2; border-color: #fca5a5; color: #991b1b; font-weight: 700; }
 .m7-chip.ok { background: #f0fdf4; border-color: #86efac; color: #166534; font-weight: 600; }
+
+
 </style>
 </head>
 <body>
@@ -1379,10 +1381,11 @@ function resetM7CreationState(state, sku, prodMeta = null) {
   state.m7SelectedAltCopyCn = "";
   state.m7SelectedWarrantyCopy = "";
   state.m7SelectedWarrantyCopyCn = "";
-  state.m7ImgStyle = "亚马逊极简白底棚拍";
+  state.m7ImgWorkflow = "标准白底主图 + 4张场景卖点附图模板";
+  state.m7ImgStyle = "商业棚拍质感";
   state.m7ImgAngle = "正面平视";
-  state.m7ImgRatio = "1:1 (2000×2000 主图)";
-  state.m7ImgNegatives = ["禁止促销贴纸", "禁止畸形手指", "禁止AI乱码文字", "禁止多余配件"];
+  state.m7ImgRatio = "1:1 电商方图";
+  state.m7ImgNegatives = ["禁止水印/促销角标", "禁止乱码文字", "禁止产品外观/Logo畸变", "禁止杂乱背景反光"];
   state.m7ImgSyncCopy = true;
   state.m7ShowAdvPrompt = false;
   state.m7ImgBriefs = [...DEFAULT_M7_IMG_BRIEFS];
@@ -1401,8 +1404,8 @@ function resetM7CreationState(state, sku, prodMeta = null) {
   state.m7VidPlaying = false;
   state.m7VidTimeSec = 0;
   state.m7VidLogs = [];
-  state.m7VidVoice = "美式女声配音";
-  state.m7VidBgm = "轻快家居种草";
+  state.m7VidVoice = "美式女声 · 亲和推荐";
+  state.m7VidBgm = "轻快居家 Acoustic";
   state.m7VidSegs = buildDefaultM7VidSegs(state.m7Sku, prodMeta?.name || state.m7Sku);
   state.m7BuyerImgIdx = 0;
   state.m7BuyerVariantIdx = 0;
@@ -2451,11 +2454,11 @@ function createInitialState() {
     m7SelectedWarrantyCopy: "",
     m7SelectedWarrantyCopyCn: "",
 
-    m7ImgWorkflow: "标准白底主图模板 (支持 1+4 差异构图演示)",
-    m7ImgStyle: "亚马逊极简白底棚拍",
+    m7ImgWorkflow: "标准白底主图 + 4张场景卖点附图模板",
+    m7ImgStyle: "商业棚拍质感",
     m7ImgAngle: "正面平视",
-    m7ImgRatio: "1:1 (2000×2000 主图)",
-    m7ImgNegatives: ["禁止促销贴纸", "禁止畸形手指", "禁止AI乱码文字", "禁止多余配件"],
+    m7ImgRatio: "1:1 电商方图",
+    m7ImgNegatives: ["禁止水印/促销角标", "禁止乱码文字", "禁止产品外观/Logo畸变", "禁止杂乱背景反光"],
     m7ImgSyncCopy: true,
     m7ShowAdvPrompt: false,
     m7ImgBriefs: [...DEFAULT_M7_IMG_BRIEFS],
@@ -2476,8 +2479,8 @@ function createInitialState() {
     m7VidPlaying: false,
     m7VidTimeSec: 0,
     m7VidLogs: [],
-    m7VidVoice: "美式女声配音",
-    m7VidBgm: "轻快家居种草",
+    m7VidVoice: "美式女声 · 亲和推荐",
+    m7VidBgm: "轻快居家 Acoustic",
     m7VidSegs: buildDefaultM7VidSegs("SKU-00704", "无线真空迷你封口机"),
     m7BuyerImgIdx: 0,
     m7BuyerVariantIdx: 0,
@@ -7554,6 +7557,13 @@ function badgeHtml(cell) {
   return `<span style="color:#64748b;font-size:12px;">${cell}</span>`;
 }
 
+function invalidateM7ApprovalIfNeeded(state) {
+  if (state.m7ApprovalRecord || state.m7ComplianceStatus === "主管已批准导出" || state.m7ComplianceStatus === "合规校验通过") {
+    state.m7ApprovalRecord = null;
+    state.m7ComplianceStatus = "待运行合规检查";
+  }
+}
+
 function getM7AvailableProducts(state) {
   const approvedNew = state.m4Pool
     .filter(x => x.stage === "已批准测款")
@@ -8151,6 +8161,7 @@ function renderM7_M8(pageId, state, helpers) {
           if (!orig) return;
           setPickedPair(state.m7ResultTab, orig.text, orig.cn);
           state.m7CopyEditing = false;
+          invalidateM7ApprovalIfNeeded(state);
           rerender();
           toast("已还原为 AI 原稿文案", "info");
         };
@@ -8183,6 +8194,7 @@ function renderM7_M8(pageId, state, helpers) {
           }
           setPickedPair(state.m7ResultTab, nextTxt, (state.m7CopyEditDraftCn || "").trim());
           state.m7CopyEditing = false;
+          invalidateM7ApprovalIfNeeded(state);
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 微调并保存了 ${curM7Prod.sku} 的「${state.m7ResultTab}」`, ok: true });
           rerender();
           toast("已保存微调后的文案并同步至交付清单 ✓", "success");
@@ -8507,6 +8519,7 @@ function renderM7_M8(pageId, state, helpers) {
           pickedImg.done = true;
           pickedImg.edited = true;
           pickedImg.editNote = `单图重绘 v${state.m7ImgVersion} (${state.m7ImgStyle})`;
+          invalidateM7ApprovalIfNeeded(state);
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 单独重绘了 ${curM7Prod.sku} 的「${pickedImg.label}」（其余 4 张不变）`, ok: true });
           rerender();
           toast(`已单独重绘「${pickedImg.label}」（第 ${state.m7ImgVersion} 版），其余 4 张图保持不变 ✓`, "success");
@@ -8556,7 +8569,7 @@ function renderM7_M8(pageId, state, helpers) {
         document.getElementById("m7WfRegSel").onchange = (e) => { state.m7ActiveWorkflowVer = e.target.value; rerender(); toast(`工作流版本已切换为 ${state.m7ActiveWorkflowVer}`); };
         document.getElementById("m7AiPersonChk").onchange = (e) => { state.m7AiPersonInAsset = e.target.checked; rerender(); };
         document.getElementById("m7SimCropLossBtn").onclick = () => {
-          state.m7IptcDamagedByCrop = true; state.m7IptcWritten = false; state.m7ComplianceStatus = "校验未通过";
+          state.m7IptcDamagedByCrop = true; state.m7IptcWritten = false; state.m7ApprovalRecord = null; state.m7ComplianceStatus = "校验未通过";
           rerender(); toast("裁剪后元数据丢失！已触发阻断", "error");
         };
         document.getElementById("m7RewriteIptcBtn").onclick = () => {
@@ -9355,12 +9368,12 @@ function renderM7_M8(pageId, state, helpers) {
         });
         const goImgBtn = document.getElementById("m7dGoImgBtn");
         if (goImgBtn) goImgBtn.onclick = () => goPage("m7b");
-        document.getElementById("m7dPlatSel").onchange = (e) => { state.m7Platform = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
-        document.getElementById("m7dCatSel").onchange = (e) => { state.m7ComplianceCategory = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
+        document.getElementById("m7dPlatSel").onchange = (e) => { state.m7Platform = e.target.value; state.m7ApprovalRecord = null; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
+        document.getElementById("m7dCatSel").onchange = (e) => { state.m7ComplianceCategory = e.target.value; state.m7ApprovalRecord = null; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
         document.querySelectorAll(".m7d-cert-toggle").forEach(b => b.onclick = () => {
           const c = state.m7CertRecords[Number(b.dataset.ci)];
           c.status = c.status === "已过期" ? "有效" : "已过期";
-          if (c.status === "已过期") state.m7ComplianceStatus = "校验未通过";
+          if (c.status === "已过期") { state.m7ApprovalRecord = null; state.m7ComplianceStatus = "校验未通过"; }
           rerender();
           toast(c.status === "已过期" ? `${c.name} 已过期，已触发阻断！` : `${c.name} 已续期恢复有效`, c.status === "已过期" ? "error" : "success");
         });
@@ -10193,6 +10206,7 @@ if (PAGE_META[initHash]) {
   if (mod) state.openModuleId = mod.id;
 }
 rerender();
+
 </script>
 </body>
 </html>

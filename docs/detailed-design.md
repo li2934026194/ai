@@ -57,7 +57,7 @@
 | `M7-FR-06` IPTC/XMP 写入与读盘核验 | `M7-AC-04` | M7-2 / M7-4 | `POST /images/iptc/verify` | `m7_generation_media` | `sequence-m7-image` |
 | `M7-FR-07` 15s 短视频与分镜编辑/重做 | `M7-AC-05` | M7-3 | `POST /videos/generate`, `PUT /videos/segments/{seg_idx}`, `POST /videos/segments/{seg_idx}/regenerate` | `m7_generation_jobs`, `m7_generation_assets`, `m7_generation_media` | `sequence-m7-video-aplus` |
 | `M7-FR-08` 未配置阻断与 A+ 长页组装 | `M7-AC-05` | M7-3 | `POST /videos/generate`, `POST /aplus/generate` | `m7_generation_assets`, `core_audit_events` | `sequence-m7-video-aplus` |
-| `M7-FR-09` 站点×类目矩阵与资质续期 | `M7-AC-06` | M7-4 | `GET /rules/matrix`, `PUT /rules/matrix/{rule_id}`, `POST /certs/renew` | `m7_compliance_rules`, `m7_cert_records` | `sequence-m7-compliance-export` |
+| `M7-FR-09` 站点×类目矩阵与资质续期 | `M7-AC-06` | M7-4 | `GET /compliance/matrix`, `PUT /compliance/matrix/{rule_id}`, `POST /certs/renew` | `m7_compliance_rules`, `m7_cert_records` | `sequence-m7-compliance-export` |
 | `M7-FR-10` 5 项上架合规独立检查 | `M7-AC-06` | M7-4 | `POST /compliance/check` | `m7_compliance_checks`, `core_audit_events` | `sequence-m7-compliance-export` |
 | `M7-FR-11` 买家视角预览与 8+N 补齐 | `M7-AC-07` | M7-4 | `GET /packages/{sku}/summary` | `m7_generation_assets`, `m7_compliance_checks` | `sequence-m7-compliance-export` |
 | `M7-FR-12` 禁自批审批、失效重审与离线导出 | `M7-AC-08` | M7-4 | `POST /packages/approve`, `GET /packages/{sku}/export` | `m7_approval_records`, `core_audit_events` | `sequence-m7-compliance-export` |
@@ -73,7 +73,7 @@
 
 ### 3.1 系统分层与代码目录规划
 
-M7 模块遵循**模块化单体 + 契约防腐层**架构，工程目录结构如下：
+M7 模块遵循**模块化单体 + 契约防腐层**架构，作为独立新工程置于仓库新建目录 `backend/` 与 `frontend/`（**与历史遗留目录 `pilot/` 完全隔离，严禁直接引用或混入 `pilot/` 代码**），工程目录结构如下：
 
 ```text
 backend/
@@ -84,7 +84,7 @@ backend/
 │   ├── mocks/                       # V1 MOCK 商品与资质种子数据提供者
 │   └── modules/
 │       └── m7_content/
-│           ├── router.py            # M7ApiRouter（16 个 REST 端点 + RBAC 依赖注入）
+│           ├── router.py            # M7ApiRouter（22 个 REST 端点 + RBAC 依赖注入）
 │           ├── schemas.py           # Pydantic v2 请求/响应 DTO 与严格字段校验
 │           ├── models.py            # SQLAlchemy 2.0 ORM 模型（9 张表）
 │           ├── repository.py        # M7Repository（带 org_id 强制隔离的数据访问）
@@ -176,7 +176,7 @@ frontend/
 ![M7-1 多语言商品文案时序图](./attachments/sequence-m7-copy.svg)
 
 #### 5.1.3 核心接口与涉及数据表
-- **接口**：`GET /products/available`、`POST /copy/generate`、`POST /copy/scan`、`PUT /copy/assets/{asset_id}`、`POST /copy/assets/{asset_id}/restore`
+- **接口**：`GET /products/available`、`POST /copy/generate`、`POST /copy/scan`、`POST /copy/assets/{asset_id}/select`、`PUT /copy/assets/{asset_id}`、`POST /copy/assets/{asset_id}/restore`
 - **数据表**：`m7_generation_jobs`、`m7_generation_assets`、`m7_compliance_rules`、`m7_approval_records`（上游改写时联动失效）、`core_audit_events`
 
 #### 5.1.4 异常处理、事务、幂等与并发控制
@@ -248,7 +248,7 @@ frontend/
 ![M7-4 合规检查与成品打包时序图](./attachments/sequence-m7-compliance-export.svg)
 
 #### 5.4.3 核心接口与涉及数据表
-- **接口**：`GET /rules/matrix`、`PUT /rules/matrix/{rule_id}`、`POST /certs/renew`、`POST /compliance/check`、`GET /packages/{sku}/summary`、`POST /packages/approve`、`GET /packages/{sku}/export`
+- **接口**：`GET /compliance/matrix`、`PUT /compliance/matrix/{rule_id}`、`POST /certs/renew`、`POST /compliance/check`、`GET /packages/{sku}/summary`、`POST /packages/approve`、`GET /packages/{sku}/export`
 - **数据表**：`m7_compliance_rules`、`m7_cert_records`、`m7_compliance_checks`、`m7_approval_records`、`core_audit_events`
 
 #### 5.4.4 异常处理、事务、幂等与并发控制
@@ -301,7 +301,7 @@ frontend/
 | `org_id` | `VARCHAR(64)` | NO | - | `INDEX(org_id, sku)` | 租户隔离 ID |
 | `sku` | `VARCHAR(64)` | NO | - | `INDEX` | 关联商品 SKU |
 | `job_type` | `VARCHAR(24)` | NO | - | - | 枚举：`COPY` / `IMG_BATCH` / `IMG_REGEN` / `IMG_INPAINT` / `VIDEO_15S` / `VIDEO_SEG` / `APLUS` |
-| `platform` | `VARCHAR(24)` | NO | `'amazon'` | - | 目标站点：`amazon` / `shopee` / `tiktok` |
+| `platform` | `VARCHAR(24)` | NO | `'amazon_us'` | - | 标准化站点枚举：`amazon_us` / `shopee_th` / `tiktok_us` |
 | `workflow_id` | `VARCHAR(64)` | YES | `NULL` | `FK -> m7_workflow_registry` | 锁定的工作流模板 ID |
 | `workflow_version` | `VARCHAR(32)` | NO | `'1.0.0'` | - | 锁定版本快照 |
 | `idempotency_key` | `VARCHAR(128)` | NO | - | `UNIQUE(org_id, idempotency_key)` | 防重放幂等键 |
@@ -323,11 +323,12 @@ frontend/
 | `org_id` | `VARCHAR(64)` | NO | - | `INDEX(org_id, sku, asset_slot)` | 租户隔离 ID |
 | `sku` | `VARCHAR(64)` | NO | - | `INDEX` | 关联商品 SKU |
 | `job_id` | `VARCHAR(64)` | NO | - | `FK -> m7_generation_jobs` | 来源任务 ID |
-| `asset_slot` | `VARCHAR(32)` | NO | - | - | 槽位：`copy_title`/`copy_bullets`/`copy_desc`/`copy_kw`/`img_0`..`img_4`/`vid_15s`/`aplus_page` |
-| `platform` | `VARCHAR(24)` | NO | `'amazon'` | - | 平台标识 |
-| `lang` | `VARCHAR(16)` | NO | `'en-US'` | - | 语言标识（`en-US`/`ja-JP`/`th-TH` 等） |
+| `asset_slot` | `VARCHAR(32)` | NO | - | - | 17 个标准槽位：核心文案(`copy_title`/`copy_bullets`/`copy_desc`/`copy_kw`)、扩展文案(`copy_faq`/`copy_aplus_txt`/`copy_variant`/`copy_attr`/`copy_alt`/`copy_warranty`)、套图(`img_0`..`img_4`)、视频与A+(`vid_15s`/`aplus_page`) |
+| `platform` | `VARCHAR(24)` | NO | `'amazon_us'` | - | 标准化平台标识：`amazon_us` / `shopee_th` / `tiktok_us` |
+| `lang` | `VARCHAR(16)` | NO | `'en-US'` | - | 语言标识（`en-US`/`zh-CN`/`th-TH` 等） |
+| `variant_idx` | `SMALLINT` | NO | `0` | - | 候选草稿序号（`0..2`，用于同槽位多版本候选区分） |
 | `version` | `INTEGER` | NO | `1` | - | 乐观锁及版本递增号 |
-| `is_selected` | `BOOLEAN` | NO | `TRUE` | - | 当前是否被选入交付清单（同一槽位仅一条为 `TRUE`） |
+| `is_selected` | `BOOLEAN` | NO | `FALSE` | - | 是否被采纳入交付清单（同一 `(org_id, sku, platform, asset_slot)` 最多仅 1 条为 `TRUE`） |
 | `edit_status` | `VARCHAR(24)` | NO | `'AI_GENERATED'` | - | 枚举：`AI_GENERATED` / `MANUALLY_EDITED` / `RESTORED_ORIGINAL` |
 | `content_json` | `JSONB` | NO | `'{}'` | - | 当前生效结构化内容（文案文本、分镜数组或 A+ 模块） |
 | `orig_content_json` | `JSONB` | NO | `'{}'` | - | AI 初稿不可变快照，用于一键还原 |
@@ -361,16 +362,17 @@ frontend/
 
 | 字段名 | 类型与长度 | 可空 | 默认值 | 约束 / 索引 | 说明 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `rule_id` | `VARCHAR(64)` | NO | - | `PK` | 规则 ID（如 `rule_amazon_electronics`） |
-| `org_id` | `VARCHAR(64)` | NO | - | `UNIQUE(org_id, platform, category)` | 租户规则唯一键 |
-| `platform` | `VARCHAR(24)` | NO | - | - | `amazon` / `shopee` / `tiktok` |
-| `category` | `VARCHAR(64)` | NO | - | - | 类目名（如 `Consumer Electronics` / `Beauty`） |
+| `rule_id` | `VARCHAR(64)` | NO | - | `PK` | 规则 ID（如 `rule_amazon_us_kitchen_appliance`） |
+| `org_id` | `VARCHAR(64)` | NO | - | `UNIQUE(org_id, platform, category)` | 租户规则唯一键（默认初始化 3×4=12 条规则矩阵） |
+| `platform` | `VARCHAR(24)` | NO | - | - | `amazon_us` / `shopee_th` / `tiktok_us` |
+| `category` | `VARCHAR(64)` | NO | - | - | `kitchen_appliance` / `bags_travel` / `3c_accessories` / `beauty_skincare` |
 | `rule_version` | `VARCHAR(32)` | NO | `'2026.11'` | - | 规则版本号 |
 | `effective_date` | `DATE` | NO | `CURRENT_DATE` | - | 生效日期 |
-| `title_max_bytes` | `INTEGER` | NO | `200` | - | 标题最大字节/字符上限 |
-| `bullet_max_bytes` | `INTEGER` | NO | `500` | - | 单条卖点上限 |
+| `title_max_chars` | `INTEGER` | NO | `200` | - | 标题最大**字符数**上限（Amazon `200` / TikTok `150` / Shopee `120`） |
+| `bullet_max_chars` | `INTEGER` | NO | `500` | - | 单条卖点最大字符数上限 |
+| `search_terms_max_bytes` | `INTEGER` | NO | `250` | - | 后台搜索词 UTF-8 最大**字节数**上限（`250 bytes`） |
 | `lexicon_json` | `JSONB` | NO | `'{}'` | - | 三层词库：`{must:[], ban:[], trademark:[], regulatory:[]}` |
-| `required_certs_json` | `JSONB` | NO | `'[]'` | - | 必备资质清单（如 `["FCC","UL","TikTok达人授权"]`） |
+| `required_certs_json` | `JSONB` | NO | `'[]'` | - | 必备资质清单（如 `["UL","FCC","TikTok达人授权"]`） |
 | `image_policy_json` | `JSONB` | NO | `'{}'` | - | 主图纯白/像素/AI声明强制项 |
 | `updated_by` | `VARCHAR(64)` | NO | - | - | 仅 `approver` 可更新 |
 | `updated_at` | `TIMESTAMPTZ` | NO | `NOW()` | - | 最后更新 |
@@ -410,15 +412,16 @@ frontend/
 | 字段名 | 类型与长度 | 可空 | 默认值 | 约束 / 索引 | 说明 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `approval_id` | `VARCHAR(64)` | NO | - | `PK` | 审批记录 ID |
-| `org_id` | `VARCHAR(64)` | NO | - | `INDEX(org_id, sku, is_active)` | 租户 ID |
+| `org_id` | `VARCHAR(64)` | NO | - | `INDEX(org_id, sku, platform, is_active)` | 租户 ID |
 | `sku` | `VARCHAR(64)` | NO | - | - | 商品 SKU |
+| `platform` | `VARCHAR(24)` | NO | `'amazon_us'` | - | 目标站点（支持同 SKU 多站点独立过检审批） |
 | `check_id` | `VARCHAR(64)` | NO | - | `FK -> m7_compliance_checks` | 绑定的合格检查单 |
 | `last_editor_id` | `VARCHAR(64)` | NO | - | - | 提交前最后修改创作资产的用户 ID |
-| `approver_id` | `VARCHAR(64)` | NO | - | - | 批准主管 ID（`CHECK(approver_id <> last_editor_id)`） |
+| `approver_id` | `VARCHAR(64)` | NO | - | - | 批准主管 ID（服务层按 `M7_STRICT_SEPARATION_OF_DUTIES` 校验互斥，避免单人演示数据库硬报错） |
 | `decision` | `VARCHAR(16)` | NO | `'APPROVED'` | - | `APPROVED` / `REJECTED` |
 | `note` | `TEXT` | YES | `NULL` | - | 审批意见 |
-| `is_active` | `BOOLEAN` | NO | `TRUE` | - | 上游若被改动自动置为 `FALSE` |
-| `invalidated_reason` | `VARCHAR(128)` | YES | `NULL` | - | 失效原因（如 `COPY_EDITED` / `IMG_REGEN`） |
+| `is_active` | `BOOLEAN` | NO | `TRUE` | - | 上游若被改动或切规则自动置为 `FALSE` |
+| `invalidated_reason` | `VARCHAR(128)` | YES | `NULL` | - | 失效原因（如 `COPY_EDITED` / `IMG_REGEN` / `CERT_EXPIRED`） |
 | `approved_at` | `TIMESTAMPTZ` | NO | `NOW()` | - | 审批时间 |
 
 #### 表 9：`core_audit_events`（平台只追加审计事件表）
@@ -459,7 +462,7 @@ CREATE TABLE m7_generation_jobs (
     org_id           VARCHAR(64) NOT NULL,
     sku              VARCHAR(64) NOT NULL,
     job_type         VARCHAR(24) NOT NULL,
-    platform         VARCHAR(24) NOT NULL DEFAULT 'amazon',
+    platform         VARCHAR(24) NOT NULL DEFAULT 'amazon_us',
     workflow_id      VARCHAR(64) REFERENCES m7_workflow_registry(workflow_id),
     workflow_version VARCHAR(32) NOT NULL DEFAULT '1.0.0',
     idempotency_key  VARCHAR(128) NOT NULL,
@@ -482,10 +485,11 @@ CREATE TABLE m7_generation_assets (
     sku               VARCHAR(64) NOT NULL,
     job_id            VARCHAR(64) NOT NULL REFERENCES m7_generation_jobs(job_id),
     asset_slot        VARCHAR(32) NOT NULL,
-    platform          VARCHAR(24) NOT NULL DEFAULT 'amazon',
+    platform          VARCHAR(24) NOT NULL DEFAULT 'amazon_us',
     lang              VARCHAR(16) NOT NULL DEFAULT 'en-US',
+    variant_idx       SMALLINT NOT NULL DEFAULT 0,
     version           INTEGER NOT NULL DEFAULT 1,
-    is_selected       BOOLEAN NOT NULL DEFAULT TRUE,
+    is_selected       BOOLEAN NOT NULL DEFAULT FALSE,
     edit_status       VARCHAR(24) NOT NULL DEFAULT 'AI_GENERATED',
     content_json      JSONB NOT NULL DEFAULT '{}'::jsonb,
     orig_content_json JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -519,19 +523,20 @@ CREATE TABLE m7_generation_media (
 CREATE INDEX idx_m7_media_org ON m7_generation_media (org_id, media_kind);
 
 CREATE TABLE m7_compliance_rules (
-    rule_id             VARCHAR(64) PRIMARY KEY,
-    org_id              VARCHAR(64) NOT NULL,
-    platform            VARCHAR(24) NOT NULL,
-    category            VARCHAR(64) NOT NULL,
-    rule_version        VARCHAR(32) NOT NULL DEFAULT '2026.11',
-    effective_date      DATE NOT NULL DEFAULT CURRENT_DATE,
-    title_max_bytes     INTEGER NOT NULL DEFAULT 200,
-    bullet_max_bytes    INTEGER NOT NULL DEFAULT 500,
-    lexicon_json        JSONB NOT NULL DEFAULT '{}'::jsonb,
-    required_certs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
-    image_policy_json   JSONB NOT NULL DEFAULT '{}'::jsonb,
-    updated_by          VARCHAR(64) NOT NULL,
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    rule_id                VARCHAR(64) PRIMARY KEY,
+    org_id                 VARCHAR(64) NOT NULL,
+    platform               VARCHAR(24) NOT NULL,
+    category               VARCHAR(64) NOT NULL,
+    rule_version           VARCHAR(32) NOT NULL DEFAULT '2026.11',
+    effective_date         DATE NOT NULL DEFAULT CURRENT_DATE,
+    title_max_chars        INTEGER NOT NULL DEFAULT 200,
+    bullet_max_chars       INTEGER NOT NULL DEFAULT 500,
+    search_terms_max_bytes INTEGER NOT NULL DEFAULT 250,
+    lexicon_json           JSONB NOT NULL DEFAULT '{}'::jsonb,
+    required_certs_json    JSONB NOT NULL DEFAULT '[]'::jsonb,
+    image_policy_json      JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_by             VARCHAR(64) NOT NULL,
+    updated_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_m7_rule_org_plat_cat UNIQUE (org_id, platform, category)
 );
 
@@ -567,16 +572,17 @@ CREATE TABLE m7_approval_records (
     approval_id        VARCHAR(64) PRIMARY KEY,
     org_id             VARCHAR(64) NOT NULL,
     sku                VARCHAR(64) NOT NULL,
+    platform           VARCHAR(24) NOT NULL DEFAULT 'amazon_us',
     check_id           VARCHAR(64) NOT NULL REFERENCES m7_compliance_checks(check_id),
     last_editor_id     VARCHAR(64) NOT NULL,
-    approver_id        VARCHAR(64) NOT NULL CHECK (approver_id <> last_editor_id),
+    approver_id        VARCHAR(64) NOT NULL,
     decision           VARCHAR(16) NOT NULL DEFAULT 'APPROVED',
     note               TEXT,
     is_active          BOOLEAN NOT NULL DEFAULT TRUE,
     invalidated_reason VARCHAR(128),
     approved_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_m7_approval_active ON m7_approval_records (org_id, sku, is_active, approved_at DESC);
+CREATE INDEX idx_m7_approval_active ON m7_approval_records (org_id, sku, platform, is_active, approved_at DESC);
 
 CREATE TABLE core_audit_events (
     event_id    VARCHAR(64) PRIMARY KEY,
@@ -627,31 +633,39 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
   }
   ```
 - **OpenAPI 契约一致性**：后端 FastAPI 自动生成 `/openapi.json`，前端通过 `openapi-typescript` 生成类型定义与 Axios 客户端，确保前后端 DTO 字段零漂移。
+- **平台与类目标准枚举字典（解决前后端中英文口径冲突）**：
+  - `platform`：`amazon_us`（亚马逊美国站，标题上限 `200` 字符）、`shopee_th`（虾皮泰国站，标题上限 `120` 字符）、`tiktok_us`（TikTok 美区，标题上限 `150` 字符）。
+  - `category`：`kitchen_appliance`（厨房小电）、`bags_travel`（箱包出行）、`3c_accessories`（3C配件）、`beauty_skincare`（美妆护肤）。
+  - 后端 Schema 接收英文 `code` 并内建中文别名兼容映射，种子脚本默认初始化 `3 × 4 = 12` 条规则矩阵。
 
 ---
 
-### 7.2 16 个核心端点详细契约
+### 7.2 22 个规范化 RESTful 端点详细契约
 
 | # | 方法与路径（基于 `/api/v1/orgs/{org_id}/m7`） | RBAC 权限码 | 幂等/超时/限流 | 核心用途 |
 | :--- | :--- | :--- | :--- | :--- |
 | 1 | `GET /products/available` | `m7:content:read` | 只读 / 3s / 60rpm | 拉取可创作 SKU、事实主档与 M1-2 卖点 FAQ |
-| 2 | `POST /copy/generate` | `m7:content:edit` | 幂等键 / 30s / 15rpm | 生成多语言多版本文案并执行三层词库扫描 |
-| 3 | `POST /copy/scan` | `m7:content:read` | 幂等只读 / 2s / 60rpm | 实时扫描前端输入微调文案的三层词库与字节上限 |
-| 4 | `PUT /copy/assets/{asset_id}` | `m7:content:edit` | 乐观锁 `version` / 3s / 30rpm | 服务端强校验后保存微调稿，保留 AI 原稿并失效旧审批 |
-| 5 | `POST /copy/assets/{asset_id}/restore` | `m7:content:edit` | 幂等 / 3s / 20rpm | 一键还原 `orig_content_json` AI 原稿 |
-| 6 | `POST /images/batch` | `m7:content:edit` | 幂等键 / 5s(202) / 10rpm | 提交 1+4 套图异步生成任务，锁定工作流版本 |
-| 7 | `POST /jobs/{job_id}/sync` | `m7:content:read` | 锁防重 / 10s / 60rpm | 同步外部任务结果、检验真实 MIME、执行末端 IPTC 写入 |
-| 8 | `POST /images/slots/{slot_idx}/regenerate` | `m7:content:edit` | 幂等键 / 5s(202) / 15rpm | 仅重绘指定图位（其余 4 张不变） |
-| 9 | `POST /images/slots/{slot_idx}/inpaint` | `m7:content:edit` | 幂等键 / 5s(202) / 15rpm | 局部修改指定图位并返回原图/新图对比 |
-| 10 | `POST /images/iptc/verify` | `m7:compliance:run` | 幂等 / 5s / 30rpm | 真读盘核验 IPTC/XMP 双标签或执行重新写入 |
-| 11 | `POST /videos/generate` | `m7:content:edit` | 幂等键 / 45s / 6rpm | 合成 15s 三段分镜 MP4（未配置节点直接报错阻断） |
-| 12 | `PUT /videos/segments/{seg_idx}` | `m7:content:edit` | 乐观锁 / 3s / 30rpm | 热修改分镜图位/运镜/字幕或引用 M7-1 |
-| 13 | `POST /videos/segments/{seg_idx}/regenerate` | `m7:content:edit` | 幂等键 / 30s / 10rpm | 仅重做指定分镜并重新拼接 MP4 |
-| 14 | `POST /aplus/generate` | `m7:content:edit` | 幂等键 / 10s / 15rpm | 组装 M7-1+M7-2 可视化 A+ 图文长页 |
-| 15 | `GET /rules/matrix` & `PUT /rules/matrix/{rule_id}` | `read` / `m7:rule:maintain` | 乐观锁 / 3s / 30rpm | 查询或（仅主管）维护站点×类目规则与词库 |
-| 16 | `POST /certs/renew`、`POST /compliance/check`、`GET /packages/{sku}/summary`、`POST /packages/approve`、`GET /packages/{sku}/export` | `compliance:run` / `publish:approve` / `package:export` | 事务门禁 / 5~15s / 20rpm | 资质续期、5 项合规检查、汇总预览、主管审批与离线包下载 |
-
-> 注：以上逻辑归并对应 HLD 规划的 16 个核心能力端点（其中规则读/写按 HTTP 方法复用 `/rules/matrix` 资源路径，其余 15 个独立路径一一对应）。
+| 2 | `POST /copy/generate` | `m7:content:edit` | 幂等键 / 30s / 15rpm | 生成指定槽位的多语言 3 组候选文案并执行三层词库扫描 |
+| 3 | `POST /copy/scan` | `m7:content:read` | 幂等只读 / 2s / 60rpm | 实时扫描前端输入微调文案的三层词库、字符数与 UTF-8 字节上限 |
+| 4 | `POST /copy/assets/{asset_id}/select` | `m7:content:edit` | 幂等 / 3s / 30rpm | 采纳候选草稿写入交付清单（校验未阻断后切换 `is_selected=true`） |
+| 5 | `PUT /copy/assets/{asset_id}` | `m7:content:edit` | 乐观锁 `version` / 3s / 30rpm | 服务端强校验后保存微调稿，保留 AI 原稿并失效旧审批 |
+| 6 | `POST /copy/assets/{asset_id}/restore` | `m7:content:edit` | 幂等 / 3s / 20rpm | 一键还原 `orig_content_json` AI 原稿并失效旧审批 |
+| 7 | `POST /images/batch` | `m7:content:edit` | 幂等键 / 5s(202) / 10rpm | 提交 1+4 套图异步生成任务，锁定工作流版本 |
+| 8 | `GET /engines/status` | `m7:content:read` | 只读 / 3s / 60rpm | 查询统一引擎状态（云端 API / 本地 Pillow&FFmpeg / 可选 ComfyUI 节点池） |
+| 9 | `POST /jobs/{job_id}/sync` | `m7:content:read` | 锁防重 / 10s / 60rpm | 同步外部任务结果、检验真实 MIME、执行末端 IPTC 写入 |
+| 10 | `POST /images/slots/{slot_idx}/regenerate` | `m7:content:edit` | 幂等键 / 5s(202) / 15rpm | 仅重绘指定图位（其余 4 张不变），并失效旧审批 |
+| 11 | `POST /images/slots/{slot_idx}/inpaint` | `m7:content:edit` | 幂等键 / 5s(202) / 15rpm | 局部修改指定图位并返回原图/新图对比 |
+| 12 | `POST /images/iptc/verify` | `m7:compliance:run` | 幂等 / 5s / 30rpm | 真读盘核验 IPTC/XMP 双标签或执行重新写入 |
+| 13 | `POST /videos/generate` | `m7:content:edit` | 幂等键 / 45s / 6rpm | 合成 15s 三段分镜 MP4（未配置节点直接返回 `503 M7-5031`） |
+| 14 | `PUT /videos/segments/{seg_idx}` | `m7:content:edit` | 乐观锁 / 3s / 30rpm | 热修改分镜图位/运镜/字幕或引用 M7-1 |
+| 15 | `POST /videos/segments/{seg_idx}/regenerate` | `m7:content:edit` | 幂等键 / 30s / 10rpm | 仅重做指定分镜并重新拼接 MP4 |
+| 16 | `POST /aplus/generate` | `m7:content:edit` | 幂等键 / 10s / 15rpm | 组装 M7-1+M7-2 可视化 A+ 图文长页 |
+| 17 | `GET /compliance/matrix` | `m7:content:read` | 只读 / 3s / 60rpm | 查询站点×类目规则矩阵与当前 SKU 资质台账 |
+| 18 | `PUT /compliance/matrix/{rule_id}` | `m7:rule:maintain` | 乐观锁 / 3s / 20rpm | 仅 `approver` 维护三层词库与站点规则（写审计并清缓存） |
+| 19 | `POST /certs/renew` | `m7:rule:maintain` | 幂等 / 3s / 20rpm | 仅 `approver` 续期或变更资质到期日 |
+| 20 | `POST /compliance/check` | `m7:compliance:run` | 幂等键 / 5s / 30rpm | 运行 5 项上架合规检查并持久化 `ComplianceCheck` |
+| 21 | `GET /packages/{sku}/summary` | `m7:content:read` | 只读 / 3s / 60rpm | 查询 `?platform=...` 下 `8+N` 清单就绪度与买家视角预览数据 |
+| 22 | `POST /packages/approve` & `GET /packages/{sku}/export` | `m7:publish:approve` / `m7:package:export` | 事务门禁 / 5~15s / 20rpm | 主管批准（禁自批）；按 `?platform=...&format=zip\|html` 下载离线交付包 |
 
 ---
 
@@ -659,7 +673,7 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
 
 #### (1) `POST /api/v1/orgs/{org_id}/m7/copy/generate`
 - **请求体 (`CopyGenerateRequest`)**：
-  - `sku` (`str`, 必填), `platform` (`Literal["amazon","shopee","tiktok"]`), `lang` (`str`, 默认 `"en-US"`), `must_words` (`list[str]`), `ban_words` (`list[str]`), `tone` (`str`)
+  - `sku` (`str`, 必填), `platform` (`Literal["amazon_us","shopee_th","tiktok_us"]`), `slot` (`Literal["copy_title","copy_bullets","copy_desc","copy_kw","copy_faq","copy_aplus_txt","copy_variant","copy_attr","copy_alt","copy_warranty"]`), `lang` (`str`, 默认 `"en-US"`), `must_words` (`list[str]`), `ban_words` (`list[str]`), `tone` (`str`)
 - **响应体 (`200 OK`)**：
   ```json
   {
@@ -668,13 +682,14 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
     "trace_id": "req_88a1",
     "data": {
       "job_id": "job_copy_01J",
-      "sku": "CP-SKU-001",
+      "sku": "SKU-00704",
+      "slot": "copy_title",
       "variants": [
         {
           "asset_id": "ast_title_v1",
           "variant_idx": 0,
-          "title": "Wireless Noise Cancelling Earbuds 40H Playtime IPX5",
-          "bullets": ["Active Noise Cancellation...", "..."],
+          "text": "Wireless Noise Cancelling Earbuds 40H Playtime IPX5",
+          "translation_cn": "【中文对照】无线降噪耳机 40小时续航 IPX5防水",
           "scan_result": {
             "must_hits": 2,
             "total_must": 2,
@@ -682,8 +697,10 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
             "tm_hits": [],
             "reg_hits": [],
             "all_caps_words": [],
+            "char_len": 52,
+            "max_chars": 200,
             "byte_len": 52,
-            "max_bytes": 200,
+            "max_bytes": 250,
             "over_len": false,
             "blocked": false
           }
@@ -694,7 +711,7 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
   ```
 
 #### (2) `PUT /api/v1/orgs/{org_id}/m7/copy/assets/{asset_id}`
-- **请求体 (`CopyEditRequest`)**：`{"version": 1, "title": "...", "bullets": ["..."], "description": "..."}`
+- **请求体 (`CopyEditRequest`)**：`{"version": 1, "text": "...", "translation_cn": "..."}`
 - **异常拦截响应 (`422 Unprocessable Entity`)**：
   ```json
   {
@@ -703,7 +720,7 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
     "trace_id": "req_88b2",
     "data": {
       "blocked": true,
-      "reasons": ["命中通用违禁词: 100% Cure", "标题超出 Amazon 200 字节上限(当前 218)"],
+      "reasons": ["命中通用违禁词: Cure", "标题超出 Amazon 200 字符上限(当前 218)"],
       "scan_result": { "ban_hits": 1, "over_len": true }
     }
   }
@@ -711,12 +728,12 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
 
 #### (3) `POST /api/v1/orgs/{org_id}/m7/images/batch` & `POST /jobs/{job_id}/sync`
 - **Batch 请求 (`202 Accepted`)**：
-  `{"sku":"CP-SKU-001","platform":"amazon","style":"studio_clean","aspect":"1:1","avoid_words":["watermark","text overlay"],"ai_person":false}`
+  `{"sku":"SKU-00704","platform":"amazon_us","style":"studio_clean","aspect":"1:1","avoid_words":["watermark","text overlay"],"ai_person":false}`
 - **Sync 响应（成功 `200 OK`）**：返回 `status: "SUCCEEDED"`、`slots[0..4]` 含 `media_id`、`preview_url`、`mime_type: "image/png"`、`iptc_verified: true`。
 - **Sync 响应（无输出/伪造 MIME `424 Failed Dependency`）**：返回 `code: "M7-4241"`, `status: "FAILED"`, `error_detail: "外部响应非合法 image/* 字节，已拦截入库"`。
 
 #### (4) `POST /api/v1/orgs/{org_id}/m7/videos/generate`
-- **请求体**：`{"sku":"CP-SKU-001","script_style":"problem_solution","voice_lang":"en-US","bgm":"upbeat_tech","segments":[...]}`
+- **请求体**：`{"sku":"SKU-00704","platform":"amazon_us","script_style":"product_showcase","voice_lang":"en-US","bgm":"acoustic_home","segments":[...]}`
 - **未配置节点报错 (`503 Service Unavailable`)**：
   ```json
   {
@@ -728,7 +745,7 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
   ```
 
 #### (5) `POST /api/v1/orgs/{org_id}/m7/compliance/check`
-- **请求体**：`{"sku":"CP-SKU-001","platform":"tiktok","category":"Consumer Electronics"}`
+- **请求体**：`{"sku":"SKU-00704","platform":"tiktok_us","category":"kitchen_appliance"}`
 - **响应体 (`200 OK`)**：
   ```json
   {
@@ -752,15 +769,15 @@ CREATE INDEX idx_core_audit_org_sku ON core_audit_events (org_id, sku, created_a
   ```
 
 #### (6) `POST /api/v1/orgs/{org_id}/m7/packages/approve` & `GET /packages/{sku}/export`
-- **Approve 请求体**：`{"sku":"CP-SKU-001","check_id":"chk_01J","decision":"APPROVED","note":"资质已续期且五项检查全绿，同意导出"}`
-- **自批拦截 (`403 Forbidden`)**：当 `actor_role != 'approver'` 或 `current_user.id == last_editor_id`，返回 `code: "M7-4032"`, `message: "违反职责分离原则：创作者不可自我批准"`。
-- **Export (`GET /packages/{sku}/export?format=zip`)**：验证存在 `is_active = True` 的审批单且 `overall_pass = True` 后，返回 `Content-Type: application/zip`（或 `text/html`）附件流下载并写审计。
+- **Approve 请求体**：`{"sku":"SKU-00704","platform":"amazon_us","check_id":"chk_01J","decision":"APPROVED","note":"资质已续期且五项检查全绿，同意导出"}`
+- **自批拦截 (`403 Forbidden`)**：当 `actor_role != 'approver'` 返回 `M7-4031`；当开启 `M7_STRICT_SEPARATION_OF_DUTIES=true` 且 `current_user.id == last_editor_id` 返回 `code: "M7-4032"`, `message: "违反职责分离原则：创作者不可自我批准"`。
+- **Export (`GET /packages/{sku}/export?platform=amazon_us&format=zip`)**：验证指定 `platform` 存在 `is_active = True` 的审批单且 `overall_pass = True` 后，返回 `Content-Type: application/zip`（或 `text/html`）附件流下载并写审计。
 
 ---
 
 ## 8. 关键业务逻辑伪代码
 
-### 8.1 M7-1 文案生成、三层词库扫描与字节上限强拦截
+### 8.1 M7-1 文案生成、三层词库扫描与字符/字节上限强拦截
 
 ```python
 async def generate_and_scan_copy(org_id: str, req: CopyGenerateReq, user: User) -> CopyGenerateResp:
@@ -769,38 +786,44 @@ async def generate_and_scan_copy(org_id: str, req: CopyGenerateReq, user: User) 
     if not fact:
         raise M7DomainError("M7-4041", f"商品 {req.sku} 不存在或未同步至 M7", status=404)
 
-    # 2. 获取站点×类目最新合规词库与字节限制
+    # 2. 获取站点×类目最新合规词库与字符/字节限制
     rule = await repo.get_rule(org_id, req.platform, fact.category)
     job = await repo.create_or_reuse_idempotent_job(
-        org_id=org_id, sku=req.sku, job_type="COPY", idemp_key=req.idempotency_key, created_by=user.id
+        org_id=org_id, sku=req.sku, job_type="COPY", platform=req.platform,
+        idemp_key=req.idempotency_key, created_by=user.id
     )
     if job.status == "SUCCEEDED":
         return await repo.load_copy_response(job.job_id)
 
-    # 3. 调用大模型生成 3 组结构化多语言草稿（传入 fact 锚点约束）
-    drafts = await adapter.generate_copy(fact=fact, platform=req.platform, lang=req.lang, tone=req.tone)
+    # 3. 调用大模型生成 3 组指定槽位的多语言草稿（传入 fact 锚点约束）
+    drafts = await adapter.generate_copy(
+        fact=fact, platform=req.platform, slot=req.slot, lang=req.lang, tone=req.tone
+    )
     results = []
     async with repo.transaction():
         for idx, draft in enumerate(drafts):
             scan = lexicon_scanner.scan_three_layers(
-                text=draft.full_text(),
-                title=draft.title,
+                text=draft.text,
+                slot=req.slot,
                 must_words=req.must_words or rule.lexicon_json["must"],
                 ban_words=(req.ban_words or []) + rule.lexicon_json["ban"],
                 tm_words=rule.lexicon_json["trademark"],
                 reg_words=rule.lexicon_json["regulatory"],
-                max_title_bytes=rule.title_max_bytes,
+                max_chars=rule.title_max_chars if req.slot == "copy_title" else rule.bullet_max_chars,
+                max_bytes=rule.search_terms_max_bytes if req.slot == "copy_kw" else None,
             )
+            # 候选草稿均写入真实槽位 req.slot，初始 is_selected=False；待用户点击采纳(/select)时正式入清单
             asset = await repo.save_copy_asset(
-                org_id=org_id, sku=req.sku, job_id=job.job_id, slot=f"copy_variant_{idx}",
+                org_id=org_id, sku=req.sku, job_id=job.job_id, slot=req.slot,
+                platform=req.platform, lang=req.lang, variant_idx=idx,
                 content=draft.model_dump(), orig_content=draft.model_dump(),
-                scan_result=scan.model_dump(), is_selected=(idx == 0 and not scan.blocked),
+                scan_result=scan.model_dump(), is_selected=False,
                 last_edited_by=user.id,
             )
             results.append((asset, scan))
         await repo.mark_job_succeeded(job.job_id)
-        await audit.append(org_id, req.sku, "COPY_GENERATED", user, True, f"生成 {req.lang} 文案 3 组")
-    return build_copy_response(job.job_id, results)
+        await audit.append(org_id, req.sku, "COPY_GENERATED", user, True, f"生成 {req.slot} ({req.lang}) 草稿 3 组")
+    return build_copy_response(job.job_id, req.slot, results)
 ```
 
 ### 8.2 M7-1 就地微调保存与还原 AI 原稿
@@ -811,17 +834,18 @@ async def save_manual_copy_edit(org_id: str, asset_id: str, req: CopyEditReq, us
     if asset.version != req.version:
         raise M7DomainError("M7-4091", "文案已被他人修改，请刷新最新版本", status=409)
 
-    rule = await repo.get_rule_by_asset(asset)
+    rule = await repo.get_rule(org_id, asset.platform, req.category or "kitchen_appliance")
     scan = lexicon_scanner.scan_three_layers(
-        text=req.full_text(), title=req.title,
+        text=req.text, slot=asset.asset_slot,
         must_words=rule.lexicon_json["must"], ban_words=rule.lexicon_json["ban"],
         tm_words=rule.lexicon_json["trademark"], reg_words=rule.lexicon_json["regulatory"],
-        max_title_bytes=rule.title_max_bytes,
+        max_chars=rule.title_max_chars if asset.asset_slot == "copy_title" else rule.bullet_max_chars,
+        max_bytes=rule.search_terms_max_bytes if asset.asset_slot == "copy_kw" else None,
     )
     if scan.blocked:
         await audit.append(org_id, asset.sku, "COPY_BAN_BLOCKED", user, False,
                            f"微调文案触发拦截：{scan.block_reasons_zh()}")
-        raise M7DomainError("M7-4221", "命中平台红线词或超出字节上限，禁止写入交付清单", status=422, detail=scan)
+        raise M7DomainError("M7-4221", "命中平台红线词或超出字符/字节上限，禁止写入交付清单", status=422, detail=scan)
 
     async with repo.transaction():
         # 仅更新 content_json，绝对保留 orig_content_json
@@ -830,8 +854,8 @@ async def save_manual_copy_edit(org_id: str, asset_id: str, req: CopyEditReq, us
             scan_result=scan.model_dump(), edit_status="MANUALLY_EDITED",
             editor_id=user.id, next_version=asset.version + 1,
         )
-        # 上游资产变更，立即失效已有主管审批
-        await repo.invalidate_active_approvals(org_id, asset.sku, reason="COPY_EDITED")
+        # 上游资产变更，立即失效对应平台既有主管审批
+        await repo.invalidate_active_approvals(org_id, asset.sku, asset.platform, reason="COPY_EDITED")
         await audit.append(org_id, asset.sku, "COPY_EDITED", user, True, "就地微调并保存文案（保留AI原稿）")
     return updated
 ```
@@ -949,15 +973,19 @@ async def approve_package(org_id: str, req: ApproveReq, user: User) -> ApprovalR
     if not check.overall_pass:
         raise M7DomainError("M7-4222", "合规检查未全绿通过，禁止批准发布", status=422)
 
-    last_editor = await repo.get_last_asset_editor(org_id, req.sku)
-    if last_editor == user.id:
+    last_editor = await repo.get_last_asset_editor(org_id, req.sku, req.platform)
+    if settings.M7_STRICT_SEPARATION_OF_DUTIES and last_editor == user.id:
         await audit.append(org_id, req.sku, "APPROVE_SELF_DENIED", user, False, "触发禁自批职责分离拦截")
         raise M7DomainError("M7-4032", "职责分离拦截：创作者不可自我批准同一工作包", status=403)
 
-    approval = await repo.create_active_approval(org_id, req.sku, check.check_id, last_editor, user.id, req.note)
+    approval = await repo.create_active_approval(
+        org_id, req.sku, req.platform, check.check_id, last_editor or "system", user.id, req.note
+    )
     await audit.append(org_id, req.sku, "PACKAGE_APPROVED", user, True, f"主管批准发布包：{req.note}")
     return approval
 ```
+
+> **上游改动自动失效联动清单**：`PUT /copy/assets/{asset_id}`、`POST /copy/assets/{asset_id}/restore`、`POST /copy/assets/{asset_id}/select`、`POST /jobs/{job_id}/sync`、`POST /images/slots/*/regenerate|inpaint`、`PUT/POST /videos/segments/*`、`POST /aplus/generate`、`PUT /compliance/matrix/{rule_id}`、`POST /certs/renew` 均须在事务内调用 `invalidate_active_approvals(org_id, sku, platform, reason)`。
 
 ---
 
@@ -976,7 +1004,7 @@ async def approve_package(org_id: str, req: ApproveReq, user: User) -> ApprovalR
 
 ### 9.2 Pinia 状态管理设计
 
-- `useM7WorkspaceStore`：维护全局 `currentOrgId`、`currentSku`、`platform`（`amazon | shopee | tiktok`）、`relayProgress`（0–8 交付进度）及当前选中草稿槽位，切换路由时自动保持跨步上下文连贯。
+- `useM7WorkspaceStore`：维护全局 `currentOrgId`、`currentSku`、`platform`（`amazon_us | shopee_th | tiktok_us`）、`category`（`kitchen_appliance | bags_travel | 3c_accessories | beauty_skincare`）、`relayProgress`（0–8 交付进度）及当前选中草稿槽位，切换路由时自动保持跨步上下文连贯。
 - `useM7CopyStore`：管理 `variants`、`editingContent`、`origSnapshot`、`scanResult` 与乐观锁 `version`，提供 `runRealtimeScan()`（300ms 防抖调用 `/copy/scan`）与 `restoreOriginal()`。
 - `useM7MediaStore`：管理 `1+4` 槽位状态、轮询定时器 `pollJob(jobId)`（指数退避 `1s -> 2s -> 3s`，页面卸载自动 `onUnmounted` 清理）、单图局部对比状态及 3 段分镜 `segments`。
 - `useM7ComplianceStore`：管理 `ruleMatrix`、`certRecords`、`fiveChecks`、`approvalStatus`（`PENDING_CHECK | CHECK_FAILED | CHECK_PASSED | APPROVED | INVALIDATED`）及离线打包下载进度。
@@ -1049,7 +1077,7 @@ async def approve_package(org_id: str, req: ApproveReq, user: User) -> ApprovalR
 | 测试层级 | 技术工具 | 核心覆盖范围与必测用例 |
 | :--- | :--- | :--- |
 | **后端单元测试** | `Pytest` | 1. `LexiconScanner` 三层词库、全大写过滤、Amazon UTF-8 字节上限边界值。<br>2. `IptcMetadataHandler` 真实写入 PNG/JPEG 后裁剪模拟丢失 -> 读盘核验必返回 `false`。<br>3. `RuleEvaluator` 过期资质（`expire_date < today`）与 TikTok 授权缺失判定。 |
-| **API 契约与集成测试** | `Pytest + httpx.AsyncClient` + SQLite/PG 测试库 | 1. 全 16 个端点正常路径及 `X-Idempotency-Key` 幂等验证。<br>2. RBAC 矩阵压测：`manager` 全写接口 403、`creator` 改规则/审批 403、`approver` 自批自身修改包 403。<br>3. 上游改动（改文案/重绘/换分镜）后旧 `m7_approval_records.is_active` 必变 `false`。<br>4. 模拟外部图生图返回 `text/html` 错误页 -> 验证 `m7_generation_media` 零写入且返回 `M7-4241`。 |
+| **API 契约与集成测试** | `Pytest + httpx.AsyncClient` + SQLite/PG 测试库 | 1. 全 22 个 RESTful 端点正常路径及 `X-Idempotency-Key` 幂等验证。<br>2. RBAC 矩阵压测：`manager` 全写接口 403、`creator` 改规则/审批 403、`approver` 自批自身修改包 403。<br>3. 上游改动（改文案/重绘/换分镜）后旧 `m7_approval_records.is_active` 必变 `false`。<br>4. 模拟外部图生图返回 `text/html` 错误页 -> 验证 `m7_generation_media` 零写入且返回 `M7-4241`。 |
 | **前端组件测试** | `Vitest + Vue Test Utils` | 1. 文案红线高亮、字符计数器、还原 AI 原稿按钮。<br>2. 9 角色切换下按钮禁用与显隐逻辑。<br>3. `m7d` 买家预览抽屉与 8+N 缺失一键跳转对应路由。 |
 | **端到端验收测试** | `Playwright` | 跑通端到端完整链路：`选品 -> 生成并微调文案 -> 1+4套图 -> 裁剪丢失IPTC并重写修复 -> 15s短视频+单镜重做+A+ -> 续期资质 -> 5项全绿 -> 主管审批 -> 下载离线ZIP包`。 |
 
@@ -1068,6 +1096,7 @@ async def approve_package(org_id: str, req: ApproveReq, user: User) -> ApprovalR
 | `DASHSCOPE_API_KEY` | `sk-***`（运行时注入） | 阿里云百炼密钥（日志脱敏） |
 | `FFMPEG_BIN` | `/usr/bin/ffmpeg` | FFmpeg 可执行路径（为空时触发未配置阻断） |
 | `VIDEO_ENGINE_ENABLED` | `true` / `false` | 视频生成节点开关（测试未配置阻断场景） |
+| `M7_STRICT_SEPARATION_OF_DUTIES` | `true` / `false` | 是否开启禁自批同人互斥（生产必须 `true`，单账号演示可置 `false`） |
 | `JWT_SECRET_KEY` | `<strong-random-secret>` | 鉴权签名密钥 |
 
 ### 13.2 迁移、启动与健康检查

@@ -598,10 +598,11 @@ export function resetM7CreationState(state, sku, prodMeta = null) {
   state.m7SelectedAltCopyCn = "";
   state.m7SelectedWarrantyCopy = "";
   state.m7SelectedWarrantyCopyCn = "";
-  state.m7ImgStyle = "亚马逊极简白底棚拍";
+  state.m7ImgWorkflow = "标准白底主图 + 4张场景卖点附图模板";
+  state.m7ImgStyle = "商业棚拍质感";
   state.m7ImgAngle = "正面平视";
-  state.m7ImgRatio = "1:1 (2000×2000 主图)";
-  state.m7ImgNegatives = ["禁止促销贴纸", "禁止畸形手指", "禁止AI乱码文字", "禁止多余配件"];
+  state.m7ImgRatio = "1:1 电商方图";
+  state.m7ImgNegatives = ["禁止水印/促销角标", "禁止乱码文字", "禁止产品外观/Logo畸变", "禁止杂乱背景反光"];
   state.m7ImgSyncCopy = true;
   state.m7ShowAdvPrompt = false;
   state.m7ImgBriefs = [...DEFAULT_M7_IMG_BRIEFS];
@@ -620,8 +621,8 @@ export function resetM7CreationState(state, sku, prodMeta = null) {
   state.m7VidPlaying = false;
   state.m7VidTimeSec = 0;
   state.m7VidLogs = [];
-  state.m7VidVoice = "美式女声配音";
-  state.m7VidBgm = "轻快家居种草";
+  state.m7VidVoice = "美式女声 · 亲和推荐";
+  state.m7VidBgm = "轻快居家 Acoustic";
   state.m7VidSegs = buildDefaultM7VidSegs(state.m7Sku, prodMeta?.name || state.m7Sku);
   state.m7BuyerImgIdx = 0;
   state.m7BuyerVariantIdx = 0;
@@ -1670,11 +1671,11 @@ export function createInitialState() {
     m7SelectedWarrantyCopy: "",
     m7SelectedWarrantyCopyCn: "",
 
-    m7ImgWorkflow: "标准白底主图模板 (支持 1+4 差异构图演示)",
-    m7ImgStyle: "亚马逊极简白底棚拍",
+    m7ImgWorkflow: "标准白底主图 + 4张场景卖点附图模板",
+    m7ImgStyle: "商业棚拍质感",
     m7ImgAngle: "正面平视",
-    m7ImgRatio: "1:1 (2000×2000 主图)",
-    m7ImgNegatives: ["禁止促销贴纸", "禁止畸形手指", "禁止AI乱码文字", "禁止多余配件"],
+    m7ImgRatio: "1:1 电商方图",
+    m7ImgNegatives: ["禁止水印/促销角标", "禁止乱码文字", "禁止产品外观/Logo畸变", "禁止杂乱背景反光"],
     m7ImgSyncCopy: true,
     m7ShowAdvPrompt: false,
     m7ImgBriefs: [...DEFAULT_M7_IMG_BRIEFS],
@@ -1695,8 +1696,8 @@ export function createInitialState() {
     m7VidPlaying: false,
     m7VidTimeSec: 0,
     m7VidLogs: [],
-    m7VidVoice: "美式女声配音",
-    m7VidBgm: "轻快家居种草",
+    m7VidVoice: "美式女声 · 亲和推荐",
+    m7VidBgm: "轻快居家 Acoustic",
     m7VidSegs: buildDefaultM7VidSegs("SKU-00704", "无线真空迷你封口机"),
     m7BuyerImgIdx: 0,
     m7BuyerVariantIdx: 0,

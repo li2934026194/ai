@@ -13,7 +13,7 @@
 |---|---|---|---|
 | **冒烟测试用例** | 四步端到端主链路 + 待办/审批/导出核心闭环（发版前必跑） | `TC-SMK-` | 12 |
 | **功能测试（正向/反向/边界）** | M7-1/2/3/4 业务流、双分支失败再提、精确字符/字节/日期/金额边界 | `TC-FN-` | 36 |
-| **接口测试** | 16 个核心 REST API 契约、幂等键、异步轮询、组织隔离、状态码 | `TC-API-` | 16 |
+| **接口测试** | 16 项接口契约测试覆盖 22 个核心 REST API、幂等键、异步轮询、组织隔离、状态码 | `TC-API-` | 16 |
 | **UI 与交互测试** | 布局结构、长文本换行防溢出、弹窗对比、页签、诚实徽标 | `TC-UI-` | 10 |
 | **兼容性测试** | 跨浏览器、多分辨率视口、UTF-8 多语种与离线 HTML 包跨端打开 | `TC-CMP-` | 6 |
 | **性能测试** | 页面渲染、实时扫描防卡顿、ComfyUI 单图/批量吞吐、定时器内存 | `TC-PRF-` | 6 |
@@ -114,25 +114,25 @@
 
 ## 3. 接口测试用例（后端 API 契约与联调验收，16 条）
 
-> 目标前缀：`/api/v1/orgs/{org_id}/m7`（统一响应包装 `X-Api-Envelope: 1`，二进制媒体下载除外）。
+> 目标前缀：`/api/v1/orgs/{org_id}/m7`（统一响应包装 `code/message/trace_id/data`，二进制媒体/打包流下载除外）。
 
 | 编号 | 接口端点 | 测试场景与输入 | 预期状态码与断言 |
 |---|---|---|---|
 | **TC-API-01** | `GET /products/available` | 传入合法 `org_id` 查询可创作商品 | `200`，仅返回归属该 `org_id` 且来自 M4-3 已批准新品及在售主档商品，含 M0-2 规格与 M1-2 FAQ 摘要。 |
 | **TC-API-02** | `POST /copy/generate` | 带同一 `idempotency_key` 连续并发提交两次 | 首次创建 `GenerationJob` + `GenerationAsset`（含 `orig_content`），第二次幂等返回同一 `job_id`，不重复计费/建单。 |
-| **TC-API-03** | `POST /copy/scan` | 提交含品牌词 + 商标词 `Velcro` + 监管词 `FDA Approved` + 251 bytes 搜索词 | `200`，准确返回 `mustHits`、`banHits`、`tmHits`、`regHits`、`allCapsWords`、`byteLen`、`overLen` 字段。 |
+| **TC-API-03** | `POST /copy/scan` | 提交含品牌词 + 商标词 `Velcro` + 监管词 `FDA Approved` + 251 bytes 搜索词 | `200`，准确返回 `must_hits`、`ban_hits`、`tm_hits`、`reg_hits`、`all_caps_words`、`byte_len`、`over_len` 字段。 |
 | **TC-API-04** | `PUT /copy/assets/{asset_id}` | 提交包含红线词或超长的编辑正文 | `422` 业务拦截，返回命中词明细；合法文本返回 `200` 并保留 `orig_content` 供还原。 |
 | **TC-API-05** | `POST /copy/assets/{asset_id}/restore` | 对已微调文案调用还原接口 | `200`，`content` 恢复为 `orig_content`，版本号递增且记录审计。 |
-| **TC-API-06** | `POST /images/batch` | 正常提交 `1+4` 批量出图（含结构化参数与 `workflow_id`） | `202`，锁定当时 `workflow_version`，返回 `job_id` 与向 ComfyUI 提交的 `prompt_id`。 |
+| **TC-API-06** | `POST /images/batch` | 正常提交 `1+4` 批量出图（含结构化参数与 `workflow_id`） | `202`，锁定当时 `workflow_version`，返回 `job_id` 与向生成引擎提交的 `engine_run_id`。 |
 | **TC-API-07** | `POST /images/slots/{slot_idx}/regenerate` | 对已完成任务中的图位 `2` 发起单图重绘 | `200/202`，仅新生成图位 `2` 的 `GenerationAsset` 版本，图位 `0,1,3,4` 的 `asset_id` 与版本保持不变。 |
 | **TC-API-08** | `POST /images/slots/{slot_idx}/inpaint` | 提交空 `prompt` 局部修改 vs 合法局部修改 | 空指令返回 `400/422`；合法指令生成新版本资产并关联前图版本 ID。 |
-| **TC-API-09** | `POST /comfyui/sync/{job_id}` | 模拟 ComfyUI `/history/{prompt_id}` 返回：①运行中 ②节点错误 ③无输出 ④非图片 MIME | ①保持 `RUNNING` ②置为 `FAILED` 并落盘 `error_detail` ③置为 `FAILED` ④拒绝入库 `GenerationMedia` 并报错，**绝不置 `SUCCEEDED`**。 |
-| **TC-API-10** | `POST /images/iptc/verify` | 上传不含 `contains-synthetic-performer` 的 AI 人物图片校验 | `200/422`，明确返回 `iptc_verified: false` 与缺失字段明细，更新资产状态为阻断。 |
-| **TC-API-11** | `POST /videos/generate` | ComfyUI 视频节点未配置或未安装 SVD 模型时提交视频生成 | 返回明确的依赖未就绪错误码（如 `503/424`），不创建假成功 `GenerationMedia` 记录。 |
+| **TC-API-09** | `POST /jobs/{job_id}/sync` | 模拟外部节点返回：①运行中 ②节点错误 ③无输出 ④非图片 MIME | ①保持 `RUNNING` ②置为 `FAILED` 并落盘 `error_detail` ③置为 `FAILED` ④拒绝入库 `GenerationMedia` 并报错 `424`，**绝不置 `SUCCEEDED`**。 |
+| **TC-API-10** | `POST /images/iptc/verify` | 对不含 `contains-synthetic-performer` 的 AI 人物图片执行真读盘校验 | `200/422`，明确返回 `iptc_verified: false` 与缺失字段明细，更新资产状态为阻断。 |
+| **TC-API-11** | `POST /videos/generate` | 视频生成节点未配置或 FFmpeg 不可用时提交视频生成 | 返回明确的依赖未就绪错误码（`503 M7-5031`），不创建假成功 `GenerationMedia` 记录。 |
 | **TC-API-12** | `PUT /videos/segments/{seg_idx}` & `POST .../regenerate` | 更新分镜 `1` 的图位与字幕，再单独重做分镜 `1` | `200`，仅更新分镜 `1` 数据，分镜 `0`、`2` 原封不动。 |
 | **TC-API-13** | `POST /compliance/check` | 只传目标 `sku`、`platform`、`category`，由服务端读取当前选定版本执行 5 项检查 | `200`，持久化独立 `ComplianceCheck` 记录，绑定当前 `rule_version` 与各项 `pass/detail`。 |
-| **TC-API-14** | `POST /packages/approve` | ①`creator` 调用 ②`approver` 对未过检包调用 ③`approver` 对同一个由自己提交创作的包调用（若开启同人互斥） | ①`403 Forbidden` 并写审计 ②`409/422` 提示未过检 ③按同人互斥策略返回 `403` 或双人复核通过 `200`。 |
-| **TC-API-15** | `GET /packages/{sku}/export` | 未批准状态请求导出 vs 批准后请求导出 | 未批准返回 `403/409`；已批准返回 `200` 可下载归档流（HTML/ZIP），响应头含文件名与校验和。 |
+| **TC-API-14** | `POST /packages/approve` | ①`creator` 调用 ②`approver` 对未过检包调用 ③`approver` 对同一个由自己最后编辑的包调用（`M7_STRICT_SEPARATION_OF_DUTIES=true`） | ①`403 M7-4031` 并写审计 ②`422 M7-4222` 提示未过检 ③同人互斥开启时返回 `403 M7-4032`（单人演示关闭该开关时 `200`）。 |
+| **TC-API-15** | `GET /packages/{sku}/export` | 未批准状态请求导出 vs 批准后按 `?platform=...&format=zip\|html` 请求导出 | 未批准返回 `403/422`；已批准返回 `200` 可下载归档流（HTML/ZIP），响应头含文件名与校验和。 |
 | **TC-API-16** | 跨组织隔离测试 | 使用 Org-A 的 Token 访问 Org-B 的 `asset_id` / `job_id` / `sku` 导出 | 全部返回 `403` 或 `404`（不泄露跨租户存在性），写入越权安全审计事件。 |
 
 ---

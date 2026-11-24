@@ -28,6 +28,13 @@ function badgeHtml(cell) {
   return `<span style="color:#64748b;font-size:12px;">${cell}</span>`;
 }
 
+function invalidateM7ApprovalIfNeeded(state) {
+  if (state.m7ApprovalRecord || state.m7ComplianceStatus === "主管已批准导出" || state.m7ComplianceStatus === "合规校验通过") {
+    state.m7ApprovalRecord = null;
+    state.m7ComplianceStatus = "待运行合规检查";
+  }
+}
+
 function getM7AvailableProducts(state) {
   const approvedNew = state.m4Pool
     .filter(x => x.stage === "已批准测款")
@@ -625,6 +632,7 @@ export function renderM7_M8(pageId, state, helpers) {
           if (!orig) return;
           setPickedPair(state.m7ResultTab, orig.text, orig.cn);
           state.m7CopyEditing = false;
+          invalidateM7ApprovalIfNeeded(state);
           rerender();
           toast("已还原为 AI 原稿文案", "info");
         };
@@ -657,6 +665,7 @@ export function renderM7_M8(pageId, state, helpers) {
           }
           setPickedPair(state.m7ResultTab, nextTxt, (state.m7CopyEditDraftCn || "").trim());
           state.m7CopyEditing = false;
+          invalidateM7ApprovalIfNeeded(state);
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 微调并保存了 ${curM7Prod.sku} 的「${state.m7ResultTab}」`, ok: true });
           rerender();
           toast("已保存微调后的文案并同步至交付清单 ✓", "success");
@@ -981,6 +990,7 @@ export function renderM7_M8(pageId, state, helpers) {
           pickedImg.done = true;
           pickedImg.edited = true;
           pickedImg.editNote = `单图重绘 v${state.m7ImgVersion} (${state.m7ImgStyle})`;
+          invalidateM7ApprovalIfNeeded(state);
           appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 单独重绘了 ${curM7Prod.sku} 的「${pickedImg.label}」（其余 4 张不变）`, ok: true });
           rerender();
           toast(`已单独重绘「${pickedImg.label}」（第 ${state.m7ImgVersion} 版），其余 4 张图保持不变 ✓`, "success");
@@ -1030,7 +1040,7 @@ export function renderM7_M8(pageId, state, helpers) {
         document.getElementById("m7WfRegSel").onchange = (e) => { state.m7ActiveWorkflowVer = e.target.value; rerender(); toast(`工作流版本已切换为 ${state.m7ActiveWorkflowVer}`); };
         document.getElementById("m7AiPersonChk").onchange = (e) => { state.m7AiPersonInAsset = e.target.checked; rerender(); };
         document.getElementById("m7SimCropLossBtn").onclick = () => {
-          state.m7IptcDamagedByCrop = true; state.m7IptcWritten = false; state.m7ComplianceStatus = "校验未通过";
+          state.m7IptcDamagedByCrop = true; state.m7IptcWritten = false; state.m7ApprovalRecord = null; state.m7ComplianceStatus = "校验未通过";
           rerender(); toast("裁剪后元数据丢失！已触发阻断", "error");
         };
         document.getElementById("m7RewriteIptcBtn").onclick = () => {
@@ -1829,12 +1839,12 @@ export function renderM7_M8(pageId, state, helpers) {
         });
         const goImgBtn = document.getElementById("m7dGoImgBtn");
         if (goImgBtn) goImgBtn.onclick = () => goPage("m7b");
-        document.getElementById("m7dPlatSel").onchange = (e) => { state.m7Platform = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
-        document.getElementById("m7dCatSel").onchange = (e) => { state.m7ComplianceCategory = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
+        document.getElementById("m7dPlatSel").onchange = (e) => { state.m7Platform = e.target.value; state.m7ApprovalRecord = null; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
+        document.getElementById("m7dCatSel").onchange = (e) => { state.m7ComplianceCategory = e.target.value; state.m7ApprovalRecord = null; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
         document.querySelectorAll(".m7d-cert-toggle").forEach(b => b.onclick = () => {
           const c = state.m7CertRecords[Number(b.dataset.ci)];
           c.status = c.status === "已过期" ? "有效" : "已过期";
-          if (c.status === "已过期") state.m7ComplianceStatus = "校验未通过";
+          if (c.status === "已过期") { state.m7ApprovalRecord = null; state.m7ComplianceStatus = "校验未通过"; }
           rerender();
           toast(c.status === "已过期" ? `${c.name} 已过期，已触发阻断！` : `${c.name} 已续期恢复有效`, c.status === "已过期" ? "error" : "success");
         });
