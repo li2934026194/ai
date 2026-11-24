@@ -321,7 +321,7 @@ export function buildSystemConclusion(pageId, state) {
     return {
       tone: state.m7ComplianceStatus === "主管已批准导出" ? "green" : "amber",
       status: `当前制作商品 ${state.m7Sku}：套图 ${imgDone}/5 张就绪，A+ ${state.m7AplusDone ? "已就绪" : "待补"}，合规状态「${state.m7ComplianceStatus}」`,
-      advice: state.m7ComplianceStatus === "主管已批准导出" ? "已获主管放行，可在 M7-4 右上角导出离线合规资料包" : "补齐 8 类交付清单后在 M7-4 运行合规检查并送主管批准",
+      advice: state.m7ComplianceStatus === "主管已批准导出" ? "已获主管放行，可在 M7-4 右上角导出合规上架素材包" : "补齐 8 类交付清单并核验站点合规与人物标识后送主管批准",
       basis: `M4 已批准测款可制作商品 ${state.m4Pool.filter(x => x.stage === "已批准测款").length} 款`
     };
   }
@@ -754,7 +754,7 @@ export function createInitialState() {
     shops: [
       { id: "shop_th", name: "Shopee 泰国主店", platform: "SHOPEE", region: "TH", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 8e41", lastSync: daysOffsetDateTime(0, "10:15"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "居家小电 / 个护", owner: "张运营", currency: "THB", timezone: "UTC+7 (曼谷)", authExpireDate: daysOffsetDate(68), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2024-03-12", perfScore: 96, disputeRate7d: 0.4, returnRate: 1.8, lateShipRate: 0.5, policyViolations: 0, zeroOrderDays: 0 },
       { id: "shop_us", name: "TikTok Shop 美区", platform: "TIKTOK", region: "US", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "回复消息"], credMask: "尾号 2c90", lastSync: daysOffsetDateTime(0, "10:12"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "箱包出行 / 运动健身", owner: "张运营", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: daysOffsetDate(45), nextSyncAt: "每10分钟", syncFailCount: 0, openedAt: "2024-06-05", perfScore: 93, disputeRate7d: 0.8, returnRate: 2.3, lateShipRate: 0.9, policyViolations: 0, zeroOrderDays: 0 },
-      { id: "shop_amz_us", name: "Amazon 美国精品店", platform: "AMAZON", region: "US", mode: "REAL", health: "授权即将过期", status: "授权将于4天后到期", permLabels: ["读取订单", "同步库存", "FBA配送查询"], credMask: "尾号 5a17", lastSync: daysOffsetDateTime(0, "09:50"), lastSyncTs: null, errNote: "授权凭证将于 4 天后过期，请尽快重新授权防断流", monthlyGmv: 0, orderCount: 0, mainCategory: "家居收纳 / 厨房小电", owner: "陈主管", currency: "USD", timezone: "UTC-5 (美东)", authExpireDate: daysOffsetDate(4), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2023-11-18", perfScore: 91, disputeRate7d: 1.1, returnRate: 2.9, lateShipRate: 0.4, policyViolations: 0, zeroOrderDays: 0 },
+      { id: "shop_amz_us", name: "Amazon 美国精品店", platform: "AMAZON", region: "US", mode: "REAL", health: "授权即将过期", status: "授权将于4天后到期", permLabels: ["读取订单", "同步库存", "FBA配送查询"], credMask: "尾号 5a17", lastSync: daysOffsetDateTime(0, "09:50"), lastSyncTs: null, errNote: "授权凭证将于 4 天后过期，请尽快重新授权防断流", monthlyGmv: 0, orderCount: 0, mainCategory: "家居收纳 / 厨房小电", owner: "陈主管", currency: "USD", timezone: "UTC-5 (美东)", authExpireDate: daysOffsetDate(4), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2023-11-18", perfScore: 91, disputeRate7d: 1.1, returnRate: 2.9, lateShipRate: 0.4, policyViolations: 0, zeroOrderDays: 0, mailRelayOk: true, mailRelayAddr: "amz-relay-us@crosspilot.mail" },
       { id: "shop_laz_my", name: "Lazada 马来旗舰店", platform: "LAZADA", region: "MY", mode: "REAL", health: "同步异常", status: "连续同步失败3次", permLabels: ["读取订单", "同步库存"], credMask: "尾号 7f03", lastSync: daysOffsetDateTime(-1, "18:40"), lastSyncTs: null, errNote: "连续同步失败 3 次（平台限流或授权失效），请重试同步或重新授权", monthlyGmv: 0, orderCount: 0, mainCategory: "3C配件 / 居家小电", owner: "周分析", currency: "MYR", timezone: "UTC+8 (吉隆坡)", authExpireDate: daysOffsetDate(31), nextSyncAt: "待人工重试", syncFailCount: 3, openedAt: "2025-01-20", perfScore: 88, disputeRate7d: 0.9, returnRate: 2.1, lateShipRate: 1.2, policyViolations: 0, zeroOrderDays: 0 },
       { id: "shop_ebay_uk", name: "eBay 英国站", platform: "EBAY", region: "UK", mode: "REAL", health: "经营预警", status: "绩效偏低且连续4天零新单", permLabels: ["读取订单", "履约发货", "售后同步"], credMask: "尾号 3b82", lastSync: daysOffsetDateTime(-4, "09:30"), lastSyncTs: null, errNote: "绩效分 76 分（＜80）、近7天纠纷率 2.6% 且连续 4 天零新单", monthlyGmv: 0, orderCount: 0, mainCategory: "宠物用品 / 户外运动", owner: "吴选品", currency: "GBP", timezone: "UTC+0 (伦敦)", authExpireDate: daysOffsetDate(82), nextSyncAt: "每30分钟", syncFailCount: 0, openedAt: "2024-09-01", perfScore: 76, disputeRate7d: 2.6, returnRate: 5.4, lateShipRate: 3.1, policyViolations: 1, zeroOrderDays: 4 },
       { id: "shop_sp_sg", name: "Shopee 新加坡站", platform: "SHOPEE", region: "SG", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 9d14", lastSync: daysOffsetDateTime(0, "10:05"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "美妆护肤 / 家居收纳", owner: "张运营", currency: "SGD", timezone: "UTC+8 (新加坡)", authExpireDate: daysOffsetDate(53), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2025-04-10", perfScore: 95, disputeRate7d: 0.3, returnRate: 1.4, lateShipRate: 0.3, policyViolations: 0, zeroOrderDays: 0 },
@@ -1083,10 +1083,10 @@ export function createInitialState() {
       }
     ],
     csCatalog: [
-      { sku: "BAG-108", name: "轻量通勤双肩包", docType: "商品导购", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$29.90", status: "索引已就绪", points: "防泼水牛津布 / 15.6寸独立加厚电脑仓 / 轻量化 580g / 侧袋可放700ml水杯" },
-      { sku: "FAN-203", name: "便携静音循环扇", docType: "使用说明与排障FAQ", shop: "Shopee 泰国主店", domain: "shopee.co.th/cp-th", price: "฿590", status: "索引已就绪", points: "【拆洗】断电逆时针旋开前网罩水洗，主机禁止浸水；【指示灯】红灯慢闪=充电中，绿灯=充满；USB-C 续航12h" },
-      { sku: "MAT-014", name: "加厚防滑瑜伽垫", docType: "使用说明与排障FAQ", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$24.90", status: "索引已就绪", points: "【开箱气味】环保TPE材质新拆封会有轻微原材料味，阴凉通风24小时即散；【保养】湿布擦拭勿暴晒" },
-      { sku: "LMP-418", name: "便携露营氛围灯串", docType: "使用说明与排障FAQ", shop: "Amazon 美国精品店", domain: "amazon.com/dp/cp-lmp", price: "$13.80", status: "索引已就绪", points: "【遥控配对】长按电池盒开关键3秒待灯闪后按遥控ON；【防水】灯珠IP65防雨，电池盒需防浸泡" },
+      { sku: "BAG-108", name: "轻量通勤双肩包", docType: "商品导购", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$29.90", status: "索引已就绪", indexErr: "", points: "防泼水牛津布 / 15.6寸独立加厚电脑仓 / 轻量化 580g / 侧袋可放700ml水杯" },
+      { sku: "FAN-203", name: "便携静音循环扇", docType: "使用说明与排障FAQ", shop: "Shopee 泰国主店", domain: "shopee.co.th/cp-th", price: "฿590", status: "索引已就绪", indexErr: "", points: "【拆洗】断电逆时针旋开前网罩水洗，主机禁止浸水；【指示灯】红灯慢闪=充电中，绿灯=充满；USB-C 续航12h" },
+      { sku: "MAT-014", name: "加厚防滑瑜伽垫", docType: "使用说明与排障FAQ", shop: "TikTok Shop 美区", domain: "tiktok.com/shop/us-cp", price: "$24.90", status: "索引已就绪", indexErr: "", points: "【开箱气味】环保TPE材质新拆封会有轻微原材料味，阴凉通风24小时即散；【保养】湿布擦拭勿暴晒" },
+      { sku: "LMP-418", name: "便携露营氛围灯串", docType: "使用说明与排障FAQ", shop: "Amazon 美国精品店", domain: "amazon.com/dp/cp-lmp", price: "$13.80", status: "索引失败", indexErr: "上次批处理第 4 批向量写入超时，需点击右侧「重建索引」恢复检索", points: "【遥控配对】长按电池盒开关键3秒待灯闪后按遥控ON；【防水】灯珠IP65防雨，电池盒需防浸泡" },
     ],
     csImportLogs: [
       { file: "本店在售导购与说明书FAQ_11月.xlsx", shop: "全平台店铺(按店隔离)", total: 40, okCount: 40, failCount: 0, failReason: "全部校验通过，无失败行", status: "已完成 (40/40)", time: daysOffsetDateTime(0, "09:00") }
@@ -1125,6 +1125,9 @@ export function createInitialState() {
 
     // M2（全部从 computeLiveBusinessStats(state) 实时得出，零硬编码假数）
     biSelectedIdx: 0,
+    biPreviewDevice: "desktop",
+    biTheme: "classic",
+    biSimulateCardFail: false,
     biDraftVersion: "草稿 v1.3",
     biPublishedVersion: "正式 v1.2",
     biPublishedAt: daysOffsetDateTime(0, "10:15") + " (实时联动实盘订单)",
@@ -1181,6 +1184,8 @@ export function createInitialState() {
     m4OnlyMyCats: false,
     m4CompareIds: [],
     m4Page: 1,
+    m4ShowTrendPanel: false,
+    m4Weights: { demand: 25, competition: 15, profit: 25, logistics: 10, compliance: 10, trend: 15 },
     m4Pool: [
       {
         sku: "SKU-00515", name: "汽车后备箱整理箱", category: "家居收纳", priceBand: "$30-60", unitPriceUsd: 35.5,
@@ -1368,9 +1373,35 @@ export function createInitialState() {
     ],
     m7PreviewTab: "主图/附图",
     m7ComplianceStatus: "合规校验通过",
+    m7ComplianceCategory: "厨房小电",
+    m7AiPersonInAsset: true,
+    m7IptcWritten: true,
+    m7IptcDamagedByCrop: false,
+    m7CertRecords: [
+      { id: "CERT-01", name: "厨房电器安全检测报告 (UL/CE)", owner: "陈主管", expireDate: daysOffsetDate(112), status: "有效" },
+      { id: "CERT-02", name: "CrossPilot 自有品牌授权书", owner: "王总监", expireDate: daysOffsetDate(45), status: "有效" },
+    ],
+    m7TiktokDeposit: { shop: "TikTok 美区", depositUsd: 500, status: "保证金充足 · 无违规扣分", violationPoints: 0, dataUpdatedAt: daysOffsetDateTime(0, "09:30") },
+    m7GpuPool: [
+      { id: "GPU-节点01", model: "RTX 4090 (24GB)", vramUsed: "14.2 / 24 GB", queue: 1, healthy: true, ver: "ComfyUI 0.3.2" },
+      { id: "GPU-节点02", model: "L40S 备用节点 (48GB)", vramUsed: "6.0 / 48 GB", queue: 0, healthy: true, ver: "ComfyUI 0.3.2" },
+    ],
+    m7ActiveWorkflowVer: "WF-IMG-v2.1",
+    m7WorkflowRegistry: [
+      { id: "WF-IMG-v2.1", name: "电商白底+场景套图标准版", platform: "Amazon / TikTok / Shopee", vramNeed: "12 GB", complianceNode: "EU_AI_Label 终节点写入", status: "已发布" },
+      { id: "WF-IMG-v2.0", name: "上一版精修稳定备份", platform: "全平台通用", vramNeed: "10 GB", complianceNode: "EU_AI_Label 终节点写入", status: "可回滚备用" },
+      { id: "WF-VID-v1.2", name: "15秒种草短视频分镜拼接流", platform: "TikTok / Amazon", vramNeed: "18 GB", complianceNode: "视频片尾标识节点", status: "待接入算力" },
+    ],
+    m7BatchJobs: [
+      { sku: "SKU-00704", name: "无线真空迷你封口机", node: "GPU-节点01", wf: "WF-IMG-v2.1", seed: "8492017", status: "已完成 (5/5图)", ok: true },
+      { sku: "BAG-108", name: "轻量通勤双肩包", node: "GPU-节点02", wf: "WF-IMG-v2.1", seed: "3910442", status: "已完成 (5/5图)", ok: true },
+      { sku: "FAN-203", name: "便携静音循环扇", node: "GPU-节点01", wf: "WF-IMG-v2.1", seed: "5520189", status: "单品失败(显存超限)，不影响前两项结果", ok: false },
+    ],
     m7ComplianceChecks: [
       { rule: "广告违禁词检查", pass: true, detail: "通过：未发现任何平台违禁词 ✓" },
       { rule: "平台标题字数限制", pass: true, detail: "通过：当前 66 字（上限 200 字）✓" },
+      { rule: "AI 人物标识元数据核验", pass: true, detail: "通过：最终待发布图含标准合成人物与训练标识 ✓" },
+      { rule: "站点 × 类目认证与资质有效期", pass: true, detail: "通过：厨房小电检测报告与品牌授权均在有效期内 ✓" },
       { rule: "8 类上架资产完整度", pass: true, detail: "通过：8 类交付物全部就绪 ✓" }
     ],
     m7ApprovalRecord: { approver: "陈主管 (历史示例参考)", time: daysOffsetDateTime(-1, "17:20"), note: "历史示例：8 类交付资产已自检通过，待主管确认本次导出放行" },

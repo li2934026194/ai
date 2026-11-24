@@ -253,9 +253,73 @@ export function renderM4_M6(pageId, state, helpers) {
     return {
       headerActions: [
         { label: "← 返回选品导入", primary: false, onClick: () => goPage("m4a") },
+        { label: state.m4ShowTrendPanel ? "收起趋势与权重配置" : "📈 品类趋势与评分权重", primary: false, onClick: () => { state.m4ShowTrendPanel = !state.m4ShowTrendPanel; rerender(); } },
         { label: "去 M4-3 主管拍板页 →", primary: true, onClick: () => goPage("m4c") }
       ],
       html: `
+        ${state.m4ShowTrendPanel ? (() => {
+          const w = state.m4Weights;
+          const wSum = Number(w.demand) + Number(w.competition) + Number(w.profit) + Number(w.logistics) + Number(w.compliance) + Number(w.trend);
+          const catStats = ["家居收纳", "宠物用品", "厨房小电", "3C配件", "户外运动"].map(cat => {
+            const list = state.m4Pool.filter(x => x.category === cat);
+            const avgTrend = list.length ? (list.reduce((s, x) => s + x.trend, 0) / list.length).toFixed(1) : "0.0";
+            const band = list.length ? list[0].priceBand : "暂无";
+            const topRisk = list.some(x => x.riskLevel === "高风险") ? "含高风险拦截品" : "合规平稳";
+            return { cat, cnt: list.length, avgTrend, band, topRisk };
+          });
+          return `
+            <div class="grid-2" style="margin-bottom:14px;">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">📊 品类增速与价格带分布（选品趋势辅助）</div>
+                  <span class="pill p-blue">来源：内部周事实 + 外购行业估算（近 8 周）</span>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>品类</th><th>样本款数</th><th>主流价格带</th><th>8周均增速</th><th>风险拦截提醒</th></tr></thead>
+                    <tbody>
+                      ${catStats.map(cs => `
+                        <tr>
+                          <td><strong>${cs.cat}</strong></td>
+                          <td>${cs.cnt} 款</td>
+                          <td>${cs.band}</td>
+                          <td style="color:${Number(cs.avgTrend)>=0?"var(--green-text)":"var(--red-text)"};font-weight:700;">${Number(cs.avgTrend)>=0?"+":""}${cs.avgTrend}%</td>
+                          <td><span class="pill ${cs.topRisk.includes("拦截")?"p-red":"p-green"}">${cs.topRisk}</span></td>
+                        </tr>
+                      `).join("")}
+                    </tbody>
+                  </table>
+                </div>
+                <div style="font-size:12px;color:var(--text-soft);margin-top:8px;">采样说明：共覆盖 ${state.m4Pool.length} 款候选样本；未接入第三方公开大盘的站点已标明「缺源不补零」。</div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">⚖️ 可配置选品评分权重（总和须为 100%）</div>
+                  <span class="pill ${wSum===100?"p-green":"p-red"}">当前总和：${wSum}%</span>
+                </div>
+                <div class="grid-3" style="gap:8px;margin-bottom:10px;">
+                  ${[
+                    ["demand","需求热度"], ["competition","竞争温和度"], ["profit","毛利空间"],
+                    ["logistics","物流时效"], ["compliance","合规安全"], ["trend","增长趋势"]
+                  ].map(([k, lbl]) => `
+                    <div class="field" style="margin-bottom:0;">
+                      <label>${lbl} (%)</label>
+                      <input type="number" min="0" max="100" class="input m4-w-inp" data-k="${k}" value="${w[k]}"/>
+                    </div>
+                  `).join("")}
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span style="font-size:12px;color:${wSum===100?"var(--text-muted)":"var(--red-text)"};">
+                    ${wSum===100 ? "✓ 权重总和校验通过；高合规风险商品独立拦截，不因总分高放行。" : `✗ 当前总和 ${wSum}%（差 ${100 - wSum}%），须调至 100% 方可应用`}
+                  </span>
+                  <button class="btn btn-sm btn-primary" id="m4ApplyWeightsBtn" ${wSum!==100?"disabled":""}>应用新权重重排</button>
+                </div>
+              </div>
+            </div>
+          `;
+        })() : ""}
+
         <div class="card card-blue">
           <div class="card-header">
             <div class="card-title">✨ 系统精选推荐 · 按经营策略挑选最值得先推的商品</div>
@@ -494,6 +558,19 @@ export function renderM4_M6(pageId, state, helpers) {
         </div>
       `,
       bind: () => {
+        document.querySelectorAll(".m4-w-inp").forEach(inp => inp.onchange = (e) => {
+          state.m4Weights[inp.dataset.k] = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+          rerender();
+        });
+        const applyWBtn = document.getElementById("m4ApplyWeightsBtn");
+        if (applyWBtn) applyWBtn.onclick = () => {
+          const w = state.m4Weights;
+          const sum = Number(w.demand) + Number(w.competition) + Number(w.profit) + Number(w.logistics) + Number(w.compliance) + Number(w.trend);
+          if (sum !== 100) { toast(`权重总和必须等于 100%（当前 ${sum}%）`, "error"); return; }
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 调整了 M4-2 选品评分权重（需求${w.demand}%/竞争${w.competition}%/利润${w.profit}%/物流${w.logistics}%/合规${w.compliance}%/趋势${w.trend}%）`, ok: true });
+          toast("已应用新评分权重（高合规风险商品仍保持独立一票拦截）", "success");
+          rerender();
+        };
         document.querySelectorAll(".m4-mode-opt").forEach(el => el.onclick = () => {
           state.m4Mode = el.dataset.mode; state.m4Page = 1; rerender();
           toast(`已切换选品策略：${M4_MODES[state.m4Mode].label}，推荐顺序已刷新`);

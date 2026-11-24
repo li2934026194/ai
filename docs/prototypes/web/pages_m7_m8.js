@@ -332,11 +332,109 @@ export function renderM7_M8(pageId, state, helpers) {
             </div>
           </div>
         </div>
+
+        <div class="grid-2" style="margin-top:14px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🖥️ ComfyUI 算力池、工作流版本与批量执行台</div>
+              <span class="pill p-blue">当前工作流：${state.m7ActiveWorkflowVer}</span>
+            </div>
+            <div style="font-size:12px;font-weight:700;margin-bottom:6px;">GPU 节点算力池与队列监控（不可用节点不接新单，自动降级备用节点）</div>
+            <div class="table-wrap" style="margin-bottom:10px;">
+              <table>
+                <thead><tr><th>节点名称 / 版本</th><th>显存占用</th><th>队列深度</th><th>状态与调度</th></tr></thead>
+                <tbody>
+                  ${state.m7GpuPool.map((g, gi) => `
+                    <tr style="${!g.healthy?"background:#fef2f2;":""}">
+                      <td><strong>${g.id}</strong><div style="font-size:11px;color:var(--text-soft);">${g.model} · ${g.ver}</div></td>
+                      <td>${g.vramUsed}</td>
+                      <td>${g.queue} 个任务</td>
+                      <td>
+                        <span class="pill ${g.healthy?"p-green":"p-red"}">${g.healthy?"健康可接单":"掉线(降级备用)"}</span>
+                        <button class="btn btn-sm m7-gpu-toggle" data-gi="${gi}" style="margin-left:4px;">${g.healthy?"模拟掉线":"恢复节点"}</button>
+                      </td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+            <div class="field" style="margin-bottom:8px;">
+              <label>工作流注册表版本切换（支持发布 / 回滚，执行中任务锁定版本）</label>
+              <select id="m7WfRegSel" class="select">
+                ${state.m7WorkflowRegistry.map(wf => `
+                  <option value="${wf.id}" ${state.m7ActiveWorkflowVer===wf.id?"selected":""}>${wf.id} · ${wf.name}（${wf.status} · 需显存 ${wf.vramNeed}）</option>
+                `).join("")}
+              </select>
+            </div>
+            <div style="font-size:12px;font-weight:700;margin-bottom:5px;">多 SKU 批量任务与部分完成回写（单项失败不影响已完成结果）</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              ${state.m7BatchJobs.map(b => `
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:${b.ok?"#f8fafc":"#fef2f2"};">
+                  <div><strong>${b.sku}</strong> · ${b.node} · ${b.wf} <span style="color:var(--text-soft);">(种子 ${b.seed})</span></div>
+                  <span class="pill ${b.ok?"p-green":"p-red"}">${b.status}</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🏷️ AI 人物图片合规元数据校验（IPTC / XMP 终检）</div>
+              <span class="pill ${!state.m7AiPersonInAsset?"p-gray":(state.m7IptcWritten && !state.m7IptcDamagedByCrop)?"p-green":"p-red"}">
+                ${!state.m7AiPersonInAsset?"不含AI人物":(state.m7IptcWritten && !state.m7IptcDamagedByCrop)?"最终文件校验通过":"元数据缺失/受损拦截"}
+              </span>
+            </div>
+            <div class="formula-box" style="margin-bottom:10px;line-height:1.7;">
+              • <strong>最终保存写入节点：</strong>ComfyUI_EU_AI_Label（置于工作流最末端防被覆盖）<br/>
+              • <strong>AI 生成媒体标记 (trainedAlgorithmicMedia)：</strong>${(state.m7IptcWritten && !state.m7IptcDamagedByCrop) ? '<span style="color:var(--green-text);font-weight:700;">已写入 ✓</span>' : '<span style="color:var(--red-text);font-weight:700;">未写入/裁剪丢失 ✗</span>'}<br/>
+              • <strong>合成人物声明 (contains-synthetic-performer)：</strong>${!state.m7AiPersonInAsset ? "本批无人物出镜（无需）" : (state.m7IptcWritten && !state.m7IptcDamagedByCrop) ? '<span style="color:var(--green-text);font-weight:700;">已写入 ✓</span>' : '<span style="color:var(--red-text);font-weight:700;">缺失阻断上架 ✗</span>'}
+            </div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+              <input type="checkbox" id="m7AiPersonChk" ${state.m7AiPersonInAsset?"checked":""}/> 本套图包含 AI 合成模特/人物出镜（须强制携带合规元数据）
+            </label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+              <button type="button" class="btn btn-sm" id="m7SimCropLossBtn">✂️ 模拟裁剪转码导致标签丢失</button>
+              <button type="button" class="btn btn-sm btn-primary" id="m7RewriteIptcBtn" ${!canCreate?"disabled":""}>✓ 重新写入元数据并校验最终文件</button>
+            </div>
+            <div style="font-size:12px;color:var(--text-soft);line-height:1.6;">
+              校验规则：商品图经过压缩、裁剪或转码后，必须对「最终待发布文件」重新读回核验 IPTC/XMP 标记，未通过前 M7-4 将拦截合规放行。
+            </div>
+          </div>
+        </div>
       `,
       bind: () => {
         document.getElementById("m7ImgWfSel").onchange = (e) => { state.m7ImgWorkflow = e.target.value; };
         document.querySelectorAll(".gal-tile").forEach(el => el.onclick = () => { state.m7PickedImgIdx = Number(el.dataset.imgi); rerender(); });
         document.getElementById("m7GotoM7d").onclick = () => goPage("m7d");
+        document.querySelectorAll(".m7-gpu-toggle").forEach(b => b.onclick = () => {
+          const g = state.m7GpuPool[Number(b.dataset.gi)];
+          g.healthy = !g.healthy;
+          if (!g.healthy) g.queue = 0;
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} ${g.healthy ? "恢复" : "模拟掉线"}算力节点 ${g.id}（${g.healthy ? "恢复接单" : "已自动降级调度至备用 GPU 节点"}）`, ok: g.healthy });
+          rerender();
+          toast(g.healthy ? `${g.id} 已恢复健康接单` : `${g.id} 不可用，新任务已自动降级调度至备用节点`, g.healthy ? "success" : "warn");
+        });
+        document.getElementById("m7WfRegSel").onchange = (e) => {
+          state.m7ActiveWorkflowVer = e.target.value;
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 将图像生成工作流版本切换为 ${state.m7ActiveWorkflowVer}`, ok: true });
+          rerender();
+          toast(`工作流版本已切换为 ${state.m7ActiveWorkflowVer}`);
+        };
+        document.getElementById("m7AiPersonChk").onchange = (e) => { state.m7AiPersonInAsset = e.target.checked; rerender(); };
+        document.getElementById("m7SimCropLossBtn").onclick = () => {
+          state.m7IptcDamagedByCrop = true;
+          state.m7IptcWritten = false;
+          state.m7ComplianceStatus = "校验未通过";
+          rerender();
+          toast("裁剪后元数据丢失！已触发阻断，请重新写入后重检", "error");
+        };
+        document.getElementById("m7RewriteIptcBtn").onclick = () => {
+          state.m7IptcDamagedByCrop = false;
+          state.m7IptcWritten = true;
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 为 ${curM7Prod.sku} 最终待发布图重新写入并校验通过 IPTC/XMP 人物合规标记`, ok: true });
+          rerender();
+          toast("已写入合规元数据并通过最终文件读回校验 ✓", "success");
+        };
         document.getElementById("m7EditPickedBtn").onclick = () => {
           commitAction({
             title: `局部修改图位 · ${pickedImg.label}`,
@@ -423,9 +521,10 @@ export function renderM7_M8(pageId, state, helpers) {
                   <button class="btn btn-primary btn-sm" id="m7UseVidBtn">写入上架交付清单 →</button>
                 </div>
                 <div class="media-card">
-                  <div style="font-weight:700;margin-bottom:6px;">制作阶段执行日志</div>
+                  <div style="font-weight:700;margin-bottom:6px;">制作阶段执行日志与画面一致性检查</div>
                   <div style="font-size:12.5px;color:var(--text-muted);line-height:1.8;">
                     ${(state.m7VidLogs.length ? state.m7VidLogs : ["• 等待提交制作任务"]).join("<br/>")}
+                    <br/>• <strong>分镜一致性校验：</strong>多段短片主体外观、配色与标签一致 ✓（支持失败重试与备用节点降级）
                   </div>
                 </div>
               </div>
@@ -467,11 +566,36 @@ export function renderM7_M8(pageId, state, helpers) {
   }
 
   // ==================== M7-4: 上架前 8 项交付清单与合规把关 ====================
+  // ==================== M7-4: 上架前 8 项交付清单、规则矩阵与合规把关 ====================
   if (pageId === "m7d") {
     const isApprover = state.role === "approver";
     const isCreator = state.role === "creator" || isApprover;
     const auxDoneCount = state.m7Images.slice(1).filter(i => i.done).length;
     const missingAux = state.m7Images.slice(1).filter(i => !i.done).map(i => i.label);
+
+    const ruleMatrix = {
+      "亚马逊美国站": {
+        "厨房小电": { cert: "UL 电子安全测试 + FCC 射频/电磁兼容声明 + 能效标签", ver: "规则 v2026.11", eff: "2026-10-01" },
+        "箱包出行": { cert: "CPSIA 儿童禁用邻苯声明（若含童款）+ 原产地水洗标", ver: "规则 v2026.09", eff: "2026-09-01" },
+        "3C配件": { cert: "UL 2056 / UN38.3 锂电运输报告（若带电）+ FCC", ver: "规则 v2026.11", eff: "2026-10-15" },
+        "美妆护肤": { cert: "FDA MoCRA 工厂与产品注册 + 全成分英文标签", ver: "规则 v2026.10", eff: "2026-07-01" },
+      },
+      "虾皮泰国站": {
+        "厨房小电": { cert: "泰国 TISI 强制电器安全认证 + 泰文插头说明书", ver: "规则 v2026.10", eff: "2026-08-01" },
+        "箱包出行": { cert: "常规纺织品申报（无需特殊前置认证）", ver: "规则 v2026.06", eff: "2026-06-01" },
+        "3C配件": { cert: "NBTC 无线通信核准（蓝牙/WiFi类）", ver: "规则 v2026.10", eff: "2026-09-01" },
+        "美妆护肤": { cert: "泰国 FDA 化妆品备案号 (อย.) 必填", ver: "规则 v2026.11", eff: "2026-10-01" },
+      },
+      "TikTok 美区": {
+        "厨房小电": { cert: "UL/ETL 安全报告 + 店铺保证金门槛达标 + 短视频无夸大承诺", ver: "规则 v2026.11", eff: "2026-11-01" },
+        "箱包出行": { cert: "品牌授权校验 + 实物与短视频画风一致性", ver: "规则 v2026.09", eff: "2026-09-01" },
+        "3C配件": { cert: "FCC 声明 + 电池航运合规说明", ver: "规则 v2026.11", eff: "2026-10-15" },
+        "美妆护肤": { cert: "FDA 备案 + 禁止医学疗效宣称", ver: "规则 v2026.11", eff: "2026-10-01" },
+      }
+    };
+    const activeRule = (ruleMatrix[state.m7Platform] && ruleMatrix[state.m7Platform][state.m7ComplianceCategory]) || ruleMatrix["亚马逊美国站"]["厨房小电"];
+    const hasExpiredCert = state.m7CertRecords.some(c => c.status === "已过期");
+    const iptcOk = !state.m7AiPersonInAsset || (state.m7IptcWritten && !state.m7IptcDamagedByCrop);
 
     const checklist = [
       { label: "1. 商品标题", sub: state.m7SelectedTitle ? state.m7SelectedTitle.slice(0, 36) + "..." : "尚未选定标题（去文案页选取）", done: !!state.m7SelectedTitle, jump: "m7a" },
@@ -490,27 +614,28 @@ export function renderM7_M8(pageId, state, helpers) {
       headerActions: [
         { label: "← 补齐主图与附图", primary: false, onClick: () => goPage("m7b") },
         {
-          label: "📦 导出离线合规资料包", primary: true,
+          label: "📦 导出合规上架素材包", primary: true,
           disabled: state.m7ComplianceStatus !== "主管已批准导出",
           disabledTitle: "必须先完成「运行上架合规检查」并由「主管 / 审批人」批准才可导出",
           onClick: () => {
             commitAction({
-              title: `导出离线合规资料包 · ${curM7Prod.sku}`,
-              summary: "安全说明：仅导出离线资料包清单供运营人工上传电商后台，系统绝不直接修改线上在售店铺！",
-              confirmText: "确认导出资料包清单",
+              title: `导出合规上架素材包 · ${curM7Prod.sku}`,
+              summary: "生成已完成审核与合规检查的素材交付清单，供运营按平台流程提交审核（系统不绕过人工审批自动改线上商品）。",
+              confirmText: "确认导出素材包清单",
               fieldsHtml: `
                 <div class="formula-box">
                   • <strong>归属商品：</strong>${curM7Prod.sku} · ${curM7Prod.name}<br/>
+                  • <strong>适用站点与规则：</strong>${state.m7Platform} · ${state.m7ComplianceCategory}（${activeRule.ver}）<br/>
                   • <strong>批准主管：</strong>${state.m7ApprovalRecord?.approver}（${state.m7ApprovalRecord?.time}）<br/>
                   • <strong>导出包清单 (${doneCnt}/8 类)：</strong><br/>
                   &nbsp;&nbsp;- 商品多语言文案包.xlsx<br/>
-                  &nbsp;&nbsp;- 主图与详情套图包（共 ${auxDoneCount + 1} 张演示图）<br/>
+                  &nbsp;&nbsp;- 主图与详情套图包（共 ${auxDoneCount + 1} 张演示图，含人物合规元数据）<br/>
                   ${state.m7AplusDone ? "&nbsp;&nbsp;- A+图文详情模块.html<br/>" : ""}
                   ${state.m7VidDone ? "&nbsp;&nbsp;- 商品种草短视频_15s.mp4（演示预览）<br/>" : ""}
                 </div>
               `,
-              onConfirm: () => ({ toastMsg: `已导出 ${curM7Prod.sku} 离线合规资料包 (${doneCnt}/8 类资产)` }),
-              audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 导出了 ${curM7Prod.sku} 的离线合规上架资料包（共 ${doneCnt}/8 类资产）`, ok: true }
+              onConfirm: () => ({ toastMsg: `已导出 ${curM7Prod.sku} 合规上架素材包 (${doneCnt}/8 类资产)` }),
+              audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 导出了 ${curM7Prod.sku} 的合规上架素材包（共 ${doneCnt}/8 类资产）`, ok: true }
             });
           }
         }
@@ -585,6 +710,46 @@ export function renderM7_M8(pageId, state, helpers) {
               </div>
             </div>
 
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">🌐 站点 × 类目合规规则矩阵 & 资质有效期</div>
+                <span class="pill p-blue">${activeRule.ver} · 生效 ${activeRule.eff}</span>
+              </div>
+              <div class="grid-2" style="gap:8px;margin-bottom:8px;">
+                <div class="field" style="margin-bottom:0;"><label>切换目标站点（切换即同步规则）</label>
+                  <select id="m7dPlatSel" class="select">
+                    <option ${state.m7Platform==="亚马逊美国站"?"selected":""}>亚马逊美国站</option>
+                    <option ${state.m7Platform==="虾皮泰国站"?"selected":""}>虾皮泰国站</option>
+                    <option ${state.m7Platform==="TikTok 美区"?"selected":""}>TikTok 美区</option>
+                  </select>
+                </div>
+                <div class="field" style="margin-bottom:0;"><label>商品所属类目</label>
+                  <select id="m7dCatSel" class="select">
+                    ${["厨房小电","箱包出行","3C配件","美妆护肤"].map(c => `<option ${state.m7ComplianceCategory===c?"selected":""}>${c}</option>`).join("")}
+                  </select>
+                </div>
+              </div>
+              <div class="formula-box" style="margin-bottom:8px;">
+                <strong>当前站点认证要求：</strong>${activeRule.cert}
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;">
+                ${state.m7CertRecords.map((cert, ci) => `
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:${cert.status==="已过期"?"#fef2f2":"#f8fafc"};">
+                    <div><strong>${cert.name}</strong> · 责任人 ${cert.owner} · 到期 ${cert.expireDate}</div>
+                    <div>
+                      <span class="pill ${cert.status==="已过期"?"p-red":"p-green"}">${cert.status}</span>
+                      <button type="button" class="btn btn-sm m7d-cert-toggle" data-ci="${ci}" style="margin-left:4px;">${cert.status==="已过期"?"续期恢复":"模拟过期"}</button>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+              ${state.m7Platform === "TikTok 美区" ? `
+                <div style="padding:7px 10px;border-radius:7px;background:var(--amber-bg);font-size:12px;">
+                  <strong>TikTok Shop 保证金与违规监测：</strong>${state.m7TiktokDeposit.shop} 当前保证金 $${state.m7TiktokDeposit.depositUsd}（${state.m7TiktokDeposit.status} · 更新于 ${state.m7TiktokDeposit.dataUpdatedAt}，按平台最新规则动态校验）
+                </div>
+              ` : ""}
+            </div>
+
             <div class="card card-blue">
               <div class="card-header">
                 <div class="card-title">逐条合规检查与主管把关</div>
@@ -604,6 +769,15 @@ export function renderM7_M8(pageId, state, helpers) {
       `,
       bind: () => {
         document.querySelectorAll(".m7d-ptab").forEach(t => t.onclick = () => { state.m7PreviewTab = t.dataset.t; rerender(); });
+        document.getElementById("m7dPlatSel").onchange = (e) => { state.m7Platform = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
+        document.getElementById("m7dCatSel").onchange = (e) => { state.m7ComplianceCategory = e.target.value; state.m7ComplianceStatus = "待运行合规检查"; rerender(); };
+        document.querySelectorAll(".m7d-cert-toggle").forEach(b => b.onclick = () => {
+          const c = state.m7CertRecords[Number(b.dataset.ci)];
+          c.status = c.status === "已过期" ? "有效" : "已过期";
+          if (c.status === "已过期") state.m7ComplianceStatus = "校验未通过";
+          rerender();
+          toast(c.status === "已过期" ? `${c.name} 已过期，已触发阻断！` : `${c.name} 已续期恢复有效`, c.status === "已过期" ? "error" : "success");
+        });
         document.querySelectorAll(".m7d-chk").forEach(el => el.onclick = () => {
           const j = el.dataset.jmp;
           if (j === "aplus") {
@@ -618,21 +792,25 @@ export function renderM7_M8(pageId, state, helpers) {
             .filter(w => new RegExp(w, "i").test(state.m7SelectedTitle + " " + state.m7SelectedBullets));
           const maxL = state.m7Platform.includes("虾皮") ? 120 : state.m7Platform.includes("TikTok") ? 150 : 200;
           const titleOk = state.m7SelectedTitle.length <= maxL;
+          const certOk = !hasExpiredCert;
+          const allOk = banFound.length === 0 && titleOk && iptcOk && certOk;
           state.m7ComplianceChecks = [
             { rule: "广告违禁词检查", pass: banFound.length === 0, detail: banFound.length ? `不通过：发现违禁词「${banFound.join("、")}」` : "通过：未发现任何平台违禁词 ✓" },
             { rule: "平台标题字数限制", pass: titleOk, detail: titleOk ? `通过：当前 ${state.m7SelectedTitle.length} 字（上限 ${maxL} 字）✓` : `不通过：标题已超出 ${maxL} 字限制` },
+            { rule: "AI 人物标识元数据核验", pass: iptcOk, detail: iptcOk ? "通过：最终待发布图含标准合成人物与训练标识 ✓" : "不通过：检测到 AI 人物图片元数据丢失或未写入，请回 M7-2 补写重检" },
+            { rule: "站点 × 类目认证与资质有效期", pass: certOk, detail: certOk ? `通过：${state.m7Platform} · ${state.m7ComplianceCategory} 资质报告与品牌授权均有效 ✓` : "不通过：存在已过期的质检报告或品牌授权，系统已阻断放行" },
             { rule: "8 类上架资产完整度", pass: doneCnt === 8, detail: doneCnt === 8 ? "通过：8 类交付物全部就绪 ✓" : `提醒：当前 ${doneCnt}/8 已就绪，仍缺 ${checklist.filter(c=>!c.done).map(c=>c.label).join("、")}` },
           ];
-          state.m7ComplianceStatus = (banFound.length === 0 && titleOk) ? "合规校验通过" : "校验未通过";
-          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 对 ${curM7Prod.sku} 执行了上架前合规检查，结果：${state.m7ComplianceStatus}（${doneCnt}/8 类就绪）`, ok: banFound.length === 0 && titleOk });
+          state.m7ComplianceStatus = allOk ? "合规校验通过" : "校验未通过";
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 对 ${curM7Prod.sku}（${state.m7Platform}）执行了上架前合规检查，结果：${state.m7ComplianceStatus}（${doneCnt}/8 类就绪）`, ok: allOk });
           rerender();
-          toast(state.m7ComplianceStatus === "合规校验通过" ? `合规检查通过（${doneCnt}/8 类就绪，请主管批准）` : "合规检查未通过，请查看红色不通过原因", state.m7ComplianceStatus === "合规校验通过" ? "success" : "error");
+          toast(allOk ? `合规检查通过（${doneCnt}/8 类就绪，请主管批准）` : "合规检查未通过，请查看红色不通过原因", allOk ? "success" : "error");
         };
 
         document.getElementById("m7ApprPubBtn").onclick = () => {
           commitAction({
-            title: `主管批准上架资料包 · ${curM7Prod.sku}`,
-            summary: `当前完成度 ${doneCnt}/8 类；批准后将记录审批人、审批时间并解锁「导出离线合规资料包」按钮。`,
+            title: `主管批准上架素材包 · ${curM7Prod.sku}`,
+            summary: `当前完成度 ${doneCnt}/8 类；批准后将记录审批人、审批时间并解锁「导出合规上架素材包」按钮。`,
             confirmText: "确认批准导出",
             fieldsHtml: `<div class="field"><label>主管审批意见 *</label><input id="m7ApprNote" class="input" value="用语合规无违禁词，准予导出资料包交付上架"/></div>`,
             validate: (wrap) => {

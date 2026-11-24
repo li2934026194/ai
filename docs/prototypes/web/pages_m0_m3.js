@@ -327,12 +327,23 @@ export function renderM0_M3(pageId, state, helpers) {
                       </td>
                       <td>
                         <span class="pill ${h.pill}">${h.badge}</span>
+                        ${s.platform === "AMAZON" ? `
+                          <div style="margin-top:4px;">
+                            <span class="pill ${s.mailRelayOk !== false ? "p-blue" : "p-red"}">${s.mailRelayOk !== false ? "邮件中继正常" : "⚠️ 邮件中继转发中断"}</span>
+                          </div>
+                        ` : ""}
                         <div style="font-size:12px;color:${h.urgent?"var(--red-text)":"var(--text-soft)"};margin-top:3px;max-width:230px;">${h.triggerText}</div>
                         <details style="margin-top:4px;font-size:12px;">
                           <summary style="cursor:pointer;color:var(--blue-hover);">展开健康明细与权限 (${s.permLabels.length})</summary>
                           <div style="margin-top:4px;line-height:1.6;color:var(--text-muted);">
                             绩效 ${s.perfScore}分 · 7天纠纷 ${s.disputeRate7d}% · 退货 ${s.returnRate}% · 迟发 ${s.lateShipRate}% · 违规 ${s.policyViolations}次 · 连续零单 ${s.zeroOrderDays}天
+                            ${s.platform === "AMAZON" ? `<br/>Amazon 买家来信通道：邮件中继（${s.mailRelayAddr || "amz-relay@crosspilot.mail"}，官方仅支持发信不支持直收）` : ""}
                           </div>
+                          ${s.platform === "AMAZON" ? `
+                            <div style="margin-top:5px;">
+                              <button class="btn btn-sm m0-relay-toggle" data-i="${idx}" ${!canManageShop?"disabled":""}>${s.mailRelayOk !== false ? "模拟邮件中继中断告警" : "恢复邮件中继并重收"}</button>
+                            </div>
+                          ` : ""}
                           <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">${s.permLabels.map(p => `<span class="pill p-gray">${p}</span>`).join("")}</div>
                         </details>
                       </td>
@@ -358,6 +369,16 @@ export function renderM0_M3(pageId, state, helpers) {
       bind: () => {
         document.querySelectorAll(".m0-sync-btn").forEach(b => b.onclick = () => handleSyncShop(state.shops[Number(b.dataset.i)]));
         document.querySelectorAll(".m0-reauth-btn").forEach(b => b.onclick = () => handleReauthShop(state.shops[Number(b.dataset.i)]));
+        document.querySelectorAll(".m0-relay-toggle").forEach(b => b.onclick = () => {
+          const s = state.shops[Number(b.dataset.i)];
+          s.mailRelayOk = s.mailRelayOk === false ? true : false;
+          appendAuditLog(state, {
+            sentence: `${ROLE_PERSON_NAMES[state.role]} ${s.mailRelayOk ? "恢复了" : "触发了"}「${s.name}」的 Amazon 邮件中继通道${s.mailRelayOk ? "正常接收" : "中断告警（已开启手动兜底录入）"}`,
+            ok: s.mailRelayOk
+          });
+          rerender();
+          toast(s.mailRelayOk ? `${s.name} 邮件中继已恢复正常` : `${s.name} 邮件中继已中断，请改用 M1-4/手动录入买家来信兜底`, s.mailRelayOk ? "success" : "warn");
+        });
         document.querySelectorAll(".m0-disc-btn").forEach(b => b.onclick = () => {
           const s = state.shops[Number(b.dataset.i)];
           commitAction({
@@ -1567,7 +1588,10 @@ export function renderM0_M3(pageId, state, helpers) {
             </div>
 
             <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin-bottom:10px;">
-              <div style="font-weight:700;font-size:12px;margin-bottom:5px;">发送前合规检查（金额一致 / 本店链接 / 中外数字一致）</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+                <span style="font-weight:700;font-size:12px;">发送前合规检查（金额一致 / 本店链接 / 中外数字一致）</span>
+                <button type="button" class="btn btn-sm" id="csTestMismatchBtn" style="padding:2px 8px;font-size:11px;">🧪 测一下数字不一致拦截</button>
+              </div>
               <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px;">
                 <span class="pill ${amountWithinOk?"p-green":"p-red"}">${amountWithinOk ? "✓ 金额与订单一致" : "✗ 报价超出实付金额"}</span>
                 <span class="pill ${linkMatchOk?"p-green":"p-red"}">${linkMatchOk ? "✓ 使用本店商品链接" : "✗ 检测到他店链接"}</span>
@@ -1672,6 +1696,16 @@ export function renderM0_M3(pageId, state, helpers) {
 
         document.getElementById("csDraftZh").oninput = (e) => { active.draftZh = e.target.value; rerender(); };
         document.getElementById("csDraftEn").oninput = (e) => { active.draftEn = e.target.value; rerender(); };
+        const mismatchBtn = document.getElementById("csTestMismatchBtn");
+        if (mismatchBtn) {
+          mismatchBtn.onclick = () => {
+            active.draftZh = "您好，已为您核对订单金额 $15，支持 30 天内退货。";
+            active.draftEn = "Hello, we have checked your order refund of $28 within 14 days.";
+            appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 触发了客服发送前数字一致性合规拦截测试（中 $15/30天 vs 英 $28/14天）`, ok: false });
+            rerender();
+            toast("已触发中英文数字不一致拦截，发送按钮已自动锁定", "error");
+          };
+        }
 
         document.getElementById("csAfterType").onchange = (e) => { csDraftForm.afterSalesType = e.target.value; };
         document.getElementById("csGoodsStatus").onchange = (e) => { csDraftForm.goodsStatus = e.target.value; };
@@ -1825,6 +1859,36 @@ export function renderM0_M3(pageId, state, helpers) {
       headerActions: [
         { label: "← 返回客服调度台", primary: false, onClick: () => goPage("m1a") },
         {
+          label: "📥 下载标准导购导入模板", primary: false,
+          onClick: () => {
+            openModal("客服导购与说明书标准导入模板（字段规范）", `
+              <div class="formula-box" style="margin-bottom:12px;">
+                • <strong>必填字段：</strong>商品编码 (SKU)、商品名称、知识类型（商品导购 / 使用说明与排障FAQ）、所属店铺、在售标价、适用人群/核心卖点<br/>
+                • <strong>支持常见表头别名：</strong>「商品编号 / SKU」「售价 / 标价」「卖点 / 使用说明书要点」均会自动识别映射<br/>
+                • <strong>防串店校验：</strong>仅允许导入当前店铺域名链接，且每 20 件分批建立检索索引
+              </div>
+              <div class="table-wrap" style="margin-bottom:12px;">
+                <table>
+                  <thead><tr><th>商品编码</th><th>商品名称</th><th>知识类型</th><th>所属店铺</th><th>在售标价</th><th>核心卖点与排障要点</th></tr></thead>
+                  <tbody>
+                    <tr><td>BAG-209</td><td>防水商务斜挎包</td><td>商品导购</td><td>TikTok Shop 美区</td><td>$26.90</td><td>防泼水帆布 / 14寸电脑隔层 / 轻量肩带</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div style="display:flex;justify-content:flex-end;gap:8px;">
+                <button class="btn" id="m1TplClose">关闭</button>
+                <button class="btn btn-primary" id="m1TplDl">确认导出示例模板 (.csv)</button>
+              </div>
+            `, (root) => {
+              root.querySelector("#m1TplClose").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+              root.querySelector("#m1TplDl").onclick = () => {
+                document.getElementById("modalRoot").innerHTML = "";
+                toast("已生成《客服导购与FAQ标准导入模板.csv》", "success");
+              };
+            });
+          }
+        },
+        {
           label: "+ 从表格导入知识", primary: true,
           disabled: !canMaintain,
           disabledTitle: "需要业务运营或主管权限",
@@ -1904,13 +1968,16 @@ export function renderM0_M3(pageId, state, helpers) {
         ${renderAsyncBox("m1_catalog_imp")}
 
         <div class="card">
-          <div class="card-header"><div class="card-title">本店在售导购与使用说明知识库（AI 自动应答唯一依据）</div></div>
+          <div class="card-header">
+            <div class="card-title">本店在售导购与使用说明知识库（AI 自动应答唯一依据）</div>
+            <span class="pill ${state.csCatalog.some(c=>c.status==="索引失败")?"p-red":"p-green"}">已就绪 ${state.csCatalog.filter(c=>c.status==="索引已就绪").length} / 失败 ${state.csCatalog.filter(c=>c.status==="索引失败").length}</span>
+          </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>商品实拍与编码</th><th>知识类型</th><th>所属店铺与本店网址</th><th>在售标价</th><th>导购卖点 / 使用说明与排障要点</th><th>索引状态</th></tr></thead>
+              <thead><tr><th>商品实拍与编码</th><th>知识类型</th><th>所属店铺与本店网址</th><th>在售标价</th><th>导购卖点 / 使用说明与排障要点</th><th>索引状态与操作</th></tr></thead>
               <tbody>
-                ${state.csCatalog.map(p => `
-                  <tr>
+                ${state.csCatalog.map((p, idx) => `
+                  <tr style="${p.status==="索引失败"?"background:#fef2f2;":""}">
                     <td class="nowrap">
                       <div style="display:flex;align-items:center;gap:10px;">
                         <img src="${getProductImg(p.sku)}" class="prod-thumb-img" alt="${p.name}"/>
@@ -1920,8 +1987,14 @@ export function renderM0_M3(pageId, state, helpers) {
                     <td class="nowrap"><span class="pill ${p.docType==="使用说明与排障FAQ"?"p-purple":"p-blue"}">${p.docType || "商品导购"}</span></td>
                     <td class="nowrap">${p.shop}<div style="font-size:12px;color:var(--text-soft);">${p.domain}</div></td>
                     <td class="nowrap"><strong>${p.price}</strong></td>
-                    <td style="font-size:12.5px;max-width:360px;">${p.points}</td>
-                    <td class="nowrap"><span class="pill p-green">${p.status}</span></td>
+                    <td style="font-size:12.5px;max-width:340px;">
+                      ${p.points}
+                      ${p.indexErr ? `<div style="color:var(--red-text);margin-top:3px;font-size:11.5px;">异常原因：${p.indexErr}</div>` : ""}
+                    </td>
+                    <td class="nowrap">
+                      <span class="pill ${p.status==="索引已就绪"?"p-green":p.status==="索引中"?"p-amber":"p-red"}">${p.status}</span>
+                      ${p.status === "索引失败" ? `<button class="btn btn-sm btn-primary m1b-rebuild" data-i="${idx}" style="margin-left:6px;" ${!canMaintain?"disabled":""}>↻ 重建索引</button>` : ""}
+                    </td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -1949,7 +2022,24 @@ export function renderM0_M3(pageId, state, helpers) {
           </div>
         </div>
       `,
-      bind: () => {}
+      bind: () => {
+        document.querySelectorAll(".m1b-rebuild").forEach(b => b.onclick = () => {
+          const item = state.csCatalog[Number(b.dataset.i)];
+          if (!item) return;
+          item.status = "索引中";
+          rerender();
+          runAsyncTask("m1_catalog_imp", {
+            label: `重建导购检索索引 · ${item.sku}`,
+            steps: ["校验商品编码与本店域名", "生成检索索引特征并写入", "回写就绪状态"],
+            durationMs: 900,
+            onSuccess: () => {
+              item.status = "索引已就绪";
+              item.indexErr = "";
+              return { summary: `${item.sku} 检索索引已重建就绪`, toastMsg: `${item.sku} 索引已重建成功` };
+            }
+          });
+        });
+      }
     };
   }
 
@@ -2363,21 +2453,40 @@ export function renderM0_M3(pageId, state, helpers) {
           </div>
 
           <div class="card">
-            <div class="card-header">
-              <div class="card-title">当前草稿版画布（${state.biDraftVersion} · 共 ${state.biWidgets.length} 个指标卡）</div>
-              <span class="pill p-amber">仅草稿态，未发布前不影响正式大屏</span>
+            <div class="card-header" style="flex-wrap:wrap;gap:8px;">
+              <div>
+                <div class="card-title">当前草稿版画布（${state.biDraftVersion} · 共 ${state.biWidgets.length} 个指标卡）</div>
+                <div style="font-size:12px;color:var(--text-soft);">未发布前仅影响草稿预览，不影响线上正式大屏</div>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                <span class="pill p-amber">设备预览：</span>
+                ${[["desktop","🖥️ 桌面"],["tablet","📱 平板"],["mobile","📲 手机"]].map(([k, lbl]) => `
+                  <button type="button" class="btn btn-sm ${state.biPreviewDevice===k?"btn-primary":""} m2-dev-btn" data-d="${k}">${lbl}</button>
+                `).join("")}
+                <select id="m2ThemeSel" class="select" style="width:auto;padding:4px 8px;font-size:12px;">
+                  <option value="classic" ${state.biTheme==="classic"?"selected":""}>商务蓝主题</option>
+                  <option value="dark" ${state.biTheme==="dark"?"selected":""}>深色夜景主题</option>
+                  <option value="clean" ${state.biTheme==="clean"?"selected":""}>极简白主题</option>
+                </select>
+              </div>
             </div>
-            <div class="grid-2">
-              ${state.biWidgets.map((w, i) => `
-                <div class="kpi-card ${state.biSelectedIdx===i?"highlight-blue":""}" style="cursor:pointer;">
-                  <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <span class="kpi-label">${w.title}</span>
-                    <button class="btn btn-sm btn-danger m2-del-w" data-i="${i}" ${!canDesign?"disabled":""}>移除</button>
+            <div style="margin:0 auto;max-width:${state.biPreviewDevice==="mobile"?"360px":state.biPreviewDevice==="tablet"?"640px":"100%"};padding:12px;border-radius:10px;border:1px dashed var(--border);background:${state.biTheme==="dark"?"#0f172a":state.biTheme==="clean"?"#ffffff":"#f8fafc"};color:${state.biTheme==="dark"?"#f8fafc":"inherit"};transition:max-width .2s;">
+              <div style="display:grid;grid-template-columns:${state.biPreviewDevice==="mobile"?"1fr":"repeat(2,minmax(0,1fr))"};gap:12px;">
+                ${state.biWidgets.map((w, i) => `
+                  <div class="kpi-card ${state.biSelectedIdx===i?"highlight-blue":""}" style="background:${state.biTheme==="dark"?"#1e293b":"#fff"};border-color:${state.biTheme==="dark"?"#334155":"var(--border)"};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
+                      <span class="kpi-label" style="color:${state.biTheme==="dark"?"#cbd5e1":"var(--text-soft)"};">${w.title}</span>
+                      <div style="display:flex;gap:4px;">
+                        <button class="btn btn-sm m2-move-w" data-i="${i}" data-dir="-1" ${(!canDesign || i===0)?"disabled":""} title="上移顺序">↑</button>
+                        <button class="btn btn-sm m2-move-w" data-i="${i}" data-dir="1" ${(!canDesign || i===state.biWidgets.length-1)?"disabled":""} title="下移顺序">↓</button>
+                        <button class="btn btn-sm btn-danger m2-del-w" data-i="${i}" ${!canDesign?"disabled":""}>移除</button>
+                      </div>
+                    </div>
+                    <div class="kpi-val" style="color:${state.biTheme==="dark"?"#60a5fa":w.color};margin:6px 0;">${resolveWidgetVal(w)}</div>
+                    <div style="font-size:12px;color:${state.biTheme==="dark"?"#94a3b8":"var(--text-soft)"};">来源：${w.scope} · 更新：${w.updatedAt || "实时"}</div>
                   </div>
-                  <div class="kpi-val" style="color:${w.color};margin:6px 0;">${resolveWidgetVal(w)}</div>
-                  <div style="font-size:12px;color:var(--text-soft);">来源：${w.scope} · 更新：${w.updatedAt || "实时"}</div>
-                </div>
-              `).join("")}
+                `).join("")}
+              </div>
             </div>
           </div>
         </div>
@@ -2387,6 +2496,18 @@ export function renderM0_M3(pageId, state, helpers) {
           { title: "实盘订单总数", metricKey: "orders_count", val: `${stats.ordersCnt} 单`, scope: "全部实盘店铺", updatedAt: "实时联动订单", color: "var(--purple-text)" },
           { title: "平均客单价", metricKey: "aov", val: "$" + stats.aov, scope: "近30天实盘均值", updatedAt: "实时计算", color: "var(--blue-hover)" },
         ];
+        document.querySelectorAll(".m2-dev-btn").forEach(b => b.onclick = () => { state.biPreviewDevice = b.dataset.d; rerender(); });
+        document.getElementById("m2ThemeSel").onchange = (e) => { state.biTheme = e.target.value; rerender(); };
+        document.querySelectorAll(".m2-move-w").forEach(b => b.onclick = () => {
+          const i = Number(b.dataset.i);
+          const dir = Number(b.dataset.dir);
+          const target = i + dir;
+          if (target < 0 || target >= state.biWidgets.length) return;
+          const tmp = state.biWidgets[i];
+          state.biWidgets[i] = state.biWidgets[target];
+          state.biWidgets[target] = tmp;
+          rerender();
+        });
         document.querySelectorAll(".m2-add-w").forEach(b => b.onclick = () => {
           const c = cands[Number(b.dataset.ci)];
           if (state.biWidgets.some(w => w.title === c.title)) { toast("草稿画布已包含该指标卡片", "warn"); return; }
@@ -2416,6 +2537,11 @@ export function renderM0_M3(pageId, state, helpers) {
 
     return {
       headerActions: [
+        { label: state.biSimulateCardFail ? "✓ 恢复单卡正常取数" : "🧪 模拟单卡取数失败", primary: false, onClick: () => {
+          state.biSimulateCardFail = !state.biSimulateCardFail;
+          rerender();
+          toast(state.biSimulateCardFail ? "已模拟广告费单卡取数超时：保留上次有效结果，其余卡片正常实时更新" : "已恢复全部指标卡实时取数", state.biSimulateCardFail ? "warn" : "success");
+        }},
         { label: "↻ 刷新最新数据", primary: false, onClick: () => {
           state.lastDataRefreshAt = nowTimeStr();
           state.lastDataRefreshTs = Date.now();
@@ -2427,15 +2553,16 @@ export function renderM0_M3(pageId, state, helpers) {
       html: `
         <div class="grid-4">
           ${state.biPublishedWidgets.map(w => {
+            const isFailCard = state.biSimulateCardFail && w.metricKey === "ad_spend";
             const isAlert = w.metricKey === "ad_spend";
             return `
-              <div class="kpi-card ${isAlert?"highlight-amber":"highlight-blue"} m2b-drill" data-title="${w.title}" style="cursor:pointer;" title="点击进入智能问数追查明细">
+              <div class="kpi-card ${isFailCard?"highlight-red":isAlert?"highlight-amber":"highlight-blue"} m2b-drill" data-title="${w.title}" style="cursor:pointer;" title="点击进入智能问数追查明细">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                   <span class="kpi-label">${w.title}</span>
-                  <span class="pill ${isAlert?"p-amber":"p-blue"}">${isAlert?"异常波动 · 点击追问":"点击追问明细 →"}</span>
+                  <span class="pill ${isFailCard?"p-red":isAlert?"p-amber":"p-blue"}">${isFailCard?"单卡取数失败 · 保留旧值":isAlert?"异常波动 · 点击追问":"点击追问明细 →"}</span>
                 </div>
-                <div class="kpi-val" style="margin:6px 0;color:${isAlert?"var(--amber-text)":"var(--blue-hover)"}">${resolvePublishedVal(w)}</div>
-                <div class="kpi-sub">${w.sub} ｜ 来源：${w.scope || "全部实盘店铺"}</div>
+                <div class="kpi-val" style="margin:6px 0;color:${isFailCard?"var(--red-text)":isAlert?"var(--amber-text)":"var(--blue-hover)"}">${resolvePublishedVal(w)}</div>
+                <div class="kpi-sub">${isFailCard ? "本次刷新超时，已保留上次有效结果（不影响其余卡片）" : `${w.sub} ｜ 来源：${w.scope || "全部实盘店铺"}`}</div>
               </div>
             `;
           }).join("")}
