@@ -578,7 +578,7 @@ tr.row-selected td { background: #eff6ff; }
 .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 9000; padding: 16px; }
 .modal-box { background: #fff; border-radius: 10px; max-width: 580px; width: 100%; padding: 20px 22px; box-shadow: 0 20px 44px rgba(15,23,42,0.24); max-height: 90vh; overflow-y: auto; }
 
-</style>
+  </style>
 </head>
 <body>
   <div id="app" class="shell">
@@ -1081,7 +1081,9 @@ const BACKEND_SERVICE_URL = ""; // 预留后台服务地址；留空表示纯前
 
 const WAREHOUSE_LABELS = {
   "US-WH-2": "美国美西海外仓",
+  "US-WH-1": "美国美东海外仓",
   "TH-WH-1": "泰国曼谷本地仓",
+  "MY-WH-1": "马来吉隆坡仓",
 };
 
 function makeSvgDataUri(bg, accent, label, iconSvg) {
@@ -1100,6 +1102,16 @@ const PRODUCT_IMAGES = {
   "FAN-203": makeSvgDataUri("#ecfeff", "#0891b2", "便携静音循环扇", `<circle cx="120" cy="100" r="46" fill="#0891b2"/><circle cx="120" cy="100" r="36" fill="#cffafe"/><path d="M120 100 L120 68 A14 14 0 0 1 136 92 Z M120 100 L148 118 A14 14 0 0 1 116 126 Z M120 100 L92 112 A14 14 0 0 1 102 76 Z" fill="#0e7490"/><circle cx="120" cy="100" r="8" fill="#164e63"/><rect x="108" y="146" width="24" height="16" rx="4" fill="#0e7490"/><rect x="88" y="160" width="64" height="10" rx="5" fill="#155e75"/>`),
   "MAT-014": makeSvgDataUri("#f0fdf4", "#10b981", "加厚防滑瑜伽垫", `<rect x="64" y="88" width="112" height="44" rx="22" fill="#10b981"/><ellipse cx="78" cy="110" rx="12" ry="22" fill="#047857"/><ellipse cx="78" cy="110" rx="5" ry="11" fill="#a7f3d0"/><path d="M94 94 H158 M94 126 H158" stroke="#ecfdf5" stroke-width="3" stroke-linecap="round"/>`),
   "COS-052": makeSvgDataUri("#fdf2f8", "#db2777", "焕亮保湿面霜", `<rect x="82" y="84" width="76" height="66" rx="14" fill="#f472b6"/><rect x="76" y="66" width="88" height="22" rx="8" fill="#db2777"/><rect x="96" y="104" width="48" height="26" rx="6" fill="#fff1f2"/><circle cx="120" cy="117" r="7" fill="#db2777"/>`),
+  "ORG-301": makeSvgDataUri("#fff7ed", "#ea580c", "后备箱整理箱", `<rect x="68" y="76" width="104" height="72" rx="10" fill="#fb923c"/><rect x="64" y="66" width="112" height="16" rx="6" fill="#ea580c"/><line x1="103" y1="82" x2="103" y2="148" stroke="#ffedd5" stroke-width="4"/><line x1="137" y1="82" x2="137" y2="148" stroke="#ffedd5" stroke-width="4"/>`),
+  "LND-538": makeSvgDataUri("#eef2ff", "#4f46e5", "防水折叠洗衣篮", `<path d="M78 72 H162 L152 152 H88 Z" fill="#6366f1"/><ellipse cx="120" cy="72" rx="42" ry="10" fill="#4338ca"/><ellipse cx="120" cy="72" rx="34" ry="6" fill="#c7d2fe"/><line x1="94" y1="102" x2="146" y2="102" stroke="#e0e7ff" stroke-width="4" stroke-linecap="round"/><line x1="96" y1="124" x2="144" y2="124" stroke="#e0e7ff" stroke-width="4" stroke-linecap="round"/>`),
+  "PET-204": makeSvgDataUri("#fefce8", "#ca8a04", "防抓宠物汽车垫", `<path d="M70 68 H170 V142 L156 156 H84 L70 142 Z" fill="#eab308"/><rect x="84" y="84" width="72" height="44" rx="8" fill="#fef08a"/><circle cx="104" cy="106" r="6" fill="#a16207"/><circle cx="136" cy="106" r="6" fill="#a16207"/><circle cx="120" cy="118" r="8" fill="#a16207"/>`),
+  "MNT-405": makeSvgDataUri("#f5f3ff", "#7c3aed", "磁吸折叠支架", `<rect x="88" y="144" width="64" height="12" rx="6" fill="#6d28d9"/><line x1="120" y1="144" x2="106" y2="102" stroke="#7c3aed" stroke-width="10" stroke-linecap="round"/><rect x="86" y="64" width="68" height="46" rx="10" fill="#8b5cf6"/><circle cx="120" cy="87" r="14" fill="#ede9fe"/>`),
+  "VAC-704": makeSvgDataUri("#ecfdf5", "#059669", "迷你真空封口机", `<rect x="62" y="92" width="116" height="42" rx="20" fill="#10b981"/><rect x="76" y="106" width="68" height="12" rx="6" fill="#ecfdf5"/><circle cx="158" cy="113" r="8" fill="#047857"/>`),
+  "LMP-418": makeSvgDataUri("#fef2f2", "#dc2626", "露营氛围灯串", `<path d="M68 82 Q120 120 172 82" fill="none" stroke="#475569" stroke-width="4"/><circle cx="80" cy="92" r="11" fill="#fbbf24"/><circle cx="106" cy="104" r="11" fill="#f87171"/><circle cx="134" cy="104" r="11" fill="#fbbf24"/><circle cx="160" cy="92" r="11" fill="#f87171"/>`),
+  "BTL-119": makeSvgDataUri("#f0f9ff", "#0284c7", "旅行分装瓶套装", `<rect x="78" y="76" width="24" height="72" rx="8" fill="#38bdf8"/><rect x="108" y="66" width="24" height="82" rx="8" fill="#0284c7"/><rect x="138" y="84" width="24" height="64" rx="8" fill="#7dd3fc"/>`),
+  "KET-502": makeSvgDataUri("#fef3c7", "#d97706", "折叠硅胶水壶", `<rect x="78" y="74" width="84" height="72" rx="16" fill="#f59e0b"/><rect x="90" y="60" width="60" height="16" rx="6" fill="#b45309"/><path d="M162 88 C182 88 182 132 162 132" fill="none" stroke="#d97706" stroke-width="7"/>`),
+  "BRD-601": makeSvgDataUri("#ecfdf5", "#16a34a", "户外防水野餐垫", `<rect x="64" y="72" width="112" height="76" rx="12" fill="#4ade80"/><line x1="64" y1="110" x2="176" y2="110" stroke="#166534" stroke-width="4"/><line x1="120" y1="72" x2="120" y2="148" stroke="#166534" stroke-width="4"/>`),
+  "EAR-712": makeSvgDataUri("#eef2ff", "#4338ca", "运动蓝牙耳机", `<path d="M84 120 C84 74 156 74 156 120" fill="none" stroke="#4338ca" stroke-width="10" stroke-linecap="round"/><rect x="72" y="110" width="24" height="36" rx="10" fill="#6366f1"/><rect x="144" y="110" width="24" height="36" rx="10" fill="#6366f1"/>`),
   "SKU-00515": makeSvgDataUri("#fff7ed", "#ea580c", "后备箱整理箱", `<rect x="68" y="76" width="104" height="72" rx="10" fill="#fb923c"/><rect x="64" y="66" width="112" height="16" rx="6" fill="#ea580c"/><line x1="103" y1="82" x2="103" y2="148" stroke="#ffedd5" stroke-width="4"/><line x1="137" y1="82" x2="137" y2="148" stroke="#ffedd5" stroke-width="4"/>`),
   "SKU-00538": makeSvgDataUri("#eef2ff", "#4f46e5", "防水折叠洗衣篮", `<path d="M78 72 H162 L152 152 H88 Z" fill="#6366f1"/><ellipse cx="120" cy="72" rx="42" ry="10" fill="#4338ca"/><ellipse cx="120" cy="72" rx="34" ry="6" fill="#c7d2fe"/><line x1="94" y1="102" x2="146" y2="102" stroke="#e0e7ff" stroke-width="4" stroke-linecap="round"/><line x1="96" y1="124" x2="144" y2="124" stroke="#e0e7ff" stroke-width="4" stroke-linecap="round"/>`),
   "SKU-00299": makeSvgDataUri("#fefce8", "#ca8a04", "宠物防抓汽车垫", `<path d="M70 68 H170 V142 L156 156 H84 L70 142 Z" fill="#eab308"/><rect x="84" y="84" width="72" height="44" rx="8" fill="#fef08a"/><circle cx="104" cy="106" r="6" fill="#a16207"/><circle cx="136" cy="106" r="6" fill="#a16207"/><circle cx="120" cy="118" r="8" fill="#a16207"/>`),
@@ -1107,6 +1119,44 @@ const PRODUCT_IMAGES = {
   "SKU-00704": makeSvgDataUri("#ecfdf5", "#059669", "迷你真空封口机", `<rect x="62" y="92" width="116" height="42" rx="20" fill="#10b981"/><rect x="76" y="106" width="68" height="12" rx="6" fill="#ecfdf5"/><circle cx="158" cy="113" r="8" fill="#047857"/>`),
   "SKU-00418": makeSvgDataUri("#fef2f2", "#dc2626", "露营氛围灯串", `<path d="M68 82 Q120 120 172 82" fill="none" stroke="#475569" stroke-width="4"/><circle cx="80" cy="92" r="11" fill="#fbbf24"/><circle cx="106" cy="104" r="11" fill="#f87171"/><circle cx="134" cy="104" r="11" fill="#fbbf24"/><circle cx="160" cy="92" r="11" fill="#f87171"/>`),
 };
+
+function daysOffsetDate(offsetDays) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function daysOffsetDateTime(offsetDays, hhmm = "10:30") {
+  return `${daysOffsetDate(offsetDays)} ${hhmm}`;
+}
+
+function calcProductMargin(p) {
+  if (p.cost === null || p.cost === undefined || !p.salePriceUsd) {
+    return { known: false, profitUsd: null, marginPct: null, commissionUsd: null, returnLossUsd: null };
+  }
+  const price = Number(p.salePriceUsd);
+  const commissionUsd = +(price * ((p.commissionRate || 0) / 100)).toFixed(2);
+  const returnLossUsd = +(price * ((p.returnLossRate || 0) / 100)).toFixed(2);
+  const totalCost = Number(p.cost) + Number(p.freight || 0) + commissionUsd + Number(p.lastMile || 0) + Number(p.tariff || 0) + Number(p.adCost || 0) + returnLossUsd;
+  const profitUsd = +(price - totalCost).toFixed(2);
+  const marginPct = +((profitUsd / price) * 100).toFixed(1);
+  return { known: true, profitUsd, marginPct, commissionUsd, returnLossUsd, totalCost: +totalCost.toFixed(2) };
+}
+
+function calcInvCoverage(item) {
+  const daily = item.dailySales || 1;
+  const coverDays = +(item.avail / daily).toFixed(1);
+  if (item.ageDays > 90) {
+    return { coverDays, level: "滞销积压", pill: "p-gray", advice: "库龄超90天占用仓储费，建议打折促销清仓或捆绑消化" };
+  }
+  if (coverDays < 7) {
+    return { coverDays, level: "严重缺货(<7天)", pill: "p-red", advice: "不足7天随时断货！立即提交加急补货或空运调拨" };
+  }
+  if (coverDays <= 14) {
+    return { coverDays, level: "即将断货(7-14天)", pill: "p-amber", advice: "7~14天安全缓冲告急，本周内须下常规补货单" };
+  }
+  return { coverDays, level: "水位健康", pill: "p-green", advice: "可售周转健康，按正常周期监测补货即可" };
+}
 
 function getProductImg(sku) {
   return PRODUCT_IMAGES[sku] || PRODUCT_IMAGES["BAG-108"];
@@ -1517,66 +1567,234 @@ function createInitialState() {
 
     // M0-1
     shops: [
-      { id: "shop_th", name: "Shopee 泰国主店", platform: "SHOPEE", region: "TH", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 8e41", lastSync: "2026-11-19 10:15", lastSyncTs: null, errNote: "" },
-      { id: "shop_us", name: "TikTok Shop 美区", platform: "TIKTOK", region: "US", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "回复消息"], credMask: "尾号 2c90", lastSync: "2026-11-19 10:12", lastSyncTs: null, errNote: "" },
-      { id: "shop_mk", name: "Amazon 演示沙盒店", platform: "AMAZON", region: "US", mode: "MOCK", health: "仅演示环境", status: "演示测试专用（不计营收）", permLabels: ["模拟买家消息", "联调测试"], credMask: "尾号 0000", lastSync: "2026-11-19 09:40", lastSyncTs: null, errNote: "" },
+      { id: "shop_th", name: "Shopee 泰国主店", platform: "SHOPEE", region: "TH", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 8e41", lastSync: daysOffsetDateTime(0, "10:15"), lastSyncTs: null, errNote: "", monthlyGmv: 68420, orderCount: 842, mainCategory: "居家小电 / 个护", owner: "张运营", currency: "THB", timezone: "UTC+7 (曼谷)", authExpireDate: daysOffsetDate(68), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2024-03-12" },
+      { id: "shop_us", name: "TikTok Shop 美区", platform: "TIKTOK", region: "US", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "回复消息"], credMask: "尾号 2c90", lastSync: daysOffsetDateTime(0, "10:12"), lastSyncTs: null, errNote: "", monthlyGmv: 94150, orderCount: 1120, mainCategory: "箱包出行 / 运动健身", owner: "张运营", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: daysOffsetDate(45), nextSyncAt: "每10分钟", syncFailCount: 0, openedAt: "2024-06-05" },
+      { id: "shop_amz_us", name: "Amazon 美国精品店", platform: "AMAZON", region: "US", mode: "REAL", health: "授权即将过期", status: "授权将于4天后到期", permLabels: ["读取订单", "同步库存", "FBA配送查询"], credMask: "尾号 5a17", lastSync: daysOffsetDateTime(0, "09:50"), lastSyncTs: null, errNote: "授权凭证将于 4 天后过期，请尽快重新授权防断流", monthlyGmv: 142800, orderCount: 1385, mainCategory: "家居收纳 / 厨房小电", owner: "陈主管", currency: "USD", timezone: "UTC-5 (美东)", authExpireDate: daysOffsetDate(4), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2023-11-18" },
+      { id: "shop_laz_my", name: "Lazada 马来旗舰店", platform: "LAZADA", region: "MY", mode: "REAL", health: "同步异常", status: "连续同步失败3次", permLabels: ["读取订单", "同步库存"], credMask: "尾号 7f03", lastSync: daysOffsetDateTime(-1, "18:40"), lastSyncTs: null, errNote: "连续同步失败 3 次（平台限流或授权失效），请重试同步或重新授权", monthlyGmv: 38900, orderCount: 516, mainCategory: "3C配件 / 居家小电", owner: "周分析", currency: "MYR", timezone: "UTC+8 (吉隆坡)", authExpireDate: daysOffsetDate(31), nextSyncAt: "待人工重试", syncFailCount: 3, openedAt: "2025-01-20" },
+      { id: "shop_ebay_uk", name: "eBay 英国站", platform: "EBAY", region: "UK", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "售后同步"], credMask: "尾号 3b82", lastSync: daysOffsetDateTime(0, "09:30"), lastSyncTs: null, errNote: "", monthlyGmv: 51200, orderCount: 478, mainCategory: "宠物用品 / 户外运动", owner: "吴选品", currency: "GBP", timezone: "UTC+0 (伦敦)", authExpireDate: daysOffsetDate(82), nextSyncAt: "每30分钟", syncFailCount: 0, openedAt: "2024-09-01" },
+      { id: "shop_sp_sg", name: "Shopee 新加坡站", platform: "SHOPEE", region: "SG", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 9d14", lastSync: daysOffsetDateTime(0, "10:05"), lastSyncTs: null, errNote: "", monthlyGmv: 46300, orderCount: 604, mainCategory: "美妆护肤 / 家居收纳", owner: "张运营", currency: "SGD", timezone: "UTC+8 (新加坡)", authExpireDate: daysOffsetDate(53), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2025-04-10" },
+      { id: "shop_mk", name: "Amazon 演示沙盒店", platform: "AMAZON", region: "US", mode: "MOCK", health: "仅演示环境", status: "演示测试专用（不计营收）", permLabels: ["模拟买家消息", "联调测试"], credMask: "尾号 0000", lastSync: daysOffsetDateTime(0, "09:40"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "全品类联调测试", owner: "刘测试", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: "长期有效(沙盒)", nextSyncAt: "手动联调", syncFailCount: 0, openedAt: "2025-08-01" },
     ],
 
     // M0-2
     masterSearch: "",
     masterShopFilter: "ALL",
+    m0bProdPage: 1,
+    orderSearch: "",
     orderShopFilter: "ALL",
     orderStatusFilter: "ALL",
     orderDateFilter: "ALL",
+    orderDateCustomStart: daysOffsetDate(-14),
+    orderDateCustomEnd: daysOffsetDate(0),
+    m0bOrdPage: 1,
     masterProducts: [
-      { sku: "BAG-108", name: "轻量通勤双肩包", cat: "箱包出行", cost: 4.5, freight: 2.3, status: "在售", mappings: [
+      { sku: "BAG-108", name: "轻量通勤双肩包", cat: "箱包出行", salePriceUsd: 29.9, cost: 4.5, freight: 2.3, commissionRate: 12, lastMile: 4.8, tariff: 1.6, adCost: 3.2, returnLossRate: 2.5, listedAt: "2025-03-18", sales30d: 640, tag: "爆款", owner: "张运营", status: "在售", mappings: [
         { shop: "TikTok Shop 美区", shopSku: "TT-US-88210", price: "$29.90" },
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-5521", price: "฿890" },
       ] },
-      { sku: "FAN-203", name: "便携静音循环扇", cat: "居家小电", cost: 8.2, freight: 3.0, status: "在售", mappings: [
+      { sku: "FAN-203", name: "便携静音循环扇", cat: "居家小电", salePriceUsd: 18.5, cost: 6.2, freight: 2.4, commissionRate: 10, lastMile: 2.1, tariff: 0.8, adCost: 2.0, returnLossRate: 2.0, listedAt: "2025-05-09", sales30d: 520, tag: "爆款", owner: "张运营", status: "在售", mappings: [
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-9034", price: "฿590" },
+        { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-2031", price: "RM82" },
       ] },
-      { sku: "MAT-014", name: "加厚防滑瑜伽垫", cat: "运动健身", cost: 6.0, freight: 3.5, status: "在售", mappings: [
+      { sku: "MAT-014", name: "加厚防滑瑜伽垫", cat: "运动健身", salePriceUsd: 24.9, cost: 5.5, freight: 3.1, commissionRate: 12, lastMile: 4.5, tariff: 1.3, adCost: 2.8, returnLossRate: 3.0, listedAt: "2025-04-22", sales30d: 410, tag: "爆款", owner: "张运营", status: "在售", mappings: [
         { shop: "TikTok Shop 美区", shopSku: "TT-US-31922", price: "$24.90" },
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-014", price: "$26.90" },
       ] },
-      { sku: "COS-052", name: "焕亮保湿面霜", cat: "美妆护肤", cost: null, freight: null, status: "缺成本待补", mappings: [
+      { sku: "COS-052", name: "焕亮保湿面霜", cat: "美妆护肤", salePriceUsd: 14.5, cost: null, freight: null, commissionRate: 10, lastMile: 1.8, tariff: 0.6, adCost: 1.5, returnLossRate: 2.0, listedAt: "2026-10-12", sales30d: 185, tag: "待核价", owner: "吴选品", status: "缺成本待补", mappings: [
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-1140", price: "฿420" },
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-1140", price: "S$19.5" },
+      ] },
+      { sku: "ORG-301", name: "汽车后备箱整理箱", cat: "家居收纳", salePriceUsd: 35.5, cost: 5.4, freight: 3.8, commissionRate: 15, lastMile: 5.9, tariff: 2.1, adCost: 4.0, returnLossRate: 2.0, listedAt: "2025-07-15", sales30d: 580, tag: "爆款", owner: "陈主管", status: "在售", mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-301", price: "$35.50" },
+      ] },
+      { sku: "PET-204", name: "防抓宠物汽车座垫", cat: "宠物用品", salePriceUsd: 36.8, cost: 6.1, freight: 3.5, commissionRate: 15, lastMile: 5.4, tariff: 1.8, adCost: 3.9, returnLossRate: 1.8, listedAt: "2025-08-21", sales30d: 395, tag: "潜力", owner: "吴选品", status: "在售", mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-204", price: "$36.80" },
+        { shop: "eBay 英国站", shopSku: "EB-UK-204", price: "£28.90" },
+      ] },
+      { sku: "MNT-405", name: "磁吸折叠桌面支架", cat: "3C配件", salePriceUsd: 26.5, cost: 3.6, freight: 1.7, commissionRate: 12, lastMile: 3.6, tariff: 1.1, adCost: 3.4, returnLossRate: 1.5, listedAt: "2026-06-11", sales30d: 470, tag: "潜力", owner: "张运营", status: "在售", mappings: [
+        { shop: "TikTok Shop 美区", shopSku: "TT-US-405", price: "$26.50" },
+        { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-405", price: "RM115" },
+      ] },
+      { sku: "VAC-704", name: "无线真空迷你封口机", cat: "家居收纳", salePriceUsd: 27.3, cost: 4.1, freight: 2.0, commissionRate: 10, lastMile: 2.6, tariff: 0.9, adCost: 2.8, returnLossRate: 2.2, listedAt: "2026-09-02", sales30d: 312, tag: "潜力", owner: "张运营", status: "在售", mappings: [
+        { shop: "Shopee 泰国主店", shopSku: "SP-TH-704", price: "฿850" },
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-704", price: "S$35.9" },
+      ] },
+      { sku: "LMP-418", name: "便携露营氛围灯串", cat: "运动健身", salePriceUsd: 13.8, cost: 3.9, freight: 1.8, commissionRate: 15, lastMile: 3.1, tariff: 0.7, adCost: 1.4, returnLossRate: 5.5, listedAt: "2025-04-02", sales30d: 64, tag: "滞销", owner: "吴选品", status: "在售", mappings: [
+        { shop: "eBay 英国站", shopSku: "EB-UK-418", price: "£10.90" },
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-418", price: "$13.80" },
+      ] },
+      { sku: "BTL-119", name: "便携旅行分装瓶套装", cat: "箱包出行", salePriceUsd: 14.9, cost: 3.4, freight: 1.6, commissionRate: 15, lastMile: 3.8, tariff: 0.8, adCost: 2.2, returnLossRate: 3.0, listedAt: "2025-11-12", sales30d: 148, tag: "滞销", owner: "周分析", status: "在售", mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-119", price: "$14.90" },
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-119", price: "S$19.9" },
+      ] },
+      { sku: "KET-502", name: "折叠硅胶电热水壶", cat: "居家小电", salePriceUsd: 31.0, cost: 6.4, freight: 2.8, commissionRate: 12, lastMile: 4.2, tariff: 1.4, adCost: 3.0, returnLossRate: 2.0, listedAt: "2026-03-25", sales30d: 265, tag: "潜力", owner: "陈主管", status: "在售", mappings: [
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-502", price: "S$41.9" },
+        { shop: "eBay 英国站", shopSku: "EB-UK-502", price: "£24.50" },
+      ] },
+      { sku: "LND-538", name: "可折叠防水洗衣篮", cat: "家居收纳", salePriceUsd: 37.5, cost: null, freight: null, commissionRate: 15, lastMile: 5.2, tariff: 1.7, adCost: 3.6, returnLossRate: 2.0, listedAt: "2026-10-28", sales30d: 190, tag: "待核价", owner: "吴选品", status: "缺成本待补", mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-538", price: "$37.50" },
+      ] },
+      { sku: "BRD-601", name: "户外防水野餐垫", cat: "运动健身", salePriceUsd: 26.0, cost: 4.6, freight: 2.5, commissionRate: 12, lastMile: 4.0, tariff: 1.1, adCost: 2.4, returnLossRate: 1.8, listedAt: "2025-06-14", sales30d: 92, tag: "滞销", owner: "吴选品", status: "在售", mappings: [
+        { shop: "eBay 英国站", shopSku: "EB-UK-601", price: "£20.50" },
+      ] },
+      { sku: "EAR-712", name: "开放式运动蓝牙耳机", cat: "3C配件", salePriceUsd: 39.9, cost: 7.2, freight: 1.8, commissionRate: 12, lastMile: 3.5, tariff: 1.6, adCost: 4.5, returnLossRate: 2.5, listedAt: "2026-07-08", sales30d: 342, tag: "潜力", owner: "周分析", status: "在售", mappings: [
+        { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-712", price: "RM179" },
+        { shop: "TikTok Shop 美区", shopSku: "TT-US-712", price: "$39.90" },
       ] },
     ],
     costChangeLogs: [
-      { id: "CC-20261118-01", sku: "BAG-108", oldCost: 4.2, oldFreight: 2.3, newCost: 4.5, newFreight: 2.3, effectiveDate: "2026-11-19", reason: "布料升级单件采购微调", applicant: "张运营", approver: "陈主管", status: "已生效", time: "2026-11-18 16:20" },
+      { id: "CC-V6-2026-06", sku: "LMP-418", oldCost: 3.6, oldFreight: 1.8, newCost: 3.9, newFreight: 1.8, newCommission: 15, newLastMile: 3.1, newTariff: 0.7, newAdCost: 1.4, effectiveDate: daysOffsetDate(1), reason: "电池灯串铜线涨价，需确认是否触发低毛利调价", applicant: "张运营", approver: "", status: "待主管审批", time: daysOffsetDateTime(0, "09:45") },
+      { id: "CC-V5-2026-05", sku: "BAG-108", oldCost: 4.2, oldFreight: 2.3, newCost: 4.5, newFreight: 2.3, newCommission: 12, newLastMile: 4.8, newTariff: 1.6, newAdCost: 3.2, effectiveDate: daysOffsetDate(-2), reason: "第3版成本：拉链与防水牛津布加厚升级", applicant: "张运营", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-3, "16:20") },
+      { id: "CC-V4-2026-04", sku: "ORG-301", oldCost: 5.8, oldFreight: 4.1, newCost: 5.4, newFreight: 3.8, newCommission: 15, newLastMile: 5.9, newTariff: 2.1, newAdCost: 4.0, effectiveDate: daysOffsetDate(-9), reason: "整柜海运阶梯降本，单件采购及头程下降", applicant: "张运营", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-10, "14:15") },
+      { id: "CC-V3-2026-03", sku: "FAN-203", oldCost: 6.5, oldFreight: 2.6, newCost: 6.2, newFreight: 2.4, newCommission: 10, newLastMile: 2.1, newTariff: 0.8, newAdCost: 2.0, effectiveDate: daysOffsetDate(-15), reason: "泰国曼谷直发物流合约续签降费", applicant: "周分析", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-16, "11:08") },
+      { id: "CC-V2-2026-02", sku: "MAT-014", oldCost: 5.2, oldFreight: 3.0, newCost: 5.5, newFreight: 3.1, newCommission: 12, newLastMile: 4.5, newTariff: 1.3, newAdCost: 2.8, effectiveDate: daysOffsetDate(-24), reason: "美西港口旺季附加费调整", applicant: "张运营", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-25, "15:40") },
+      { id: "CC-V1-2026-01", sku: "BAG-108", oldCost: 4.0, oldFreight: 2.1, newCost: 4.2, newFreight: 2.3, newCommission: 12, newLastMile: 4.8, newTariff: 1.6, newAdCost: 3.2, effectiveDate: daysOffsetDate(-42), reason: "第2版成本：新增15.6寸加厚电脑隔层", applicant: "吴选品", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-43, "10:05") },
     ],
     orders: [
-      { orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Emily Carter", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountUsd: 34.50, amountDisplay: "$34.50", status: "已签收", refundSyncStatus: "无退款", orderedAt: "2026-11-17 14:22", historical: true, timeline: [
-        { step: "买家付款完成", time: "2026-11-17 14:22", done: true },
-        { step: "美西仓出库发货 (承运商 UPS)", time: "2026-11-17 19:05", done: true },
-        { step: "买家签收完成", time: "2026-11-19 08:40", done: true },
+      { orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Emily Carter", countryCity: "美国 · 洛杉矶", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountLocal: "$34.50", amountUsd: 34.50, amountDisplay: "$34.50", status: "已签收", trackingNo: "1Z999AA10123456784", payStatus: "已支付", source: "广告流量", disputeStatus: "售后沟通中", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-2, "14:22"), historical: true, isHistoryDemo: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-2, "14:22"), done: true },
+        { step: "美西仓拣货完成", time: daysOffsetDateTime(-2, "16:10"), done: true },
+        { step: "美西仓出库发货 (UPS · 1Z999AA10123456784)", time: daysOffsetDateTime(-2, "19:05"), done: true },
+        { step: "买家签收完成（历史示例数据，关联 M1 客服会话）", time: daysOffsetDateTime(0, "08:40"), done: true },
       ] },
-      { orderNo: "SPTH-20261119-108", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Nattapong S.", sku: "FAN-203", productName: "便携静音循环扇", qty: 2, amountUsd: 33.80, amountDisplay: "฿1,180 ($33.80)", status: "已发货", refundSyncStatus: "无退款", orderedAt: "2026-11-18 20:10", historical: true, timeline: [
-        { step: "买家付款完成", time: "2026-11-18 20:10", done: true },
-        { step: "泰国曼谷仓已打包交运", time: "2026-11-19 09:15", done: true },
+      { orderNo: "SPTH-2026-108", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Nattapong S.", countryCity: "泰国 · 曼谷", sku: "FAN-203", productName: "便携静音循环扇", qty: 2, amountLocal: "฿1,180", amountUsd: 33.80, amountDisplay: "฿1,180 ($33.80)", status: "已发货", trackingNo: "THKEX88291045", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-1, "20:10"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-1, "20:10"), done: true },
+        { step: "曼谷仓拣货打包", time: daysOffsetDateTime(0, "08:20"), done: true },
+        { step: "泰国极兔交运 (THKEX88291045)", time: daysOffsetDateTime(0, "09:15"), done: true },
         { step: "等待买家签收", time: "预计 1-2 日送达", done: false },
       ] },
-      { orderNo: "TTUS-20261119-302", shop: "TikTok Shop 美区", mode: "REAL", buyer: "David Miller", sku: "MAT-014", productName: "加厚防滑瑜伽垫", qty: 1, amountUsd: 24.90, amountDisplay: "$24.90", status: "已付款", refundSyncStatus: "无退款", orderedAt: "2026-11-19 09:50", historical: true, timeline: [
-        { step: "买家付款完成", time: "2026-11-19 09:50", done: true },
-        { step: "待仓库拣货打包", time: "处理中", done: false },
+      { orderNo: "AMZUS-77412", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Michael Chen", countryCity: "美国 · 纽约", sku: "ORG-301", productName: "汽车后备箱整理箱", qty: 1, amountLocal: "$35.50", amountUsd: 35.50, amountDisplay: "$35.50", status: "已完成", trackingNo: "TBA309812744", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-6, "11:15"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-6, "11:15"), done: true },
+        { step: "美东仓出库发货 (Amazon Logistics · TBA309812744)", time: daysOffsetDateTime(-6, "16:30"), done: true },
+        { step: "买家签收并确认完成", time: daysOffsetDateTime(-3, "15:20"), done: true },
       ] },
-      { orderNo: "AMZ-DEMO-9901", shop: "Amazon 演示沙盒店", mode: "MOCK", buyer: "Demo Tester", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountUsd: 29.90, amountDisplay: "$29.90 (仅演示)", status: "仅演示不计营收", refundSyncStatus: "仅演示", orderedAt: "2026-11-19 10:02", historical: true, timeline: [
-        { step: "联调测试生成模拟订单", time: "2026-11-19 10:02", done: true },
+      { orderNo: "TTUS-30291", shop: "TikTok Shop 美区", mode: "REAL", buyer: "David Miller", countryCity: "美国 · 西雅图", sku: "MAT-014", productName: "加厚防滑瑜伽垫", qty: 1, amountLocal: "$24.90", amountUsd: 24.90, amountDisplay: "$24.90", status: "已付款", trackingNo: "待分配物流单号", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(0, "09:50"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(0, "09:50"), done: true },
+        { step: "美西仓待拣货打包", time: "处理中", done: false },
+      ] },
+      { orderNo: "EBUK-55201", shop: "eBay 英国站", mode: "REAL", buyer: "Oliver Grant", countryCity: "英国 · 伦敦", sku: "PET-204", productName: "防抓宠物汽车座垫", qty: 1, amountLocal: "£28.90", amountUsd: 36.80, amountDisplay: "£28.90 ($36.80)", status: "退款中", trackingNo: "RM992014421GB", payStatus: "部分冻结", source: "自然流量", disputeStatus: "物流破损争议", refundSyncStatus: "退款核实中", orderedAt: daysOffsetDateTime(-4, "17:40"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-4, "17:40"), done: true },
+        { step: "发出包裹 (RoyalMail · RM992014421GB)", time: daysOffsetDateTime(-3, "10:12"), done: true },
+        { step: "买家发起物流破损纠纷退款", time: daysOffsetDateTime(-1, "13:05"), done: true },
+      ] },
+      { orderNo: "LZMY-41082", shop: "Lazada 马来旗舰店", mode: "REAL", buyer: "Aisyah Rahman", countryCity: "马来 · 吉隆坡", sku: "EAR-712", productName: "开放式运动蓝牙耳机", qty: 1, amountLocal: "RM179", amountUsd: 39.90, amountDisplay: "RM179 ($39.90)", status: "已签收", trackingNo: "MYPOS7721903", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-3, "13:20"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-3, "13:20"), done: true },
+        { step: "吉隆坡仓发货 (PosLaju · MYPOS7721903)", time: daysOffsetDateTime(-2, "09:30"), done: true },
+        { step: "买家签收完成", time: daysOffsetDateTime(-1, "16:45"), done: true },
+      ] },
+      { orderNo: "SPSG-60912", shop: "Shopee 新加坡站", mode: "REAL", buyer: "Wei Ming Tan", countryCity: "新加坡 · 裕廊", sku: "VAC-704", productName: "无线真空迷你封口机", qty: 2, amountLocal: "S$71.8", amountUsd: 54.60, amountDisplay: "S$71.8 ($54.60)", status: "已完成", trackingNo: "SGSPX9082144", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-8, "12:15"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-8, "12:15"), done: true },
+        { step: "打包交运 (SPX · SGSPX9082144)", time: daysOffsetDateTime(-8, "18:00"), done: true },
+        { step: "签收完成结算", time: daysOffsetDateTime(-5, "11:10"), done: true },
+      ] },
+      { orderNo: "AMZUS-77488", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Sarah Jenkins", countryCity: "美国 · 芝加哥", sku: "PET-204", productName: "防抓宠物汽车座垫", qty: 1, amountLocal: "$36.80", amountUsd: 36.80, amountDisplay: "$36.80", status: "已发货", trackingNo: "TBA309912004", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-1, "15:12"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-1, "15:12"), done: true },
+        { step: "美东仓交运 (TBA309912004)", time: daysOffsetDateTime(0, "07:45"), done: true },
+      ] },
+      { orderNo: "TTUS-30315", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Jessica Lopez", countryCity: "美国 · 迈阿密", sku: "MNT-405", productName: "磁吸折叠桌面支架", qty: 2, amountLocal: "$53.00", amountUsd: 53.00, amountDisplay: "$53.00", status: "已完成", trackingNo: "USPS9400111202", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-5, "19:33"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-5, "19:33"), done: true },
+        { step: "美西仓发货 (USPS9400111202)", time: daysOffsetDateTime(-4, "11:20"), done: true },
+        { step: "买家签收完成", time: daysOffsetDateTime(-2, "14:05"), done: true },
+      ] },
+      { orderNo: "SPTH-2026-141", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Ploychanok K.", countryCity: "泰国 · 清迈", sku: "COS-052", productName: "焕亮保湿面霜", qty: 2, amountLocal: "฿840", amountUsd: 24.10, amountDisplay: "฿840 ($24.10)", status: "已完成", trackingNo: "THKEX88300112", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-10, "10:45"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-10, "10:45"), done: true },
+        { step: "曼谷仓发货 (THKEX88300112)", time: daysOffsetDateTime(-9, "14:00"), done: true },
+        { step: "买家签收完成", time: daysOffsetDateTime(-7, "17:20"), done: true },
+      ] },
+      { orderNo: "AMZUS-77502", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Robert Kim", countryCity: "美国 · 达拉斯", sku: "BTL-119", productName: "便携旅行分装瓶套装", qty: 3, amountLocal: "$44.70", amountUsd: 44.70, amountDisplay: "$44.70", status: "已完成", trackingNo: "TBA310004881", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-12, "08:55"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-12, "08:55"), done: true },
+        { step: "美东仓发货 (TBA310004881)", time: daysOffsetDateTime(-11, "13:40"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-9, "16:12"), done: true },
+      ] },
+      { orderNo: "EBUK-55238", shop: "eBay 英国站", mode: "REAL", buyer: "Amelia Hughes", countryCity: "英国 · 曼彻斯特", sku: "KET-502", productName: "折叠硅胶电热水壶", qty: 1, amountLocal: "£24.50", amountUsd: 31.00, amountDisplay: "£24.50 ($31.00)", status: "已签收", trackingNo: "RM992018874GB", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-7, "16:18"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-7, "16:18"), done: true },
+        { step: "发货 (RM992018874GB)", time: daysOffsetDateTime(-6, "11:05"), done: true },
+        { step: "买家签收", time: daysOffsetDateTime(-4, "14:40"), done: true },
+      ] },
+      { orderNo: "LZMY-41109", shop: "Lazada 马来旗舰店", mode: "REAL", buyer: "Farah Nabila", countryCity: "马来 · 槟城", sku: "FAN-203", productName: "便携静音循环扇", qty: 1, amountLocal: "RM82", amountUsd: 18.50, amountDisplay: "RM82 ($18.50)", status: "已发货", trackingNo: "MYPOS7729004", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-2, "21:14"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-2, "21:14"), done: true },
+        { step: "吉隆坡仓发货 (MYPOS7729004)", time: daysOffsetDateTime(-1, "10:30"), done: true },
+      ] },
+      { orderNo: "SPSG-60955", shop: "Shopee 新加坡站", mode: "REAL", buyer: "Rachel Lim", countryCity: "新加坡 · 淡滨尼", sku: "KET-502", productName: "折叠硅胶电热水壶", qty: 1, amountLocal: "S$41.9", amountUsd: 31.00, amountDisplay: "S$41.9 ($31.00)", status: "已付款", trackingNo: "待打单出库", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(0, "08:15"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(0, "08:15"), done: true },
+        { step: "待打包出库", time: "排队处理中", done: false },
+      ] },
+      { orderNo: "AMZUS-77530", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Daniel Brooks", countryCity: "美国 · 奥斯汀", sku: "LMP-418", productName: "便携露营氛围灯串", qty: 1, amountLocal: "$13.80", amountUsd: 13.80, amountDisplay: "$13.80", status: "退款中", trackingNo: "TBA310099412", payStatus: "退款冻结", source: "自然流量", disputeStatus: "质量问题退货", refundSyncStatus: "待退货质检", orderedAt: daysOffsetDateTime(-15, "13:10"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-15, "13:10"), done: true },
+        { step: "美东仓发货 (TBA310099412)", time: daysOffsetDateTime(-14, "16:20"), done: true },
+        { step: "买家申请退货退款", time: daysOffsetDateTime(-9, "10:40"), done: true },
+      ] },
+      { orderNo: "TTUS-30344", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Brandon Lee", countryCity: "美国 · 圣何塞", sku: "EAR-712", productName: "开放式运动蓝牙耳机", qty: 1, amountLocal: "$39.90", amountUsd: 39.90, amountDisplay: "$39.90", status: "已签收", trackingNo: "1Z999AA10123991231", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-5, "22:08"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-5, "22:08"), done: true },
+        { step: "美西仓发货 (1Z999AA10123991231)", time: daysOffsetDateTime(-4, "17:15"), done: true },
+        { step: "买家签收", time: daysOffsetDateTime(-1, "11:50"), done: true },
+      ] },
+      { orderNo: "SPTH-2026-166", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Somchai P.", countryCity: "泰国 · 普吉", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountLocal: "฿890", amountUsd: 25.50, amountDisplay: "฿890 ($25.50)", status: "已完成", trackingNo: "THKEX88310445", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-18, "14:40"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-18, "14:40"), done: true },
+        { step: "曼谷仓发货 (THKEX88310445)", time: daysOffsetDateTime(-17, "12:10"), done: true },
+        { step: "买家签收并确认完成", time: daysOffsetDateTime(-14, "16:30"), done: true },
+      ] },
+      { orderNo: "EBUK-55269", shop: "eBay 英国站", mode: "REAL", buyer: "George Wright", countryCity: "英国 · 伯明翰", sku: "BRD-601", productName: "户外防水野餐垫", qty: 1, amountLocal: "£20.50", amountUsd: 26.00, amountDisplay: "£20.50 ($26.00)", status: "已完成", trackingNo: "RM992023109GB", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-21, "09:12"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-21, "09:12"), done: true },
+        { step: "伦敦交运 (RM992023109GB)", time: daysOffsetDateTime(-20, "15:00"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-18, "10:15"), done: true },
+      ] },
+      { orderNo: "AMZUS-77561", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Chloe Davis", countryCity: "美国 · 波士顿", sku: "ORG-301", productName: "汽车后备箱整理箱", qty: 2, amountLocal: "$71.00", amountUsd: 71.00, amountDisplay: "$71.00", status: "已完成", trackingNo: "TBA310201188", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-11, "18:22"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-11, "18:22"), done: true },
+        { step: "美东仓发货 (TBA310201188)", time: daysOffsetDateTime(-10, "13:10"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-8, "15:55"), done: true },
+      ] },
+      { orderNo: "LZMY-41145", shop: "Lazada 马来旗舰店", mode: "REAL", buyer: "Jason Tan", countryCity: "马来 · 新山", sku: "MNT-405", productName: "磁吸折叠桌面支架", qty: 1, amountLocal: "RM115", amountUsd: 25.60, amountDisplay: "RM115 ($25.60)", status: "已完成", trackingNo: "MYPOS7731201", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-14, "11:08"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-14, "11:08"), done: true },
+        { step: "吉隆坡仓发货 (MYPOS7731201)", time: daysOffsetDateTime(-13, "10:00"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-11, "17:40"), done: true },
+      ] },
+      { orderNo: "TTUS-30389", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Kevin White", countryCity: "美国 · 亚特兰大", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountLocal: "$29.90", amountUsd: 29.90, amountDisplay: "$29.90", status: "已发货", trackingNo: "1Z999AA10124112200", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-1, "11:45"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-1, "11:45"), done: true },
+        { step: "美西仓出库 (1Z999AA10124112200)", time: daysOffsetDateTime(0, "06:30"), done: true },
+      ] },
+      { orderNo: "SPSG-60990", shop: "Shopee 新加坡站", mode: "REAL", buyer: "Mei Ling Ong", countryCity: "新加坡 · 宏茂桥", sku: "BTL-119", productName: "便携旅行分装瓶套装", qty: 1, amountLocal: "S$19.9", amountUsd: 14.90, amountDisplay: "S$19.9 ($14.90)", status: "已完成", trackingNo: "SGSPX9089112", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-24, "16:05"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-24, "16:05"), done: true },
+        { step: "打包发货 (SGSPX9089112)", time: daysOffsetDateTime(-23, "10:15"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-21, "14:20"), done: true },
+      ] },
+      { orderNo: "AMZ-DEMO-9901", shop: "Amazon 演示沙盒店", mode: "MOCK", buyer: "Demo Tester", countryCity: "测试沙盒 · 虚拟地址", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountLocal: "$29.90", amountUsd: 29.90, amountDisplay: "$29.90 (仅演示)", status: "仅演示不计营收", trackingNo: "DEMO-TRK-9901", payStatus: "沙盒模拟", source: "联调测试", disputeStatus: "无纠纷", refundSyncStatus: "仅演示", orderedAt: daysOffsetDateTime(0, "10:02"), historical: true, timeline: [
+        { step: "联调测试生成模拟订单（不计真实营收）", time: daysOffsetDateTime(0, "10:02"), done: true },
+      ] },
+      { orderNo: "AMZ-DEMO-9902", shop: "Amazon 演示沙盒店", mode: "MOCK", buyer: "Demo Buyer 2", countryCity: "测试沙盒 · 虚拟地址", sku: "FAN-203", productName: "便携静音循环扇", qty: 2, amountLocal: "$37.00", amountUsd: 37.00, amountDisplay: "$37.00 (仅演示)", status: "仅演示不计营收", trackingNo: "DEMO-TRK-9902", payStatus: "沙盒模拟", source: "联调测试", disputeStatus: "无纠纷", refundSyncStatus: "仅演示", orderedAt: daysOffsetDateTime(-3, "15:18"), historical: true, timeline: [
+        { step: "联调测试生成模拟订单（不计真实营收）", time: daysOffsetDateTime(-3, "15:18"), done: true },
       ] },
     ],
 
     // M0-3
     inventoryShopFilter: "ALL",
+    inventoryWhFilter: "ALL",
+    inventoryStatusFilter: "ALL",
+    inventorySearch: "",
+    m0cInvPage: 1,
     inventoryItems: [
-      { id: "inv1", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "TT-US-88210", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 18, safety: 45, note: "美西仓低库存预警" },
-      { id: "inv2", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "SP-TH-5521", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 52, safety: 30, note: "曼谷仓独立库存" },
-      { id: "inv3", sku: "FAN-203", name: "便携静音循环扇", shopSku: "SP-TH-9034", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 43, safety: 60, note: "泰国仓季节热销低于安全线" },
-      { id: "inv4", sku: "MAT-014", name: "加厚防滑瑜伽垫", shopSku: "TT-US-31922", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 120, safety: 50, note: "库存充足" },
-      { id: "inv5", sku: "COS-052", name: "焕亮保湿面霜", shopSku: "SP-TH-1140", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 28, safety: 25, note: "暂缺成本卡" },
+      { id: "inv1", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "TT-US-88210", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 18, inTransit: 120, locked: 9, pendingQc: 15, safety: 45, dailySales: 12, ageDays: 14, lastMoveAt: daysOffsetDateTime(0, "06:30"), turnoverDays: 12, storageFeeRate: 0.45, note: "美西仓严重缺货预警" },
+      { id: "inv2", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "SP-TH-5521", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 52, inTransit: 0, locked: 4, pendingQc: 0, safety: 30, dailySales: 5, ageDays: 22, lastMoveAt: daysOffsetDateTime(-1, "16:20"), turnoverDays: 18, storageFeeRate: 0.25, note: "即将断货缓冲期" },
+      { id: "inv3", sku: "FAN-203", name: "便携静音循环扇", shopSku: "SP-TH-9034", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 43, inTransit: 200, locked: 12, pendingQc: 25, safety: 60, dailySales: 8, ageDays: 19, lastMoveAt: daysOffsetDateTime(0, "09:15"), turnoverDays: 15, storageFeeRate: 0.30, note: "泰国仓季节热销低于安全线" },
+      { id: "inv4", sku: "MAT-014", name: "加厚防滑瑜伽垫", shopSku: "TT-US-31922", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 180, inTransit: 60, locked: 14, pendingQc: 0, safety: 50, dailySales: 7, ageDays: 28, lastMoveAt: daysOffsetDateTime(-1, "11:40"), turnoverDays: 26, storageFeeRate: 0.55, note: "库存健康" },
+      { id: "inv5", sku: "COS-052", name: "焕亮保湿面霜", shopSku: "SP-TH-1140", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 48, inTransit: 0, locked: 6, pendingQc: 10, safety: 25, dailySales: 4, ageDays: 35, lastMoveAt: daysOffsetDateTime(-2, "14:10"), turnoverDays: 20, storageFeeRate: 0.20, note: "暂缺成本卡" },
+      { id: "inv6", sku: "ORG-301", name: "汽车后备箱整理箱", shopSku: "AMZ-US-301", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 92, inTransit: 150, locked: 18, pendingQc: 0, safety: 80, dailySales: 11, ageDays: 18, lastMoveAt: daysOffsetDateTime(0, "07:45"), turnoverDays: 16, storageFeeRate: 0.65, note: "覆盖8.4天即将断货" },
+      { id: "inv7", sku: "PET-204", name: "防抓宠物汽车座垫", shopSku: "AMZ-US-204", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 210, inTransit: 0, locked: 11, pendingQc: 0, safety: 60, dailySales: 9, ageDays: 25, lastMoveAt: daysOffsetDateTime(-1, "15:12"), turnoverDays: 23, storageFeeRate: 0.58, note: "库存健康" },
+      { id: "inv8", sku: "MNT-405", name: "磁吸折叠桌面支架", shopSku: "TT-US-405", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 42, inTransit: 100, locked: 15, pendingQc: 20, safety: 70, dailySales: 10, ageDays: 12, lastMoveAt: daysOffsetDateTime(-2, "11:20"), turnoverDays: 10, storageFeeRate: 0.35, note: "不足5天严重缺货" },
+      { id: "inv9", sku: "MNT-405", name: "磁吸折叠桌面支架", shopSku: "LZ-MY-405", shopName: "Lazada 马来旗舰店", shopMode: "REAL", whId: "MY-WH-1", whName: "马来吉隆坡仓", avail: 145, inTransit: 0, locked: 5, pendingQc: 0, safety: 40, dailySales: 6, ageDays: 31, lastMoveAt: daysOffsetDateTime(-3, "10:00"), turnoverDays: 24, storageFeeRate: 0.22, note: "库存健康" },
+      { id: "inv10", sku: "VAC-704", name: "无线真空迷你封口机", shopSku: "SP-SG-704", shopName: "Shopee 新加坡站", shopMode: "REAL", whId: "MY-WH-1", whName: "马来吉隆坡仓", avail: 164, inTransit: 80, locked: 8, pendingQc: 12, safety: 50, dailySales: 6, ageDays: 16, lastMoveAt: daysOffsetDateTime(-1, "09:10"), turnoverDays: 27, storageFeeRate: 0.28, note: "库存健康" },
+      { id: "inv11", sku: "LMP-418", name: "便携露营氛围灯串", shopSku: "AMZ-US-418", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 136, inTransit: 0, locked: 2, pendingQc: 0, safety: 30, dailySales: 2, ageDays: 118, lastMoveAt: daysOffsetDateTime(-9, "10:40"), turnoverDays: 68, storageFeeRate: 0.42, note: "库龄118天滞销积压" },
+      { id: "inv12", sku: "BTL-119", name: "便携旅行分装瓶套装", shopSku: "AMZ-US-119", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 94, inTransit: 0, locked: 3, pendingQc: 0, safety: 40, dailySales: 4, ageDays: 96, lastMoveAt: daysOffsetDateTime(-11, "13:40"), turnoverDays: 34, storageFeeRate: 0.30, note: "库龄96天滞销积压" },
+      { id: "inv13", sku: "KET-502", name: "折叠硅胶电热水壶", shopSku: "SP-SG-502", shopName: "Shopee 新加坡站", shopMode: "REAL", whId: "MY-WH-1", whName: "马来吉隆坡仓", avail: 65, inTransit: 90, locked: 7, pendingQc: 15, safety: 55, dailySales: 6, ageDays: 29, lastMoveAt: daysOffsetDateTime(0, "08:15"), turnoverDays: 19, storageFeeRate: 0.36, note: "覆盖10.8天即将断货" },
+      { id: "inv14", sku: "BRD-601", name: "户外防水野餐垫", shopSku: "EB-UK-601", shopName: "eBay 英国站", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 112, inTransit: 0, locked: 1, pendingQc: 0, safety: 25, dailySales: 3, ageDays: 105, lastMoveAt: daysOffsetDateTime(-18, "10:15"), turnoverDays: 42, storageFeeRate: 0.48, note: "库龄105天滞销积压" },
+      { id: "inv15", sku: "EAR-712", name: "开放式运动蓝牙耳机", shopSku: "LZ-MY-712", shopName: "Lazada 马来旗舰店", shopMode: "REAL", whId: "MY-WH-1", whName: "马来吉隆坡仓", avail: 78, inTransit: 100, locked: 9, pendingQc: 18, safety: 60, dailySales: 9, ageDays: 21, lastMoveAt: daysOffsetDateTime(-2, "16:45"), turnoverDays: 14, storageFeeRate: 0.32, note: "覆盖8.7天即将断货" },
     ],
     stocktakes: [
-      { sheetId: "PD-20261119-01", whName: "泰国曼谷本地仓", sku: "FAN-203", before: 45, after: 43, delta: -2, m5Before: 488, m5After: 490, m6Before: 615, m6After: 617, reason: "历史示例：盘点发现2件外箱破损转残次", who: "赵仓管", time: "2026-11-19 08:20" }
+      { sheetId: "PD-2026-005", whName: "泰国曼谷本地仓", sku: "FAN-203", before: 45, after: 43, delta: -2, diffType: "盘亏", reviewer: "张运营", poNo: "PO-20261119-03", coverBefore: "5.6天", coverAfter: "5.4天", m5Before: 488, m5After: 490, m6Before: 615, m6After: 617, reason: "历史示例数据：盘点发现2件外箱破损转残次", who: "赵仓管", time: daysOffsetDateTime(0, "08:20") },
+      { sheetId: "PD-2026-004", whName: "美国美西海外仓", sku: "BAG-108", before: 21, after: 18, delta: -3, diffType: "盘亏", reviewer: "陈主管", poNo: "无关联采购单", coverBefore: "1.8天", coverAfter: "1.5天", m5Before: 614, m5After: 617, m6Before: 249, m6After: 252, reason: "复核发现3件拉链瑕疵退库隔离", who: "赵仓管", time: daysOffsetDateTime(-2, "16:40") },
+      { sheetId: "PD-2026-003", whName: "美国美东海外仓", sku: "ORG-301", before: 86, after: 92, delta: 6, diffType: "盘盈", reviewer: "张运营", poNo: "PO-20261108-01", coverBefore: "7.8天", coverAfter: "8.4天", m5Before: 310, m5After: 304, m6Before: 164, m6After: 158, reason: "清点角落托盘找回多装入库6件", who: "赵仓管", time: daysOffsetDateTime(-5, "14:15") },
+      { sheetId: "PD-2026-002", whName: "马来吉隆坡仓", sku: "VAC-704", before: 164, after: 164, delta: 0, diffType: "账实相符", reviewer: "陈主管", poNo: "PO-20261102-04", coverBefore: "27.3天", coverAfter: "27.3天", m5Before: 120, m5After: 120, m6Before: 0, m6After: 0, reason: "月度例行抽盘账实完全一致", who: "赵仓管", time: daysOffsetDateTime(-8, "11:30") },
+      { sheetId: "PD-2026-001", whName: "美国美东海外仓", sku: "LMP-418", before: 140, after: 136, delta: -4, diffType: "盘亏", reviewer: "周分析", poNo: "无关联采购单", coverBefore: "70.0天", coverAfter: "68.0天", m5Before: 0, m5After: 0, m6Before: 0, m6After: 0, reason: "滞销仓长期存放4件灯珠受潮报废", who: "赵仓管", time: daysOffsetDateTime(-12, "15:05") },
     ],
 
     // M1
@@ -1887,16 +2105,129 @@ function createInitialState() {
   };
 }
 
+function daysUntilDateStr(dateStr) {
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return 999;
+  const target = new Date(dateStr + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((target - today) / 86400000);
+}
 
 function renderM0_M3(pageId, state, helpers) {
-  const { toast, goPage, openModal, openDrawer, rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats, record403 } = helpers;
+  const { toast, goPage, openModal, openDrawer, closeDetailDrawer, rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats, record403 } = helpers;
 
-  // ==================== M0-1: 店铺授权连接 ====================
+  // ==================== M0-1: 店铺授权管理 ====================
   if (pageId === "m0a") {
     const canManageShop = state.role === "manager" || state.role === "approver";
-    const realCount = state.shops.filter(s => s.mode === "REAL").length;
+    const realShops = state.shops.filter(s => s.mode === "REAL");
+    const realCount = realShops.length;
     const healthyCount = state.shops.filter(s => s.health === "连接正常").length;
-    const issueCount = state.shops.filter(s => s.mode === "REAL" && s.health !== "连接正常").length;
+    const isShopPending = (s) => {
+      if (s.mode !== "REAL") return false;
+      const expDays = daysUntilDateStr(s.authExpireDate);
+      return s.health !== "连接正常" || (s.syncFailCount || 0) > 0 || expDays <= 7;
+    };
+    const pendingShops = state.shops.filter(isShopPending);
+    const issueCount = pendingShops.length;
+    const totalMonthlyGmv = realShops.reduce((sum, s) => sum + (s.monthlyGmv || 0), 0);
+
+    const handleSyncShop = (s) => {
+      runAsyncTask("m0_shop_conn", {
+        label: `正在同步「${s.name}」最新订单`,
+        steps: ["校验店铺连接状态与授权有效期", "批量拉取近期未入账订单并自动去重", "汇总新增 / 去重 / 异常统计并刷新经营口径"],
+        durationMs: 1050,
+        onSuccess: () => {
+          s.lastSync = nowDateTimeStr();
+          s.lastSyncTs = Date.now();
+          s.syncFailCount = 0;
+          const expDays = daysUntilDateStr(s.authExpireDate);
+          if (s.mode === "REAL") {
+            s.health = expDays <= 7 ? "授权即将过期" : "连接正常";
+            s.errNote = expDays <= 7 ? `授权凭证将于 ${expDays} 天后过期，请及时续期` : "";
+          } else {
+            s.health = "仅演示环境";
+            s.errNote = "";
+          }
+          state.lastDataRefreshAt = nowTimeStr();
+          state.lastDataRefreshTs = Date.now();
+
+          const batchSize = 5 + Math.floor(Math.random() * 4);
+          const dupCount = 1 + Math.floor(Math.random() * 2);
+          const failCount = s.platform === "LAZADA" ? 1 : 0;
+          const addedCount = batchSize - failCount;
+
+          const sampleBuyers = [
+            ["Liam Johnson", "美国 · 旧金山"], ["Sophia Garcia", "美国 · 休斯顿"],
+            ["Kittipong W.", "泰国 · 曼谷"], ["Nurul Huda", "马来 · 吉隆坡"],
+            ["Charlotte Evans", "英国 · 利兹"], ["Darren Koh", "新加坡 · 碧山"],
+            ["Ethan Brooks", "美国 · 丹佛"], ["Hana Lim", "新加坡 · 榜鹅"]
+          ];
+          const pricedSkus = state.masterProducts.filter(p => p.salePriceUsd);
+          const currSym = s.currency === "THB" ? "฿" : s.currency === "MYR" ? "RM" : s.currency === "GBP" ? "£" : s.currency === "SGD" ? "S$" : "$";
+          const fx = s.currency === "THB" ? 34.5 : s.currency === "MYR" ? 4.45 : s.currency === "GBP" ? 0.78 : s.currency === "SGD" ? 1.34 : 1;
+
+          for (let k = 0; k < addedCount; k++) {
+            const p = pricedSkus[(k + Math.floor(Math.random() * pricedSkus.length)) % pricedSkus.length];
+            const [bName, bCity] = sampleBuyers[(k + Math.floor(Math.random() * sampleBuyers.length)) % sampleBuyers.length];
+            const qty = k % 3 === 0 ? 2 : 1;
+            const usdAmt = +(p.salePriceUsd * qty).toFixed(2);
+            const localAmt = `${currSym}${(usdAmt * fx).toFixed(s.currency === "THB" || s.currency === "MYR" ? 0 : 2)}`;
+            const ordNo = genDocId(s.mode === "MOCK" ? "DEMO" : "ORD");
+            const trkNo = s.mode === "MOCK" ? `DEMO-TRK-${Math.floor(1000+Math.random()*9000)}` : `TRK${Math.floor(10000000+Math.random()*89999999)}`;
+            state.orders.unshift({
+              orderNo: ordNo, shop: s.name, mode: s.mode,
+              buyer: s.mode === "MOCK" ? `${bName} (演示)` : bName,
+              countryCity: s.mode === "MOCK" ? "测试沙盒 · 虚拟地址" : bCity,
+              sku: p.sku, productName: p.name, qty,
+              amountLocal: localAmt, amountUsd: usdAmt,
+              amountDisplay: s.mode === "MOCK" ? `${localAmt} (仅演示)` : (s.currency === "USD" ? `$${usdAmt.toFixed(2)}` : `${localAmt} ($${usdAmt.toFixed(2)})`),
+              status: s.mode === "MOCK" ? "仅演示不计营收" : (k % 2 === 0 ? "已付款" : "已发货"),
+              trackingNo: trkNo,
+              payStatus: s.mode === "MOCK" ? "沙盒模拟" : "已支付",
+              source: s.mode === "MOCK" ? "联调测试" : (k % 2 === 0 ? "广告流量" : "自然流量"),
+              disputeStatus: "无纠纷",
+              refundSyncStatus: s.mode === "MOCK" ? "仅演示" : "无退款",
+              orderedAt: nowDateTimeStr(),
+              historical: false,
+              timeline: [
+                { step: s.mode === "MOCK" ? "演示同步生成测试订单（不计真实营收）" : "买家付款完成并同步入账", time: nowDateTimeStr(), done: true },
+                { step: s.mode === "MOCK" ? "沙盒环境自动标记隔离" : "待仓库拣货交运", time: "处理中", done: false },
+              ]
+            });
+          }
+          if (s.mode === "REAL") s.orderCount = (s.orderCount || 0) + addedCount;
+          const statMsg = `本次同步完成：新增 ${addedCount} 笔 / 去重 ${dupCount} 笔 / 失败 ${failCount} 笔`;
+          if (s.mode === "MOCK") {
+            return {
+              summary: `${statMsg}（演示测试店订单已打标隔离，绝不计入实盘营收）`,
+              toastMsg: `演示店同步完成：新增 ${addedCount} 笔（不计营收）`,
+              toastLevel: "warn"
+            };
+          }
+          return {
+            summary: `${statMsg}（实盘订单已写入 M0-2 订单台账，经营大屏营收已同步刷新）`,
+            toastMsg: `${s.name}：新增 ${addedCount} 笔 / 去重 ${dupCount} 笔 / 失败 ${failCount} 笔`
+          };
+        }
+      });
+    };
+
+    const handleReauthShop = (s) => {
+      runAsyncTask("m0_shop_conn", {
+        label: `正在重新授权「${s.name}」`,
+        steps: ["跳转平台官方授权确认页", "刷新店铺授权有效期（+90天）", "恢复正常订单与库存同步"],
+        durationMs: 900,
+        onSuccess: () => {
+          s.health = s.mode === "REAL" ? "连接正常" : "仅演示环境";
+          s.errNote = "";
+          s.syncFailCount = 0;
+          if (s.mode === "REAL") s.authExpireDate = daysOffsetDate(90);
+          s.lastSync = nowDateTimeStr();
+          s.lastSyncTs = Date.now();
+          return { summary: `「${s.name}」已重新授权，授权有效期已续期至 ${s.authExpireDate}`, toastMsg: `「${s.name}」重新授权成功` };
+        }
+      });
+    };
 
     return {
       headerActions: [
@@ -1909,13 +2240,17 @@ function renderM0_M3(pageId, state, helpers) {
             if (!canManageShop) { record403("M0-1 连接新店铺", "需要管理者或主管权限"); return; }
             commitAction({
               title: "连接新的跨境店铺",
-              summary: `说明：当前为纯前端演示模式（外部后台服务未接入），此处将为您演示「正在连接 → 成功或失败原因」完整过程，并严格区分实盘店铺与演示测试店。`,
+              summary: "说明：当前为纯前端演示模式（外部后台服务未接入），此处将为您演示「正在连接 → 成功或失败原因」完整过程，并严格区分实盘店铺与演示测试店。",
               confirmText: "发起店铺连接",
               fieldsHtml: `
-                <div class="field"><label>店铺名称 *</label><input id="newShopName" class="input" placeholder="如：Lazada 马来主店"/></div>
+                <div class="field"><label>店铺名称 *</label><input id="newShopName" class="input" placeholder="如：Amazon 英国站"/></div>
                 <div class="grid-2" style="gap:10px;">
-                  <div class="field"><label>所属电商平台 *</label><select id="newShopPlat" class="select"><option value="SHOPEE">Shopee</option><option value="TIKTOK">TikTok Shop</option><option value="AMAZON">Amazon</option></select></div>
-                  <div class="field"><label>销售国家/站点 *</label><select id="newShopReg" class="select"><option value="TH">泰国站 (TH)</option><option value="US">美国站 (US)</option><option value="MY">马来站 (MY)</option></select></div>
+                  <div class="field"><label>所属电商平台 *</label><select id="newShopPlat" class="select"><option value="AMAZON">Amazon</option><option value="TIKTOK">TikTok Shop</option><option value="SHOPEE">Shopee</option><option value="LAZADA">Lazada</option><option value="EBAY">eBay</option></select></div>
+                  <div class="field"><label>销售国家/站点 *</label><select id="newShopReg" class="select"><option value="US">美国站 (US)</option><option value="UK">英国站 (UK)</option><option value="TH">泰国站 (TH)</option><option value="MY">马来站 (MY)</option><option value="SG">新加坡站 (SG)</option></select></div>
+                </div>
+                <div class="grid-2" style="gap:10px;">
+                  <div class="field"><label>主力品类 *</label><input id="newShopCat" class="input" value="家居收纳 / 居家小电"/></div>
+                  <div class="field"><label>店铺负责人 *</label><input id="newShopOwner" class="input" value="${ROLE_PERSON_NAMES[state.role]}"/></div>
                 </div>
                 <div class="field"><label>店铺经营性质 *</label>
                   <select id="newShopMode" class="select">
@@ -1931,16 +2266,24 @@ function renderM0_M3(pageId, state, helpers) {
                 </div>
               `,
               validate: (wrap) => {
+                const errs = [];
                 const nameEl = wrap.querySelector("#newShopName");
-                return nameEl.value.trim() ? [] : [{ el: nameEl, msg: "请填写店铺名称" }];
+                const catEl = wrap.querySelector("#newShopCat");
+                if (!nameEl.value.trim()) errs.push({ el: nameEl, msg: "请填写店铺名称" });
+                if (!catEl.value.trim()) errs.push({ el: catEl, msg: "请填写主力品类" });
+                return errs;
               },
               onConfirm: (wrap) => {
                 const name = wrap.querySelector("#newShopName").value.trim();
                 const platform = wrap.querySelector("#newShopPlat").value;
                 const region = wrap.querySelector("#newShopReg").value;
+                const mainCategory = wrap.querySelector("#newShopCat").value.trim();
+                const owner = wrap.querySelector("#newShopOwner").value.trim() || ROLE_PERSON_NAMES[state.role];
                 const mode = wrap.querySelector("#newShopMode").value;
                 const simFail = wrap.querySelector("#newShopSimResult").value === "FAIL";
                 const maskCode = String(Math.floor(1000 + Math.random() * 8999));
+                const currMap = { US: "USD", UK: "GBP", TH: "THB", MY: "MYR", SG: "SGD" };
+                const tzMap = { US: "UTC-8 (美西)", UK: "UTC+0 (伦敦)", TH: "UTC+7 (曼谷)", MY: "UTC+8 (吉隆坡)", SG: "UTC+8 (新加坡)" };
 
                 runAsyncTask("m0_shop_conn", {
                   label: `正在连接店铺 · ${name}`,
@@ -1959,6 +2302,15 @@ function renderM0_M3(pageId, state, helpers) {
                       lastSync: nowDateTimeStr(),
                       lastSyncTs: Date.now(),
                       errNote: "",
+                      monthlyGmv: mode === "REAL" ? 12800 : 0,
+                      orderCount: mode === "REAL" ? 140 : 0,
+                      mainCategory, owner,
+                      currency: currMap[region] || "USD",
+                      timezone: tzMap[region] || "UTC+8",
+                      authExpireDate: mode === "REAL" ? daysOffsetDate(90) : "长期有效(沙盒)",
+                      nextSyncAt: mode === "REAL" ? "每15分钟" : "手动联调",
+                      syncFailCount: 0,
+                      openedAt: daysOffsetDate(0)
                     });
                     return { summary: `店铺「${name}」连接成功（授权尾号 ${maskCode}）`, toastMsg: `店铺「${name}」已连接成功` };
                   }
@@ -1975,118 +2327,144 @@ function renderM0_M3(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>集中管理所有跨境店铺的授权连接状态与同步健康度。<strong>数据来源：</strong>各店铺实时连接状态（最近核对：${state.lastDataRefreshAt}）。</span>
+          <span><strong>页面定位：</strong>集中管理多平台跨境店铺授权健康度、凭证到期预警与订单同步流水。<strong>数据来源：</strong>各店铺实时连接状态（最近核对：${state.lastDataRefreshAt}）。</span>
         </div>
 
         ${renderAsyncBox("m0_shop_conn")}
+
+        ${pendingShops.length > 0 ? `
+          <div class="card" style="border-color:#fca5a5;background:#fef2f2;">
+            <div class="card-header">
+              <div class="card-title" style="color:var(--red-text);">🚨 店铺连接待处理事项（${pendingShops.length} 家实盘店需立即处理，防止订单漏同步）</div>
+              <span class="pill p-red">系统主动预警</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              ${pendingShops.map(ps => {
+                const idx = state.shops.indexOf(ps);
+                const expDays = daysUntilDateStr(ps.authExpireDate);
+                return `
+                  <div style="background:#fff;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <div>
+                      <strong>${ps.name}</strong>（${ps.platform} · ${ps.region} · 负责人：${ps.owner}）
+                      <span class="pill p-red" style="margin-left:6px;">${expDays <= 7 ? `授权仅剩 ${expDays} 天到期` : ps.syncFailCount > 0 ? `连续同步失败 ${ps.syncFailCount} 次` : ps.health}</span>
+                      <div style="font-size:12.5px;color:var(--red-text);margin-top:3px;">${ps.errNote || "请尽快续期授权或重试同步"}</div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                      <button class="btn btn-sm btn-primary m0-reauth-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>🔑 一键重新授权</button>
+                      <button class="btn btn-sm m0-sync-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>↻ 重试同步</button>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        ` : ""}
 
         <div class="grid-4">
           <div class="kpi-card highlight-blue">
             <div class="kpi-label">已接入店铺总数</div>
             <div class="kpi-val" style="color:var(--blue-hover)">${state.shops.length} 家</div>
-            <div class="kpi-sub">含实盘店 ${realCount} 家 · 演示测试店 ${state.shops.length - realCount} 家</div>
+            <div class="kpi-sub">实盘店 ${realCount} 家 · 演示测试店 ${state.shops.length - realCount} 家</div>
           </div>
           <div class="kpi-card highlight-green">
             <div class="kpi-label">连接正常店铺</div>
             <div class="kpi-val" style="color:var(--green-text)">${healthyCount} 家</div>
-            <div class="kpi-sub">可正常同步订单与库存</div>
+            <div class="kpi-sub">可稳定自动拉取订单与库存</div>
           </div>
           <div class="kpi-card ${issueCount > 0 ? "highlight-red" : ""}">
             <div class="kpi-label">凭证过期 / 同步异常</div>
             <div class="kpi-val" style="color:${issueCount > 0 ? "var(--red-text)" : "var(--text-dark)"}">${issueCount} 家</div>
-            <div class="kpi-sub">${issueCount > 0 ? "请点击对应店铺「重新授权」" : "当前全部实盘店健康"}</div>
+            <div class="kpi-sub">${issueCount > 0 ? "存在即将过期或同步失败店" : "当前全部实盘店健康"}</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-label">订单同步与隔离</div>
-            <div class="kpi-val" style="color:var(--purple-text)">严格隔离</div>
-            <div class="kpi-sub">演示测试店订单绝不计入实盘营收</div>
+          <div class="kpi-card highlight-purple">
+            <div class="kpi-label">实盘店月度总 GMV</div>
+            <div class="kpi-val" style="color:var(--purple-text)">$${totalMonthlyGmv.toLocaleString()}</div>
+            <div class="kpi-sub">演示测试店已严格隔离不计入</div>
           </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title">已接入店铺状态与授权管理</div>
+            <div class="card-title">多平台已接入店铺明细与授权状态（异常店已置顶标红预警）</div>
             <span class="pill ${canManageShop ? "p-green" : "p-amber"}">${canManageShop ? "已解锁管理权限" : "当前岗位仅可查看状态"}</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
-                <tr><th>店铺名称</th><th>平台与站点</th><th>营收口径</th><th>连接状态</th><th>已开通权限</th><th>最近同步时间</th><th>操作</th></tr>
+                <tr>
+                  <th>店铺名称 / 开店日</th>
+                  <th>平台 / 站点 / 口径</th>
+                  <th>月GMV / 订单数</th>
+                  <th>主力品类 / 负责人</th>
+                  <th>币种 / 时区</th>
+                  <th>授权到期日</th>
+                  <th>连接状态与权限</th>
+                  <th>最近同步 / 下次计划</th>
+                  <th>操作</th>
+                </tr>
               </thead>
               <tbody>
-                ${state.shops.map((s, idx) => `
-                  <tr>
-                    <td class="nowrap"><strong>${s.name}</strong><div style="font-size:12px;color:var(--text-soft);">凭证${s.credMask}</div></td>
-                    <td class="nowrap">${s.platform} · ${s.region}</td>
-                    <td class="nowrap"><span class="pill ${s.mode==="REAL"?"p-green":"p-amber"}">${s.mode==="REAL"?"实盘店铺（计入真实营收）":"仅演示环境（不计营收）"}</span></td>
-                    <td class="nowrap">
-                      <span class="pill ${s.health==="连接正常"?"p-green":s.health==="仅演示环境"?"p-blue":"p-red"}">${s.health}</span>
-                      ${s.errNote ? `<div style="font-size:12px;color:var(--red-text);margin-top:3px;">${s.errNote}</div>` : ""}
-                    </td>
-                    <td>${s.permLabels.map(p => `<span class="pill p-gray" style="margin-right:4px;">${p}</span>`).join("")}</td>
-                    <td class="nowrap">
-                      <div>${s.lastSync}</div>
-                      <div style="font-size:12px;color:var(--text-soft);">${relTimeLabel(s.lastSyncTs)}</div>
-                    </td>
-                    <td class="nowrap" style="display:flex;gap:6px;flex-wrap:wrap;">
-                      <button class="btn btn-sm btn-primary m0-sync-btn" data-i="${idx}" ${!canManageShop?"disabled":""} title="${!canManageShop?"需要管理者或主管权限":""}">↻ 同步订单</button>
-                      <button class="btn btn-sm m0-reauth-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>重新授权</button>
-                      <button class="btn btn-sm btn-danger m0-disc-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>断开连接</button>
-                    </td>
-                  </tr>
-                `).join("")}
+                ${[...state.shops].sort((a, b) => (isShopPending(b) ? 1 : 0) - (isShopPending(a) ? 1 : 0)).map(s => {
+                  const idx = state.shops.indexOf(s);
+                  const pending = isShopPending(s);
+                  const expDays = daysUntilDateStr(s.authExpireDate);
+                  const expSoon = s.mode === "REAL" && expDays <= 7;
+                  return `
+                    <tr style="${pending ? "background:#fef2f2;" : ""}">
+                      <td class="nowrap">
+                        <strong>${s.name}</strong>
+                        <div style="font-size:12px;color:var(--text-soft);">凭证${s.credMask} · 开店 ${s.openedAt || "—"}</div>
+                      </td>
+                      <td class="nowrap">
+                        <div><strong>${s.platform} · ${s.region}</strong></div>
+                        <span class="pill ${s.mode==="REAL"?"p-green":"p-amber"}" style="margin-top:2px;">${s.mode==="REAL"?"实盘(计营收)":"仅演示(不计营收)"}</span>
+                      </td>
+                      <td class="nowrap">
+                        <strong>${s.mode==="REAL" ? "$" + (s.monthlyGmv || 0).toLocaleString() : "$0 (隔离)"}</strong>
+                        <div style="font-size:12px;color:var(--text-soft);">${s.orderCount || 0} 单 / 月</div>
+                      </td>
+                      <td class="nowrap">
+                        <div>${s.mainCategory || "—"}</div>
+                        <div style="font-size:12px;color:var(--text-soft);">负责人：${s.owner || "—"}</div>
+                      </td>
+                      <td class="nowrap">
+                        <strong>${s.currency || "USD"}</strong>
+                        <div style="font-size:12px;color:var(--text-soft);">${s.timezone || "—"}</div>
+                      </td>
+                      <td class="nowrap">
+                        <div style="color:${expSoon?"var(--red-text)":"var(--text-dark)"};font-weight:${expSoon?"700":"500"};">${s.authExpireDate || "—"}</div>
+                        ${expSoon ? `<span class="pill p-red">即将过期(${expDays}天)</span>` : ""}
+                      </td>
+                      <td>
+                        <span class="pill ${s.health==="连接正常"?"p-green":s.health==="仅演示环境"?"p-blue":"p-red"}">${s.health}${s.syncFailCount > 0 ? ` (失败${s.syncFailCount}次)` : ""}</span>
+                        ${s.errNote ? `<div style="font-size:12px;color:var(--red-text);margin-top:3px;max-width:200px;">${s.errNote}</div>` : ""}
+                        <details style="margin-top:4px;font-size:12px;">
+                          <summary style="cursor:pointer;color:var(--blue-hover);">展开已开通权限(${s.permLabels.length})</summary>
+                          <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">${s.permLabels.map(p => `<span class="pill p-gray">${p}</span>`).join("")}</div>
+                        </details>
+                      </td>
+                      <td class="nowrap">
+                        <div>${s.lastSync}</div>
+                        <div style="font-size:12px;color:var(--text-soft);">${relTimeLabel(s.lastSyncTs)} · ${s.nextSyncAt || "定时"}</div>
+                      </td>
+                      <td class="nowrap">
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                          <button class="btn btn-sm btn-primary m0-sync-btn" data-i="${idx}" ${!canManageShop?"disabled":""} title="${!canManageShop?"需要管理者或主管权限":""}">↻ 同步订单</button>
+                          <button class="btn btn-sm m0-reauth-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>重新授权</button>
+                          <button class="btn btn-sm btn-danger m0-disc-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>断开</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
               </tbody>
             </table>
           </div>
         </div>
       `,
       bind: () => {
-        document.querySelectorAll(".m0-sync-btn").forEach(b => b.onclick = () => {
-          const s = state.shops[Number(b.dataset.i)];
-          runAsyncTask("m0_shop_conn", {
-            label: `正在同步「${s.name}」最新订单`,
-            steps: ["校验店铺连接状态", "拉取最近已完成订单并自动防重过滤", "刷新经营大屏汇总数字"],
-            durationMs: 1000,
-            onSuccess: () => {
-              s.lastSync = nowDateTimeStr();
-              s.lastSyncTs = Date.now();
-              s.health = s.mode === "REAL" ? "连接正常" : "仅演示环境";
-              s.errNote = "";
-              state.lastDataRefreshAt = nowTimeStr();
-              state.lastDataRefreshTs = Date.now();
-              if (s.mode === "REAL") {
-                const ordNo = genDocId("ORD");
-                state.orders.unshift({
-                  orderNo: ordNo, shop: s.name, mode: "REAL", buyer: "New Buyer", sku: "BAG-108", productName: "轻量通勤双肩包",
-                  qty: 2, amountUsd: 59.80, amountDisplay: "$59.80", status: "已付款", refundSyncStatus: "无退款", orderedAt: nowDateTimeStr(), historical: false,
-                  timeline: [
-                    { step: "买家付款完成", time: nowDateTimeStr(), done: true },
-                    { step: "待仓库拣货打包", time: "处理中", done: false },
-                  ]
-                });
-                return { summary: `已同步新实盘订单 ${ordNo} ($59.80)，经营大屏营收已同步更新`, toastMsg: `同步完成：新增 1 笔实盘订单 ${ordNo}` };
-              }
-              return { summary: `已刷新演示测试店状态（演示订单不计入真实营收）`, toastMsg: `演示店已同步（不计真实营收）`, toastLevel: "warn" };
-            }
-          });
-        });
-
-        document.querySelectorAll(".m0-reauth-btn").forEach(b => b.onclick = () => {
-          const s = state.shops[Number(b.dataset.i)];
-          runAsyncTask("m0_shop_conn", {
-            label: `正在重新授权「${s.name}」`,
-            steps: ["发起平台重新授权", "核对授权凭证", "恢复正常同步状态"],
-            durationMs: 900,
-            onSuccess: () => {
-              s.health = s.mode === "REAL" ? "连接正常" : "仅演示环境";
-              s.errNote = "";
-              s.lastSync = nowDateTimeStr();
-              s.lastSyncTs = Date.now();
-              return { summary: `「${s.name}」已重新授权并恢复正常连接`, toastMsg: `「${s.name}」重新授权成功` };
-            }
-          });
-        });
-
+        document.querySelectorAll(".m0-sync-btn").forEach(b => b.onclick = () => handleSyncShop(state.shops[Number(b.dataset.i)]));
+        document.querySelectorAll(".m0-reauth-btn").forEach(b => b.onclick = () => handleReauthShop(state.shops[Number(b.dataset.i)]));
         document.querySelectorAll(".m0-disc-btn").forEach(b => b.onclick = () => {
           const s = state.shops[Number(b.dataset.i)];
           commitAction({
@@ -2119,19 +2497,90 @@ function renderM0_M3(pageId, state, helpers) {
     const canEditCost = state.role === "planner" || state.role === "approver";
     const canApproveCost = state.role === "approver";
 
-    const filteredProds = state.masterProducts.filter(p => {
+    const enrichedProds = state.masterProducts.map(p => ({ ...p, _m: calcProductMargin(p) }));
+    const sortedProds = [...enrichedProds].sort((a, b) => {
+      if (a.cost === null && b.cost !== null) return -1;
+      if (a.cost !== null && b.cost === null) return 1;
+      const aLow = a._m.known && a._m.marginPct < 12 ? 1 : 0;
+      const bLow = b._m.known && b._m.marginPct < 12 ? 1 : 0;
+      return bLow - aLow;
+    });
+
+    const filteredProds = sortedProds.filter(p => {
       const q = state.masterSearch.trim().toLowerCase();
-      const matchQ = !q || p.sku.toLowerCase().includes(q) || p.name.toLowerCase().includes(q);
+      const matchQ = !q || p.sku.toLowerCase().includes(q) || p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q);
       const matchShop = state.masterShopFilter === "ALL" || p.mappings.some(m => m.shop === state.masterShopFilter);
       return matchQ && matchShop;
     });
 
+    const prodPageSize = 6;
+    const prodTotalPages = Math.max(1, Math.ceil(filteredProds.length / prodPageSize));
+    if (state.m0bProdPage > prodTotalPages) state.m0bProdPage = prodTotalPages;
+    const pagedProds = filteredProds.slice((state.m0bProdPage - 1) * prodPageSize, state.m0bProdPage * prodPageSize);
+
+    const openCostBreakdownDrawer = (p) => {
+      const m = calcProductMargin(p);
+      openDrawer(`完整成本构成与毛利核算 · ${p.sku}`, `${p.name} · ${p.cat} · 负责人 ${p.owner}`, `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <img src="${getProductImg(p.sku)}" class="prod-thumb-lg" alt="${p.name}"/>
+          <div>
+            <div style="font-size:15.5px;font-weight:700;">${p.name}（${p.sku}）</div>
+            <div style="font-size:12.5px;color:var(--text-soft);margin-top:3px;">上架日期：${p.listedAt} ｜ 近30天销量：<strong>${p.sales30d} 件</strong> ｜ 标签：${p.tag}</div>
+            <div style="margin-top:4px;">
+              ${m.known
+                ? `<span class="pill ${m.marginPct < 12 ? "p-red" : "p-green"}">单件毛利 $${m.profitUsd.toFixed(2)} ｜ 毛利率 ${m.marginPct}%</span>`
+                : `<span class="pill p-amber">缺少采购与头程成本（暂无法核算毛利）</span>`}
+            </div>
+          </div>
+        </div>
+        ${m.known ? `
+          <div class="formula-box" style="margin-bottom:12px;">
+            <strong>单件完整成本拆解（美元核算基准）：</strong><br/>
+            • 参考售价：<strong>$${p.salePriceUsd.toFixed(2)}</strong><br/>
+            • ① 采购成本：$${p.cost.toFixed(2)}<br/>
+            • ② 头程运费：$${p.freight.toFixed(2)}<br/>
+            • ③ 平台佣金（${p.commissionRate}%）：$${m.commissionUsd.toFixed(2)}<br/>
+            • ④ 尾程配送费：$${p.lastMile.toFixed(2)}<br/>
+            • ⑤ 进口关税：$${p.tariff.toFixed(2)}<br/>
+            • ⑥ 均摊广告费：$${p.adCost.toFixed(2)}<br/>
+            • ⑦ 退货损耗（${p.returnLossRate}%）：$${m.returnLossUsd.toFixed(2)}<br/>
+            <hr style="border:none;border-top:1px dashed var(--border-strong);margin:8px 0;"/>
+            <strong>核算明细：</strong>毛利额 = $${p.salePriceUsd.toFixed(2)} − $${m.totalCost.toFixed(2)} = <strong style="color:${m.marginPct<12?"var(--red-text)":"var(--green-text)"};">$${m.profitUsd.toFixed(2)}（毛利率 ${m.marginPct}%）</strong>
+          </div>
+          ${m.marginPct < 12 ? `<div class="banner banner-red"><span>⚠️ 利润偏薄预警（低于 12% 健康线）：建议提高目标站点售价、或联系供应商复核采购与物流报价。</span></div>` : ""}
+        ` : `<div class="banner banner-amber"><span>⚠️ 该商品缺少采购价与头程运费，严禁按 0 元估算利润。请点击「调整成本」补全。</span></div>`}
+        <div class="drawer-sec-label">已上架店铺与当地售价</div>
+        ${p.mappings.map(mp => `<div style="padding:7px 10px;background:#f8fafc;border:1px solid var(--border);border-radius:7px;margin-bottom:6px;font-size:13px;"><strong>${mp.shop}</strong> · 店铺编码 ${mp.shopSku} · 售价 <strong>${mp.price}</strong></div>`).join("")}
+      `);
+    };
+
+    const dateCutoff7 = daysOffsetDate(-7);
+    const dateCutoff30 = daysOffsetDate(-30);
     const filteredOrders = state.orders.filter(o => {
+      const q = state.orderSearch.trim().toLowerCase();
+      const mQ = !q || o.orderNo.toLowerCase().includes(q) || o.buyer.toLowerCase().includes(q) || (o.trackingNo || "").toLowerCase().includes(q) || o.sku.toLowerCase().includes(q);
       const mShop = state.orderShopFilter === "ALL" || o.shop === state.orderShopFilter;
       const mSt = state.orderStatusFilter === "ALL" || o.status === state.orderStatusFilter;
-      const mDt = state.orderDateFilter === "ALL" || o.orderedAt.startsWith(state.orderDateFilter);
-      return mShop && mSt && mDt;
+      const ordDate = (o.orderedAt || "").slice(0, 10);
+      let mDt = true;
+      if (state.orderDateFilter === "LAST7") mDt = ordDate >= dateCutoff7;
+      else if (state.orderDateFilter === "LAST30") mDt = ordDate >= dateCutoff30;
+      else if (state.orderDateFilter === "CUSTOM") {
+        if (state.orderDateCustomStart && ordDate < state.orderDateCustomStart) mDt = false;
+        if (state.orderDateCustomEnd && ordDate > state.orderDateCustomEnd) mDt = false;
+      }
+      return mQ && mShop && mSt && mDt;
     });
+
+    const ordPageSize = 8;
+    const ordTotalPages = Math.max(1, Math.ceil(filteredOrders.length / ordPageSize));
+    if (state.m0bOrdPage > ordTotalPages) state.m0bOrdPage = ordTotalPages;
+    const pagedOrders = filteredOrders.slice((state.m0bOrdPage - 1) * ordPageSize, state.m0bOrdPage * ordPageSize);
+
+    const lowMarginCount = enrichedProds.filter(p => p._m.known && p._m.marginPct < 12).length;
+    const missingCostCount = enrichedProds.filter(p => p.cost === null).length;
+    const realOrderCount = state.orders.filter(o => o.mode === "REAL").length;
+    const disputeOrderCount = state.orders.filter(o => o.disputeStatus && o.disputeStatus !== "无纠纷").length;
 
     return {
       headerActions: [
@@ -2139,78 +2588,111 @@ function renderM0_M3(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>管理商品主档案、带审批的成本变更申请，以及每笔订单的全生命周期明细。<strong>数据来源：</strong>各店铺同步订单与商品档案（最近核对：${state.lastDataRefreshAt}）。</span>
+          <span><strong>页面定位：</strong>管理全店商品完整成本与毛利预警、带审批的成本变更申请，以及多店铺订单全生命周期台账。<strong>数据来源：</strong>各店铺同步订单与商品档案（最近核对：${state.lastDataRefreshAt}）。</span>
         </div>
 
         <div class="grid-4">
-          <div class="kpi-card highlight-blue"><div class="kpi-label">在档主商品数量</div><div class="kpi-val" style="color:var(--blue-hover)">${state.masterProducts.length} 款</div><div class="kpi-sub">跨店铺统一商品编码管理</div></div>
-          <div class="kpi-card ${state.masterProducts.some(p=>p.cost===null)?"highlight-amber":""}"><div class="kpi-label">缺成本待补全商品</div><div class="kpi-val" style="color:var(--amber-text)">${state.masterProducts.filter(p=>p.cost===null).length} 款</div><div class="kpi-sub">缺成本不可计算真实利润与补货</div></div>
-          <div class="kpi-card highlight-green"><div class="kpi-label">实盘订单明细 (已防重)</div><div class="kpi-val" style="color:var(--green-text)">${state.orders.filter(o=>o.mode==="REAL").length} 笔</div><div class="kpi-sub">仅实盘订单计入真实营收</div></div>
-          <div class="kpi-card"><div class="kpi-label">成本变更审批记录</div><div class="kpi-val">${state.costChangeLogs.length} 笔</div><div class="kpi-sub">待审批：${state.costChangeLogs.filter(c=>c.status==="待主管审批").length} 笔</div></div>
+          <div class="kpi-card highlight-blue"><div class="kpi-label">在档主商品数量</div><div class="kpi-val" style="color:var(--blue-hover)">${state.masterProducts.length} 款</div><div class="kpi-sub">跨店铺统一商品编码与毛利核算</div></div>
+          <div class="kpi-card ${missingCostCount + lowMarginCount > 0 ? "highlight-red" : ""}"><div class="kpi-label">缺成本 / 低毛利预警</div><div class="kpi-val" style="color:var(--red-text)">${missingCostCount} 缺 / ${lowMarginCount} 薄</div><div class="kpi-sub">毛利率＜12%或未核价商品已置顶</div></div>
+          <div class="kpi-card highlight-green"><div class="kpi-label">实盘订单明细 (已防重)</div><div class="kpi-val" style="color:var(--green-text)">${realOrderCount} 笔</div><div class="kpi-sub">含纠纷/售后中 ${disputeOrderCount} 笔（演示店已隔离）</div></div>
+          <div class="kpi-card"><div class="kpi-label">成本变更审批台账</div><div class="kpi-val">${state.costChangeLogs.length} 笔</div><div class="kpi-sub">待主管审批：${state.costChangeLogs.filter(c=>c.status==="待主管审批").length} 笔</div></div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title">主商品档案与成本变更申请（修改成本将影响毛利、补货测算与利润驾驶舱）</div>
+            <div class="card-title">主商品档案与毛利率预警（点击商品名可看 8 项完整成本拆分）</div>
+            <span class="pill p-amber">缺成本置顶 · 低毛利标红提醒</span>
           </div>
           <div class="filter-bar" style="margin-bottom:12px;">
-            <div class="filter-item"><label>搜索商品编码或名称</label><input id="m0bSearch" class="input" placeholder="如：BAG-108 或 双肩包" value="${state.masterSearch}"/></div>
+            <div class="filter-item"><label>搜索商品编码 / 名称 / 品类</label><input id="m0bSearch" class="input" placeholder="如：BAG-108 / 露营 / 家居收纳" value="${state.masterSearch}"/></div>
             <div class="filter-item"><label>按上架店铺筛选</label>
               <select id="m0bShopSel" class="select">
-                <option value="ALL">全部店铺</option>
-                <option value="TikTok Shop 美区" ${state.masterShopFilter==="TikTok Shop 美区"?"selected":""}>TikTok Shop 美区</option>
-                <option value="Shopee 泰国主店" ${state.masterShopFilter==="Shopee 泰国主店"?"selected":""}>Shopee 泰国主店</option>
+                <option value="ALL">全部店铺 (${state.shops.filter(s=>s.mode==="REAL").length} 家实盘)</option>
+                ${state.shops.filter(s => s.mode === "REAL").map(s => `<option value="${s.name}" ${state.masterShopFilter===s.name?"selected":""}>${s.name}</option>`).join("")}
               </select>
             </div>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>商品实拍与编码</th><th>品类</th><th>各店铺上架编号与售价</th><th>单件采购 / 头程成本</th><th>档案状态</th><th>操作</th></tr></thead>
+              <thead><tr><th>商品（点击看成本构成）</th><th>品类</th><th>各店铺售价</th><th>近30天销量</th><th>毛利率与系统建议</th><th>商品标签</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead>
               <tbody>
-                ${filteredProds.length ? filteredProds.map(p => `
-                  <tr>
-                    <td class="nowrap">
-                      <div style="display:flex;align-items:center;gap:10px;">
-                        <img src="${getProductImg(p.sku)}" class="prod-thumb-img" alt="${p.name}"/>
-                        <div><strong>${p.sku}</strong><div style="font-size:12.5px;color:var(--text-muted);">${p.name}</div></div>
-                      </div>
-                    </td>
-                    <td class="nowrap">${p.cat}</td>
-                    <td>${p.mappings.map(m => `<div style="font-size:12.5px;"><strong>${m.shop}</strong> · 编号 ${m.shopSku} · ${m.price}</div>`).join("")}</td>
-                    <td class="nowrap">${p.cost === null ? '<span class="pill p-amber">未知 (禁止按0算)</span>' : `$${p.cost.toFixed(2)} + 头程 $${p.freight.toFixed(2)}`}</td>
-                    <td class="nowrap"><span class="pill ${p.cost===null?"p-amber":"p-green"}">${p.status}</span></td>
-                    <td class="nowrap">
-                      <button class="btn btn-sm btn-primary m0b-cost-btn" data-sku="${p.sku}" ${!canEditCost?"disabled":""} title="${!canEditCost?"需要业务运营或主管权限":""}">发起成本变更申请</button>
-                    </td>
-                  </tr>
-                `).join("") : `<tr><td colspan="6" style="text-align:center;color:var(--text-soft);padding:20px;">暂无符合筛选条件的商品，请清空筛选词重试。</td></tr>`}
+                ${pagedProds.length ? pagedProds.map(p => {
+                  const m = p._m;
+                  const lowM = m.known && m.marginPct < 12;
+                  return `
+                    <tr style="${p.cost===null ? "background:#fffbeb;" : lowM ? "background:#fef2f2;" : ""}">
+                      <td class="nowrap">
+                        <div class="m0b-cost-detail-trigger" data-sku="${p.sku}" style="display:flex;align-items:center;gap:10px;cursor:pointer;" title="点击查看完整成本构成与毛利率计算明细">
+                          <img src="${getProductImg(p.sku)}" class="prod-thumb-img" alt="${p.name}"/>
+                          <div>
+                            <strong style="color:var(--blue-hover);text-decoration:underline;">${p.name}</strong>
+                            <div style="font-size:12px;color:var(--text-soft);">${p.sku} · 上架 ${p.listedAt}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="nowrap">${p.cat}</td>
+                      <td>${p.mappings.map(mp => `<div style="font-size:12px;"><strong>${mp.shop}</strong> · ${mp.price}</div>`).join("")}</td>
+                      <td class="nowrap"><strong>${p.sales30d} 件</strong></td>
+                      <td class="nowrap">
+                        ${!m.known
+                          ? `<span class="pill p-amber">缺成本待补</span><div style="font-size:12px;color:var(--amber-text);margin-top:2px;">禁止按0估算，请补全采购价</div>`
+                          : lowM
+                            ? `<strong style="color:var(--red-text);font-size:14px;">${m.marginPct}%（偏薄）</strong><div style="font-size:12px;color:var(--red-text);margin-top:2px;">利润偏薄，建议调价或换供应商</div>`
+                            : `<strong style="color:var(--green-text);font-size:14px;">${m.marginPct}%</strong><div style="font-size:12px;color:var(--text-soft);">单件毛利 $${m.profitUsd.toFixed(2)}</div>`}
+                      </td>
+                      <td class="nowrap"><span class="pill ${p.tag==="爆款"?"p-green":p.tag==="潜力"?"p-blue":p.tag==="滞销"?"p-red":"p-amber"}">${p.tag}</span></td>
+                      <td class="nowrap">${p.owner}</td>
+                      <td class="nowrap"><span class="pill ${p.cost===null?"p-amber":"p-green"}">${p.status}</span></td>
+                      <td class="nowrap">
+                        <div style="display:flex;gap:6px;">
+                          <button class="btn btn-sm m0b-cost-detail-trigger" data-sku="${p.sku}">成本构成</button>
+                          <button class="btn btn-sm btn-primary m0b-cost-btn" data-sku="${p.sku}" ${!canEditCost?"disabled":""} title="${!canEditCost?"需要业务运营或主管权限":""}">调整成本</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join("") : `<tr><td colspan="9" style="text-align:center;color:var(--text-soft);padding:20px;">暂无符合筛选条件的商品，请清空筛选词重试。</td></tr>`}
               </tbody>
             </table>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+            <span style="font-size:12.5px;color:var(--text-soft);">第 ${state.m0bProdPage} / ${prodTotalPages} 页 · 每页 6 款 · 共 ${filteredProds.length} 款</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm" id="m0bProdPrev" ${state.m0bProdPage<=1?"disabled":""}>← 上一页</button>
+              <button class="btn btn-sm" id="m0bProdNext" ${state.m0bProdPage>=prodTotalPages?"disabled":""}>下一页 →</button>
+            </div>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-header"><div class="card-title">成本变更审批与历史版本台账（留痕可追溯）</div></div>
+          <div class="card-header">
+            <div class="card-title">成本变更审批与历史版本台账（严格执行提交人 ≠ 审批人）</div>
+            <span class="pill p-blue">共 ${state.costChangeLogs.length} 个历史与待审版本</span>
+          </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>申请单号</th><th>商品</th><th>变更前 → 变更后</th><th>生效日期</th><th>业务原因</th><th>申请/审批人</th><th>状态</th><th>操作</th></tr></thead>
+              <thead><tr><th>申请单号</th><th>商品</th><th>变更前 → 变更后（采购/头程）</th><th>生效日期</th><th>业务原因</th><th>申请 / 审批人</th><th>状态</th><th>操作</th></tr></thead>
               <tbody>
-                ${state.costChangeLogs.map((c, idx) => `
-                  <tr>
-                    <td class="nowrap"><strong>${c.id}</strong></td>
-                    <td class="nowrap">${c.sku}</td>
-                    <td class="nowrap">${c.oldCost===null?"未知":"$"+c.oldCost.toFixed(2)} → <strong>$${c.newCost.toFixed(2)}</strong> (头程 $${c.newFreight.toFixed(2)})</td>
-                    <td class="nowrap">${c.effectiveDate}</td>
-                    <td style="font-size:12.5px;">${c.reason}</td>
-                    <td class="nowrap">${c.applicant} / ${c.approver || "待主管批"}</td>
-                    <td class="nowrap"><span class="pill ${c.status==="已生效"?"p-green":"p-amber"}">${c.status}</span></td>
-                    <td class="nowrap">
-                      ${c.status === "待主管审批"
-                        ? `<button class="btn btn-sm btn-success m0b-approve-cost" data-i="${idx}" ${!canApproveCost?"disabled":""} title="${!canApproveCost?"需「主管/审批人」批准":""}">批准生效</button>`
-                        : `<span style="font-size:12px;color:var(--text-soft);">已归档</span>`}
-                    </td>
-                  </tr>
-                `).join("")}
+                ${state.costChangeLogs.map((c, idx) => {
+                  const isSelfSubmit = c.applicant === ROLE_PERSON_NAMES[state.role];
+                  const canApproveThis = canApproveCost && !isSelfSubmit;
+                  return `
+                    <tr>
+                      <td class="nowrap"><strong>${c.id}</strong></td>
+                      <td class="nowrap">${c.sku}</td>
+                      <td class="nowrap">${c.oldCost===null?"未知":"$"+c.oldCost.toFixed(2)} → <strong>$${c.newCost.toFixed(2)}</strong> (头程 $${c.newFreight.toFixed(2)})</td>
+                      <td class="nowrap">${c.effectiveDate}</td>
+                      <td style="font-size:12.5px;">${c.reason}</td>
+                      <td class="nowrap">${c.applicant} / ${c.approver || "待主管批"}</td>
+                      <td class="nowrap"><span class="pill ${c.status==="已生效"?"p-green":"p-amber"}">${c.status}</span></td>
+                      <td class="nowrap">
+                        ${c.status === "待主管审批"
+                          ? `<button class="btn btn-sm btn-success m0b-approve-cost" data-i="${idx}" ${!canApproveThis?"disabled":""} title="${!canApproveCost?"需「主管/审批人」批准":isSelfSubmit?"职责分离拦截：不可批准本人提交的成本单":""}">批准生效</button>`
+                          : `<span style="font-size:12px;color:var(--text-soft);">已归档</span>`}
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
               </tbody>
             </table>
           </div>
@@ -2218,16 +2700,15 @@ function renderM0_M3(pageId, state, helpers) {
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title">多店铺订单台账（点击任意订单行可查看买家与生命周期时间轴）</div>
-            <span class="pill p-green">重复订单已自动过滤</span>
+            <div class="card-title">多店铺订单台账（点击任意订单行可看物流时间轴并直达 M1 客服）</div>
+            <span class="pill p-green">重复订单已过滤 · 纠纷单已高亮</span>
           </div>
           <div class="filter-bar" style="margin-bottom:12px;">
+            <div class="filter-item"><label>搜索订单号 / 买家 / 物流单号</label><input id="ordSearchInp" class="input" placeholder="如：SYN9D / Emily / 1Z999" value="${state.orderSearch}"/></div>
             <div class="filter-item"><label>筛选店铺</label>
               <select id="ordShopFlt" class="select">
                 <option value="ALL">全部店铺</option>
-                <option value="TikTok Shop 美区" ${state.orderShopFilter==="TikTok Shop 美区"?"selected":""}>TikTok Shop 美区</option>
-                <option value="Shopee 泰国主店" ${state.orderShopFilter==="Shopee 泰国主店"?"selected":""}>Shopee 泰国主店</option>
-                <option value="Amazon 演示沙盒店" ${state.orderShopFilter==="Amazon 演示沙盒店"?"selected":""}>Amazon 演示沙盒店</option>
+                ${state.shops.map(s => `<option value="${s.name}" ${state.orderShopFilter===s.name?"selected":""}>${s.name}</option>`).join("")}
               </select>
             </div>
             <div class="filter-item"><label>订单状态</label>
@@ -2236,65 +2717,108 @@ function renderM0_M3(pageId, state, helpers) {
                 <option value="已付款" ${state.orderStatusFilter==="已付款"?"selected":""}>已付款</option>
                 <option value="已发货" ${state.orderStatusFilter==="已发货"?"selected":""}>已发货</option>
                 <option value="已签收" ${state.orderStatusFilter==="已签收"?"selected":""}>已签收</option>
+                <option value="退款中" ${state.orderStatusFilter==="退款中"?"selected":""}>退款中</option>
+                <option value="已完成" ${state.orderStatusFilter==="已完成"?"selected":""}>已完成</option>
+                <option value="仅演示不计营收" ${state.orderStatusFilter==="仅演示不计营收"?"selected":""}>仅演示不计营收</option>
               </select>
             </div>
-            <div class="filter-item"><label>下单日期</label>
+            <div class="filter-item"><label>下单日期（动态范围）</label>
               <select id="ordDtFlt" class="select">
-                <option value="ALL">全部日期</option>
-                <option value="2026-11-19" ${state.orderDateFilter==="2026-11-19"?"selected":""}>2026-11-19</option>
-                <option value="2026-11-18" ${state.orderDateFilter==="2026-11-18"?"selected":""}>2026-11-18</option>
-                <option value="2026-11-17" ${state.orderDateFilter==="2026-11-17"?"selected":""}>2026-11-17</option>
+                <option value="ALL" ${state.orderDateFilter==="ALL"?"selected":""}>全部历史订单</option>
+                <option value="LAST7" ${state.orderDateFilter==="LAST7"?"selected":""}>最近 7 天</option>
+                <option value="LAST30" ${state.orderDateFilter==="LAST30"?"selected":""}>最近 30 天</option>
+                <option value="CUSTOM" ${state.orderDateFilter==="CUSTOM"?"selected":""}>自定义日期区间</option>
               </select>
             </div>
+            ${state.orderDateFilter === "CUSTOM" ? `
+              <div class="filter-item"><label>起始日</label><input id="ordDtStart" type="date" class="input" value="${state.orderDateCustomStart}"/></div>
+              <div class="filter-item"><label>截止日</label><input id="ordDtEnd" type="date" class="input" value="${state.orderDateCustomEnd}"/></div>
+            ` : ""}
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>订单编号</th><th>所属店铺</th><th>买家姓名</th><th>商品明细</th><th>实付金额</th><th>下单时间</th><th>订单状态</th><th>退款登记状态</th><th>营收口径</th></tr></thead>
+              <thead><tr><th>订单编号</th><th>所属店铺</th><th>买家 (国家城市)</th><th>商品明细</th><th>金额 (本币+美元)</th><th>下单时间</th><th>状态</th><th>物流单号</th><th>纠纷状态</th><th>营收口径</th></tr></thead>
               <tbody>
-                ${filteredOrders.length ? filteredOrders.map(o => `
-                  <tr class="m0b-ord-row" data-ord="${o.orderNo}" style="cursor:pointer;" title="点击查看订单全生命周期">
-                    <td class="nowrap"><strong style="color:var(--blue-hover);">${o.orderNo}</strong></td>
-                    <td class="nowrap">${o.shop}</td>
-                    <td class="nowrap">${o.buyer}</td>
-                    <td class="nowrap">
-                      <div style="display:flex;align-items:center;gap:8px;">
-                        <img src="${getProductImg(o.sku)}" style="width:32px;height:32px;border-radius:6px;border:1px solid var(--border);" alt="${o.productName}"/>
-                        <span>${o.productName} × ${o.qty}</span>
-                      </div>
-                    </td>
-                    <td class="nowrap"><strong>${o.amountDisplay}</strong></td>
-                    <td class="nowrap">${o.orderedAt}</td>
-                    <td class="nowrap"><span class="pill ${o.mode==="REAL"?"p-blue":"p-amber"}">${o.status}</span></td>
-                    <td class="nowrap"><span class="pill ${o.refundSyncStatus==="无退款"?"p-gray":"p-purple"}">${o.refundSyncStatus}</span></td>
-                    <td class="nowrap"><span class="pill ${o.mode==="REAL"?"p-green":"p-amber"}">${o.mode==="REAL"?"计入真实营收":"仅演示不计营收"}</span></td>
-                  </tr>
-                `).join("") : `<tr><td colspan="9" style="text-align:center;color:var(--text-soft);padding:20px;">暂无符合当前筛选条件的订单。</td></tr>`}
+                ${pagedOrders.length ? pagedOrders.map(o => {
+                  const hasDispute = o.disputeStatus && o.disputeStatus !== "无纠纷";
+                  return `
+                    <tr class="m0b-ord-row" data-ord="${o.orderNo}" style="cursor:pointer;${hasDispute ? "background:#fef2f2;" : ""}" title="点击查看订单全生命周期或一键跳转M1客服">
+                      <td class="nowrap">
+                        <strong style="color:var(--blue-hover);">${o.orderNo}</strong>
+                        ${o.isHistoryDemo ? `<span class="pill p-purple" style="margin-left:4px;">历史示例数据</span>` : ""}
+                      </td>
+                      <td class="nowrap">${o.shop}</td>
+                      <td class="nowrap"><strong>${o.buyer}</strong><div style="font-size:12px;color:var(--text-soft);">${o.countryCity || "—"}</div></td>
+                      <td class="nowrap">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                          <img src="${getProductImg(o.sku)}" style="width:32px;height:32px;border-radius:6px;border:1px solid var(--border);" alt="${o.productName}"/>
+                          <span>${o.productName} × ${o.qty}</span>
+                        </div>
+                      </td>
+                      <td class="nowrap"><strong>${o.amountDisplay}</strong></td>
+                      <td class="nowrap">${o.orderedAt}<div style="font-size:12px;color:var(--text-soft);">${o.source || "自然流量"}</div></td>
+                      <td class="nowrap"><span class="pill ${o.mode==="MOCK"?"p-amber":o.status==="退款中"?"p-red":o.status==="已完成"||o.status==="已签收"?"p-green":"p-blue"}">${o.status}</span></td>
+                      <td class="nowrap" style="font-size:12px;">${o.trackingNo || "—"}</td>
+                      <td class="nowrap">
+                        <span class="pill ${hasDispute?"p-red":"p-gray"}">${o.disputeStatus || "无纠纷"}</span>
+                        ${o.refundSyncStatus && o.refundSyncStatus !== "无退款" ? `<div style="font-size:11.5px;color:var(--purple-text);margin-top:2px;">${o.refundSyncStatus}</div>` : ""}
+                      </td>
+                      <td class="nowrap"><span class="pill ${o.mode==="REAL"?"p-green":"p-amber"}">${o.mode==="REAL"?"计入真实营收":"仅演示不计营收"}</span></td>
+                    </tr>
+                  `;
+                }).join("") : `<tr><td colspan="10" style="text-align:center;color:var(--text-soft);padding:20px;">暂无符合当前筛选条件的订单。</td></tr>`}
               </tbody>
             </table>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+            <span style="font-size:12.5px;color:var(--text-soft);">第 ${state.m0bOrdPage} / ${ordTotalPages} 页 · 每页 8 笔 · 共 ${filteredOrders.length} 笔</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm" id="m0bOrdPrev" ${state.m0bOrdPage<=1?"disabled":""}>← 上一页</button>
+              <button class="btn btn-sm" id="m0bOrdNext" ${state.m0bOrdPage>=ordTotalPages?"disabled":""}>下一页 →</button>
+            </div>
           </div>
         </div>
       `,
       bind: () => {
-        document.getElementById("m0bSearch").oninput = (e) => { state.masterSearch = e.target.value; rerender(); };
-        document.getElementById("m0bShopSel").onchange = (e) => { state.masterShopFilter = e.target.value; rerender(); };
-        document.getElementById("ordShopFlt").onchange = (e) => { state.orderShopFilter = e.target.value; rerender(); };
-        document.getElementById("ordStFlt").onchange = (e) => { state.orderStatusFilter = e.target.value; rerender(); };
-        document.getElementById("ordDtFlt").onchange = (e) => { state.orderDateFilter = e.target.value; rerender(); };
+        document.getElementById("m0bSearch").oninput = (e) => { state.masterSearch = e.target.value; state.m0bProdPage = 1; rerender(); };
+        document.getElementById("m0bShopSel").onchange = (e) => { state.masterShopFilter = e.target.value; state.m0bProdPage = 1; rerender(); };
+        document.getElementById("m0bProdPrev").onclick = () => { state.m0bProdPage -= 1; rerender(); };
+        document.getElementById("m0bProdNext").onclick = () => { state.m0bProdPage += 1; rerender(); };
+
+        document.getElementById("ordSearchInp").oninput = (e) => { state.orderSearch = e.target.value; state.m0bOrdPage = 1; rerender(); };
+        document.getElementById("ordShopFlt").onchange = (e) => { state.orderShopFilter = e.target.value; state.m0bOrdPage = 1; rerender(); };
+        document.getElementById("ordStFlt").onchange = (e) => { state.orderStatusFilter = e.target.value; state.m0bOrdPage = 1; rerender(); };
+        document.getElementById("ordDtFlt").onchange = (e) => { state.orderDateFilter = e.target.value; state.m0bOrdPage = 1; rerender(); };
+        const dtStartEl = document.getElementById("ordDtStart");
+        const dtEndEl = document.getElementById("ordDtEnd");
+        if (dtStartEl) dtStartEl.onchange = (e) => { state.orderDateCustomStart = e.target.value; state.m0bOrdPage = 1; rerender(); };
+        if (dtEndEl) dtEndEl.onchange = (e) => { state.orderDateCustomEnd = e.target.value; state.m0bOrdPage = 1; rerender(); };
+        document.getElementById("m0bOrdPrev").onclick = () => { state.m0bOrdPage -= 1; rerender(); };
+        document.getElementById("m0bOrdNext").onclick = () => { state.m0bOrdPage += 1; rerender(); };
+
+        document.querySelectorAll(".m0b-cost-detail-trigger").forEach(el => el.onclick = () => {
+          const p = state.masterProducts.find(x => x.sku === el.dataset.sku);
+          if (p) openCostBreakdownDrawer(p);
+        });
 
         document.querySelectorAll(".m0b-ord-row").forEach(tr => tr.onclick = () => {
           const o = state.orders.find(x => x.orderNo === tr.dataset.ord);
           if (!o) return;
-          openDrawer(`订单全生命周期 · ${o.orderNo}`, `${o.shop} · ${o.mode==="REAL"?"实盘订单":"仅演示订单"}`, `
+          const matchedSess = state.csSessions.find(s => s.linkedOrder === o.orderNo || s.buyer === o.buyer);
+          const hasDispute = o.disputeStatus && o.disputeStatus !== "无纠纷";
+          openDrawer(`订单全生命周期 · ${o.orderNo}`, `${o.shop} · ${o.mode==="REAL"?"实盘订单":"仅演示订单"}${o.isHistoryDemo?" · 历史示例数据":""}`, `
+            ${hasDispute ? `<div class="banner banner-red" style="margin-bottom:12px;"><span>⚠️ 该订单当前存在「${o.disputeStatus}」，建议立即前往 M1 客服或售后工单处理。</span></div>` : ""}
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
               <img src="${getProductImg(o.sku)}" class="prod-thumb-lg" alt="${o.productName}"/>
               <div>
                 <div style="font-size:15px;font-weight:700;">${o.productName} × ${o.qty}</div>
-                <div style="font-size:12.5px;color:var(--text-soft);margin-top:2px;">买家：${o.buyer} ｜ 实付：<strong>${o.amountDisplay}</strong></div>
-                <div style="font-size:12px;color:var(--text-soft);">下单时间：${o.orderedAt} ｜ 退款登记：${o.refundSyncStatus}</div>
+                <div style="font-size:12.5px;color:var(--text-soft);margin-top:2px;">买家：<strong>${o.buyer}</strong> (${o.countryCity || "—"})</div>
+                <div style="font-size:12.5px;color:var(--text-soft);">实付：<strong>${o.amountDisplay}</strong> ｜ 支付：${o.payStatus || "已支付"} ｜ 来源：${o.source || "自然流量"}</div>
+                <div style="font-size:12px;color:var(--text-soft);">物流单号：<strong>${o.trackingNo || "—"}</strong> ｜ 退款登记：${o.refundSyncStatus}</div>
               </div>
             </div>
             <div class="drawer-sec-label">订单流转时间轴</div>
-            <div>
+            <div style="margin-bottom:16px;">
               ${(o.timeline || []).map(st => `
                 <div class="timeline-step ${st.done ? "done" : ""}">
                   <div>
@@ -2304,31 +2828,85 @@ function renderM0_M3(pageId, state, helpers) {
                 </div>
               `).join("")}
             </div>
-          `);
+            <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border);">
+              <button class="btn btn-primary" id="ordJumpCsBtn">
+                ${matchedSess ? `🔗 一键跳转 M1 客服会话 (${matchedSess.buyer}) →` : "🔗 前往 M1 客服工作台处理 →"}
+              </button>
+            </div>
+          `, (drawerBody) => {
+            drawerBody.querySelector("#ordJumpCsBtn").onclick = () => {
+              if (matchedSess) state.csActiveId = matchedSess.id;
+              closeDetailDrawer();
+              goPage("m1a");
+              toast(matchedSess ? `已关联并定位买家「${matchedSess.buyer}」会话` : `已跳转客服工作台，可按订单号 ${o.orderNo} 检索核验`, "info");
+            };
+          });
         });
 
         document.querySelectorAll(".m0b-cost-btn").forEach(b => b.onclick = () => {
           const p = state.masterProducts.find(x => x.sku === b.dataset.sku);
+          const beforeMargin = calcProductMargin(p);
           commitAction({
-            title: `发起成本变更申请 · ${p.sku} (${p.name})`,
-            summary: "⚠️ 重要影响提示：成本生效后将同步影响「毛利核算」、「M6 补货采购测算」与「M2 利润驾驶舱」全部利润数字。",
+            title: `发起完整成本变更申请 · ${p.sku} (${p.name})`,
+            summary: "⚠️ 影响面提示：成本生效后将同步重算「商品毛利率」、影响「M2 经营大屏净利润」及「M6 补货采购资金测算」。提交后需主管审批生效（提交人 ≠ 审批人）。",
             confirmText: "提交成本变更申请",
             fieldsHtml: `
               <div class="grid-2" style="gap:10px;">
                 <div class="field"><label>单件采购成本 (USD) *</label><input id="cNewCost" type="number" step="0.01" class="input" value="${p.cost ?? ""}" placeholder="例如 4.80"/></div>
                 <div class="field"><label>单件头程运费 (USD) *</label><input id="cNewFr" type="number" step="0.01" class="input" value="${p.freight ?? ""}" placeholder="例如 2.30"/></div>
+                <div class="field"><label>平台佣金率 (%) *</label><input id="cNewComm" type="number" step="0.1" class="input" value="${p.commissionRate ?? 12}"/></div>
+                <div class="field"><label>尾程配送费 (USD) *</label><input id="cNewLast" type="number" step="0.01" class="input" value="${p.lastMile ?? 3.5}"/></div>
+                <div class="field"><label>进口关税 (USD) *</label><input id="cNewTar" type="number" step="0.01" class="input" value="${p.tariff ?? 1.0}"/></div>
+                <div class="field"><label>均摊广告费 (USD) *</label><input id="cNewAd" type="number" step="0.01" class="input" value="${p.adCost ?? 2.5}"/></div>
               </div>
-              <div class="field"><label>成本生效日期 *</label><input id="cEffDate" type="date" class="input" value="2026-11-20"/></div>
+              <div id="cMarginPreview" class="formula-box" style="margin-bottom:10px;">请输入完整成本项以预览毛利率变化…</div>
+              <div class="field"><label>成本生效日期 *</label><input id="cEffDate" type="date" class="input" value="${daysOffsetDate(1)}"/></div>
               <div class="field"><label>业务变更原因（必填）*</label><input id="cReason" class="input" placeholder="如：原材料涨价 / 供应商阶梯报价调整"/></div>
             `,
+            onMount: (wrap) => {
+              const ids = ["#cNewCost", "#cNewFr", "#cNewComm", "#cNewLast", "#cNewTar", "#cNewAd"];
+              const prevBox = wrap.querySelector("#cMarginPreview");
+              const updPreview = () => {
+                const c = Number(wrap.querySelector("#cNewCost").value);
+                const f = Number(wrap.querySelector("#cNewFr").value);
+                const cm = Number(wrap.querySelector("#cNewComm").value);
+                const lm = Number(wrap.querySelector("#cNewLast").value);
+                const tr = Number(wrap.querySelector("#cNewTar").value);
+                const ad = Number(wrap.querySelector("#cNewAd").value);
+                if (!(c > 0)) {
+                  prevBox.innerHTML = "填写有效的采购成本后，将在此实时对比变更前后毛利率与下游影响。";
+                  return;
+                }
+                const after = calcProductMargin({
+                  salePriceUsd: p.salePriceUsd, cost: c, freight: f, commissionRate: cm,
+                  lastMile: lm, tariff: tr, adCost: ad, returnLossRate: p.returnLossRate || 2
+                });
+                const beforeText = beforeMargin.known ? `${beforeMargin.marginPct}% ($${beforeMargin.profitUsd.toFixed(2)})` : "未知（缺成本）";
+                prevBox.innerHTML = `
+                  <strong>变更前后毛利率实时对比（参考售价 $${p.salePriceUsd.toFixed(2)}）：</strong><br/>
+                  • 变更前：${beforeText} → 变更后：<strong style="color:${after.marginPct < 12 ? "var(--red-text)" : "var(--green-text)"};">${after.marginPct}% ($${after.profitUsd.toFixed(2)})</strong>${after.marginPct < 12 ? " <span class='pill p-red'>低于12%预警线</span>" : ""}<br/>
+                  • 联动影响：批准生效后，M2 经营大屏毛利按新单件成本 $${after.totalCost.toFixed(2)} 核算，M6 采购计划按采购+头程 $${(c+f).toFixed(2)}/件测算资金。
+                `;
+              };
+              ids.forEach(sel => { wrap.querySelector(sel).oninput = updPreview; });
+              updPreview();
+            },
             validate: (wrap) => {
               const errs = [];
               const cEl = wrap.querySelector("#cNewCost");
               const fEl = wrap.querySelector("#cNewFr");
+              const cmEl = wrap.querySelector("#cNewComm");
+              const lmEl = wrap.querySelector("#cNewLast");
+              const trEl = wrap.querySelector("#cNewTar");
+              const adEl = wrap.querySelector("#cNewAd");
               const dEl = wrap.querySelector("#cEffDate");
               const rEl = wrap.querySelector("#cReason");
               if (!(Number(cEl.value) > 0)) errs.push({ el: cEl, msg: "采购成本必须大于 0" });
-              if (!(Number(fEl.value) >= 0) || fEl.value.trim() === "") errs.push({ el: fEl, msg: "请填写合法头程运费" });
+              if (fEl.value.trim() === "" || Number(fEl.value) < 0) errs.push({ el: fEl, msg: "请填写合法头程运费" });
+              if (cmEl.value.trim() === "" || Number(cmEl.value) < 0 || Number(cmEl.value) > 60) errs.push({ el: cmEl, msg: "平台佣金率须在 0~60% 之间" });
+              if (lmEl.value.trim() === "" || Number(lmEl.value) < 0) errs.push({ el: lmEl, msg: "请填写合法尾程配送费" });
+              if (trEl.value.trim() === "" || Number(trEl.value) < 0) errs.push({ el: trEl, msg: "请填写合法关税" });
+              if (adEl.value.trim() === "" || Number(adEl.value) < 0) errs.push({ el: adEl, msg: "请填写合法广告费用" });
               if (!dEl.value.trim()) errs.push({ el: dEl, msg: "请选择生效日期" });
               if (!rEl.value.trim()) errs.push({ el: rEl, msg: "请填写成本变更业务原因" });
               return errs;
@@ -2336,25 +2914,26 @@ function renderM0_M3(pageId, state, helpers) {
             onConfirm: (wrap) => {
               const nc = Number(wrap.querySelector("#cNewCost").value);
               const nf = Number(wrap.querySelector("#cNewFr").value);
+              const ncm = Number(wrap.querySelector("#cNewComm").value);
+              const nlm = Number(wrap.querySelector("#cNewLast").value);
+              const ntr = Number(wrap.querySelector("#cNewTar").value);
+              const nad = Number(wrap.querySelector("#cNewAd").value);
               const dt = wrap.querySelector("#cEffDate").value;
               const rsn = wrap.querySelector("#cReason").value.trim();
               const cid = genDocId("CC");
-              const autoApprove = state.role === "approver";
               state.costChangeLogs.unshift({
                 id: cid, sku: p.sku, oldCost: p.cost, oldFreight: p.freight,
-                newCost: nc, newFreight: nf, effectiveDate: dt, reason: rsn,
+                newCost: nc, newFreight: nf, newCommission: ncm, newLastMile: nlm, newTariff: ntr, newAdCost: nad,
+                effectiveDate: dt, reason: rsn,
                 applicant: ROLE_PERSON_NAMES[state.role],
-                approver: autoApprove ? "陈主管" : "",
-                status: autoApprove ? "已生效" : "待主管审批",
+                approver: "",
+                status: "待主管审批",
                 time: nowDateTimeStr()
               });
-              if (autoApprove) {
-                p.cost = nc; p.freight = nf; p.status = "在售";
-              }
-              return { toastMsg: autoApprove ? `成本变更单 ${cid} 已生效（毛利与补货测算已同步更新）` : `已提交成本变更申请 ${cid}，请由「主管 / 审批人」批准生效` };
+              return { toastMsg: `已提交成本变更申请 ${cid}（待主管复核批准后生效，严格执行提交人 ≠ 审批人）` };
             },
             audit: (wrap) => ({
-              sentence: `${ROLE_PERSON_NAMES[state.role]} 提交了 ${p.sku} 成本变更申请（采购 $${wrap.querySelector("#cNewCost").value} + 头程 $${wrap.querySelector("#cNewFr").value}，生效日 ${wrap.querySelector("#cEffDate").value}），原因：${wrap.querySelector("#cReason").value.trim()}`,
+              sentence: `${ROLE_PERSON_NAMES[state.role]} 提交了 ${p.sku} 完整成本变更申请（采购 $${wrap.querySelector("#cNewCost").value} + 头程 $${wrap.querySelector("#cNewFr").value}，生效日 ${wrap.querySelector("#cEffDate").value}），原因：${wrap.querySelector("#cReason").value.trim()}`,
               ok: true
             })
           });
@@ -2362,6 +2941,10 @@ function renderM0_M3(pageId, state, helpers) {
 
         document.querySelectorAll(".m0b-approve-cost").forEach(b => b.onclick = () => {
           const log = state.costChangeLogs[Number(b.dataset.i)];
+          if (log.applicant === ROLE_PERSON_NAMES[state.role]) {
+            record403("M0-2 成本变更审批", "职责分离：不可批准本人提交的成本单");
+            return;
+          }
           const prod = state.masterProducts.find(p => p.sku === log.sku);
           commitAction({
             title: `批准成本变更生效 · ${log.id}`,
@@ -2369,12 +2952,20 @@ function renderM0_M3(pageId, state, helpers) {
             confirmText: "确认批准生效",
             onConfirm: () => {
               log.status = "已生效";
-              log.approver = "陈主管";
-              if (prod) { prod.cost = log.newCost; prod.freight = log.newFreight; prod.status = "在售"; }
+              log.approver = ROLE_PERSON_NAMES[state.role];
+              if (prod) {
+                prod.cost = log.newCost;
+                prod.freight = log.newFreight;
+                if (log.newCommission !== undefined) prod.commissionRate = log.newCommission;
+                if (log.newLastMile !== undefined) prod.lastMile = log.newLastMile;
+                if (log.newTariff !== undefined) prod.tariff = log.newTariff;
+                if (log.newAdCost !== undefined) prod.adCost = log.newAdCost;
+                prod.status = "在售";
+              }
               return { toastMsg: `成本变更 ${log.id} 已批准生效` };
             },
             audit: {
-              sentence: `陈主管 批准了成本变更单 ${log.id}（${log.sku} 采购成本调至 $${log.newCost.toFixed(2)}）`,
+              sentence: `${ROLE_PERSON_NAMES[state.role]} 批准了成本变更单 ${log.id}（${log.sku} 采购成本调至 $${log.newCost.toFixed(2)}）`,
               ok: true
             }
           });
@@ -2386,12 +2977,40 @@ function renderM0_M3(pageId, state, helpers) {
   // ==================== M0-3: 分店分仓独立库存与正式盘点单 ====================
   if (pageId === "m0c") {
     const canStocktake = state.role === "warehouse" || state.role === "manager" || state.role === "approver";
-    const filteredInv = state.inventoryItems.filter(i => state.inventoryShopFilter === "ALL" || i.shopName === state.inventoryShopFilter);
 
-    // 实时算一个当前预测对比（BAG-108 与 FAN-203 直观显示变化）
+    const invWithCov = state.inventoryItems.map(item => {
+      const cov = calcInvCoverage(item);
+      return { item, cov: { ...cov, tier: cov.pill === "p-red" ? "RED" : cov.pill === "p-amber" ? "AMBER" : cov.pill === "p-gray" ? "GRAY" : "GREEN", label: cov.level } };
+    });
+    const filteredInv = invWithCov.filter(({ item, cov }) => {
+      const mShop = state.inventoryShopFilter === "ALL" || item.shopName === state.inventoryShopFilter;
+      const mWh = state.inventoryWhFilter === "ALL" || item.whId === state.inventoryWhFilter;
+      const mSt = state.inventoryStatusFilter === "ALL" || cov.tier === state.inventoryStatusFilter;
+      const q = state.inventorySearch.trim().toLowerCase();
+      const mQ = !q || item.sku.toLowerCase().includes(q) || item.name.toLowerCase().includes(q) || item.shopSku.toLowerCase().includes(q);
+      return mShop && mWh && mSt && mQ;
+    });
+
+    const invPageSize = 8;
+    const invTotalPages = Math.max(1, Math.ceil(filteredInv.length / invPageSize));
+    if (state.m0cInvPage > invTotalPages) state.m0cInvPage = invTotalPages;
+    const pagedInv = filteredInv.slice((state.m0cInvPage - 1) * invPageSize, state.m0cInvPage * invPageSize);
+
+    const redCount = invWithCov.filter(x => x.cov.tier === "RED").length;
+    const amberCount = invWithCov.filter(x => x.cov.tier === "AMBER").length;
+    const slowCount = invWithCov.filter(x => x.cov.tier === "GRAY").length;
+    const totalInTransit = state.inventoryItems.reduce((s, i) => s + (i.inTransit || 0), 0);
+    const totalLocked = state.inventoryItems.reduce((s, i) => s + (i.locked || 0), 0);
+    const totalQc = state.inventoryItems.reduce((s, i) => s + (i.pendingQc || 0), 0);
+
     const totalPred7 = state.m5DailyPred.reduce((a, b) => a + b, 0);
     const bagUs = state.inventoryItems.find(i => i.id === "inv1");
     const fanTh = state.inventoryItems.find(i => i.id === "inv3");
+    const m5GapBag = bagUs ? Math.max(0, totalPred7 + bagUs.safety - bagUs.avail) : 0;
+    const m6GapFan = fanTh ? Math.max(0, 30 * (state.m6NormalLeadDays + state.m6NormalSafetyDays) - fanTh.avail) : 0;
+
+    const currentActor = ROLE_PERSON_NAMES[state.role];
+    const reviewerPool = ["赵仓管", "陈主管", "周运营", "张总监", "王采购"].filter(n => n !== currentActor);
 
     return {
       headerActions: [
@@ -2404,68 +3023,136 @@ function renderM0_M3(pageId, state, helpers) {
         </div>
 
         <div class="grid-4">
-          <div class="kpi-card highlight-blue"><div class="kpi-label">分店独立库存台账</div><div class="kpi-val" style="color:var(--blue-hover)">${state.inventoryItems.length} 条</div><div class="kpi-sub">跨店跨仓不混算</div></div>
-          <div class="kpi-card highlight-red"><div class="kpi-label">低于安全水位预警</div><div class="kpi-val" style="color:var(--red-text)">${state.inventoryItems.filter(i=>i.avail<i.safety).length} 项</div><div class="kpi-sub">需尽快盘点核实或安排补货</div></div>
-          <div class="kpi-card"><div class="kpi-label">美西仓 BAG-108 联动补货</div><div class="kpi-val" style="color:var(--blue-hover)">${Math.max(0, totalPred7 + bagUs.safety - bagUs.avail)} 件</div><div class="kpi-sub">M5 7日参考 (当前可售 ${bagUs.avail} 件)</div></div>
-          <div class="kpi-card"><div class="kpi-label">曼谷仓 FAN-203 理论缺口</div><div class="kpi-val" style="color:var(--amber-text)">${Math.max(0, 30*(state.m6NormalLeadDays+state.m6NormalSafetyDays) - fanTh.avail)} 件</div><div class="kpi-sub">M6 常规补货缺口 (当前可售 ${fanTh.avail} 件)</div></div>
+          <div class="kpi-card highlight-blue">
+            <div class="kpi-label">分店独立库存台账</div>
+            <div class="kpi-val" style="color:var(--blue-hover)">${state.inventoryItems.length} 条</div>
+            <div class="kpi-sub">美西/美东/曼谷/吉隆坡 4 仓独立核算</div>
+          </div>
+          <div class="kpi-card ${redCount + amberCount > 0 ? "highlight-red" : ""}">
+            <div class="kpi-label">断货 / 低水位预警</div>
+            <div class="kpi-val" style="color:var(--red-text)">${redCount} 断货 / ${amberCount} 紧张</div>
+            <div class="kpi-sub">覆盖＜7天标红 · 7~14天标橙</div>
+          </div>
+          <div class="kpi-card ${slowCount > 0 ? "highlight-amber" : ""}">
+            <div class="kpi-label">滞销积压 SKU (&gt;90天)</div>
+            <div class="kpi-val" style="color:var(--amber-text)">${slowCount} 款</div>
+            <div class="kpi-sub">库龄超 90 天需促销或调拨清仓</div>
+          </div>
+          <div class="kpi-card highlight-green">
+            <div class="kpi-label">全仓在途库存总计</div>
+            <div class="kpi-val" style="color:var(--green-text)">${totalInTransit} 件</div>
+            <div class="kpi-sub">锁定 ${totalLocked} / 待质检 ${totalQc} · M5:${m5GapBag} / M6:${m6GapFan}</div>
+          </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title">分店分仓独立可售库存</div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <select id="m0cShopFlt" class="select" style="width:190px;">
+            <div class="card-title">分店分仓独立库存水位明细（含在途 / 锁定 / 待质检与覆盖天数预警）</div>
+            <span class="pill p-blue">共 ${filteredInv.length} 条（第 ${state.m0cInvPage}/${invTotalPages} 页）</span>
+          </div>
+          <div class="filter-bar" style="margin-bottom:12px;">
+            <div class="filter-item"><label>搜索商品编码 / 名称</label><input id="m0cSearch" class="input" placeholder="如：BAG-108 / 露营 / 风扇" value="${state.inventorySearch}"/></div>
+            <div class="filter-item"><label>按物理仓库筛选</label>
+              <select id="m0cWhFlt" class="select">
+                <option value="ALL">全部 4 座物理仓</option>
+                <option value="US-WH-2" ${state.inventoryWhFilter==="US-WH-2"?"selected":""}>美国美西海外仓 (US-WH-2)</option>
+                <option value="US-WH-1" ${state.inventoryWhFilter==="US-WH-1"?"selected":""}>美国美东新泽西仓 (US-WH-1)</option>
+                <option value="TH-WH-1" ${state.inventoryWhFilter==="TH-WH-1"?"selected":""}>泰国曼谷本地仓 (TH-WH-1)</option>
+                <option value="MY-WH-1" ${state.inventoryWhFilter==="MY-WH-1"?"selected":""}>马来吉隆坡仓 (MY-WH-1)</option>
+              </select>
+            </div>
+            <div class="filter-item"><label>按所属店铺筛选</label>
+              <select id="m0cShopFlt" class="select">
                 <option value="ALL">全部实盘店铺</option>
-                <option value="TikTok Shop 美区" ${state.inventoryShopFilter==="TikTok Shop 美区"?"selected":""}>TikTok Shop 美区</option>
-                <option value="Shopee 泰国主店" ${state.inventoryShopFilter==="Shopee 泰国主店"?"selected":""}>Shopee 泰国主店</option>
+                ${state.shops.filter(s => s.mode === "REAL").map(s => `<option value="${s.name}" ${state.inventoryShopFilter===s.name?"selected":""}>${s.name}</option>`).join("")}
+              </select>
+            </div>
+            <div class="filter-item"><label>按水位状态筛选</label>
+              <select id="m0cStFlt" class="select">
+                <option value="ALL">全部状态</option>
+                <option value="RED" ${state.inventoryStatusFilter==="RED"?"selected":""}>🔴 断货预警 (&lt;7天)</option>
+                <option value="AMBER" ${state.inventoryStatusFilter==="AMBER"?"selected":""}>🟠 补货提示 (7~14天)</option>
+                <option value="GREEN" ${state.inventoryStatusFilter==="GREEN"?"selected":""}>🟢 库存健康</option>
+                <option value="GRAY" ${state.inventoryStatusFilter==="GRAY"?"selected":""}>⚪ 积压滞销 (&gt;90天)</option>
               </select>
             </div>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>商品编码与名称</th><th>所属店铺</th><th>存放物理仓库</th><th>当前可售</th><th>安全库存</th><th>水位状态</th><th>人工盘点</th></tr></thead>
+              <thead><tr><th>商品编码与名称</th><th>所属店铺 / 仓库</th><th>可用</th><th>在途</th><th>锁定</th><th>待质检</th><th>安全库存</th><th>覆盖天数 / 库龄</th><th>水位状态与建议</th><th>人工盘点</th></tr></thead>
               <tbody>
-                ${filteredInv.map(item => {
-                  const low = item.avail < item.safety;
+                ${pagedInv.length ? pagedInv.map(({ item, cov }) => {
+                  const rowBg = cov.tier === "RED" ? "background:#fef2f2;" : cov.tier === "AMBER" ? "background:#fffbeb;" : cov.tier === "GRAY" ? "background:#f8fafc;" : "";
                   return `
-                    <tr>
+                    <tr style="${rowBg}">
                       <td class="nowrap">
                         <div style="display:flex;align-items:center;gap:8px;">
                           <img src="${getProductImg(item.sku)}" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--border);" alt="${item.name}"/>
-                          <div><strong>${item.sku} · ${item.name}</strong><div style="font-size:12px;color:var(--text-soft);">店铺上架编号：${item.shopSku}</div></div>
+                          <div><strong>${item.sku} · ${item.name}</strong><div style="font-size:12px;color:var(--text-soft);">上架编码：${item.shopSku} · 日仓储 $${(item.storageFeeRate || 0.03).toFixed(2)}</div></div>
                         </div>
                       </td>
-                      <td class="nowrap">${item.shopName}</td>
-                      <td class="nowrap"><strong>${item.whName}</strong></td>
-                      <td class="nowrap"><strong style="font-size:15px;color:${low?"var(--red-text)":"var(--text-dark)"};">${item.avail} 件</strong></td>
+                      <td class="nowrap">
+                        <div>${item.shopName}</div>
+                        <div style="font-size:12px;color:var(--text-soft);"><strong>${item.whName}</strong></div>
+                      </td>
+                      <td class="nowrap"><strong style="font-size:15px;color:${cov.tier==="RED"?"var(--red-text)":"var(--text-dark)"};">${item.avail}</strong></td>
+                      <td class="nowrap" style="color:var(--blue-hover);font-weight:600;">${item.inTransit || 0}</td>
+                      <td class="nowrap">${item.locked || 0}</td>
+                      <td class="nowrap">${item.pendingQc || 0}</td>
                       <td class="nowrap">${item.safety} 件</td>
-                      <td class="nowrap"><span class="pill ${low?"p-red":"p-green"}">${low?"低于安全水位":"库存健康"}</span></td>
+                      <td class="nowrap">
+                        <strong>${cov.coverDays} 天</strong>
+                        <div style="font-size:12px;color:${item.ageDays > 90 ? "var(--red-text)" : "var(--text-soft)"};">库龄 ${item.ageDays} 天 · 周转 ${item.turnoverDays}天</div>
+                      </td>
+                      <td>
+                        <span class="pill ${cov.pill}">${cov.label}</span>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:3px;max-width:170px;">${cov.advice}</div>
+                      </td>
                       <td class="nowrap">
                         <button class="btn btn-sm btn-primary m0c-cal-btn" data-id="${item.id}" ${!canStocktake?"disabled":""} title="${!canStocktake?"需要仓库人员或管理者权限":""}">📝 盘点校准</button>
                       </td>
                     </tr>
                   `;
-                }).join("")}
+                }).join("") : `<tr><td colspan="10" style="text-align:center;color:var(--text-soft);padding:20px;">暂无符合当前筛选条件的库存记录。</td></tr>`}
               </tbody>
             </table>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+            <span style="font-size:12.5px;color:var(--text-soft);">第 ${state.m0cInvPage} / ${invTotalPages} 页 · 每页 8 条 · 共 ${filteredInv.length} 条</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm" id="m0cInvPrev" ${state.m0cInvPage<=1?"disabled":""}>← 上一页</button>
+              <button class="btn btn-sm" id="m0cInvNext" ${state.m0cInvPage>=invTotalPages?"disabled":""}>下一页 →</button>
+            </div>
           </div>
         </div>
 
         <div class="card card-blue">
-          <div class="card-header"><div class="card-title">正式盘点单与下游补货影响明细（让每笔盘点变化一目了然）</div></div>
+          <div class="card-header"><div class="card-title">正式盘点单与下游补货影响明细（含复核人双人签核与覆盖天数前后变化）</div></div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>盘点单号</th><th>仓库 / 商品</th><th>调整前 → 调整后</th><th>M5 建议补货量变化</th><th>M6 补货缺口变化</th><th>盘点原因</th><th>盘点人 / 时间</th></tr></thead>
+              <thead><tr><th>盘点单号</th><th>仓库 / 商品 / 关联单号</th><th>差异类型与数量变化</th><th>覆盖天数变化</th><th>M5 / M6 联动重算</th><th>盘点原因</th><th>盘点 / 复核人 / 时间</th></tr></thead>
               <tbody>
                 ${state.stocktakes.map(st => `
                   <tr>
                     <td class="nowrap"><strong>${st.sheetId}</strong></td>
-                    <td class="nowrap">${st.whName} · ${st.sku}</td>
-                    <td class="nowrap">${st.before} → <strong>${st.after} 件</strong> (${st.delta >= 0 ? "+" + st.delta : st.delta})</td>
-                    <td class="nowrap">${st.m5Before} → <strong style="color:var(--blue-hover);">${st.m5After} 件</strong></td>
-                    <td class="nowrap">${st.m6Before} → <strong style="color:var(--green-text);">${st.m6After} 件</strong></td>
+                    <td class="nowrap">
+                      <div>${st.whName} · <strong>${st.sku}</strong></div>
+                      <div style="font-size:12px;color:var(--text-soft);">关联单号：${st.poNo || "—"}</div>
+                    </td>
+                    <td class="nowrap">
+                      <span class="pill ${st.delta >= 0 ? "p-green" : "p-red"}">${st.diffType || "常规盘点"}</span>
+                      <div style="margin-top:2px;">${st.before} → <strong>${st.after} 件</strong> (${st.delta >= 0 ? "+" + st.delta : st.delta})</div>
+                    </td>
+                    <td class="nowrap">${st.coverBefore ?? "—"}天 → <strong style="color:var(--blue-hover);">${st.coverAfter ?? "—"}天</strong></td>
+                    <td class="nowrap">
+                      <div>M5：${st.m5Before} → <strong style="color:var(--blue-hover);">${st.m5After}</strong></div>
+                      <div style="font-size:12px;">M6：${st.m6Before} → <strong style="color:var(--green-text);">${st.m6After}</strong></div>
+                    </td>
                     <td style="font-size:12.5px;">${st.reason}</td>
-                    <td class="nowrap">${st.who}<div style="font-size:12px;color:var(--text-soft);">${st.time}</div></td>
+                    <td class="nowrap">
+                      <div>盘点：${st.who} · 复核：<strong>${st.reviewer || "陈主管"}</strong></div>
+                      <div style="font-size:12px;color:var(--text-soft);">${st.time}</div>
+                    </td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -2474,23 +3161,52 @@ function renderM0_M3(pageId, state, helpers) {
         </div>
       `,
       bind: () => {
-        document.getElementById("m0cShopFlt").onchange = (e) => { state.inventoryShopFilter = e.target.value; rerender(); };
+        document.getElementById("m0cSearch").oninput = (e) => { state.inventorySearch = e.target.value; state.m0cInvPage = 1; rerender(); };
+        document.getElementById("m0cWhFlt").onchange = (e) => { state.inventoryWhFilter = e.target.value; state.m0cInvPage = 1; rerender(); };
+        document.getElementById("m0cShopFlt").onchange = (e) => { state.inventoryShopFilter = e.target.value; state.m0cInvPage = 1; rerender(); };
+        document.getElementById("m0cStFlt").onchange = (e) => { state.inventoryStatusFilter = e.target.value; state.m0cInvPage = 1; rerender(); };
+        document.getElementById("m0cInvPrev").onclick = () => { state.m0cInvPage -= 1; rerender(); };
+        document.getElementById("m0cInvNext").onclick = () => { state.m0cInvPage += 1; rerender(); };
+
         document.querySelectorAll(".m0c-cal-btn").forEach(b => b.onclick = () => {
           const item = state.inventoryItems.find(x => x.id === b.dataset.id);
           const oldAvail = item.avail;
+          const oldCov = calcInvCoverage(item);
           const m5PredBase = state.m5DailyPred.reduce((a, x) => a + x, 0);
           const m5Old = Math.max(0, m5PredBase + item.safety - oldAvail);
           const m6Old = Math.max(0, 30 * (state.m6NormalLeadDays + state.m6NormalSafetyDays) - oldAvail);
 
           commitAction({
             title: `生成正式盘点单 · ${item.whName} · ${item.sku}`,
-            summary: `当前账面可售 <strong>${oldAvail} 件</strong>；若本次调整幅度超过 20 件或 20%，系统会要求填写详细原因并二次确认。`,
+            summary: `当前账面可售 <strong>${oldAvail} 件</strong>（覆盖 ${oldCov.coverDays} 天）；盘点生成正式单据后即刻联动 M5/M6，且严禁盘点人与复核人相同。`,
             confirmText: "确认生成盘点单并更新库存",
             fieldsHtml: `
-              <div class="field"><label>实际清点可售数量 (件) *</label><input id="stNewQty" type="number" class="input" value="${oldAvail}"/></div>
-              <div id="stImpactPreview" class="formula-box" style="margin-bottom:10px;">请输入盘点后数量以查看对 M5/M6 建议补货量的实时影响…</div>
-              <div class="field"><label>盘点差异原因（必填）*</label><input id="stReason" class="input" placeholder="如：新到货上架入仓 / 清点出破损件"/></div>
-              <div id="stBigWarn" style="display:none;" class="banner banner-red"><span>⚠️ 检测到大幅度库存调整（变动 ≥ 20 件），请确认已核对实物无误再提交！</span></div>
+              <div class="grid-2" style="gap:10px;">
+                <div class="field"><label>实际清点可售数量 (件) *</label><input id="stNewQty" type="number" class="input" value="${oldAvail}"/></div>
+                <div class="field"><label>差异类型 *</label>
+                  <select id="stDiffType" class="select">
+                    <option value="盘盈入库">盘盈入库</option>
+                    <option value="盘亏损耗">盘亏损耗</option>
+                    <option value="采购收货核验">采购收货核验</option>
+                    <option value="退货重检入仓">退货重检入仓</option>
+                    <option value="库位纠偏">库位纠偏</option>
+                  </select>
+                </div>
+                <div class="field"><label>关联采购单/退货单号（选填）</label><input id="stPoNo" class="input" placeholder="如：PO-20261115-01"/></div>
+                <div class="field"><label>双人复核人（不可同盘点人 ${currentActor}）*</label>
+                  <select id="stReviewer" class="select">
+                    ${reviewerPool.map(r => `<option value="${r}">${r}</option>`).join("")}
+                  </select>
+                </div>
+              </div>
+              <div id="stImpactPreview" class="formula-box" style="margin-bottom:10px;">请输入盘点后数量以查看覆盖天数及 M5/M6 实时联动变化…</div>
+              <div class="field"><label>盘点差异原因（必填）*</label><input id="stReason" class="input" placeholder="如：新到货实物复点数入仓 / 清点剔除外箱破损件"/></div>
+              <div id="stBigWarn" style="display:none;flex-direction:column;gap:6px;" class="banner banner-red">
+                <span>⚠️ 检测到大幅度库存调整（变动 ≥ 20 件），请二次复核实物并勾选下方确认框后再提交！</span>
+                <label style="font-size:12.5px;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                  <input type="checkbox" id="stBigConfirmCheck"/> 我已与复核人共同完成现场实物点检，确认本次大额调整无误
+                </label>
+              </div>
             `,
             onMount: (wrap) => {
               const qtyEl = wrap.querySelector("#stNewQty");
@@ -2499,10 +3215,12 @@ function renderM0_M3(pageId, state, helpers) {
               const upd = () => {
                 const n = Number(qtyEl.value);
                 if (Number.isNaN(n) || n < 0) return;
+                const newCov = calcInvCoverage({ ...item, avail: n });
                 const m5New = Math.max(0, m5PredBase + item.safety - n);
                 const m6New = Math.max(0, 30 * (state.m6NormalLeadDays + state.m6NormalSafetyDays) - n);
                 prevEl.innerHTML = `
                   • 库存变化：${oldAvail} 件 → <strong>${n} 件</strong> (${n - oldAvail >= 0 ? "+" : ""}${n - oldAvail} 件)<br/>
+                  • 覆盖天数变化：${oldCov.coverDays} 天 → <strong style="color:${newCov.pill==="p-red"?"var(--red-text)":"var(--blue-hover)"};">${newCov.coverDays} 天</strong>（${newCov.level}）<br/>
                   • 影响 M5 预测补货建议：${m5Old} 件 → <strong>${m5New} 件</strong><br/>
                   • 影响 M6 常规补货缺口：${m6Old} 件 → <strong>${m6New} 件</strong>
                 `;
@@ -2514,28 +3232,42 @@ function renderM0_M3(pageId, state, helpers) {
             validate: (wrap) => {
               const errs = [];
               const qEl = wrap.querySelector("#stNewQty");
+              const rvEl = wrap.querySelector("#stReviewer");
               const rEl = wrap.querySelector("#stReason");
-              if (qEl.value.trim() === "" || Number(qEl.value) < 0) errs.push({ el: qEl, msg: "库存数量必须为大于或等于 0 的数字" });
+              const chkEl = wrap.querySelector("#stBigConfirmCheck");
+              const n = Number(qEl.value);
+              if (qEl.value.trim() === "" || Number.isNaN(n) || n < 0) errs.push({ el: qEl, msg: "库存数量必须为大于或等于 0 的数字" });
+              if (!rvEl.value.trim() || rvEl.value.trim() === currentActor) errs.push({ el: rvEl, msg: "复核人必填且不可与当前盘点人相同" });
               if (!rEl.value.trim()) errs.push({ el: rEl, msg: "请填写盘点调整原因" });
+              if (!Number.isNaN(n) && Math.abs(n - oldAvail) >= 20 && chkEl && !chkEl.checked) {
+                errs.push({ el: chkEl, msg: "变动 ≥ 20 件时必须勾选现场实物点检二次确认" });
+              }
               return errs;
             },
             onConfirm: (wrap) => {
               const newVal = Number(wrap.querySelector("#stNewQty").value);
+              const diffType = wrap.querySelector("#stDiffType").value;
+              const poNo = wrap.querySelector("#stPoNo").value.trim() || "—";
+              const reviewer = wrap.querySelector("#stReviewer").value.trim();
               const reason = wrap.querySelector("#stReason").value.trim();
+              const newCov = calcInvCoverage({ ...item, avail: newVal });
               const m5New = Math.max(0, m5PredBase + item.safety - newVal);
               const m6New = Math.max(0, 30 * (state.m6NormalLeadDays + state.m6NormalSafetyDays) - newVal);
               const sid = genDocId("PD");
               item.avail = newVal;
+              item.lastMoveAt = nowDateTimeStr();
               state.stocktakes.unshift({
                 sheetId: sid, whName: item.whName, sku: item.sku,
                 before: oldAvail, after: newVal, delta: newVal - oldAvail,
                 m5Before: m5Old, m5After: m5New, m6Before: m6Old, m6After: m6New,
-                reason, who: ROLE_PERSON_NAMES[state.role], time: nowDateTimeStr()
+                coverBefore: oldCov.coverDays, coverAfter: newCov.coverDays,
+                diffType, poNo, reviewer,
+                reason, who: currentActor, time: nowDateTimeStr()
               });
-              return { toastMsg: `盘点单 ${sid} 已生效！库存更新为 ${newVal} 件，M5/M6 建议补货量已联动重算` };
+              return { toastMsg: `盘点单 ${sid} 已生效！库存更新为 ${newVal} 件（覆盖 ${newCov.coverDays} 天），M5/M6 已联动重算` };
             },
             audit: (wrap) => ({
-              sentence: `${ROLE_PERSON_NAMES[state.role]} 生成了盘点单（${item.whName} ${item.sku} 由 ${oldAvail} 件校准为 ${wrap.querySelector("#stNewQty").value} 件），原因：${wrap.querySelector("#stReason").value.trim()}`,
+              sentence: `${currentActor}（复核人：${wrap.querySelector("#stReviewer").value}）生成了${wrap.querySelector("#stDiffType").value}盘点单（${item.whName} ${item.sku} 由 ${oldAvail} 件校准为 ${wrap.querySelector("#stNewQty").value} 件），原因：${wrap.querySelector("#stReason").value.trim()}`,
               ok: true
             })
           });
@@ -3535,7 +4267,6 @@ function renderM0_M3(pageId, state, helpers) {
 
   return null;
 }
-
 
 const M4_MODES = {
   balanced: { key: "balanced", label: "均衡优选", wRev: 45, wTrend: 35, wMargin: 20, desc: "适合日常选品：平衡近2月销售额、近期涨势与毛利空间，优先推荐可投产单品" },
@@ -5162,7 +5893,6 @@ function renderM4_M6(pageId, state, helpers) {
   return null;
 }
 
-
 const MATRIX_ROWS = [
   ["01 M8 员工名册与岗位授权", "★ 本组权限", "★ 全局授权", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止", "— 禁止"],
   ["02 M0-1 店铺连接与商品主档", "○ 查看状态", "★ 店铺授权", "◆ 成本变更", "○ 只读统计", "○ 查基础资料", "○ 查商品卖点", "○ 查商品规格", "○ 本店订单", "— 禁止"],
@@ -6079,7 +6809,6 @@ function renderM7_M8(pageId, state, helpers) {
   return null;
 }
 
-
 const ROLE_HINTS = Object.fromEntries(BIZ_ROLES.map(r => [r.key, r.desc]));
 let state = createInitialState();
 
@@ -6610,6 +7339,6 @@ if (PAGE_META[initHash]) {
   if (mod) state.openModuleId = mod.id;
 }
 rerender();
-</script>
+  </script>
 </body>
 </html>

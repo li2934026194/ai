@@ -2,7 +2,9 @@ export const BACKEND_SERVICE_URL = ""; // 预留后台服务地址；留空表�
 
 export const WAREHOUSE_LABELS = {
   "US-WH-2": "美国美西海外仓",
+  "US-WH-1": "美国美东海外仓",
   "TH-WH-1": "泰国曼谷本地仓",
+  "MY-WH-1": "马来吉隆坡仓",
 };
 
 function makeSvgDataUri(bg, accent, label, iconSvg) {
@@ -21,6 +23,16 @@ export const PRODUCT_IMAGES = {
   "FAN-203": makeSvgDataUri("#ecfeff", "#0891b2", "便携静音循环扇", `<circle cx="120" cy="100" r="46" fill="#0891b2"/><circle cx="120" cy="100" r="36" fill="#cffafe"/><path d="M120 100 L120 68 A14 14 0 0 1 136 92 Z M120 100 L148 118 A14 14 0 0 1 116 126 Z M120 100 L92 112 A14 14 0 0 1 102 76 Z" fill="#0e7490"/><circle cx="120" cy="100" r="8" fill="#164e63"/><rect x="108" y="146" width="24" height="16" rx="4" fill="#0e7490"/><rect x="88" y="160" width="64" height="10" rx="5" fill="#155e75"/>`),
   "MAT-014": makeSvgDataUri("#f0fdf4", "#10b981", "加厚防滑瑜伽垫", `<rect x="64" y="88" width="112" height="44" rx="22" fill="#10b981"/><ellipse cx="78" cy="110" rx="12" ry="22" fill="#047857"/><ellipse cx="78" cy="110" rx="5" ry="11" fill="#a7f3d0"/><path d="M94 94 H158 M94 126 H158" stroke="#ecfdf5" stroke-width="3" stroke-linecap="round"/>`),
   "COS-052": makeSvgDataUri("#fdf2f8", "#db2777", "焕亮保湿面霜", `<rect x="82" y="84" width="76" height="66" rx="14" fill="#f472b6"/><rect x="76" y="66" width="88" height="22" rx="8" fill="#db2777"/><rect x="96" y="104" width="48" height="26" rx="6" fill="#fff1f2"/><circle cx="120" cy="117" r="7" fill="#db2777"/>`),
+  "ORG-301": makeSvgDataUri("#fff7ed", "#ea580c", "后备箱整理箱", `<rect x="68" y="76" width="104" height="72" rx="10" fill="#fb923c"/><rect x="64" y="66" width="112" height="16" rx="6" fill="#ea580c"/><line x1="103" y1="82" x2="103" y2="148" stroke="#ffedd5" stroke-width="4"/><line x1="137" y1="82" x2="137" y2="148" stroke="#ffedd5" stroke-width="4"/>`),
+  "LND-538": makeSvgDataUri("#eef2ff", "#4f46e5", "防水折叠洗衣篮", `<path d="M78 72 H162 L152 152 H88 Z" fill="#6366f1"/><ellipse cx="120" cy="72" rx="42" ry="10" fill="#4338ca"/><ellipse cx="120" cy="72" rx="34" ry="6" fill="#c7d2fe"/><line x1="94" y1="102" x2="146" y2="102" stroke="#e0e7ff" stroke-width="4" stroke-linecap="round"/><line x1="96" y1="124" x2="144" y2="124" stroke="#e0e7ff" stroke-width="4" stroke-linecap="round"/>`),
+  "PET-204": makeSvgDataUri("#fefce8", "#ca8a04", "防抓宠物汽车垫", `<path d="M70 68 H170 V142 L156 156 H84 L70 142 Z" fill="#eab308"/><rect x="84" y="84" width="72" height="44" rx="8" fill="#fef08a"/><circle cx="104" cy="106" r="6" fill="#a16207"/><circle cx="136" cy="106" r="6" fill="#a16207"/><circle cx="120" cy="118" r="8" fill="#a16207"/>`),
+  "MNT-405": makeSvgDataUri("#f5f3ff", "#7c3aed", "磁吸折叠支架", `<rect x="88" y="144" width="64" height="12" rx="6" fill="#6d28d9"/><line x1="120" y1="144" x2="106" y2="102" stroke="#7c3aed" stroke-width="10" stroke-linecap="round"/><rect x="86" y="64" width="68" height="46" rx="10" fill="#8b5cf6"/><circle cx="120" cy="87" r="14" fill="#ede9fe"/>`),
+  "VAC-704": makeSvgDataUri("#ecfdf5", "#059669", "迷你真空封口机", `<rect x="62" y="92" width="116" height="42" rx="20" fill="#10b981"/><rect x="76" y="106" width="68" height="12" rx="6" fill="#ecfdf5"/><circle cx="158" cy="113" r="8" fill="#047857"/>`),
+  "LMP-418": makeSvgDataUri("#fef2f2", "#dc2626", "露营氛围灯串", `<path d="M68 82 Q120 120 172 82" fill="none" stroke="#475569" stroke-width="4"/><circle cx="80" cy="92" r="11" fill="#fbbf24"/><circle cx="106" cy="104" r="11" fill="#f87171"/><circle cx="134" cy="104" r="11" fill="#fbbf24"/><circle cx="160" cy="92" r="11" fill="#f87171"/>`),
+  "BTL-119": makeSvgDataUri("#f0f9ff", "#0284c7", "旅行分装瓶套装", `<rect x="78" y="76" width="24" height="72" rx="8" fill="#38bdf8"/><rect x="108" y="66" width="24" height="82" rx="8" fill="#0284c7"/><rect x="138" y="84" width="24" height="64" rx="8" fill="#7dd3fc"/>`),
+  "KET-502": makeSvgDataUri("#fef3c7", "#d97706", "折叠硅胶水壶", `<rect x="78" y="74" width="84" height="72" rx="16" fill="#f59e0b"/><rect x="90" y="60" width="60" height="16" rx="6" fill="#b45309"/><path d="M162 88 C182 88 182 132 162 132" fill="none" stroke="#d97706" stroke-width="7"/>`),
+  "BRD-601": makeSvgDataUri("#ecfdf5", "#16a34a", "户外防水野餐垫", `<rect x="64" y="72" width="112" height="76" rx="12" fill="#4ade80"/><line x1="64" y1="110" x2="176" y2="110" stroke="#166534" stroke-width="4"/><line x1="120" y1="72" x2="120" y2="148" stroke="#166534" stroke-width="4"/>`),
+  "EAR-712": makeSvgDataUri("#eef2ff", "#4338ca", "运动蓝牙耳机", `<path d="M84 120 C84 74 156 74 156 120" fill="none" stroke="#4338ca" stroke-width="10" stroke-linecap="round"/><rect x="72" y="110" width="24" height="36" rx="10" fill="#6366f1"/><rect x="144" y="110" width="24" height="36" rx="10" fill="#6366f1"/>`),
   "SKU-00515": makeSvgDataUri("#fff7ed", "#ea580c", "后备箱整理箱", `<rect x="68" y="76" width="104" height="72" rx="10" fill="#fb923c"/><rect x="64" y="66" width="112" height="16" rx="6" fill="#ea580c"/><line x1="103" y1="82" x2="103" y2="148" stroke="#ffedd5" stroke-width="4"/><line x1="137" y1="82" x2="137" y2="148" stroke="#ffedd5" stroke-width="4"/>`),
   "SKU-00538": makeSvgDataUri("#eef2ff", "#4f46e5", "防水折叠洗衣篮", `<path d="M78 72 H162 L152 152 H88 Z" fill="#6366f1"/><ellipse cx="120" cy="72" rx="42" ry="10" fill="#4338ca"/><ellipse cx="120" cy="72" rx="34" ry="6" fill="#c7d2fe"/><line x1="94" y1="102" x2="146" y2="102" stroke="#e0e7ff" stroke-width="4" stroke-linecap="round"/><line x1="96" y1="124" x2="144" y2="124" stroke="#e0e7ff" stroke-width="4" stroke-linecap="round"/>`),
   "SKU-00299": makeSvgDataUri("#fefce8", "#ca8a04", "宠物防抓汽车垫", `<path d="M70 68 H170 V142 L156 156 H84 L70 142 Z" fill="#eab308"/><rect x="84" y="84" width="72" height="44" rx="8" fill="#fef08a"/><circle cx="104" cy="106" r="6" fill="#a16207"/><circle cx="136" cy="106" r="6" fill="#a16207"/><circle cx="120" cy="118" r="8" fill="#a16207"/>`),
@@ -28,6 +40,44 @@ export const PRODUCT_IMAGES = {
   "SKU-00704": makeSvgDataUri("#ecfdf5", "#059669", "迷你真空封口机", `<rect x="62" y="92" width="116" height="42" rx="20" fill="#10b981"/><rect x="76" y="106" width="68" height="12" rx="6" fill="#ecfdf5"/><circle cx="158" cy="113" r="8" fill="#047857"/>`),
   "SKU-00418": makeSvgDataUri("#fef2f2", "#dc2626", "露营氛围灯串", `<path d="M68 82 Q120 120 172 82" fill="none" stroke="#475569" stroke-width="4"/><circle cx="80" cy="92" r="11" fill="#fbbf24"/><circle cx="106" cy="104" r="11" fill="#f87171"/><circle cx="134" cy="104" r="11" fill="#fbbf24"/><circle cx="160" cy="92" r="11" fill="#f87171"/>`),
 };
+
+export function daysOffsetDate(offsetDays) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+export function daysOffsetDateTime(offsetDays, hhmm = "10:30") {
+  return `${daysOffsetDate(offsetDays)} ${hhmm}`;
+}
+
+export function calcProductMargin(p) {
+  if (p.cost === null || p.cost === undefined || !p.salePriceUsd) {
+    return { known: false, profitUsd: null, marginPct: null, commissionUsd: null, returnLossUsd: null };
+  }
+  const price = Number(p.salePriceUsd);
+  const commissionUsd = +(price * ((p.commissionRate || 0) / 100)).toFixed(2);
+  const returnLossUsd = +(price * ((p.returnLossRate || 0) / 100)).toFixed(2);
+  const totalCost = Number(p.cost) + Number(p.freight || 0) + commissionUsd + Number(p.lastMile || 0) + Number(p.tariff || 0) + Number(p.adCost || 0) + returnLossUsd;
+  const profitUsd = +(price - totalCost).toFixed(2);
+  const marginPct = +((profitUsd / price) * 100).toFixed(1);
+  return { known: true, profitUsd, marginPct, commissionUsd, returnLossUsd, totalCost: +totalCost.toFixed(2) };
+}
+
+export function calcInvCoverage(item) {
+  const daily = item.dailySales || 1;
+  const coverDays = +(item.avail / daily).toFixed(1);
+  if (item.ageDays > 90) {
+    return { coverDays, level: "滞销积压", pill: "p-gray", advice: "库龄超90天占用仓储费，建议打折促销清仓或捆绑消化" };
+  }
+  if (coverDays < 7) {
+    return { coverDays, level: "严重缺货(<7天)", pill: "p-red", advice: "不足7天随时断货！立即提交加急补货或空运调拨" };
+  }
+  if (coverDays <= 14) {
+    return { coverDays, level: "即将断货(7-14天)", pill: "p-amber", advice: "7~14天安全缓冲告急，本周内须下常规补货单" };
+  }
+  return { coverDays, level: "水位健康", pill: "p-green", advice: "可售周转健康，按正常周期监测补货即可" };
+}
 
 export function getProductImg(sku) {
   return PRODUCT_IMAGES[sku] || PRODUCT_IMAGES["BAG-108"];
@@ -438,66 +488,234 @@ export function createInitialState() {
 
     // M0-1
     shops: [
-      { id: "shop_th", name: "Shopee 泰国主店", platform: "SHOPEE", region: "TH", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 8e41", lastSync: "2026-11-19 10:15", lastSyncTs: null, errNote: "" },
-      { id: "shop_us", name: "TikTok Shop 美区", platform: "TIKTOK", region: "US", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "回复消息"], credMask: "尾号 2c90", lastSync: "2026-11-19 10:12", lastSyncTs: null, errNote: "" },
-      { id: "shop_mk", name: "Amazon 演示沙盒店", platform: "AMAZON", region: "US", mode: "MOCK", health: "仅演示环境", status: "演示测试专用（不计营收）", permLabels: ["模拟买家消息", "联调测试"], credMask: "尾号 0000", lastSync: "2026-11-19 09:40", lastSyncTs: null, errNote: "" },
+      { id: "shop_th", name: "Shopee 泰国主店", platform: "SHOPEE", region: "TH", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 8e41", lastSync: daysOffsetDateTime(0, "10:15"), lastSyncTs: null, errNote: "", monthlyGmv: 68420, orderCount: 842, mainCategory: "居家小电 / 个护", owner: "张运营", currency: "THB", timezone: "UTC+7 (曼谷)", authExpireDate: daysOffsetDate(68), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2024-03-12" },
+      { id: "shop_us", name: "TikTok Shop 美区", platform: "TIKTOK", region: "US", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "回复消息"], credMask: "尾号 2c90", lastSync: daysOffsetDateTime(0, "10:12"), lastSyncTs: null, errNote: "", monthlyGmv: 94150, orderCount: 1120, mainCategory: "箱包出行 / 运动健身", owner: "张运营", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: daysOffsetDate(45), nextSyncAt: "每10分钟", syncFailCount: 0, openedAt: "2024-06-05" },
+      { id: "shop_amz_us", name: "Amazon 美国精品店", platform: "AMAZON", region: "US", mode: "REAL", health: "授权即将过期", status: "授权将于4天后到期", permLabels: ["读取订单", "同步库存", "FBA配送查询"], credMask: "尾号 5a17", lastSync: daysOffsetDateTime(0, "09:50"), lastSyncTs: null, errNote: "授权凭证将于 4 天后过期，请尽快重新授权防断流", monthlyGmv: 142800, orderCount: 1385, mainCategory: "家居收纳 / 厨房小电", owner: "陈主管", currency: "USD", timezone: "UTC-5 (美东)", authExpireDate: daysOffsetDate(4), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2023-11-18" },
+      { id: "shop_laz_my", name: "Lazada 马来旗舰店", platform: "LAZADA", region: "MY", mode: "REAL", health: "同步异常", status: "连续同步失败3次", permLabels: ["读取订单", "同步库存"], credMask: "尾号 7f03", lastSync: daysOffsetDateTime(-1, "18:40"), lastSyncTs: null, errNote: "连续同步失败 3 次（平台限流或授权失效），请重试同步或重新授权", monthlyGmv: 38900, orderCount: 516, mainCategory: "3C配件 / 居家小电", owner: "周分析", currency: "MYR", timezone: "UTC+8 (吉隆坡)", authExpireDate: daysOffsetDate(31), nextSyncAt: "待人工重试", syncFailCount: 3, openedAt: "2025-01-20" },
+      { id: "shop_ebay_uk", name: "eBay 英国站", platform: "EBAY", region: "UK", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "履约发货", "售后同步"], credMask: "尾号 3b82", lastSync: daysOffsetDateTime(0, "09:30"), lastSyncTs: null, errNote: "", monthlyGmv: 51200, orderCount: 478, mainCategory: "宠物用品 / 户外运动", owner: "吴选品", currency: "GBP", timezone: "UTC+0 (伦敦)", authExpireDate: daysOffsetDate(82), nextSyncAt: "每30分钟", syncFailCount: 0, openedAt: "2024-09-01" },
+      { id: "shop_sp_sg", name: "Shopee 新加坡站", platform: "SHOPEE", region: "SG", mode: "REAL", health: "连接正常", status: "授权有效（演示模式）", permLabels: ["读取订单", "同步库存", "回复消息"], credMask: "尾号 9d14", lastSync: daysOffsetDateTime(0, "10:05"), lastSyncTs: null, errNote: "", monthlyGmv: 46300, orderCount: 604, mainCategory: "美妆护肤 / 家居收纳", owner: "张运营", currency: "SGD", timezone: "UTC+8 (新加坡)", authExpireDate: daysOffsetDate(53), nextSyncAt: "每15分钟", syncFailCount: 0, openedAt: "2025-04-10" },
+      { id: "shop_mk", name: "Amazon 演示沙盒店", platform: "AMAZON", region: "US", mode: "MOCK", health: "仅演示环境", status: "演示测试专用（不计营收）", permLabels: ["模拟买家消息", "联调测试"], credMask: "尾号 0000", lastSync: daysOffsetDateTime(0, "09:40"), lastSyncTs: null, errNote: "", monthlyGmv: 0, orderCount: 0, mainCategory: "全品类联调测试", owner: "刘测试", currency: "USD", timezone: "UTC-8 (美西)", authExpireDate: "长期有效(沙盒)", nextSyncAt: "手动联调", syncFailCount: 0, openedAt: "2025-08-01" },
     ],
 
     // M0-2
     masterSearch: "",
     masterShopFilter: "ALL",
+    m0bProdPage: 1,
+    orderSearch: "",
     orderShopFilter: "ALL",
     orderStatusFilter: "ALL",
     orderDateFilter: "ALL",
+    orderDateCustomStart: daysOffsetDate(-14),
+    orderDateCustomEnd: daysOffsetDate(0),
+    m0bOrdPage: 1,
     masterProducts: [
-      { sku: "BAG-108", name: "轻量通勤双肩包", cat: "箱包出行", cost: 4.5, freight: 2.3, status: "在售", mappings: [
+      { sku: "BAG-108", name: "轻量通勤双肩包", cat: "箱包出行", salePriceUsd: 29.9, cost: 4.5, freight: 2.3, commissionRate: 12, lastMile: 4.8, tariff: 1.6, adCost: 3.2, returnLossRate: 2.5, listedAt: "2025-03-18", sales30d: 640, tag: "爆款", owner: "张运营", status: "在售", mappings: [
         { shop: "TikTok Shop 美区", shopSku: "TT-US-88210", price: "$29.90" },
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-5521", price: "฿890" },
       ] },
-      { sku: "FAN-203", name: "便携静音循环扇", cat: "居家小电", cost: 8.2, freight: 3.0, status: "在售", mappings: [
+      { sku: "FAN-203", name: "便携静音循环扇", cat: "居家小电", salePriceUsd: 18.5, cost: 6.2, freight: 2.4, commissionRate: 10, lastMile: 2.1, tariff: 0.8, adCost: 2.0, returnLossRate: 2.0, listedAt: "2025-05-09", sales30d: 520, tag: "爆款", owner: "张运营", status: "在售", mappings: [
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-9034", price: "฿590" },
+        { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-2031", price: "RM82" },
       ] },
-      { sku: "MAT-014", name: "加厚防滑瑜伽垫", cat: "运动健身", cost: 6.0, freight: 3.5, status: "在售", mappings: [
+      { sku: "MAT-014", name: "加厚防滑瑜伽垫", cat: "运动健身", salePriceUsd: 24.9, cost: 5.5, freight: 3.1, commissionRate: 12, lastMile: 4.5, tariff: 1.3, adCost: 2.8, returnLossRate: 3.0, listedAt: "2025-04-22", sales30d: 410, tag: "爆款", owner: "张运营", status: "在售", mappings: [
         { shop: "TikTok Shop 美区", shopSku: "TT-US-31922", price: "$24.90" },
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-014", price: "$26.90" },
       ] },
-      { sku: "COS-052", name: "焕亮保湿面霜", cat: "美妆护肤", cost: null, freight: null, status: "缺成本待补", mappings: [
+      { sku: "COS-052", name: "焕亮保湿面霜", cat: "美妆护肤", salePriceUsd: 14.5, cost: null, freight: null, commissionRate: 10, lastMile: 1.8, tariff: 0.6, adCost: 1.5, returnLossRate: 2.0, listedAt: "2026-10-12", sales30d: 185, tag: "待核价", owner: "吴选品", status: "缺成本待补", mappings: [
         { shop: "Shopee 泰国主店", shopSku: "SP-TH-1140", price: "฿420" },
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-1140", price: "S$19.5" },
+      ] },
+      { sku: "ORG-301", name: "汽车后备箱整理箱", cat: "家居收纳", salePriceUsd: 35.5, cost: 5.4, freight: 3.8, commissionRate: 15, lastMile: 5.9, tariff: 2.1, adCost: 4.0, returnLossRate: 2.0, listedAt: "2025-07-15", sales30d: 580, tag: "爆款", owner: "陈主管", status: "在售", mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-301", price: "$35.50" },
+      ] },
+      { sku: "PET-204", name: "防抓宠物汽车座垫", cat: "宠物用品", salePriceUsd: 36.8, cost: 6.1, freight: 3.5, commissionRate: 15, lastMile: 5.4, tariff: 1.8, adCost: 3.9, returnLossRate: 1.8, listedAt: "2025-08-21", sales30d: 395, tag: "潜力", owner: "吴选品", status: "在售", mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-204", price: "$36.80" },
+        { shop: "eBay 英国站", shopSku: "EB-UK-204", price: "£28.90" },
+      ] },
+      { sku: "MNT-405", name: "磁吸折叠桌面支架", cat: "3C配件", salePriceUsd: 26.5, cost: 3.6, freight: 1.7, commissionRate: 12, lastMile: 3.6, tariff: 1.1, adCost: 3.4, returnLossRate: 1.5, listedAt: "2026-06-11", sales30d: 470, tag: "潜力", owner: "张运营", status: "在售", mappings: [
+        { shop: "TikTok Shop 美区", shopSku: "TT-US-405", price: "$26.50" },
+        { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-405", price: "RM115" },
+      ] },
+      { sku: "VAC-704", name: "无线真空迷你封口机", cat: "家居收纳", salePriceUsd: 27.3, cost: 4.1, freight: 2.0, commissionRate: 10, lastMile: 2.6, tariff: 0.9, adCost: 2.8, returnLossRate: 2.2, listedAt: "2026-09-02", sales30d: 312, tag: "潜力", owner: "张运营", status: "在售", mappings: [
+        { shop: "Shopee 泰国主店", shopSku: "SP-TH-704", price: "฿850" },
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-704", price: "S$35.9" },
+      ] },
+      { sku: "LMP-418", name: "便携露营氛围灯串", cat: "运动健身", salePriceUsd: 13.8, cost: 3.9, freight: 1.8, commissionRate: 15, lastMile: 3.1, tariff: 0.7, adCost: 1.4, returnLossRate: 5.5, listedAt: "2025-04-02", sales30d: 64, tag: "滞销", owner: "吴选品", status: "在售", mappings: [
+        { shop: "eBay 英国站", shopSku: "EB-UK-418", price: "£10.90" },
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-418", price: "$13.80" },
+      ] },
+      { sku: "BTL-119", name: "便携旅行分装瓶套装", cat: "箱包出行", salePriceUsd: 14.9, cost: 3.4, freight: 1.6, commissionRate: 15, lastMile: 3.8, tariff: 0.8, adCost: 2.2, returnLossRate: 3.0, listedAt: "2025-11-12", sales30d: 148, tag: "滞销", owner: "周分析", status: "在售", mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-119", price: "$14.90" },
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-119", price: "S$19.9" },
+      ] },
+      { sku: "KET-502", name: "折叠硅胶电热水壶", cat: "居家小电", salePriceUsd: 31.0, cost: 6.4, freight: 2.8, commissionRate: 12, lastMile: 4.2, tariff: 1.4, adCost: 3.0, returnLossRate: 2.0, listedAt: "2026-03-25", sales30d: 265, tag: "潜力", owner: "陈主管", status: "在售", mappings: [
+        { shop: "Shopee 新加坡站", shopSku: "SP-SG-502", price: "S$41.9" },
+        { shop: "eBay 英国站", shopSku: "EB-UK-502", price: "£24.50" },
+      ] },
+      { sku: "LND-538", name: "可折叠防水洗衣篮", cat: "家居收纳", salePriceUsd: 37.5, cost: null, freight: null, commissionRate: 15, lastMile: 5.2, tariff: 1.7, adCost: 3.6, returnLossRate: 2.0, listedAt: "2026-10-28", sales30d: 190, tag: "待核价", owner: "吴选品", status: "缺成本待补", mappings: [
+        { shop: "Amazon 美国精品店", shopSku: "AMZ-US-538", price: "$37.50" },
+      ] },
+      { sku: "BRD-601", name: "户外防水野餐垫", cat: "运动健身", salePriceUsd: 26.0, cost: 4.6, freight: 2.5, commissionRate: 12, lastMile: 4.0, tariff: 1.1, adCost: 2.4, returnLossRate: 1.8, listedAt: "2025-06-14", sales30d: 92, tag: "滞销", owner: "吴选品", status: "在售", mappings: [
+        { shop: "eBay 英国站", shopSku: "EB-UK-601", price: "£20.50" },
+      ] },
+      { sku: "EAR-712", name: "开放式运动蓝牙耳机", cat: "3C配件", salePriceUsd: 39.9, cost: 7.2, freight: 1.8, commissionRate: 12, lastMile: 3.5, tariff: 1.6, adCost: 4.5, returnLossRate: 2.5, listedAt: "2026-07-08", sales30d: 342, tag: "潜力", owner: "周分析", status: "在售", mappings: [
+        { shop: "Lazada 马来旗舰店", shopSku: "LZ-MY-712", price: "RM179" },
+        { shop: "TikTok Shop 美区", shopSku: "TT-US-712", price: "$39.90" },
       ] },
     ],
     costChangeLogs: [
-      { id: "CC-20261118-01", sku: "BAG-108", oldCost: 4.2, oldFreight: 2.3, newCost: 4.5, newFreight: 2.3, effectiveDate: "2026-11-19", reason: "布料升级单件采购微调", applicant: "张运营", approver: "陈主管", status: "已生效", time: "2026-11-18 16:20" },
+      { id: "CC-V6-2026-06", sku: "LMP-418", oldCost: 3.6, oldFreight: 1.8, newCost: 3.9, newFreight: 1.8, newCommission: 15, newLastMile: 3.1, newTariff: 0.7, newAdCost: 1.4, effectiveDate: daysOffsetDate(1), reason: "电池灯串铜线涨价，需确认是否触发低毛利调价", applicant: "张运营", approver: "", status: "待主管审批", time: daysOffsetDateTime(0, "09:45") },
+      { id: "CC-V5-2026-05", sku: "BAG-108", oldCost: 4.2, oldFreight: 2.3, newCost: 4.5, newFreight: 2.3, newCommission: 12, newLastMile: 4.8, newTariff: 1.6, newAdCost: 3.2, effectiveDate: daysOffsetDate(-2), reason: "第3版成本：拉链与防水牛津布加厚升级", applicant: "张运营", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-3, "16:20") },
+      { id: "CC-V4-2026-04", sku: "ORG-301", oldCost: 5.8, oldFreight: 4.1, newCost: 5.4, newFreight: 3.8, newCommission: 15, newLastMile: 5.9, newTariff: 2.1, newAdCost: 4.0, effectiveDate: daysOffsetDate(-9), reason: "整柜海运阶梯降本，单件采购及头程下降", applicant: "张运营", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-10, "14:15") },
+      { id: "CC-V3-2026-03", sku: "FAN-203", oldCost: 6.5, oldFreight: 2.6, newCost: 6.2, newFreight: 2.4, newCommission: 10, newLastMile: 2.1, newTariff: 0.8, newAdCost: 2.0, effectiveDate: daysOffsetDate(-15), reason: "泰国曼谷直发物流合约续签降费", applicant: "周分析", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-16, "11:08") },
+      { id: "CC-V2-2026-02", sku: "MAT-014", oldCost: 5.2, oldFreight: 3.0, newCost: 5.5, newFreight: 3.1, newCommission: 12, newLastMile: 4.5, newTariff: 1.3, newAdCost: 2.8, effectiveDate: daysOffsetDate(-24), reason: "美西港口旺季附加费调整", applicant: "张运营", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-25, "15:40") },
+      { id: "CC-V1-2026-01", sku: "BAG-108", oldCost: 4.0, oldFreight: 2.1, newCost: 4.2, newFreight: 2.3, newCommission: 12, newLastMile: 4.8, newTariff: 1.6, newAdCost: 3.2, effectiveDate: daysOffsetDate(-42), reason: "第2版成本：新增15.6寸加厚电脑隔层", applicant: "吴选品", approver: "陈主管", status: "已生效", time: daysOffsetDateTime(-43, "10:05") },
     ],
     orders: [
-      { orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Emily Carter", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountUsd: 34.50, amountDisplay: "$34.50", status: "已签收", refundSyncStatus: "无退款", orderedAt: "2026-11-17 14:22", historical: true, timeline: [
-        { step: "买家付款完成", time: "2026-11-17 14:22", done: true },
-        { step: "美西仓出库发货 (承运商 UPS)", time: "2026-11-17 19:05", done: true },
-        { step: "买家签收完成", time: "2026-11-19 08:40", done: true },
+      { orderNo: "SYN9D-005671", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Emily Carter", countryCity: "美国 · 洛杉矶", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountLocal: "$34.50", amountUsd: 34.50, amountDisplay: "$34.50", status: "已签收", trackingNo: "1Z999AA10123456784", payStatus: "已支付", source: "广告流量", disputeStatus: "售后沟通中", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-2, "14:22"), historical: true, isHistoryDemo: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-2, "14:22"), done: true },
+        { step: "美西仓拣货完成", time: daysOffsetDateTime(-2, "16:10"), done: true },
+        { step: "美西仓出库发货 (UPS · 1Z999AA10123456784)", time: daysOffsetDateTime(-2, "19:05"), done: true },
+        { step: "买家签收完成（历史示例数据，关联 M1 客服会话）", time: daysOffsetDateTime(0, "08:40"), done: true },
       ] },
-      { orderNo: "SPTH-20261119-108", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Nattapong S.", sku: "FAN-203", productName: "便携静音循环扇", qty: 2, amountUsd: 33.80, amountDisplay: "฿1,180 ($33.80)", status: "已发货", refundSyncStatus: "无退款", orderedAt: "2026-11-18 20:10", historical: true, timeline: [
-        { step: "买家付款完成", time: "2026-11-18 20:10", done: true },
-        { step: "泰国曼谷仓已打包交运", time: "2026-11-19 09:15", done: true },
+      { orderNo: "SPTH-2026-108", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Nattapong S.", countryCity: "泰国 · 曼谷", sku: "FAN-203", productName: "便携静音循环扇", qty: 2, amountLocal: "฿1,180", amountUsd: 33.80, amountDisplay: "฿1,180 ($33.80)", status: "已发货", trackingNo: "THKEX88291045", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-1, "20:10"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-1, "20:10"), done: true },
+        { step: "曼谷仓拣货打包", time: daysOffsetDateTime(0, "08:20"), done: true },
+        { step: "泰国极兔交运 (THKEX88291045)", time: daysOffsetDateTime(0, "09:15"), done: true },
         { step: "等待买家签收", time: "预计 1-2 日送达", done: false },
       ] },
-      { orderNo: "TTUS-20261119-302", shop: "TikTok Shop 美区", mode: "REAL", buyer: "David Miller", sku: "MAT-014", productName: "加厚防滑瑜伽垫", qty: 1, amountUsd: 24.90, amountDisplay: "$24.90", status: "已付款", refundSyncStatus: "无退款", orderedAt: "2026-11-19 09:50", historical: true, timeline: [
-        { step: "买家付款完成", time: "2026-11-19 09:50", done: true },
-        { step: "待仓库拣货打包", time: "处理中", done: false },
+      { orderNo: "AMZUS-77412", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Michael Chen", countryCity: "美国 · 纽约", sku: "ORG-301", productName: "汽车后备箱整理箱", qty: 1, amountLocal: "$35.50", amountUsd: 35.50, amountDisplay: "$35.50", status: "已完成", trackingNo: "TBA309812744", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-6, "11:15"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-6, "11:15"), done: true },
+        { step: "美东仓出库发货 (Amazon Logistics · TBA309812744)", time: daysOffsetDateTime(-6, "16:30"), done: true },
+        { step: "买家签收并确认完成", time: daysOffsetDateTime(-3, "15:20"), done: true },
       ] },
-      { orderNo: "AMZ-DEMO-9901", shop: "Amazon 演示沙盒店", mode: "MOCK", buyer: "Demo Tester", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountUsd: 29.90, amountDisplay: "$29.90 (仅演示)", status: "仅演示不计营收", refundSyncStatus: "仅演示", orderedAt: "2026-11-19 10:02", historical: true, timeline: [
-        { step: "联调测试生成模拟订单", time: "2026-11-19 10:02", done: true },
+      { orderNo: "TTUS-30291", shop: "TikTok Shop 美区", mode: "REAL", buyer: "David Miller", countryCity: "美国 · 西雅图", sku: "MAT-014", productName: "加厚防滑瑜伽垫", qty: 1, amountLocal: "$24.90", amountUsd: 24.90, amountDisplay: "$24.90", status: "已付款", trackingNo: "待分配物流单号", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(0, "09:50"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(0, "09:50"), done: true },
+        { step: "美西仓待拣货打包", time: "处理中", done: false },
+      ] },
+      { orderNo: "EBUK-55201", shop: "eBay 英国站", mode: "REAL", buyer: "Oliver Grant", countryCity: "英国 · 伦敦", sku: "PET-204", productName: "防抓宠物汽车座垫", qty: 1, amountLocal: "£28.90", amountUsd: 36.80, amountDisplay: "£28.90 ($36.80)", status: "退款中", trackingNo: "RM992014421GB", payStatus: "部分冻结", source: "自然流量", disputeStatus: "物流破损争议", refundSyncStatus: "退款核实中", orderedAt: daysOffsetDateTime(-4, "17:40"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-4, "17:40"), done: true },
+        { step: "发出包裹 (RoyalMail · RM992014421GB)", time: daysOffsetDateTime(-3, "10:12"), done: true },
+        { step: "买家发起物流破损纠纷退款", time: daysOffsetDateTime(-1, "13:05"), done: true },
+      ] },
+      { orderNo: "LZMY-41082", shop: "Lazada 马来旗舰店", mode: "REAL", buyer: "Aisyah Rahman", countryCity: "马来 · 吉隆坡", sku: "EAR-712", productName: "开放式运动蓝牙耳机", qty: 1, amountLocal: "RM179", amountUsd: 39.90, amountDisplay: "RM179 ($39.90)", status: "已签收", trackingNo: "MYPOS7721903", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-3, "13:20"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-3, "13:20"), done: true },
+        { step: "吉隆坡仓发货 (PosLaju · MYPOS7721903)", time: daysOffsetDateTime(-2, "09:30"), done: true },
+        { step: "买家签收完成", time: daysOffsetDateTime(-1, "16:45"), done: true },
+      ] },
+      { orderNo: "SPSG-60912", shop: "Shopee 新加坡站", mode: "REAL", buyer: "Wei Ming Tan", countryCity: "新加坡 · 裕廊", sku: "VAC-704", productName: "无线真空迷你封口机", qty: 2, amountLocal: "S$71.8", amountUsd: 54.60, amountDisplay: "S$71.8 ($54.60)", status: "已完成", trackingNo: "SGSPX9082144", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-8, "12:15"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-8, "12:15"), done: true },
+        { step: "打包交运 (SPX · SGSPX9082144)", time: daysOffsetDateTime(-8, "18:00"), done: true },
+        { step: "签收完成结算", time: daysOffsetDateTime(-5, "11:10"), done: true },
+      ] },
+      { orderNo: "AMZUS-77488", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Sarah Jenkins", countryCity: "美国 · 芝加哥", sku: "PET-204", productName: "防抓宠物汽车座垫", qty: 1, amountLocal: "$36.80", amountUsd: 36.80, amountDisplay: "$36.80", status: "已发货", trackingNo: "TBA309912004", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-1, "15:12"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-1, "15:12"), done: true },
+        { step: "美东仓交运 (TBA309912004)", time: daysOffsetDateTime(0, "07:45"), done: true },
+      ] },
+      { orderNo: "TTUS-30315", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Jessica Lopez", countryCity: "美国 · 迈阿密", sku: "MNT-405", productName: "磁吸折叠桌面支架", qty: 2, amountLocal: "$53.00", amountUsd: 53.00, amountDisplay: "$53.00", status: "已完成", trackingNo: "USPS9400111202", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-5, "19:33"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-5, "19:33"), done: true },
+        { step: "美西仓发货 (USPS9400111202)", time: daysOffsetDateTime(-4, "11:20"), done: true },
+        { step: "买家签收完成", time: daysOffsetDateTime(-2, "14:05"), done: true },
+      ] },
+      { orderNo: "SPTH-2026-141", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Ploychanok K.", countryCity: "泰国 · 清迈", sku: "COS-052", productName: "焕亮保湿面霜", qty: 2, amountLocal: "฿840", amountUsd: 24.10, amountDisplay: "฿840 ($24.10)", status: "已完成", trackingNo: "THKEX88300112", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-10, "10:45"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-10, "10:45"), done: true },
+        { step: "曼谷仓发货 (THKEX88300112)", time: daysOffsetDateTime(-9, "14:00"), done: true },
+        { step: "买家签收完成", time: daysOffsetDateTime(-7, "17:20"), done: true },
+      ] },
+      { orderNo: "AMZUS-77502", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Robert Kim", countryCity: "美国 · 达拉斯", sku: "BTL-119", productName: "便携旅行分装瓶套装", qty: 3, amountLocal: "$44.70", amountUsd: 44.70, amountDisplay: "$44.70", status: "已完成", trackingNo: "TBA310004881", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-12, "08:55"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-12, "08:55"), done: true },
+        { step: "美东仓发货 (TBA310004881)", time: daysOffsetDateTime(-11, "13:40"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-9, "16:12"), done: true },
+      ] },
+      { orderNo: "EBUK-55238", shop: "eBay 英国站", mode: "REAL", buyer: "Amelia Hughes", countryCity: "英国 · 曼彻斯特", sku: "KET-502", productName: "折叠硅胶电热水壶", qty: 1, amountLocal: "£24.50", amountUsd: 31.00, amountDisplay: "£24.50 ($31.00)", status: "已签收", trackingNo: "RM992018874GB", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-7, "16:18"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-7, "16:18"), done: true },
+        { step: "发货 (RM992018874GB)", time: daysOffsetDateTime(-6, "11:05"), done: true },
+        { step: "买家签收", time: daysOffsetDateTime(-4, "14:40"), done: true },
+      ] },
+      { orderNo: "LZMY-41109", shop: "Lazada 马来旗舰店", mode: "REAL", buyer: "Farah Nabila", countryCity: "马来 · 槟城", sku: "FAN-203", productName: "便携静音循环扇", qty: 1, amountLocal: "RM82", amountUsd: 18.50, amountDisplay: "RM82 ($18.50)", status: "已发货", trackingNo: "MYPOS7729004", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-2, "21:14"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-2, "21:14"), done: true },
+        { step: "吉隆坡仓发货 (MYPOS7729004)", time: daysOffsetDateTime(-1, "10:30"), done: true },
+      ] },
+      { orderNo: "SPSG-60955", shop: "Shopee 新加坡站", mode: "REAL", buyer: "Rachel Lim", countryCity: "新加坡 · 淡滨尼", sku: "KET-502", productName: "折叠硅胶电热水壶", qty: 1, amountLocal: "S$41.9", amountUsd: 31.00, amountDisplay: "S$41.9 ($31.00)", status: "已付款", trackingNo: "待打单出库", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(0, "08:15"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(0, "08:15"), done: true },
+        { step: "待打包出库", time: "排队处理中", done: false },
+      ] },
+      { orderNo: "AMZUS-77530", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Daniel Brooks", countryCity: "美国 · 奥斯汀", sku: "LMP-418", productName: "便携露营氛围灯串", qty: 1, amountLocal: "$13.80", amountUsd: 13.80, amountDisplay: "$13.80", status: "退款中", trackingNo: "TBA310099412", payStatus: "退款冻结", source: "自然流量", disputeStatus: "质量问题退货", refundSyncStatus: "待退货质检", orderedAt: daysOffsetDateTime(-15, "13:10"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-15, "13:10"), done: true },
+        { step: "美东仓发货 (TBA310099412)", time: daysOffsetDateTime(-14, "16:20"), done: true },
+        { step: "买家申请退货退款", time: daysOffsetDateTime(-9, "10:40"), done: true },
+      ] },
+      { orderNo: "TTUS-30344", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Brandon Lee", countryCity: "美国 · 圣何塞", sku: "EAR-712", productName: "开放式运动蓝牙耳机", qty: 1, amountLocal: "$39.90", amountUsd: 39.90, amountDisplay: "$39.90", status: "已签收", trackingNo: "1Z999AA10123991231", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-5, "22:08"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-5, "22:08"), done: true },
+        { step: "美西仓发货 (1Z999AA10123991231)", time: daysOffsetDateTime(-4, "17:15"), done: true },
+        { step: "买家签收", time: daysOffsetDateTime(-1, "11:50"), done: true },
+      ] },
+      { orderNo: "SPTH-2026-166", shop: "Shopee 泰国主店", mode: "REAL", buyer: "Somchai P.", countryCity: "泰国 · 普吉", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountLocal: "฿890", amountUsd: 25.50, amountDisplay: "฿890 ($25.50)", status: "已完成", trackingNo: "THKEX88310445", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-18, "14:40"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-18, "14:40"), done: true },
+        { step: "曼谷仓发货 (THKEX88310445)", time: daysOffsetDateTime(-17, "12:10"), done: true },
+        { step: "买家签收并确认完成", time: daysOffsetDateTime(-14, "16:30"), done: true },
+      ] },
+      { orderNo: "EBUK-55269", shop: "eBay 英国站", mode: "REAL", buyer: "George Wright", countryCity: "英国 · 伯明翰", sku: "BRD-601", productName: "户外防水野餐垫", qty: 1, amountLocal: "£20.50", amountUsd: 26.00, amountDisplay: "£20.50 ($26.00)", status: "已完成", trackingNo: "RM992023109GB", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-21, "09:12"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-21, "09:12"), done: true },
+        { step: "伦敦交运 (RM992023109GB)", time: daysOffsetDateTime(-20, "15:00"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-18, "10:15"), done: true },
+      ] },
+      { orderNo: "AMZUS-77561", shop: "Amazon 美国精品店", mode: "REAL", buyer: "Chloe Davis", countryCity: "美国 · 波士顿", sku: "ORG-301", productName: "汽车后备箱整理箱", qty: 2, amountLocal: "$71.00", amountUsd: 71.00, amountDisplay: "$71.00", status: "已完成", trackingNo: "TBA310201188", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-11, "18:22"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-11, "18:22"), done: true },
+        { step: "美东仓发货 (TBA310201188)", time: daysOffsetDateTime(-10, "13:10"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-8, "15:55"), done: true },
+      ] },
+      { orderNo: "LZMY-41145", shop: "Lazada 马来旗舰店", mode: "REAL", buyer: "Jason Tan", countryCity: "马来 · 新山", sku: "MNT-405", productName: "磁吸折叠桌面支架", qty: 1, amountLocal: "RM115", amountUsd: 25.60, amountDisplay: "RM115 ($25.60)", status: "已完成", trackingNo: "MYPOS7731201", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-14, "11:08"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-14, "11:08"), done: true },
+        { step: "吉隆坡仓发货 (MYPOS7731201)", time: daysOffsetDateTime(-13, "10:00"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-11, "17:40"), done: true },
+      ] },
+      { orderNo: "TTUS-30389", shop: "TikTok Shop 美区", mode: "REAL", buyer: "Kevin White", countryCity: "美国 · 亚特兰大", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountLocal: "$29.90", amountUsd: 29.90, amountDisplay: "$29.90", status: "已发货", trackingNo: "1Z999AA10124112200", payStatus: "已支付", source: "广告流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-1, "11:45"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-1, "11:45"), done: true },
+        { step: "美西仓出库 (1Z999AA10124112200)", time: daysOffsetDateTime(0, "06:30"), done: true },
+      ] },
+      { orderNo: "SPSG-60990", shop: "Shopee 新加坡站", mode: "REAL", buyer: "Mei Ling Ong", countryCity: "新加坡 · 宏茂桥", sku: "BTL-119", productName: "便携旅行分装瓶套装", qty: 1, amountLocal: "S$19.9", amountUsd: 14.90, amountDisplay: "S$19.9 ($14.90)", status: "已完成", trackingNo: "SGSPX9089112", payStatus: "已支付", source: "自然流量", disputeStatus: "无纠纷", refundSyncStatus: "无退款", orderedAt: daysOffsetDateTime(-24, "16:05"), historical: true, timeline: [
+        { step: "买家付款完成", time: daysOffsetDateTime(-24, "16:05"), done: true },
+        { step: "打包发货 (SGSPX9089112)", time: daysOffsetDateTime(-23, "10:15"), done: true },
+        { step: "签收完成", time: daysOffsetDateTime(-21, "14:20"), done: true },
+      ] },
+      { orderNo: "AMZ-DEMO-9901", shop: "Amazon 演示沙盒店", mode: "MOCK", buyer: "Demo Tester", countryCity: "测试沙盒 · 虚拟地址", sku: "BAG-108", productName: "轻量通勤双肩包", qty: 1, amountLocal: "$29.90", amountUsd: 29.90, amountDisplay: "$29.90 (仅演示)", status: "仅演示不计营收", trackingNo: "DEMO-TRK-9901", payStatus: "沙盒模拟", source: "联调测试", disputeStatus: "无纠纷", refundSyncStatus: "仅演示", orderedAt: daysOffsetDateTime(0, "10:02"), historical: true, timeline: [
+        { step: "联调测试生成模拟订单（不计真实营收）", time: daysOffsetDateTime(0, "10:02"), done: true },
+      ] },
+      { orderNo: "AMZ-DEMO-9902", shop: "Amazon 演示沙盒店", mode: "MOCK", buyer: "Demo Buyer 2", countryCity: "测试沙盒 · 虚拟地址", sku: "FAN-203", productName: "便携静音循环扇", qty: 2, amountLocal: "$37.00", amountUsd: 37.00, amountDisplay: "$37.00 (仅演示)", status: "仅演示不计营收", trackingNo: "DEMO-TRK-9902", payStatus: "沙盒模拟", source: "联调测试", disputeStatus: "无纠纷", refundSyncStatus: "仅演示", orderedAt: daysOffsetDateTime(-3, "15:18"), historical: true, timeline: [
+        { step: "联调测试生成模拟订单（不计真实营收）", time: daysOffsetDateTime(-3, "15:18"), done: true },
       ] },
     ],
 
     // M0-3
     inventoryShopFilter: "ALL",
+    inventoryWhFilter: "ALL",
+    inventoryStatusFilter: "ALL",
+    inventorySearch: "",
+    m0cInvPage: 1,
     inventoryItems: [
-      { id: "inv1", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "TT-US-88210", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 18, safety: 45, note: "美西仓低库存预警" },
-      { id: "inv2", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "SP-TH-5521", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 52, safety: 30, note: "曼谷仓独立库存" },
-      { id: "inv3", sku: "FAN-203", name: "便携静音循环扇", shopSku: "SP-TH-9034", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 43, safety: 60, note: "泰国仓季节热销低于安全线" },
-      { id: "inv4", sku: "MAT-014", name: "加厚防滑瑜伽垫", shopSku: "TT-US-31922", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 120, safety: 50, note: "库存充足" },
-      { id: "inv5", sku: "COS-052", name: "焕亮保湿面霜", shopSku: "SP-TH-1140", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 28, safety: 25, note: "暂缺成本卡" },
+      { id: "inv1", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "TT-US-88210", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 18, inTransit: 120, locked: 9, pendingQc: 15, safety: 45, dailySales: 12, ageDays: 14, lastMoveAt: daysOffsetDateTime(0, "06:30"), turnoverDays: 12, storageFeeRate: 0.45, note: "美西仓严重缺货预警" },
+      { id: "inv2", sku: "BAG-108", name: "轻量通勤双肩包", shopSku: "SP-TH-5521", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 52, inTransit: 0, locked: 4, pendingQc: 0, safety: 30, dailySales: 5, ageDays: 22, lastMoveAt: daysOffsetDateTime(-1, "16:20"), turnoverDays: 18, storageFeeRate: 0.25, note: "即将断货缓冲期" },
+      { id: "inv3", sku: "FAN-203", name: "便携静音循环扇", shopSku: "SP-TH-9034", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 43, inTransit: 200, locked: 12, pendingQc: 25, safety: 60, dailySales: 8, ageDays: 19, lastMoveAt: daysOffsetDateTime(0, "09:15"), turnoverDays: 15, storageFeeRate: 0.30, note: "泰国仓季节热销低于安全线" },
+      { id: "inv4", sku: "MAT-014", name: "加厚防滑瑜伽垫", shopSku: "TT-US-31922", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 180, inTransit: 60, locked: 14, pendingQc: 0, safety: 50, dailySales: 7, ageDays: 28, lastMoveAt: daysOffsetDateTime(-1, "11:40"), turnoverDays: 26, storageFeeRate: 0.55, note: "库存健康" },
+      { id: "inv5", sku: "COS-052", name: "焕亮保湿面霜", shopSku: "SP-TH-1140", shopName: "Shopee 泰国主店", shopMode: "REAL", whId: "TH-WH-1", whName: "泰国曼谷本地仓", avail: 48, inTransit: 0, locked: 6, pendingQc: 10, safety: 25, dailySales: 4, ageDays: 35, lastMoveAt: daysOffsetDateTime(-2, "14:10"), turnoverDays: 20, storageFeeRate: 0.20, note: "暂缺成本卡" },
+      { id: "inv6", sku: "ORG-301", name: "汽车后备箱整理箱", shopSku: "AMZ-US-301", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 92, inTransit: 150, locked: 18, pendingQc: 0, safety: 80, dailySales: 11, ageDays: 18, lastMoveAt: daysOffsetDateTime(0, "07:45"), turnoverDays: 16, storageFeeRate: 0.65, note: "覆盖8.4天即将断货" },
+      { id: "inv7", sku: "PET-204", name: "防抓宠物汽车座垫", shopSku: "AMZ-US-204", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 210, inTransit: 0, locked: 11, pendingQc: 0, safety: 60, dailySales: 9, ageDays: 25, lastMoveAt: daysOffsetDateTime(-1, "15:12"), turnoverDays: 23, storageFeeRate: 0.58, note: "库存健康" },
+      { id: "inv8", sku: "MNT-405", name: "磁吸折叠桌面支架", shopSku: "TT-US-405", shopName: "TikTok Shop 美区", shopMode: "REAL", whId: "US-WH-2", whName: "美国美西海外仓", avail: 42, inTransit: 100, locked: 15, pendingQc: 20, safety: 70, dailySales: 10, ageDays: 12, lastMoveAt: daysOffsetDateTime(-2, "11:20"), turnoverDays: 10, storageFeeRate: 0.35, note: "不足5天严重缺货" },
+      { id: "inv9", sku: "MNT-405", name: "磁吸折叠桌面支架", shopSku: "LZ-MY-405", shopName: "Lazada 马来旗舰店", shopMode: "REAL", whId: "MY-WH-1", whName: "马来吉隆坡仓", avail: 145, inTransit: 0, locked: 5, pendingQc: 0, safety: 40, dailySales: 6, ageDays: 31, lastMoveAt: daysOffsetDateTime(-3, "10:00"), turnoverDays: 24, storageFeeRate: 0.22, note: "库存健康" },
+      { id: "inv10", sku: "VAC-704", name: "无线真空迷你封口机", shopSku: "SP-SG-704", shopName: "Shopee 新加坡站", shopMode: "REAL", whId: "MY-WH-1", whName: "马来吉隆坡仓", avail: 164, inTransit: 80, locked: 8, pendingQc: 12, safety: 50, dailySales: 6, ageDays: 16, lastMoveAt: daysOffsetDateTime(-1, "09:10"), turnoverDays: 27, storageFeeRate: 0.28, note: "库存健康" },
+      { id: "inv11", sku: "LMP-418", name: "便携露营氛围灯串", shopSku: "AMZ-US-418", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 136, inTransit: 0, locked: 2, pendingQc: 0, safety: 30, dailySales: 2, ageDays: 118, lastMoveAt: daysOffsetDateTime(-9, "10:40"), turnoverDays: 68, storageFeeRate: 0.42, note: "库龄118天滞销积压" },
+      { id: "inv12", sku: "BTL-119", name: "便携旅行分装瓶套装", shopSku: "AMZ-US-119", shopName: "Amazon 美国精品店", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 94, inTransit: 0, locked: 3, pendingQc: 0, safety: 40, dailySales: 4, ageDays: 96, lastMoveAt: daysOffsetDateTime(-11, "13:40"), turnoverDays: 34, storageFeeRate: 0.30, note: "库龄96天滞销积压" },
+      { id: "inv13", sku: "KET-502", name: "折叠硅胶电热水壶", shopSku: "SP-SG-502", shopName: "Shopee 新加坡站", shopMode: "REAL", whId: "MY-WH-1", whName: "马来吉隆坡仓", avail: 65, inTransit: 90, locked: 7, pendingQc: 15, safety: 55, dailySales: 6, ageDays: 29, lastMoveAt: daysOffsetDateTime(0, "08:15"), turnoverDays: 19, storageFeeRate: 0.36, note: "覆盖10.8天即将断货" },
+      { id: "inv14", sku: "BRD-601", name: "户外防水野餐垫", shopSku: "EB-UK-601", shopName: "eBay 英国站", shopMode: "REAL", whId: "US-WH-1", whName: "美国美东海外仓", avail: 112, inTransit: 0, locked: 1, pendingQc: 0, safety: 25, dailySales: 3, ageDays: 105, lastMoveAt: daysOffsetDateTime(-18, "10:15"), turnoverDays: 42, storageFeeRate: 0.48, note: "库龄105天滞销积压" },
+      { id: "inv15", sku: "EAR-712", name: "开放式运动蓝牙耳机", shopSku: "LZ-MY-712", shopName: "Lazada 马来旗舰店", shopMode: "REAL", whId: "MY-WH-1", whName: "马来吉隆坡仓", avail: 78, inTransit: 100, locked: 9, pendingQc: 18, safety: 60, dailySales: 9, ageDays: 21, lastMoveAt: daysOffsetDateTime(-2, "16:45"), turnoverDays: 14, storageFeeRate: 0.32, note: "覆盖8.7天即将断货" },
     ],
     stocktakes: [
-      { sheetId: "PD-20261119-01", whName: "泰国曼谷本地仓", sku: "FAN-203", before: 45, after: 43, delta: -2, m5Before: 488, m5After: 490, m6Before: 615, m6After: 617, reason: "历史示例：盘点发现2件外箱破损转残次", who: "赵仓管", time: "2026-11-19 08:20" }
+      { sheetId: "PD-2026-005", whName: "泰国曼谷本地仓", sku: "FAN-203", before: 45, after: 43, delta: -2, diffType: "盘亏", reviewer: "张运营", poNo: "PO-20261119-03", coverBefore: "5.6天", coverAfter: "5.4天", m5Before: 488, m5After: 490, m6Before: 615, m6After: 617, reason: "历史示例数据：盘点发现2件外箱破损转残次", who: "赵仓管", time: daysOffsetDateTime(0, "08:20") },
+      { sheetId: "PD-2026-004", whName: "美国美西海外仓", sku: "BAG-108", before: 21, after: 18, delta: -3, diffType: "盘亏", reviewer: "陈主管", poNo: "无关联采购单", coverBefore: "1.8天", coverAfter: "1.5天", m5Before: 614, m5After: 617, m6Before: 249, m6After: 252, reason: "复核发现3件拉链瑕疵退库隔离", who: "赵仓管", time: daysOffsetDateTime(-2, "16:40") },
+      { sheetId: "PD-2026-003", whName: "美国美东海外仓", sku: "ORG-301", before: 86, after: 92, delta: 6, diffType: "盘盈", reviewer: "张运营", poNo: "PO-20261108-01", coverBefore: "7.8天", coverAfter: "8.4天", m5Before: 310, m5After: 304, m6Before: 164, m6After: 158, reason: "清点角落托盘找回多装入库6件", who: "赵仓管", time: daysOffsetDateTime(-5, "14:15") },
+      { sheetId: "PD-2026-002", whName: "马来吉隆坡仓", sku: "VAC-704", before: 164, after: 164, delta: 0, diffType: "账实相符", reviewer: "陈主管", poNo: "PO-20261102-04", coverBefore: "27.3天", coverAfter: "27.3天", m5Before: 120, m5After: 120, m6Before: 0, m6After: 0, reason: "月度例行抽盘账实完全一致", who: "赵仓管", time: daysOffsetDateTime(-8, "11:30") },
+      { sheetId: "PD-2026-001", whName: "美国美东海外仓", sku: "LMP-418", before: 140, after: 136, delta: -4, diffType: "盘亏", reviewer: "周分析", poNo: "无关联采购单", coverBefore: "70.0天", coverAfter: "68.0天", m5Before: 0, m5After: 0, m6Before: 0, m6After: 0, reason: "滞销仓长期存放4件灯珠受潮报废", who: "赵仓管", time: daysOffsetDateTime(-12, "15:05") },
     ],
 
     // M1
