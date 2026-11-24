@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CrossPilot · 跨境电商智能运营管理平台（27页业务管理工作台）</title>
+  <title>CrossPilot · 跨境电商业务协作工作台</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div id="app" class="shell">
-    <!-- Left Accordion Sidebar -->
+    <!-- Left Workflow Sidebar -->
     <aside class="sidebar">
-      <div class="brand">
+      <div class="brand" id="brandHomeBtn" style="cursor:pointer;" title="回到岗位工作台首页">
         <div class="brand-logo">CP</div>
         <div>
           <div class="brand-name">CrossPilot</div>
-          <div class="brand-sub">跨境电商智能运营管理平台</div>
+          <div class="brand-sub">跨境电商业务协作工作台</div>
         </div>
       </div>
 
@@ -34,10 +34,17 @@
         <div id="roleHint" class="role-hint"></div>
       </div>
 
+      <div style="padding:10px 10px 0;">
+        <button id="homeNavBtn" class="nav-home-btn active" type="button">
+          <span>🏠 岗位工作台（今日待办）</span>
+          <span id="homeTodoCountBadge" class="nav-todo">0</span>
+        </button>
+      </div>
+
       <nav id="sidebarNav" class="nav-list"></nav>
 
       <div class="sidebar-footer">
-        <div>九大业务岗位权限隔离 · 27 个管理页</div>
+        <div>按业务流转协作 · 6 大业务环节 · 27 个页面</div>
         <div>演示示例与实盘业务数据已严格区分</div>
       </div>
     </aside>
@@ -57,6 +64,8 @@
           </button>
         </div>
       </header>
+
+      <div id="flowPositionBar" class="flow-bar"></div>
 
       <main id="pageBody" class="page-body"></main>
     </div>

@@ -1,5 +1,5 @@
-import { MODULE_DEFS, PAGE_META } from "./annotations.js";
-import { BIZ_ROLES, ROLE_PERSON_NAMES, createInitialState, getRoleTodos, appendAuditLog } from "./state.js";
+import { MODULE_DEFS, PAGE_META, PAGE_FLOW_META } from "./annotations.js";
+import { BIZ_ROLES, ROLE_PERSON_NAMES, createInitialState, getRoleTodos, computeRoleWorkbenchTodos, appendAuditLog } from "./state.js";
 import { renderM0_M3 } from "./pages_m0_m3.js";
 import { renderM4_M6 } from "./pages_m4_m6.js";
 import { renderM7_M8 } from "./pages_m7_m8.js";
@@ -8,6 +8,7 @@ const ROLE_HINTS = Object.fromEntries(BIZ_ROLES.map(r => [r.key, r.desc]));
 let state = createInitialState();
 
 function findModuleOfPage(pid) {
+  if (pid === "home") return null;
   return MODULE_DEFS.find(m => m.pages.some(p => p.id === pid)) || MODULE_DEFS[0];
 }
 
@@ -181,7 +182,8 @@ function closeDetailDrawer() {
 function goPage(pid) {
   if (!PAGE_META[pid]) return;
   state.pageId = pid;
-  state.openModuleId = findModuleOfPage(pid).id;
+  const mod = findModuleOfPage(pid);
+  if (mod) state.openModuleId = mod.id;
   window.location.hash = pid;
   rerender();
 }
@@ -211,16 +213,152 @@ function computeLiveBusinessStats() {
   return { gmv, ordersCnt, netProfit, adSpend, marginPct, acosPct, aov, realLowStocks, syncedDeltaCnt };
 }
 
+function renderHomeWorkbench(helpers) {
+  const roleObj = BIZ_ROLES.find(r => r.key === state.role) || BIZ_ROLES[0];
+  const personName = ROLE_PERSON_NAMES[state.role] || "业务同事";
+  const todos = computeRoleWorkbenchTodos(state);
+  const stats = computeLiveBusinessStats();
+
+  const pendingApprovals = state.tickets.filter(t => t.status === "待主管审批").length
+    + state.m4Pool.filter(x => x.stage === "已提交待审").length
+    + state.m6Plans.filter(p => p.status === "待主管审批").length;
+
+  const urgentCnt = todos.filter(t => t.urgent).length;
+
+  return {
+    headerActions: [
+      { label: "查看正式经营大屏 →", primary: false, onClick: () => goPage("m2b") },
+      todos[0] ? { label: `立即处理第 1 项待办 →`, primary: true, onClick: () => goPage(todos[0].targetPage) } : null
+    ].filter(Boolean),
+    html: `
+      <div class="card card-blue">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span class="pill ${roleObj.pill}">${roleObj.tag}</span>
+              <strong style="font-size:17px;">你好，${personName}（${roleObj.label}）</strong>
+            </div>
+            <div style="font-size:13.5px;color:var(--text-muted);">${roleObj.desc}</div>
+          </div>
+          <div style="font-size:12.5px;color:var(--text-soft);text-align:right;">
+            工作台依据真实业务状态实时生成<br/>可在左上角切换不同岗位体验各自视图
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-4">
+        <div class="kpi-card highlight-blue">
+          <div class="kpi-label">本岗位今日必办</div>
+          <div class="kpi-val" style="color:var(--blue-hover)">${todos.length} 项</div>
+          <div class="kpi-sub">其中紧急待办 ${urgentCnt} 项</div>
+        </div>
+        <div class="kpi-card highlight-green">
+          <div class="kpi-label">全店近30日销售额</div>
+          <div class="kpi-val" style="color:var(--green-text)">$${stats.gmv.toLocaleString()}</div>
+          <div class="kpi-sub">实盘订单 ${stats.ordersCnt.toLocaleString()} 单</div>
+        </div>
+        <div class="kpi-card highlight-amber">
+          <div class="kpi-label">低库存断货预警</div>
+          <div class="kpi-val" style="color:var(--amber-text)">${stats.realLowStocks.length} 项</div>
+          <div class="kpi-sub">仅统计实盘店铺仓位</div>
+        </div>
+        <div class="kpi-card highlight-purple">
+          <div class="kpi-label">全平台待审批积压</div>
+          <div class="kpi-val" style="color:var(--purple-text)">${pendingApprovals} 项</div>
+          <div class="kpi-sub">售后 / 选品 / 补货等待终审</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 我的今日必办清单（按业务紧急度自动排序）</div>
+          <span class="pill ${urgentCnt>0?"p-red":"p-green"}">${urgentCnt>0?`${urgentCnt} 项需优先处理`:"当前无紧急积压"}</span>
+        </div>
+        ${todos.length === 0 ? `
+          <div style="padding:20px;text-align:center;color:var(--text-soft);">本岗位当前暂无待处理事项，可查看左侧六大业务环节巡检日常工作。</div>
+        ` : `
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            ${todos.map((td, idx) => `
+              <div class="todo-row">
+                <div style="flex:1;min-width:260px;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <span class="pill ${td.urgent?"p-red":"p-blue"}">${td.urgent?"紧急优先":"常规待办"} #${idx+1}</span>
+                    <strong style="font-size:14.5px;">${td.title}</strong>
+                  </div>
+                  <div style="font-size:12.5px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;">
+                    <span>📦 对象：<strong>${td.bizObj}</strong></span>
+                    <span>🔗 来源：${td.source}</span>
+                    <span>⏰ 期限：${td.deadline}</span>
+                  </div>
+                </div>
+                <button class="btn btn-sm ${td.urgent?"btn-primary":""} home-go-todo" data-target="${td.targetPage}">去处理 →</button>
+              </div>
+            `).join("")}
+          </div>
+        `}
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🧭 跨境电商六大业务流转全景（点击任意环节直达对应工作台）</div>
+        </div>
+        <div class="grid-3">
+          ${MODULE_DEFS.map(m => {
+            const modTodoCnt = m.pages.filter(p => getRoleTodos(state)[p.id]).length;
+            return `
+              <div class="option-tile home-go-mod" data-first="${m.pages[0].id}" style="text-align:left;padding:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <strong style="font-size:14px;">${m.label}</strong>
+                  ${modTodoCnt > 0 ? `<span class="nav-todo">待办 ${modTodoCnt}</span>` : `<span class="pill p-gray">${m.pages.length} 页</span>`}
+                </div>
+                <div style="font-size:12.5px;color:var(--text-soft);">
+                  ${m.pages.map(p => p.label.replace(/^M\d-\d\s*/, "")).join(" → ")}
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📝 最近业务留痕动态（真实操作记录）</div>
+          <button class="btn btn-sm" id="homeViewAuditBtn">查看完整审计记录 →</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${state.auditLogs.slice(0, 5).map(l => `
+            <div style="font-size:12.5px;padding:7px 10px;border-radius:6px;background:${l.ok?"#f8fafc":"#fef2f2"};border:1px solid ${l.ok?"var(--border)":"#fecaca"};display:flex;justify-content:space-between;gap:10px;">
+              <span>${l.ok ? "✓" : "⛔"} ${l.sentence}</span>
+              <span class="nowrap" style="color:var(--text-soft);">${l.time}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `,
+    bind: () => {
+      document.querySelectorAll(".home-go-todo").forEach(b => b.onclick = () => goPage(b.dataset.target));
+      document.querySelectorAll(".home-go-mod").forEach(b => b.onclick = () => goPage(b.dataset.first));
+      const ab = document.getElementById("homeViewAuditBtn");
+      if (ab) ab.onclick = () => goPage("m8b");
+    }
+  };
+}
+
 function rerender() {
   const mod = findModuleOfPage(state.pageId);
-  const meta = PAGE_META[state.pageId];
+  const meta = PAGE_META[state.pageId] || PAGE_META.home;
   const todos = getRoleTodos(state);
+  const roleTodosList = computeRoleWorkbenchTodos(state);
 
   document.getElementById("roleHint").textContent = ROLE_HINTS[state.role] || "";
+  const homeBtn = document.getElementById("homeNavBtn");
+  if (homeBtn) homeBtn.classList.toggle("active", state.pageId === "home");
+  const badge = document.getElementById("homeTodoCountBadge");
+  if (badge) badge.textContent = roleTodosList.length;
 
   document.getElementById("sidebarNav").innerHTML = MODULE_DEFS.map(m => {
     const isOpen = state.openModuleId === m.id;
-    const isModActive = mod.id === m.id;
+    const isModActive = mod && mod.id === m.id;
     const modTodoCount = m.pages.filter(p => todos[p.id]).length;
     return `
       <div class="nav-group ${isOpen ? "open" : ""}">
@@ -256,16 +394,45 @@ function rerender() {
     el.onclick = () => goPage(el.dataset.page);
   });
 
-  const curPageObj = mod.pages.find(p => p.id === state.pageId) || mod.pages[0];
-  document.getElementById("breadcrumb").textContent = `${mod.label}  /  ${curPageObj.label}`;
+  const curPageObj = mod ? (mod.pages.find(p => p.id === state.pageId) || mod.pages[0]) : { label: "岗位工作台（今日待办）" };
+  document.getElementById("breadcrumb").textContent = mod ? `${mod.label}  /  ${curPageObj.label}` : "工作台首页  /  我的今日待办";
   document.getElementById("pageTitle").textContent = meta.title;
   document.getElementById("pageSubtitle").textContent = meta.subtitle;
+
+  // Render 3-stage Flow Position Bar (上游环节 → 本环节 → 下游环节)
+  const flowBar = document.getElementById("flowPositionBar");
+  const flowInfo = PAGE_FLOW_META[state.pageId];
+  if (flowBar && flowInfo) {
+    flowBar.style.display = "grid";
+    flowBar.innerHTML = `
+      <div class="flow-node ${flowInfo.upPage ? "clickable" : ""}" ${flowInfo.upPage ? `data-flowpage="${flowInfo.upPage}" title="点击跳转上游：${flowInfo.up}"` : ""}>
+        <div class="flow-node-tag">⬅ 上游环节</div>
+        <div>${flowInfo.up}${flowInfo.upPage ? ` <span style="color:var(--blue-hover);font-weight:600;">[跳转]</span>` : ""}</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node current">
+        <div class="flow-node-tag">📍 本环节当前动作</div>
+        <div><strong>${flowInfo.cur}</strong></div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node ${flowInfo.downPage ? "clickable" : ""}" ${flowInfo.downPage ? `data-flowpage="${flowInfo.downPage}" title="点击跳转下游：${flowInfo.down}"` : ""}>
+        <div class="flow-node-tag">➡ 下游环节</div>
+        <div>${flowInfo.down}${flowInfo.downPage ? ` <span style="color:var(--blue-hover);font-weight:600;">[跳转]</span>` : ""}</div>
+      </div>
+    `;
+    flowBar.querySelectorAll("[data-flowpage]").forEach(btn => {
+      btn.onclick = () => goPage(btn.dataset.flowpage);
+    });
+  } else if (flowBar) {
+    flowBar.style.display = "none";
+  }
 
   const helpers = {
     toast, goPage, openModal, closeModal, openDrawer, closeDetailDrawer,
     rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats, record403
   };
   const pageResult =
+    (state.pageId === "home" ? renderHomeWorkbench(helpers) : null) ||
     renderM0_M3(state.pageId, state, helpers) ||
     renderM4_M6(state.pageId, state, helpers) ||
     renderM7_M8(state.pageId, state, helpers) ||
@@ -302,7 +469,6 @@ function rerender() {
 
   if (pageResult.bind) pageResult.bind();
 
-  // 业务规则说明抽屉（纯业务管理语言，无代码编号与字段）
   const annoBtn = document.getElementById("toggleAnnoBtn");
   annoBtn.classList.toggle("active", state.showAnno);
   document.getElementById("annoDrawer").classList.toggle("hidden", !state.showAnno);
@@ -343,8 +509,13 @@ roleSelectEl.onchange = (e) => {
     ok: true,
   });
   rerender();
-  toast(`已切换岗位：${next}（菜单红点待办与按钮权限已同步更新）`, "info");
+  toast(`已切换岗位：${next}（工作台待办与权限已同步更新）`, "info");
 };
+
+const homeBtnEl = document.getElementById("homeNavBtn");
+if (homeBtnEl) homeBtnEl.onclick = () => goPage("home");
+const brandHomeEl = document.getElementById("brandHomeBtn");
+if (brandHomeEl) brandHomeEl.onclick = () => goPage("home");
 
 document.getElementById("toggleAnnoBtn").onclick = () => {
   state.showAnno = !state.showAnno;
@@ -359,6 +530,7 @@ document.getElementById("detailDrawerBackdrop").onclick = closeDetailDrawer;
 const initHash = window.location.hash.replace("#", "");
 if (PAGE_META[initHash]) {
   state.pageId = initHash;
-  state.openModuleId = findModuleOfPage(initHash).id;
+  const mod = findModuleOfPage(initHash);
+  if (mod) state.openModuleId = mod.id;
 }
 rerender();

@@ -3,34 +3,45 @@ import {
 } from "./state.js";
 
 const M4_MODES = {
-  balanced: { key: "balanced", label: "综合均衡推荐", wRev: 50, wTrend: 40, wMargin: 10, desc: "适合日常稳健选品：规模与增长并重，兼顾毛利" },
-  revenue:  { key: "revenue",  label: "规模创收优先", wRev: 70, wTrend: 20, wMargin: 10, desc: "适合冲销量与资金回笼：优先挑选销售规模大的单品" },
-  growth:   { key: "growth",   label: "高增趋势优先", wRev: 25, wTrend: 65, wMargin: 10, desc: "适合抓潜力爆款：优先挑选近期周环比飙升的新品" },
+  balanced: { key: "balanced", label: "均衡优选", wRev: 45, wTrend: 35, wMargin: 20, desc: "适合日常选品：平衡近2月销售额、近期涨势与毛利空间，优先推荐可投产单品" },
+  revenue:  { key: "revenue",  label: "稳健经营", wRev: 60, wTrend: 15, wMargin: 25, desc: "适合稳现金流：优先挑选销额大、毛利率高、退货率与侵权风险低的老道品类" },
+  growth:   { key: "growth",   label: "高增长",   wRev: 20, wTrend: 65, wMargin: 15, desc: "适合抓爆款窗口：优先挑选近8周销量快速攀升、竞品较少的新品机会" },
 };
 
 function calcM4NetSales(item) { return item.paidQty - item.refundQty; }
 function calcM4NetRev(item) { return +(item.grossRev - item.discount - item.refundAmt).toFixed(2); }
-function calcM4Score(item, maxRev, modeKey = "balanced") {
+
+function isProduceReady(item) {
+  const reasons = [];
+  if (item.srcCode !== "INTERNAL") reasons.push("外购估算数据（须内部实盘才能投产）");
+  if (!item.marginKnown || item.margin === null) reasons.push("缺采购与头程成本");
+  else if (item.margin < 10) reasons.push(`毛利率 ${item.margin}% 低于 10% 底线`);
+  if (item.riskLevel === "高风险") reasons.push("存在高风险隐患");
+  return { ok: reasons.length === 0, reasons };
+}
+
+function calcM4Priority(item, maxRev, modeKey = "balanced") {
   const m = M4_MODES[modeKey] || M4_MODES.balanced;
   const revNorm = Math.min(1, calcM4NetRev(item) / (maxRev || 1));
   const trendNorm = Math.max(0, Math.min(1, item.trend / 60));
+  const ready = isProduceReady(item);
   if (item.marginKnown && item.margin !== null) {
     const marginNorm = Math.max(0, Math.min(1, item.margin / 25));
-    const score = ((m.wRev / 100) * revNorm + (m.wTrend / 100) * trendNorm + (m.wMargin / 100) * marginNorm) * 100;
+    const rankVal = ((m.wRev / 100) * revNorm + (m.wTrend / 100) * trendNorm + (m.wMargin / 100) * marginNorm) * 100 + (ready.ok ? 8 : -10);
     return {
-      score: Number(score.toFixed(1)),
-      explain: `销量表现(${m.wRev}%) + 增长趋势(${m.wTrend}%) + 利润潜力(${m.wMargin}%)`,
+      rankVal,
+      explain: `依据「${m.label}」策略：近2月销额贡献(${m.wRev}%) + 近8周涨势(${m.wTrend}%) + 预计毛利(${m.wMargin}%)`,
       missingNote: ""
     };
   }
   const sumW = m.wRev + m.wTrend;
   const wR = Math.round((m.wRev / sumW) * 100);
   const wT = 100 - wR;
-  const score = ((m.wRev / sumW) * revNorm + (m.wTrend / sumW) * trendNorm) * 100;
+  const rankVal = ((m.wRev / sumW) * revNorm + (m.wTrend / sumW) * trendNorm) * 100 - 15;
   return {
-    score: Number(score.toFixed(1)),
-    explain: `销量表现(${wR}%) + 增长趋势(${wT}%)`,
-    missingNote: "利润数据暂缺，已按其余已知指标折算评分"
+    rankVal,
+    explain: `依据「${m.label}」策略：近2月销额贡献(${wR}%) + 近8周涨势(${wT}%)`,
+    missingNote: "采购头程成本暂缺，暂按已知销额与涨势估算优先级（不可直接投产）"
   };
 }
 
@@ -42,7 +53,7 @@ export function renderM4_M6(pageId, state, helpers) {
     const canImportM4 = state.role === "selector" || state.role === "planner" || state.role === "approver";
     return {
       headerActions: [
-        { label: "进入选品初筛与排行 →", primary: false, onClick: () => goPage("m4b") },
+        { label: "进入选品决策工作台 →", primary: false, onClick: () => goPage("m4b") },
         {
           label: "＋ 从文件导入候选商品", primary: true,
           disabled: !canImportM4,
@@ -84,7 +95,7 @@ export function renderM4_M6(pageId, state, helpers) {
                     <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">表格前 10 行数据预览（${n} · ${Math.max(1, Math.round(f.size/1024))} KB）：</div>
                     <div class="table-wrap" style="max-height:150px;">
                       <table>
-                        <thead><tr><th>行号</th><th>商品名称</th><th>8周净销量</th><th>成本状态</th><th>校验结果</th></tr></thead>
+                        <thead><tr><th>行号</th><th>商品名称</th><th>近2月净销量</th><th>成本状态</th><th>校验结果</th></tr></thead>
                         <tbody>
                           <tr><td>第 1 行</td><td>便携旅行分装瓶套装</td><td>1,140 件</td><td>采购成本 $1.90</td><td><span class="pill p-green">合法</span></td></tr>
                           <tr><td>第 2 行</td><td>折叠硅胶电热水壶</td><td>890 件</td><td>成本缺失（保留空值）</td><td><span class="pill p-amber">提示补全成本</span></td></tr>
@@ -117,16 +128,25 @@ export function renderM4_M6(pageId, state, helpers) {
                   onSuccess: () => {
                     const tag = kind === "仅演示数据" ? "DEMO_ONLY" : kind === "内部实盘选品" ? "READY_REVIEW" : "ESTIMATE_ONLY";
                     const srcCode = kind === "内部实盘选品" ? "INTERNAL" : "PAID_EXTERNAL";
-                    state.m4Tasks.unshift({ file: fname, kind, scope: "新增 2 款商品 · 美区", status: `已完成 (${kind})`, ok: true, tag, time: nowDateTimeStr() });
+                    state.m4Tasks.unshift({ file: fname, kind, scope: "新增 1 款商品 · 家居收纳", status: `已完成 (${kind})`, ok: true, tag, time: nowDateTimeStr() });
                     if (kind !== "仅演示数据") {
+                      const isInt = kind === "内部实盘选品";
                       state.m4Pool.unshift({
                         sku: `SKU-${Math.floor(80000 + Math.random()*9000)}`, name: "便携旅行分装瓶套装",
-                        region: "美区渠道", paidQty: 1180, refundQty: 40, grossRev: 41200, discount: 310, refundAmt: 480,
-                        trend: 24.6, prevAvg: 115, currAvg: 143, marginKnown: kind === "内部实盘选品",
-                        margin: kind === "内部实盘选品" ? 15.8 : null,
-                        src: kind, srcCode, stage: kind === "内部实盘选品" ? "初筛候选" : "缺成本待补全",
+                        category: "家居收纳", priceBand: "$15-30", unitPriceUsd: 21.8, platform: "Amazon US",
+                        region: "美区渠道", lifecycle: "快速上升期", riskLevel: "低风险",
+                        paidQty: 1180, refundQty: 40, grossRev: 41200, discount: 310, refundAmt: 480,
+                        trend: 24.6, prevAvg: 115, currAvg: 143, marginKnown: isInt,
+                        margin: isInt ? 15.8 : null,
+                        src: kind, srcCode, stage: isInt ? "初筛候选" : "缺成本待补全",
                         submitter: "—", submitReason: "", approver: "", decisionReason: "", evidence: "",
-                        missing: kind === "内部实盘选品" ? "" : "外购数据缺实际采购与头程成本", budget: "$1,100 (50件)", riskNote: "轻小件物流友好"
+                        missing: isInt ? "" : "外购数据缺实际采购与头程成本", budget: "$1,100 (50件)",
+                        sysAdvice: { badge: isInt ? "建议投产" : "建议补成本再评", tone: isInt ? "p-green" : "p-amber", reason: isInt ? "近2月销额稳、涨势 +24.6% 且毛利率 15.8% 达标，可送审测款" : "销量走势良好但缺采购成本，补齐核价后再决定" },
+                        competition: { competitors: 31, topReviews: "280~700条", priceRange: "$16.9 - $26.9", verdict: "竞争温和，轻小件物流友好" },
+                        supplyChain: { buyPrice: isInt ? "$1.90" : "待核价", moq: "50 套", leadDays: "8 天", inStock: "义乌现货" },
+                        riskDetail: { ip: "常规容器无侵权 ✓", cert: "PET塑料合规 ✓", seasonal: "差旅刚需全年可卖 ✓", refundRate: "2.1%" },
+                        timing: { seasonNote: "节假日出行高峰前备货佳", stageNote: "快速上升期" },
+                        trend8w: [108, 114, 118, 124, 129, 134, 139, 143]
                       });
                     }
                     return { summary: `文件「${fname}」导入完成（性质：${kind}）`, toastMsg: `选品导入完成：${fname}` };
@@ -158,7 +178,7 @@ export function renderM4_M6(pageId, state, helpers) {
           <div class="card card-green">
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><strong>3. 内部实盘选品数据</strong><span class="pill p-green">可送审测款</span></div>
             <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px;">来自真实自营店铺销售与采购成本核算，是批准正式测款的唯一有效依据。</div>
-            <button class="btn btn-sm btn-primary" id="m4GotoPoolBtn">查看机会池 (${state.m4Pool.length} 款) →</button>
+            <button class="btn btn-sm btn-primary" id="m4GotoPoolBtn">进入选品决策工作台 (${state.m4Pool.length} 款) →</button>
           </div>
         </div>
 
@@ -200,40 +220,49 @@ export function renderM4_M6(pageId, state, helpers) {
     };
   }
 
-  // ==================== M4-2: 选品初筛与三视角评分排行 ====================
+  // ==================== M4-2: 选品决策工作台（筛选 · 推荐 · 对比 · 送审） ====================
   if (pageId === "m4b") {
     const isSelector = state.role === "selector" || state.role === "planner";
     const activeMode = M4_MODES[state.m4Mode] || M4_MODES.balanced;
+    const allCats = ["ALL", "家居收纳", "宠物用品", "厨房小电", "3C配件", "户外运动"];
 
     const baseFiltered = state.m4Pool.filter(item => {
       const q = state.m4Search.trim().toLowerCase();
       const matchSearch = !q || item.sku.toLowerCase().includes(q) || item.name.toLowerCase().includes(q);
+      const matchCat = state.m4CatTab === "ALL" || item.category === state.m4CatTab;
+      const matchPrice = state.m4PriceFilter === "ALL" || item.priceBand === state.m4PriceFilter;
+      const matchPlat = state.m4RegionFilter === "ALL" || item.platform === state.m4RegionFilter;
+      const matchLife = state.m4LifecycleFilter === "ALL" || item.lifecycle === state.m4LifecycleFilter;
+      const matchRisk = state.m4RiskFilter === "ALL" || item.riskLevel === state.m4RiskFilter;
       const matchSrc = state.m4SrcFilter === "ALL" || item.src === state.m4SrcFilter;
-      const matchReg = state.m4RegionFilter === "ALL" || item.region.includes(state.m4RegionFilter);
-      const matchRev = calcM4NetRev(item) >= state.m4MinRev;
-      return matchSearch && matchSrc && matchReg && matchRev;
+      const matchMyCat = !state.m4OnlyMyCats || state.selectorAssignedCats.includes(item.category);
+      const matchReady = !state.m4OnlyProduceReady || isProduceReady(item).ok;
+      return matchSearch && matchCat && matchPrice && matchPlat && matchLife && matchRisk && matchSrc && matchMyCat && matchReady;
     });
 
     const maxRev = Math.max(...state.m4Pool.map(calcM4NetRev), 1);
+    const rankedPool = [...state.m4Pool].sort((a, b) => calcM4Priority(b, maxRev, state.m4Mode).rankVal - calcM4Priority(a, maxRev, state.m4Mode).rankVal);
+    const top3Featured = rankedPool.filter(x => x.stage !== "已淘汰").slice(0, 3);
+
     const tabFiltered = baseFiltered
       .filter(x => state.m4Tab === "ALL" || x.stage === state.m4Tab)
-      .sort((a, b) => calcM4Score(b, maxRev, state.m4Mode).score - calcM4Score(a, maxRev, state.m4Mode).score);
+      .sort((a, b) => calcM4Priority(b, maxRev, state.m4Mode).rankVal - calcM4Priority(a, maxRev, state.m4Mode).rankVal);
 
-    const rankedPool = [...state.m4Pool].sort((a, b) => calcM4Score(b, maxRev, state.m4Mode).score - calcM4Score(a, maxRev, state.m4Mode).score);
-    const top3 = rankedPool.slice(0, 3);
-    const pageSize = 3;
+    const pageSize = 4;
     const totalPages = Math.max(1, Math.ceil(tabFiltered.length / pageSize));
     if (state.m4Page > totalPages) state.m4Page = totalPages;
     const paged = tabFiltered.slice((state.m4Page - 1) * pageSize, state.m4Page * pageSize);
 
     const tabs = [
-      { key: "ALL", label: "全部机会" },
-      { key: "初筛候选", label: "待初筛评估" },
-      { key: "缺成本待补全", label: "缺成本待补全" },
-      { key: "已提交待审", label: "已送主管待审" },
+      { key: "ALL", label: "全部候选" },
+      { key: "初筛候选", label: "待初筛决定" },
+      { key: "缺成本待补全", label: "缺成本待核价" },
+      { key: "已提交待审", label: "已送主管拍板" },
       { key: "已批准测款", label: "已批准测款" },
       { key: "已淘汰", label: "已淘汰" },
     ];
+
+    const compareItems = state.m4Pool.filter(x => state.m4CompareIds.includes(x.sku));
 
     return {
       headerActions: [
@@ -242,45 +271,57 @@ export function renderM4_M6(pageId, state, helpers) {
       ],
       html: `
         <div class="banner banner-blue">
-          <span><strong>页面定位：</strong>按选品业务侧重点自动排名并核验利润数据，筛选出优质候选提交给主管拍板（缺利润率的商品不可直接批准投产）。</span>
+          <span><strong>选品员决策规则：</strong>系统已剔除技术算法术语，按<strong>近2月销售额、近8周涨势、预计毛利率与4项风险排查</strong>直接给出「建议投产 / 补成本 / 放弃」结论；缺成本或外购估算数据不能直接投产。</span>
         </div>
 
         <div class="card card-blue">
           <div class="card-header">
-            <div class="card-title">🎯 请选择您本次选品的推荐侧重点（系统将实时重排商品榜单）</div>
-            <span class="pill p-blue">当前：${activeMode.label}</span>
+            <div class="card-title">✨ 系统精选推荐 · 按经营策略挑选最值得先推的商品</div>
+            <span class="pill p-blue">当前策略：${activeMode.label}</span>
           </div>
-          <div class="grid-3" style="margin-bottom:12px;">
+          <div class="grid-3" style="margin-bottom:14px;">
             ${Object.values(M4_MODES).map(m => `
               <div class="option-tile ${state.m4Mode===m.key?"active":""} m4-mode-opt" data-mode="${m.key}" style="text-align:left;padding:12px 14px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                  <strong style="font-size:13.5px;">${m.label}</strong>
-                  <span class="pill ${state.m4Mode===m.key?"p-blue":"p-gray"}">销${m.wRev}/涨${m.wTrend}/利${m.wMargin}</span>
+                  <strong style="font-size:14px;">${m.label}</strong>
+                  <span class="pill ${state.m4Mode===m.key?"p-blue":"p-gray"}">${state.m4Mode===m.key?"已选用":"点击切换"}</span>
                 </div>
-                <div style="font-size:12px;color:var(--text-soft);">${m.desc}</div>
+                <div style="font-size:12.5px;color:var(--text-soft);">${m.desc}</div>
               </div>
             `).join("")}
           </div>
 
-          <div style="font-size:13px;font-weight:700;margin-bottom:8px;">🏆 本视角重点推荐前三名（点击任意卡片可展开详细评分依据）</div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:8px;">🏆 系统精选推荐（优先看可投产且涨势稳的 Top 3）：</div>
           <div class="grid-3">
-            ${top3.map((item, idx) => {
-              const sc = calcM4Score(item, maxRev, state.m4Mode);
+            ${top3Featured.map((item, idx) => {
+              const netRev = calcM4NetRev(item);
+              const ready = isProduceReady(item);
               return `
-                <div style="background:#fff;border:1px solid ${idx===0?"var(--blue)":"var(--border)"};border-radius:9px;padding:12px 14px;">
-                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                <div style="background:#fff;border:1px solid ${idx===0?"var(--blue)":"var(--border)"};border-radius:9px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;align-items:center;gap:10px;">
                     <img src="${getProductImg(item.sku)}" class="prod-thumb-img" alt="${item.name}"/>
                     <div style="min-width:0;flex:1;">
-                      <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span class="pill ${idx===0?"p-blue":"p-gray"}">第 ${idx+1} 名</span>
-                        <strong style="color:var(--blue-hover);font-size:15px;">${sc.score} 分</strong>
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                        <span class="pill ${item.sysAdvice.tone}">【系统建议】${item.sysAdvice.badge}</span>
+                        <span style="font-size:12px;color:var(--text-soft);">${item.category}</span>
                       </div>
-                      <div style="font-weight:700;margin-top:3px;">${item.name}</div>
-                      <div style="font-size:12px;color:var(--text-soft);">${item.sku} · ${item.src}</div>
+                      <div style="font-weight:700;margin-top:4px;font-size:14px;">${item.name}</div>
+                      <div style="font-size:12px;color:var(--text-soft);">${item.sku} · ${item.platform} · ${item.priceBand}</div>
                     </div>
                   </div>
-                  <div style="font-size:12px;color:var(--text-muted);">
-                    评分依据：${sc.explain}${sc.missingNote ? `<br/><span style="color:var(--amber-text);">${sc.missingNote}</span>` : ""}
+                  <div style="font-size:12.5px;color:var(--text);background:#f8fafc;border-radius:6px;padding:7px 9px;">
+                    <strong>推荐理由：</strong>${item.sysAdvice.reason}
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);">
+                    <span>近2月：<strong>$${netRev.toLocaleString()}</strong></span>
+                    <span>涨势：<strong style="color:var(--green-text)">+${item.trend}%</strong></span>
+                    <span>毛利：<strong>${item.marginKnown?item.margin+"%":"待核价"}</strong></span>
+                  </div>
+                  <div style="display:flex;gap:6px;margin-top:auto;">
+                    ${(item.stage === "初筛候选" || item.stage === "缺成本待补全")
+                      ? `<button class="btn btn-sm btn-primary m4-submit" data-sku="${item.sku}" ${!isSelector?"disabled":""}>${ready.ok?"提交测款拍板 →":"送审核价 →"}</button>`
+                      : `<span class="pill p-gray">${item.stage}</span>`}
+                    <button class="btn btn-sm m4-detail" data-sku="${item.sku}">看详细依据</button>
                   </div>
                 </div>
               `;
@@ -289,8 +330,59 @@ export function renderM4_M6(pageId, state, helpers) {
         </div>
 
         <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+            <div class="cat-tabs" style="margin-bottom:0;">
+              ${allCats.map(c => `<div class="cat-tab ${state.m4CatTab===c?"active":""} m4-cattab" data-cat="${c}">${c==="ALL"?"全部品类":c}</div>`).join("")}
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;">
+                <input type="checkbox" id="m4MyCatChk" ${state.m4OnlyMyCats?"checked":""}/> 只看我负责的类目（${state.selectorAssignedCats.join("/")}）
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--green-text);cursor:pointer;">
+                <input type="checkbox" id="m4ReadyChk" ${state.m4OnlyProduceReady?"checked":""}/> 只看可投产（剔除缺成本/外购估算/毛利&lt;10%）
+              </label>
+            </div>
+          </div>
+
           <div class="filter-bar">
-            <div class="filter-item"><label>搜索商品编码或名称</label><input id="m4SearchInp" class="input" placeholder="如：整理箱 / SKU-00515" value="${state.m4Search}"/></div>
+            <div class="filter-item"><label>搜索商品编号或名称</label><input id="m4SearchInp" class="input" placeholder="如：整理箱 / SKU-00515" value="${state.m4Search}"/></div>
+            <div class="filter-item">
+              <label>价格带</label>
+              <select id="m4PriceSel" class="select">
+                <option value="ALL">全部价格带</option>
+                <option value="<$15" ${state.m4PriceFilter==="<$15"?"selected":""}>低价 (&lt;$15)</option>
+                <option value="$15-30" ${state.m4PriceFilter==="$15-30"?"selected":""}>主力 ($15-30)</option>
+                <option value="$30-60" ${state.m4PriceFilter==="$30-60"?"selected":""}>中高客单 ($30-60)</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>目标平台</label>
+              <select id="m4RegSel" class="select">
+                <option value="ALL">全部平台</option>
+                <option value="Amazon US" ${state.m4RegionFilter==="Amazon US"?"selected":""}>Amazon US</option>
+                <option value="TikTok US" ${state.m4RegionFilter==="TikTok US"?"selected":""}>TikTok US</option>
+                <option value="Shopee TH" ${state.m4RegionFilter==="Shopee TH"?"selected":""}>Shopee TH</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>商品生命周期</label>
+              <select id="m4LifeSel" class="select">
+                <option value="ALL">全部阶段</option>
+                <option value="新品期" ${state.m4LifecycleFilter==="新品期"?"selected":""}>新品期</option>
+                <option value="快速上升期" ${state.m4LifecycleFilter==="快速上升期"?"selected":""}>快速上升期</option>
+                <option value="成熟期" ${state.m4LifecycleFilter==="成熟期"?"selected":""}>成熟期</option>
+                <option value="衰退期" ${state.m4LifecycleFilter==="衰退期"?"selected":""}>衰退期</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>风险等级</label>
+              <select id="m4RiskSel" class="select">
+                <option value="ALL">全部风险</option>
+                <option value="低风险" ${state.m4RiskFilter==="低风险"?"selected":""}>低风险</option>
+                <option value="中风险" ${state.m4RiskFilter==="中风险"?"selected":""}>中风险</option>
+                <option value="高风险" ${state.m4RiskFilter==="高风险"?"selected":""}>高风险</option>
+              </select>
+            </div>
             <div class="filter-item">
               <label>数据来源</label>
               <select id="m4SrcSel" class="select">
@@ -299,88 +391,119 @@ export function renderM4_M6(pageId, state, helpers) {
                 <option value="外购行业估算" ${state.m4SrcFilter==="外购行业估算"?"selected":""}>外购行业估算</option>
               </select>
             </div>
-            <div class="filter-item">
-              <label>销售渠道区域</label>
-              <select id="m4RegSel" class="select">
-                <option value="ALL">全部地区</option>
-                <option value="美区" ${state.m4RegionFilter==="美区"?"selected":""}>美区</option>
-                <option value="泰国" ${state.m4RegionFilter==="泰国"?"selected":""}>泰国</option>
-              </select>
-            </div>
-            <div class="filter-item">
-              <label>最低 8 周净收入</label>
-              <select id="m4RevSel" class="select">
-                <option value="0" ${state.m4MinRev===0?"selected":""}>不限</option>
-                <option value="30000" ${state.m4MinRev===30000?"selected":""}>≥ $30,000</option>
-                <option value="50000" ${state.m4MinRev===50000?"selected":""}>≥ $50,000</option>
-              </select>
-            </div>
           </div>
         </div>
 
         <div class="card">
-          <div class="utabs" style="margin-bottom:14px;">
-            ${tabs.map(t => {
-              const cnt = baseFiltered.filter(x => t.key === "ALL" || x.stage === t.key).length;
-              return `<div class="utab ${state.m4Tab===t.key?"active":""} m4-utab" data-t="${t.key}">${t.label} <span class="utab-cnt">${cnt}</span></div>`;
-            }).join("")}
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+            <div class="utabs" style="margin-bottom:0;">
+              ${tabs.map(t => {
+                const cnt = baseFiltered.filter(x => t.key === "ALL" || x.stage === t.key).length;
+                return `<div class="utab ${state.m4Tab===t.key?"active":""} m4-utab" data-t="${t.key}">${t.label} <span class="utab-cnt">${cnt}</span></div>`;
+              }).join("")}
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button class="btn btn-sm btn-primary" id="m4OpenCompareBtn" ${compareItems.length < 2 ? "disabled" : ""}>横向对比已选 (${compareItems.length}/4 款)</button>
+              <button class="btn btn-sm" id="m4BatchSubmitBtn" ${(!isSelector || compareItems.length===0)?"disabled":""}>批量提交测款</button>
+              <button class="btn btn-sm" id="m4BatchHoldBtn" ${(!isSelector || compareItems.length===0)?"disabled":""}>批量标为暂观望</button>
+              <button class="btn btn-sm btn-danger" id="m4BatchElimBtn" ${(!isSelector || compareItems.length===0)?"disabled":""}>批量淘汰</button>
+            </div>
           </div>
 
-          <div class="grid-3">
-            ${paged.map(item => {
-              const netQty = calcM4NetSales(item);
-              const netRev = calcM4NetRev(item);
-              const sc = calcM4Score(item, maxRev, state.m4Mode);
-              const rankIdx = rankedPool.findIndex(r => r.sku === item.sku) + 1;
-              return `
-                <div class="prod-card">
-                  <div class="prod-thumb">
-                    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                      <img src="${getProductImg(item.sku)}" class="prod-thumb-img" alt="${item.name}"/>
-                      <div style="min-width:0;">
-                        <div style="font-size:12px;color:var(--text-soft);">${item.sku} · ${item.region}</div>
-                        <strong style="font-size:14px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</strong>
+          ${paged.length === 0 ? `<div style="padding:28px;text-align:center;color:var(--text-soft);">当前筛选条件下暂无符合要求的候选商品，请放宽上方筛选条件。</div>` : `
+            <div class="grid-2">
+              ${paged.map(item => {
+                const netQty = calcM4NetSales(item);
+                const netRev = calcM4NetRev(item);
+                const pr = calcM4Priority(item, maxRev, state.m4Mode);
+                const ready = isProduceReady(item);
+                const checked = state.m4CompareIds.includes(item.sku);
+                const maxBar = Math.max(...(item.trend8w || [1]), 1);
+                return `
+                  <div class="prod-card" style="gap:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                        <input type="checkbox" class="m4-cmp-chk" data-sku="${item.sku}" ${checked?"checked":""} title="勾选加入对比或批量操作" style="width:16px;height:16px;cursor:pointer;"/>
+                        <img src="${getProductImg(item.sku)}" class="prod-thumb-img" alt="${item.name}"/>
+                        <div style="min-width:0;">
+                          <div style="font-size:12px;color:var(--text-soft);">【它是什么】${item.sku} · ${item.category} · ${item.platform} · ${item.priceBand}</div>
+                          <strong style="font-size:15px;">${item.name}</strong>
+                          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:3px;">
+                            <span class="pill ${item.srcCode==="INTERNAL"?"p-green":"p-amber"}">${item.src}</span>
+                            <span class="pill p-blue">${item.lifecycle}</span>
+                            <span class="pill ${item.riskLevel==="低风险"?"p-green":item.riskLevel==="高风险"?"p-red":"p-amber"}">${item.riskLevel}</span>
+                            <span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已提交待审"?"p-purple":item.stage==="初筛候选"?"p-blue":item.stage==="已淘汰"?"p-red":"p-amber"}">${item.stage}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <span class="pill ${item.srcCode==="INTERNAL"?"p-green":"p-amber"}">${item.src}</span>
-                  </div>
 
-                  <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已提交待审"?"p-purple":item.stage==="初筛候选"?"p-blue":item.stage==="已淘汰"?"p-red":"p-amber"}">${item.stage}</span>
-                    <strong style="color:var(--blue-hover);font-size:13.5px;">第 ${rankIdx} 名 · ${sc.score} 分</strong>
-                  </div>
-
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12.5px;">
-                    <div>8周净收入：<strong>$${netRev.toLocaleString()}</strong></div>
-                    <div>净销量：<strong>${netQty} 件</strong></div>
-                    <div>周增长趋势：<strong style="color:${item.trend>=0?"var(--green-text)":"var(--red-text)"}">${item.trend>=0?"+":""}${item.trend}%</strong></div>
-                    <div>利润率：<strong>${item.marginKnown?item.margin+"%":'<span style="color:var(--amber-text)">数据暂缺</span>'}</strong></div>
-                  </div>
-
-                  <details style="background:#f8fafc;border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;">
-                    <summary style="cursor:pointer;font-weight:600;color:var(--blue-hover);">展开评分依据与计算说明</summary>
-                    <div style="margin-top:5px;line-height:1.55;color:var(--text-muted);">
-                      • <strong>评分构成：</strong>${sc.explain}<br/>
-                      ${sc.missingNote ? `• <span style="color:var(--amber-text);"><strong>折算说明：</strong>${sc.missingNote}</span><br/>` : ""}
-                      • <strong>风险核查：</strong>${item.riskNote}
+                    <div style="background:${item.sysAdvice.tone==="p-green"?"#f0fdf4":item.sysAdvice.tone==="p-red"?"#fef2f2":"#fffbeb"};border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:12.5px;">
+                      <strong>【系统建议做什么】</strong><span class="pill ${item.sysAdvice.tone}" style="margin-right:6px;">${item.sysAdvice.badge}</span>${item.sysAdvice.reason}
+                      ${!ready.ok ? `<div style="color:var(--amber-text);font-size:12px;margin-top:3px;">投产门槛拦截：${ready.reasons.join("；")}</div>` : ""}
                     </div>
-                  </details>
 
-                  ${item.missing ? `<div style="font-size:12px;color:var(--amber-text);">⚠ ${item.missing}</div>` : ""}
+                    <div style="font-size:12.5px;">
+                      <div style="font-weight:700;margin-bottom:4px;color:var(--text-muted);">【关键依据】</div>
+                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#f8fafc;border-radius:7px;padding:8px 10px;">
+                        <div>近2月卖了多少钱：<strong>$${netRev.toLocaleString()}</strong>（${netQty}件）</div>
+                        <div>近8周销量涨跌：<strong style="color:${item.trend>=0?"var(--green-text)":"var(--red-text)"}">${item.trend>=0?"+":""}${item.trend}%</strong></div>
+                        <div>预计毛利率：<strong>${item.marginKnown?item.margin+"%":'<span style="color:var(--amber-text)">缺成本未知</span>'}</strong></div>
+                        <div>近2月退货率：<strong>${item.riskDetail.refundRate}</strong></div>
+                      </div>
+                    </div>
 
-                  <div style="display:flex;gap:8px;margin-top:auto;padding-top:4px;flex-wrap:wrap;">
-                    <button class="btn btn-sm m4-detail" data-sku="${item.sku}">查看明细核对</button>
-                    ${(item.stage === "初筛候选" || item.stage === "缺成本待补全")
-                      ? `<button class="btn btn-sm btn-primary m4-submit" data-sku="${item.sku}" ${!isSelector?"disabled":""} title="${!isSelector?"需要「选品研究员」或「业务运营」权限":""}">提交主管待审 →</button>`
-                      : `<span style="font-size:12px;color:var(--text-soft);align-self:center;">已提交 (${item.submitter})</span>`}
+                    <details style="background:#f8fafc;border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:12.5px;">
+                      <summary style="cursor:pointer;font-weight:600;color:var(--blue-hover);">展开深度研判（近8周走势 / 竞品 / 供应链 / 4项风险 / 时机）</summary>
+                      <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;">
+                        <div>
+                          <strong>1. 近 8 周周销量走势（周均 ${item.prevAvg} → ${item.currAvg} 件）：</strong>
+                          <div style="display:flex;align-items:flex-end;gap:4px;height:38px;margin-top:4px;padding:4px 6px;background:#fff;border:1px solid var(--border);border-radius:5px;">
+                            ${(item.trend8w || []).map((v, wi) => `<div title="第${wi+1}周: ${v}件" style="flex:1;height:${Math.max(15, Math.round((v/maxBar)*100))}%;background:#3b82f6;border-radius:2px;"></div>`).join("")}
+                          </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                          <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:7px;">
+                            <strong>2. 竞品格局</strong><br/>
+                            在售竞品：${item.competition.competitors} 家<br/>
+                            头部评论：${item.competition.topReviews}<br/>
+                            主流售价：${item.competition.priceRange}<br/>
+                            结论：${item.competition.verdict}
+                          </div>
+                          <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:7px;">
+                            <strong>3. 供应链核价与交期</strong><br/>
+                            预估采购价：${item.supplyChain.buyPrice}<br/>
+                            起订量(MOQ)：${item.supplyChain.moq}<br/>
+                            生产交期：${item.supplyChain.leadDays}<br/>
+                            现货：${item.supplyChain.inStock}
+                          </div>
+                        </div>
+                        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:7px;">
+                          <strong>4. 四项风险排查与入场时机：</strong><br/>
+                          • 专利排雷：${item.riskDetail.ip} ｜ 认证要求：${item.riskDetail.cert}<br/>
+                          • 季节属性：${item.riskDetail.seasonal} ｜ 时机判断：${item.timing.seasonNote}（${item.timing.stageNote}）<br/>
+                          • 排序依据：${pr.explain}${pr.missingNote ? `（${pr.missingNote}）` : ""}
+                        </div>
+                      </div>
+                    </details>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:4px;flex-wrap:wrap;">
+                      <span style="font-size:12px;color:var(--text-soft);">【我能点的下一步】</span>
+                      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <button class="btn btn-sm m4-detail" data-sku="${item.sku}">账目明细</button>
+                        ${(item.stage === "初筛候选" || item.stage === "缺成本待补全")
+                          ? `<button class="btn btn-sm btn-primary m4-submit" data-sku="${item.sku}" ${!isSelector?"disabled":""} title="${!isSelector?"需要「选品研究员」或「业务运营」权限":""}">${ready.ok?"提交主管拍板 →":"送审核价 →"}</button>`
+                          : `<span style="font-size:12px;color:var(--text-soft);align-self:center;">状态：${item.stage} (${item.submitter})</span>`}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              `;
-            }).join("")}
-          </div>
+                `;
+              }).join("")}
+            </div>
+          `}
 
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--border);">
-            <span style="font-size:12.5px;color:var(--text-soft);">第 ${state.m4Page} / ${totalPages} 页 · 每页显示 3 条 · 共 ${tabFiltered.length} 款</span>
+            <span style="font-size:12.5px;color:var(--text-soft);">第 ${state.m4Page} / ${totalPages} 页 · 每页显示 4 款 · 共 ${tabFiltered.length} 款</span>
             <div style="display:flex;gap:6px;">
               <button class="btn btn-sm" id="m4PrevPg" ${state.m4Page<=1?"disabled":""}>← 上一页</button>
               <button class="btn btn-sm" id="m4NextPg" ${state.m4Page>=totalPages?"disabled":""}>下一页 →</button>
@@ -391,24 +514,95 @@ export function renderM4_M6(pageId, state, helpers) {
       bind: () => {
         document.querySelectorAll(".m4-mode-opt").forEach(el => el.onclick = () => {
           state.m4Mode = el.dataset.mode; state.m4Page = 1; rerender();
-          toast(`已切换推荐视角：${M4_MODES[state.m4Mode].label}，榜单已重新排序`);
+          toast(`已切换选品策略：${M4_MODES[state.m4Mode].label}，推荐顺序已刷新`);
         });
+        document.querySelectorAll(".m4-cattab").forEach(el => el.onclick = () => {
+          state.m4CatTab = el.dataset.cat; state.m4Page = 1; rerender();
+        });
+        document.getElementById("m4MyCatChk").onchange = (e) => { state.m4OnlyMyCats = e.target.checked; state.m4Page = 1; rerender(); };
+        document.getElementById("m4ReadyChk").onchange = (e) => { state.m4OnlyProduceReady = e.target.checked; state.m4Page = 1; rerender(); };
         document.getElementById("m4SearchInp").oninput = (e) => { state.m4Search = e.target.value; state.m4Page = 1; rerender(); };
-        document.getElementById("m4SrcSel").onchange = (e) => { state.m4SrcFilter = e.target.value; state.m4Page = 1; rerender(); };
+        document.getElementById("m4PriceSel").onchange = (e) => { state.m4PriceFilter = e.target.value; state.m4Page = 1; rerender(); };
         document.getElementById("m4RegSel").onchange = (e) => { state.m4RegionFilter = e.target.value; state.m4Page = 1; rerender(); };
-        document.getElementById("m4RevSel").onchange = (e) => { state.m4MinRev = Number(e.target.value); state.m4Page = 1; rerender(); };
+        document.getElementById("m4LifeSel").onchange = (e) => { state.m4LifecycleFilter = e.target.value; state.m4Page = 1; rerender(); };
+        document.getElementById("m4RiskSel").onchange = (e) => { state.m4RiskFilter = e.target.value; state.m4Page = 1; rerender(); };
+        document.getElementById("m4SrcSel").onchange = (e) => { state.m4SrcFilter = e.target.value; state.m4Page = 1; rerender(); };
         document.querySelectorAll(".m4-utab").forEach(t => t.onclick = () => { state.m4Tab = t.dataset.t; state.m4Page = 1; rerender(); });
         document.getElementById("m4PrevPg").onclick = () => { state.m4Page -= 1; rerender(); };
         document.getElementById("m4NextPg").onclick = () => { state.m4Page += 1; rerender(); };
+
+        document.querySelectorAll(".m4-cmp-chk").forEach(chk => chk.onchange = () => {
+          const sku = chk.dataset.sku;
+          if (chk.checked) {
+            if (state.m4CompareIds.length >= 4) { chk.checked = false; toast("最多支持同时勾选 4 款商品进行对比", "warn"); return; }
+            if (!state.m4CompareIds.includes(sku)) state.m4CompareIds.push(sku);
+          } else {
+            state.m4CompareIds = state.m4CompareIds.filter(id => id !== sku);
+          }
+          rerender();
+        });
+
+        document.getElementById("m4OpenCompareBtn").onclick = () => {
+          const items = state.m4Pool.filter(x => state.m4CompareIds.includes(x.sku));
+          openModal(`候选商品横向对比（已选 ${items.length} 款）`, `
+            <div class="table-wrap" style="max-height:420px;">
+              <table>
+                <thead><tr><th>对比维度</th>${items.map(i => `<th>${i.sku}<br/>${i.name}</th>`).join("")}</tr></thead>
+                <tbody>
+                  <tr><td>品类 / 平台</td>${items.map(i => `<td>${i.category} · ${i.platform}</td>`).join("")}</tr>
+                  <tr><td>系统建议</td>${items.map(i => `<td><span class="pill ${i.sysAdvice.tone}">${i.sysAdvice.badge}</span></td>`).join("")}</tr>
+                  <tr><td>近2月销售额</td>${items.map(i => `<td><strong>$${calcM4NetRev(i).toLocaleString()}</strong></td>`).join("")}</tr>
+                  <tr><td>近8周涨跌</td>${items.map(i => `<td><strong>${i.trend>=0?"+":""}${i.trend}%</strong></td>`).join("")}</tr>
+                  <tr><td>预计毛利率</td>${items.map(i => `<td>${i.marginKnown?i.margin+"%":"待核价"}</td>`).join("")}</tr>
+                  <tr><td>生命周期 / 竞品数</td>${items.map(i => `<td>${i.lifecycle} · ${i.competition.competitors}家</td>`).join("")}</tr>
+                  <tr><td>采购价 / MOQ / 交期</td>${items.map(i => `<td>${i.supplyChain.buyPrice} / ${i.supplyChain.moq} / ${i.supplyChain.leadDays}</td>`).join("")}</tr>
+                  <tr><td>风险等级与退货率</td>${items.map(i => `<td>${i.riskLevel} (${i.riskDetail.refundRate})</td>`).join("")}</tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+              <button class="btn btn-primary" id="m4CmpClose">关闭对比</button>
+            </div>
+          `, (root) => { root.querySelector("#m4CmpClose").onclick = () => document.getElementById("modalRoot").innerHTML = ""; });
+        };
+
+        const runBatchOp = (opLabel, targetStage, isDanger) => {
+          const selected = state.m4Pool.filter(x => state.m4CompareIds.includes(x.sku));
+          commitAction({
+            title: `二次确认：${opLabel}（共 ${selected.length} 款）`,
+            danger: isDanger,
+            summary: `即将把已勾选的 ${selected.map(x=>x.sku).join("、")} 批量流转为「${targetStage}」。`,
+            confirmText: `确认${opLabel}`,
+            fieldsHtml: `<div class="field"><label>批量操作原因（必填）*</label><input id="m4BatReason" class="input" placeholder="如：本批符合家居收纳秋季上新节奏"/></div>`,
+            validate: (w) => w.querySelector("#m4BatReason").value.trim() ? [] : [{ el: w.querySelector("#m4BatReason"), msg: "请填写操作原因" }],
+            onConfirm: (w) => {
+              const rsn = w.querySelector("#m4BatReason").value.trim();
+              selected.forEach(item => {
+                item.stage = targetStage;
+                item.submitter = ROLE_PERSON_NAMES[state.role];
+                item.submitReason = rsn;
+              });
+              state.m4CompareIds = [];
+              return { toastMsg: `已完成${opLabel}：共处理 ${selected.length} 款` };
+            },
+            audit: (w) => ({
+              sentence: `${ROLE_PERSON_NAMES[state.role]} 批量将 ${selected.map(x=>x.sku).join("、")} 设为「${targetStage}」，原因：${w.querySelector("#m4BatReason").value.trim()}`,
+              ok: true
+            })
+          });
+        };
+        document.getElementById("m4BatchSubmitBtn").onclick = () => runBatchOp("批量提交测款", "已提交待审", false);
+        document.getElementById("m4BatchHoldBtn").onclick = () => runBatchOp("批量标为暂观望", "缺成本待补全", false);
+        document.getElementById("m4BatchElimBtn").onclick = () => runBatchOp("批量淘汰", "已淘汰", true);
 
         document.querySelectorAll(".m4-submit").forEach(b => b.onclick = () => {
           const item = state.m4Pool.find(x => x.sku === b.dataset.sku);
           commitAction({
             title: `提交选品待主管终审 · ${item.sku} (${item.name})`,
-            summary: `提交后将流转至 M4-3 由「主管 / 审批人」最终拍板。${item.marginKnown ? "" : "⚠️ 该款利润数据暂缺，主管页仅允许补采成本或淘汰，不可直接投产。"}`,
+            summary: `提交后将流转至 M4-3 由「主管 / 审批人」最终拍板。${item.marginKnown ? "" : "⚠️ 该款采购成本暂缺，主管页仅允许退回核价或淘汰，不可直接投产。"}`,
             confirmText: "确认提交待审",
             fieldsHtml: `
-              <div class="field"><label>初筛推荐理由与风险核查结论（必填）*</label><textarea id="m4SubReason" class="textarea" placeholder="写明推荐依据（销售规模、增长斜率、专利核查结论等）..."></textarea></div>
+              <div class="field"><label>初筛推荐理由与风险核查结论（必填）*</label><textarea id="m4SubReason" class="textarea" placeholder="写明推荐依据（近2月销额、近8周涨势、专利核查结论等）..."></textarea></div>
               <div class="field"><label>预计测款预算与首批数量（必填）*</label><input id="m4SubBudget" class="input" value="${item.budget}"/></div>
             `,
             validate: (wrap) => {
@@ -437,20 +631,20 @@ export function renderM4_M6(pageId, state, helpers) {
           const item = state.m4Pool.find(x => x.sku === b.dataset.sku);
           const netQty = calcM4NetSales(item);
           const netRev = calcM4NetRev(item);
-          openDrawer(`${item.sku} · ${item.name}`, `${item.region} · ${item.src}`, `
+          openDrawer(`${item.sku} · ${item.name}`, `${item.category} · ${item.platform} · ${item.src}`, `
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
               <img src="${getProductImg(item.sku)}" class="prod-thumb-lg" alt="${item.name}"/>
               <div>
                 <strong>${item.name}</strong>
-                <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">核查备注：${item.riskNote}</div>
+                <div style="font-size:12.5px;color:var(--text-soft);margin-top:3px;">系统建议：${item.sysAdvice.badge}（${item.sysAdvice.reason}）</div>
               </div>
             </div>
             <div class="formula-box" style="margin-bottom:10px;">
               <strong>经营核算明细：</strong><br/>
-              1. 净销量 = 支付 ${item.paidQty} − 退款 ${item.refundQty} = <strong>${netQty} 件</strong><br/>
-              2. 净收入 = 销售 $${item.grossRev.toLocaleString()} − 折扣 $${item.discount} − 退款 $${item.refundAmt} = <strong>$${netRev.toLocaleString()}</strong><br/>
-              3. 周趋势 = 从周均 ${item.prevAvg} 件升至 ${item.currAvg} 件（<strong>${item.trend}%</strong>）<br/>
-              4. 经营利润率 = ${item.marginKnown ? `<strong>${item.margin}%</strong>` : "<strong>未知（缺成本，不按0元估算）</strong>"}
+              1. 近2月净销量 = 支付 ${item.paidQty} − 退款 ${item.refundQty} = <strong>${netQty} 件</strong><br/>
+              2. 近2月销售额 = 销售 $${item.grossRev.toLocaleString()} − 折扣 $${item.discount} − 退款 $${item.refundAmt} = <strong>$${netRev.toLocaleString()}</strong><br/>
+              3. 近8周销量涨跌 = 从周均 ${item.prevAvg} 件变至 ${item.currAvg} 件（<strong>${item.trend>=0?"+":""}${item.trend}%</strong>）<br/>
+              4. 预计毛利率 = ${item.marginKnown ? `<strong>${item.margin}%</strong>` : "<strong>未知（缺成本，不按0元估算）</strong>"}
             </div>
           `);
         });
@@ -466,7 +660,7 @@ export function renderM4_M6(pageId, state, helpers) {
 
     return {
       headerActions: [
-        { label: "← 返回初筛排行", primary: false, onClick: () => goPage("m4b") },
+        { label: "← 返回选品工作台", primary: false, onClick: () => goPage("m4b") },
         { label: `查看下游预测池 (${approvedCnt}款) →`, primary: false, onClick: () => goPage("m5a") },
         { label: `查看下游内容任务 (${approvedCnt}款) →`, primary: true, onClick: () => goPage("m7a") }
       ],
@@ -502,7 +696,7 @@ export function renderM4_M6(pageId, state, helpers) {
                         <span class="pill ${item.srcCode==="INTERNAL"?"p-green":"p-amber"}" style="margin-left:6px;">${item.src}</span>
                         <span class="pill ${item.stage==="已批准测款"?"p-green":item.stage==="已淘汰"?"p-red":"p-purple"}" style="margin-left:4px;">${item.stage}</span>
                         <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px;">
-                          8周净收入 <strong>$${netRev.toLocaleString()}</strong> · 周增长 <strong>${item.trend}%</strong> · 利润率 <strong>${item.marginKnown?item.margin+"%":"未知"}</strong> · 测款预算 <strong>${item.budget}</strong>
+                          近2月卖了 <strong>$${netRev.toLocaleString()}</strong> · 近8周涨跌 <strong>${item.trend>=0?"+":""}${item.trend}%</strong> · 预计毛利率 <strong>${item.marginKnown?item.margin+"%":"未知"}</strong> · 测款预算 <strong>${item.budget}</strong>
                         </div>
                         <div style="font-size:12.5px;margin-top:3px;">提交人：<strong>${item.submitter}</strong> ｜ 推荐理由：${item.submitReason || "—"}</div>
                         ${item.approver ? `<div style="font-size:12.5px;color:var(--green-text);margin-top:3px;">✓ 终审人：<strong>${item.approver}</strong> ｜ 意见：${item.decisionReason} ｜ 凭证：${item.evidence}</div>` : ""}
@@ -511,7 +705,7 @@ export function renderM4_M6(pageId, state, helpers) {
                     </div>
 
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                      <button class="btn btn-sm btn-success m4c-decide" data-sku="${item.sku}" data-act="已批准测款" ${(!canDecide || !passHardGate)?"disabled":""} title="${!isApprover?"需主管权限":!passHardGate?"须满足内部实盘且利润率≥10%":""}">✓ 同意测款</button>
+                      <button class="btn btn-sm btn-success m4c-decide" data-sku="${item.sku}" data-act="已批准测款" ${(!canDecide || !passHardGate)?"disabled":""} title="${!isApprover?"需主管权限":!passHardGate?"须满足内部实盘且毛利率≥10%":""}">✓ 同意测款</button>
                       <button class="btn btn-sm btn-primary m4c-decide" data-sku="${item.sku}" data-act="缺成本待补全" ${!canDecide?"disabled":""}>退回补采成本</button>
                       <button class="btn btn-sm btn-danger m4c-decide" data-sku="${item.sku}" data-act="已淘汰" ${!canDecide?"disabled":""}>✕ 淘汰</button>
                     </div>
@@ -789,7 +983,7 @@ export function renderM4_M6(pageId, state, helpers) {
           <div class="kpi-card highlight-green">
             <div class="kpi-label">建议补货参考量</div>
             <div class="kpi-val" style="color:var(--green-text)">${refOrder} 件</div>
-            <div class="formula-inline">算式：预测 ${totalPred} + 安全库存 ${invRow.safety} − 可售 ${invRow.avail} = ${refOrder} 件</div>
+            <div class="formula-inline">参考计算：预测 ${totalPred} + 安全库存 ${invRow.safety} − 可售 ${invRow.avail} = ${refOrder} 件</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">波动参考带说明</div>

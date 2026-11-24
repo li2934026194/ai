@@ -510,6 +510,53 @@ tr.row-selected td { background: #eff6ff; }
 .timeline-step { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-left: 2px solid var(--blue-border); padding-left: 12px; margin-left: 6px; font-size: 12.5px; }
 .timeline-step.done { border-left-color: var(--green); }
 
+/* Home Workbench Button & Flow Position Bar */
+.nav-home-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 11px; margin-bottom: 8px; border-radius: 8px;
+  background: #1e293b; border: 1px solid #334155;
+  color: #f1f5f9; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all 0.14s;
+}
+.nav-home-btn:hover { background: #26354d; }
+.nav-home-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+.flow-bar {
+  display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center;
+  background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 16px; margin: 16px 24px 0; box-shadow: var(--shadow-sm);
+}
+.flow-node {
+  padding: 8px 11px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border);
+  font-size: 12.5px; line-height: 1.45;
+}
+.flow-node.current { background: var(--blue-light); border-color: var(--blue-border); }
+.flow-node.clickable { cursor: pointer; transition: border-color 0.15s; }
+.flow-node.clickable:hover { border-color: var(--blue); }
+.flow-node-tag { font-size: 11.5px; font-weight: 700; color: var(--text-soft); margin-bottom: 2px; }
+.flow-node.current .flow-node-tag { color: var(--blue-hover); }
+.flow-arrow { font-size: 16px; font-weight: 700; color: #94a3b8; }
+
+.cat-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.cat-tab {
+  padding: 6px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  border: 1px solid var(--border); background: #fff; color: var(--text-muted); cursor: pointer;
+}
+.cat-tab:hover { border-color: var(--blue-border); color: var(--blue-hover); }
+.cat-tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+.todo-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 14px 16px; border: 1px solid var(--border); border-radius: 9px; background: #fff;
+  transition: box-shadow 0.16s, border-color 0.16s;
+}
+.todo-row:hover { box-shadow: var(--shadow-md); border-color: var(--blue-border); }
+
+@media (max-width: 960px) {
+  .flow-bar { grid-template-columns: 1fr; }
+  .flow-arrow { display: none; }
+}
+
 /* Toast & Modal */
 .toast-container { position: fixed; bottom: 18px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
 .toast {
