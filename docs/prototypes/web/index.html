@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CrossPilot · AI跨境电商智能工作台（SRS V6 · 27页完整交互版）</title>
+  <title>CrossPilot · 跨境电商智能运营管理平台（27页业务管理工作台）</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -14,22 +14,22 @@
         <div class="brand-logo">CP</div>
         <div>
           <div class="brand-name">CrossPilot</div>
-          <div class="brand-sub">AI跨境电商 · SRS V6工作台</div>
+          <div class="brand-sub">跨境电商智能运营管理平台</div>
         </div>
       </div>
 
       <div class="role-box">
-        <label class="role-label">当前登录角色 (SRS §1.5 九大角色)</label>
+        <label class="role-label">当前登录岗位 (九大业务岗位)</label>
         <select id="roleSelect" class="role-select">
-          <option value="approver">主管 / 审批人 (approver)</option>
-          <option value="manager">大屏浏览者 / 管理者 (manager)</option>
-          <option value="planner">驾驶舱设计者 / 业务运营 (planner)</option>
-          <option value="bi_analyst">数据分析 / BI 人员 (bi_analyst)</option>
-          <option value="selector">选品研究员 (selector)</option>
-          <option value="creator">内容创作 / 审核人员 (creator)</option>
-          <option value="warehouse">采购 / 仓库 / 物流人员 (warehouse)</option>
-          <option value="cs">客服 (cs)</option>
-          <option value="mock_buyer">买家（模拟）(mock_buyer)</option>
+          <option value="approver">主管 / 审批人</option>
+          <option value="manager">大屏浏览者 / 管理者</option>
+          <option value="planner">驾驶舱设计者 / 业务运营</option>
+          <option value="bi_analyst">数据分析 / BI 人员</option>
+          <option value="selector">选品研究员</option>
+          <option value="creator">内容创作 / 审核人员</option>
+          <option value="warehouse">采购 / 仓库 / 物流人员</option>
+          <option value="cs">客服</option>
+          <option value="mock_buyer">买家（模拟测试）</option>
         </select>
         <div id="roleHint" class="role-hint"></div>
       </div>
@@ -37,12 +37,12 @@
       <nav id="sidebarNav" class="nav-list"></nav>
 
       <div class="sidebar-footer">
-        <div>对齐：SRS V1.0 (§1.5 九角色) · 27页</div>
-        <div>§0.3 示例数值与规则常量已隔离标注</div>
+        <div>九大业务岗位权限隔离 · 27 个管理页</div>
+        <div>演示示例与实盘业务数据已严格区分</div>
       </div>
     </aside>
 
-    <!-- Main Content Area (Plan A: No Subnav Bar, Full Width!) -->
+    <!-- Main Content Area -->
     <div class="main-wrap">
       <header class="topbar">
         <div class="topbar-left">
@@ -52,8 +52,8 @@
         </div>
         <div class="topbar-actions">
           <div id="headerActions" class="header-action-btns"></div>
-          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="展开右侧 SRS 注释与来源台账抽屉">
-            📖 SRS注释与来源台账
+          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="查看本页业务规则与数据来源说明">
+            📖 业务规则与来源说明
           </button>
         </div>
       </header>
@@ -62,21 +62,21 @@
     </div>
   </div>
 
-  <!-- Slide-over SRS Annotation & Provenance Drawer (Hidden by default) -->
+  <!-- Slide-over Business Rule & Provenance Drawer -->
   <div id="annoDrawerBackdrop" class="drawer-backdrop hidden"></div>
-  <aside id="annoDrawer" class="slide-drawer hidden" aria-label="SRS注释与来源台账">
+  <aside id="annoDrawer" class="slide-drawer hidden" aria-label="业务规则与来源说明">
     <div class="drawer-head dark">
       <div>
-        <div class="drawer-title" id="annoPageTitle">功能块注释</div>
-        <div class="drawer-sub">1→2→3 对应 · SRS 依据 · 文字与数字来源台账</div>
+        <div class="drawer-title" id="annoPageTitle">本页业务说明</div>
+        <div class="drawer-sub">管理定位 · 约束红线 · 责任人与异常处理</div>
       </div>
       <button class="btn btn-sm" id="closeAnnoDrawer">✕ 关闭</button>
     </div>
     <div class="drawer-body">
-      <div class="drawer-sec-label">📌 页面功能块注释（1→2→3 + SRS依据）</div>
+      <div class="drawer-sec-label">📌 核心业务规则与责任说明</div>
       <div id="annoCards" class="anno-cards"></div>
-      <div class="drawer-sec-label" style="margin-top:16px;">🧾 本页文字与数字来源台账</div>
-      <div class="ledger-note" style="margin-bottom:8px;">严格区分：SRS规则 / 代码常量 vs §0.3 Mock / 示例展示值</div>
+      <div class="drawer-sec-label" style="margin-top:16px;">🧾 本页数据来源与更新说明</div>
+      <div class="ledger-note" style="margin-bottom:8px;">明确区分「管理规则制度」与「当前页面演示示例数值」</div>
       <div id="ledgerGrid" class="ledger-list"></div>
     </div>
   </aside>

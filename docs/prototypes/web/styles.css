@@ -38,7 +38,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-.tnum, .kpi-val, table td, table th, code {
+.tnum, .kpi-val, table td, table th {
   font-variant-numeric: tabular-nums;
 }
 
@@ -209,7 +209,7 @@ html, body {
   display: flex; align-items: center; gap: 8px;
 }
 
-/* Hide tutorial numeric tags in main body; display inside SRS Drawer */
+/* Hide tutorial numeric tags in main body; display inside Business Rule Drawer */
 .page-body .anno-tag { display: none; }
 .anno-tag {
   display: inline-flex; align-items: center; justify-content: center;
@@ -495,16 +495,20 @@ tr.row-selected td { background: #eff6ff; }
 .anno-card-head { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; margin-bottom: 5px; }
 .anno-line { font-size: 12px; margin-bottom: 3px; line-height: 1.45; }
 .anno-k-step { color: var(--blue-hover); font-weight: 600; }
-.anno-k-srs { color: var(--text-muted); }
+.anno-k-rule { color: var(--text-muted); }
 .anno-k-tech { color: var(--green-text); }
 
 .ledger-list { display: flex; flex-direction: column; gap: 7px; }
 .ledger-row { background: #f8fafc; border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; font-size: 12px; }
 .ledger-row-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
 .ledger-term { font-weight: 700; color: var(--text-dark); }
-.ledger-kind-srs { color: var(--blue-hover); font-weight: 700; }
+.ledger-kind-rule { color: var(--blue-hover); font-weight: 700; }
 .ledger-kind-mock { color: var(--amber-text); font-weight: 700; }
 .ledger-src { color: var(--text-muted); }
+
+.diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.timeline-step { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-left: 2px solid var(--blue-border); padding-left: 12px; margin-left: 6px; font-size: 12.5px; }
+.timeline-step.done { border-left-color: var(--green); }
 
 /* Toast & Modal */
 .toast-container { position: fixed; bottom: 18px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; }

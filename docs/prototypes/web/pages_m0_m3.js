@@ -1,99 +1,86 @@
 import {
-  API_BASE, WAREHOUSE_LABELS, getProductImg, genDocId, nowDateTimeStr, nowTimeStr, relTimeLabel, appendAuditLog
+  BACKEND_SERVICE_URL, ROLE_PERSON_NAMES, getProductImg, genDocId, nowDateTimeStr, nowTimeStr, relTimeLabel, appendAuditLog
 } from "./state.js";
 
 export function renderM0_M3(pageId, state, helpers) {
-  const { toast, goPage, openModal, closeModal, openDrawer, closeDetailDrawer, rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats, record403 } = helpers;
+  const { toast, goPage, openModal, openDrawer, rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats, record403 } = helpers;
 
-  // ==================== M0a: Shop OAuth Connections ====================
+  // ==================== M0-1: 店铺授权连接 ====================
   if (pageId === "m0a") {
     const canManageShop = state.role === "manager" || state.role === "approver";
-    const syncTaskHtml = renderAsyncBox("m0_sync");
-    const oauthTaskHtml = renderAsyncBox("m0_oauth");
+    const realCount = state.shops.filter(s => s.mode === "REAL").length;
+    const healthyCount = state.shops.filter(s => s.health === "连接正常").length;
+    const issueCount = state.shops.filter(s => s.mode === "REAL" && s.health !== "连接正常").length;
 
     return {
       headerActions: [
-        { label: "去商品与订单主数据 →", primary: false, onClick: () => goPage("m0b") },
+        { label: "去商品与订单台账 →", primary: false, onClick: () => goPage("m0b") },
         {
-          label: "+ 接入新店铺 (OAuth2)", primary: true,
+          label: "+ 连接新店铺", primary: true,
           disabled: !canManageShop,
-          disabledTitle: "需「大屏浏览者/管理者」或「主管/审批人」权限 — 请在左上角切换角色",
+          disabledTitle: "需要「大屏浏览者 / 管理者」或「主管 / 审批人」权限",
           onClick: () => {
-            if (!canManageShop) { record403("M0-1 接入新店铺", "当前角色无店铺 OAuth 授权权限"); return; }
+            if (!canManageShop) { record403("M0-1 连接新店铺", "需要管理者或主管权限"); return; }
             commitAction({
-              title: "接入新跨境店铺 (OAuth2 模拟授权流程)",
-              summary: `环境边界：当前 API_BASE=${API_BASE || "(未配置)"}，本步将按「B类外部服务」执行 OAuth2 授权跳转模拟与失败分支演示，不连真实平台后台。`,
-              confirmText: "发起模拟跳转授权 →",
+              title: "连接新的跨境店铺",
+              summary: `说明：当前为纯前端演示模式（外部后台服务未接入），此处将为您演示「正在连接 → 成功或失败原因」完整过程，并严格区分实盘店铺与演示测试店。`,
+              confirmText: "发起店铺连接",
               fieldsHtml: `
+                <div class="field"><label>店铺名称 *</label><input id="newShopName" class="input" placeholder="如：Lazada 马来主店"/></div>
                 <div class="grid-2" style="gap:10px;">
-                  <div class="field"><label>目标平台 *</label><select id="newShopPlat" class="select"><option>SHOPEE</option><option>TIKTOK</option><option>AMAZON</option><option>LAZADA</option></select></div>
-                  <div class="field"><label>站点 *</label><select id="newShopReg" class="select"><option>MY</option><option>TH</option><option>US</option><option>SG</option></select></div>
+                  <div class="field"><label>所属电商平台 *</label><select id="newShopPlat" class="select"><option value="SHOPEE">Shopee</option><option value="TIKTOK">TikTok Shop</option><option value="AMAZON">Amazon</option></select></div>
+                  <div class="field"><label>销售国家/站点 *</label><select id="newShopReg" class="select"><option value="TH">泰国站 (TH)</option><option value="US">美国站 (US)</option><option value="MY">马来站 (MY)</option></select></div>
                 </div>
-                <div class="field"><label>店铺名称 * (不可与已有店铺重名)</label><input id="newShopName" class="input" value="Shopee 马来西亚分店"/></div>
-                <div class="field"><label>接入模式 *</label>
+                <div class="field"><label>店铺经营性质 *</label>
                   <select id="newShopMode" class="select">
-                    <option value="REAL">REAL（实盘授权 · 订单计入经营利润）</option>
-                    <option value="MOCK">MOCK（测试沙盒 · 仅用于客服演示，绝不混入实利）</option>
+                    <option value="REAL">实盘经营店铺（订单计入真实营收）</option>
+                    <option value="MOCK">仅限演示测试店（不计入真实营收）</option>
                   </select>
                 </div>
-                <div class="field"><label>授权 Scope 勾选 * (至少选1项)</label>
-                  <div style="display:flex;gap:12px;flex-wrap:wrap;padding:6px 0;">
-                    <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;"><input type="checkbox" class="oauth-sc" value="orders.read" checked/> orders.read</label>
-                    <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;"><input type="checkbox" class="oauth-sc" value="inventory.read" checked/> inventory.read</label>
-                    <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;"><input type="checkbox" class="oauth-sc" value="cs.reply"/> cs.reply</label>
-                  </div>
-                </div>
-                <div class="field"><label>回调分支测试 (B类诚实模拟)</label>
-                  <select id="oauthOutcome" class="select">
-                    <option value="OK">模拟回调成功（生成脱敏 Token 演示凭证）</option>
-                    <option value="FAIL">模拟授权拒签 / 回调超时（测试失败与重试）</option>
+                <div class="field"><label>模拟连接结果（便于测试异常处理）</label>
+                  <select id="newShopSimResult" class="select">
+                    <option value="OK">模拟连接成功</option>
+                    <option value="FAIL">模拟连接失败（展示失败原因与排查建议）</option>
                   </select>
                 </div>
               `,
               validate: (wrap) => {
-                const errs = [];
                 const nameEl = wrap.querySelector("#newShopName");
-                const nm = nameEl.value.trim();
-                if (!nm) errs.push({ el: nameEl, msg: "请填写店铺名称" });
-                else if (state.shops.some(s => s.name === nm)) errs.push({ el: nameEl, msg: `店铺「${nm}」已存在，禁止重复接入` });
-                const scopes = [...wrap.querySelectorAll(".oauth-sc:checked")];
-                if (scopes.length === 0) errs.push({ el: wrap.querySelector(".oauth-sc"), msg: "请至少勾选一项 OAuth Scope 权限" });
-                return errs;
+                return nameEl.value.trim() ? [] : [{ el: nameEl, msg: "请填写店铺名称" }];
               },
               onConfirm: (wrap) => {
                 const name = wrap.querySelector("#newShopName").value.trim();
                 const platform = wrap.querySelector("#newShopPlat").value;
                 const region = wrap.querySelector("#newShopReg").value;
                 const mode = wrap.querySelector("#newShopMode").value;
-                const scopes = [...wrap.querySelectorAll(".oauth-sc:checked")].map(c => c.value);
-                const shouldFail = wrap.querySelector("#oauthOutcome").value === "FAIL";
-                const maskPrefix = platform.slice(0, 4).toLowerCase();
-                const maskCode = Math.random().toString(16).slice(2, 6);
+                const simFail = wrap.querySelector("#newShopSimResult").value === "FAIL";
+                const maskCode = String(Math.floor(1000 + Math.random() * 8999));
 
-                runAsyncTask("m0_oauth", {
-                  label: `OAuth2 授权回调 · ${name}`,
-                  steps: ["跳转平台授权页", "接收授权码换取 Token", "写入脱敏凭证与隔离策略"],
+                runAsyncTask("m0_shop_conn", {
+                  label: `正在连接店铺 · ${name}`,
+                  steps: ["前往平台授权确认页面", "核验店铺授权凭证与权限范围", "完成数据隔离策略设置"],
                   durationMs: 1100,
-                  shouldFail,
-                  failReason: "B类模拟：用户取消授权或 OAuth 回调状态码 401（未连接真实平台 OAuth 服务）",
+                  shouldFail: simFail,
+                  failReason: "授权连接未通过：店铺管理员取消授权或凭证已过期，请点击「重试」或重新发起连接。",
                   onSuccess: () => {
                     state.shops.push({
-                      id: "shop_" + Date.now(),
-                      name, platform, region, mode, scopes,
-                      tokenMask: `${maskPrefix}_${mode.toLowerCase()}_****${maskCode}`,
-                      status: mode === "REAL" ? "Token有效 (演示态)" : "仅限演示沙盒",
-                      lastSync: `${nowDateTimeStr()} (刚刚接入)`,
-                      lastSyncTs: Date.now()
+                      id: `shop_${Date.now().toString().slice(-4)}`,
+                      name, platform, region, mode,
+                      health: mode === "REAL" ? "连接正常" : "仅演示环境",
+                      status: mode === "REAL" ? "授权有效（演示模式）" : "演示测试专用（不计营收）",
+                      permLabels: ["读取订单", "同步库存", "回复消息"],
+                      credMask: `尾号 ${maskCode}`,
+                      lastSync: nowDateTimeStr(),
+                      lastSyncTs: Date.now(),
+                      errNote: "",
                     });
-                    return { summary: `已生成脱敏 Token (${maskPrefix}_****${maskCode}) · 仅演示模拟态`, toastMsg: `${name} OAuth 模拟回调成功` };
+                    return { summary: `店铺「${name}」连接成功（授权尾号 ${maskCode}）`, toastMsg: `店铺「${name}」已连接成功` };
                   }
                 });
-                return { toastMsg: "已发起 OAuth2 授权跳转任务…", toastLevel: "info" };
+                return { toastMsg: "正在连接店铺，请稍候…", toastLevel: "info" };
               },
               audit: (wrap) => ({
-                target: `M0-1 店铺授权 · ${wrap.querySelector("#newShopName").value.trim()}`,
-                action: "发起 OAuth2 授权流程",
-                detail: `平台=${wrap.querySelector("#newShopPlat").value}, 模式=${wrap.querySelector("#newShopMode").value} (演示模拟)`,
+                sentence: `${ROLE_PERSON_NAMES[state.role]} 发起了新店铺「${wrap.querySelector("#newShopName").value.trim()}」的连接申请`,
                 ok: true
               })
             });
@@ -101,54 +88,64 @@ export function renderM0_M3(pageId, state, helpers) {
         }
       ],
       html: `
-        <div class="banner banner-amber">
-          <span>⚠️ <strong>能力边界提示：</strong>OAuth2 真实回调属于 B 类外部依赖（当前 <code>API_BASE</code> 未配置），授权结果与 Token 均为<strong>演示模拟状态</strong>；支持 REAL 实盘与 MOCK 沙盒严格隔离。</span>
+        <div class="banner banner-blue">
+          <span><strong>页面定位：</strong>集中管理所有跨境店铺的授权连接状态与同步健康度。<strong>数据来源：</strong>各店铺实时连接状态（最近核对：${state.lastDataRefreshAt}）。</span>
         </div>
-        ${oauthTaskHtml}
-        ${syncTaskHtml}
 
-        <div class="grid-3">
+        ${renderAsyncBox("m0_shop_conn")}
+
+        <div class="grid-4">
           <div class="kpi-card highlight-blue">
-            <div class="kpi-label">已接入店铺</div>
+            <div class="kpi-label">已接入店铺总数</div>
             <div class="kpi-val" style="color:var(--blue-hover)">${state.shops.length} 家</div>
-            <div class="kpi-sub">实盘 ${state.shops.filter(s=>s.mode==="REAL").length} 家 · 演示沙盒 ${state.shops.filter(s=>s.mode==="MOCK").length} 家</div>
+            <div class="kpi-sub">含实盘店 ${realCount} 家 · 演示测试店 ${state.shops.length - realCount} 家</div>
+          </div>
+          <div class="kpi-card highlight-green">
+            <div class="kpi-label">连接正常店铺</div>
+            <div class="kpi-val" style="color:var(--green-text)">${healthyCount} 家</div>
+            <div class="kpi-sub">可正常同步订单与库存</div>
+          </div>
+          <div class="kpi-card ${issueCount > 0 ? "highlight-red" : ""}">
+            <div class="kpi-label">凭证过期 / 同步异常</div>
+            <div class="kpi-val" style="color:${issueCount > 0 ? "var(--red-text)" : "var(--text-dark)"}">${issueCount} 家</div>
+            <div class="kpi-sub">${issueCount > 0 ? "请点击对应店铺「重新授权」" : "当前全部实盘店健康"}</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">凭证状态 (脱敏存储)</div>
-            <div class="kpi-val" style="color:var(--green-text)">演示态就绪</div>
-            <div class="kpi-sub">明文密钥不入普通日志，仅展示掩码</div>
-          </div>
-          <div class="kpi-card highlight-amber">
-            <div class="kpi-label">Mock 环境隔离状态</div>
-            <div class="kpi-val" style="color:var(--amber-text)">严格隔离</div>
-            <div class="kpi-sub">沙盒订单仅流向 M1 客服演示，不计入实利</div>
+            <div class="kpi-label">订单同步与隔离</div>
+            <div class="kpi-val" style="color:var(--purple-text)">严格隔离</div>
+            <div class="kpi-sub">演示测试店订单绝不计入实盘营收</div>
           </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-green">2</span> 店铺连接与 OAuth 凭证状态</div>
-            <span class="pill p-amber">Mock 与 Real 严格隔离</span>
+            <div class="card-title">已接入店铺状态与授权管理</div>
+            <span class="pill ${canManageShop ? "p-green" : "p-amber"}">${canManageShop ? "已解锁管理权限" : "当前岗位仅可查看状态"}</span>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>店铺名称</th><th>平台 / 站点</th><th>数据模式</th><th>授权 Scope / 脱敏 Token</th><th>最近同步</th><th>操作</th></tr></thead>
+              <thead>
+                <tr><th>店铺名称</th><th>平台与站点</th><th>营收口径</th><th>连接状态</th><th>已开通权限</th><th>最近同步时间</th><th>操作</th></tr>
+              </thead>
               <tbody>
                 ${state.shops.map((s, idx) => `
                   <tr>
-                    <td><strong>${s.name}</strong></td>
+                    <td class="nowrap"><strong>${s.name}</strong><div style="font-size:12px;color:var(--text-soft);">凭证${s.credMask}</div></td>
                     <td class="nowrap">${s.platform} · ${s.region}</td>
-                    <td class="nowrap"><span class="pill ${s.mode==="REAL"?"p-green":"p-amber"}">${s.mode}</span></td>
-                    <td>
-                      <div style="font-size:12px;"><code>${s.tokenMask}</code></div>
-                      <div style="font-size:12px;color:var(--text-soft);">${(s.scopes || []).join(", ")}</div>
+                    <td class="nowrap"><span class="pill ${s.mode==="REAL"?"p-green":"p-amber"}">${s.mode==="REAL"?"实盘店铺（计入真实营收）":"仅演示环境（不计营收）"}</span></td>
+                    <td class="nowrap">
+                      <span class="pill ${s.health==="连接正常"?"p-green":s.health==="仅演示环境"?"p-blue":"p-red"}">${s.health}</span>
+                      ${s.errNote ? `<div style="font-size:12px;color:var(--red-text);margin-top:3px;">${s.errNote}</div>` : ""}
                     </td>
+                    <td>${s.permLabels.map(p => `<span class="pill p-gray" style="margin-right:4px;">${p}</span>`).join("")}</td>
                     <td class="nowrap">
                       <div>${s.lastSync}</div>
-                      ${s.lastSyncTs ? `<div style="font-size:12px;color:var(--green-text);">${relTimeLabel(s.lastSyncTs)}</div>` : `<span class="pill p-gray">历史示例数据</span>`}
+                      <div style="font-size:12px;color:var(--text-soft);">${relTimeLabel(s.lastSyncTs)}</div>
                     </td>
-                    <td class="nowrap">
-                      <button class="btn btn-sm m0-sync" data-i="${idx}" ${!canManageShop?"disabled":""} title="${!canManageShop?"需管理者或主管权限":""}">立即同步订单</button>
+                    <td class="nowrap" style="display:flex;gap:6px;flex-wrap:wrap;">
+                      <button class="btn btn-sm btn-primary m0-sync-btn" data-i="${idx}" ${!canManageShop?"disabled":""} title="${!canManageShop?"需要管理者或主管权限":""}">↻ 同步订单</button>
+                      <button class="btn btn-sm m0-reauth-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>重新授权</button>
+                      <button class="btn btn-sm btn-danger m0-disc-btn" data-i="${idx}" ${!canManageShop?"disabled":""}>断开连接</button>
                     </td>
                   </tr>
                 `).join("")}
@@ -158,1499 +155,341 @@ export function renderM0_M3(pageId, state, helpers) {
         </div>
       `,
       bind: () => {
-        document.querySelectorAll(".m0-sync").forEach(b => b.onclick = () => {
+        document.querySelectorAll(".m0-sync-btn").forEach(b => b.onclick = () => {
+          const s = state.shops[Number(b.dataset.i)];
+          runAsyncTask("m0_shop_conn", {
+            label: `正在同步「${s.name}」最新订单`,
+            steps: ["校验店铺连接状态", "拉取最近已完成订单并自动防重过滤", "刷新经营大屏汇总数字"],
+            durationMs: 1000,
+            onSuccess: () => {
+              s.lastSync = nowDateTimeStr();
+              s.lastSyncTs = Date.now();
+              s.health = s.mode === "REAL" ? "连接正常" : "仅演示环境";
+              s.errNote = "";
+              state.lastDataRefreshAt = nowTimeStr();
+              state.lastDataRefreshTs = Date.now();
+              if (s.mode === "REAL") {
+                const ordNo = genDocId("ORD");
+                state.orders.unshift({
+                  orderNo: ordNo, shop: s.name, mode: "REAL", buyer: "New Buyer", sku: "BAG-108", productName: "轻量通勤双肩包",
+                  qty: 2, amountUsd: 59.80, amountDisplay: "$59.80", status: "已付款", refundSyncStatus: "无退款", orderedAt: nowDateTimeStr(), historical: false,
+                  timeline: [
+                    { step: "买家付款完成", time: nowDateTimeStr(), done: true },
+                    { step: "待仓库拣货打包", time: "处理中", done: false },
+                  ]
+                });
+                return { summary: `已同步新实盘订单 ${ordNo} ($59.80)，经营大屏营收已同步更新`, toastMsg: `同步完成：新增 1 笔实盘订单 ${ordNo}` };
+              }
+              return { summary: `已刷新演示测试店状态（演示订单不计入真实营收）`, toastMsg: `演示店已同步（不计真实营收）`, toastLevel: "warn" };
+            }
+          });
+        });
+
+        document.querySelectorAll(".m0-reauth-btn").forEach(b => b.onclick = () => {
+          const s = state.shops[Number(b.dataset.i)];
+          runAsyncTask("m0_shop_conn", {
+            label: `正在重新授权「${s.name}」`,
+            steps: ["发起平台重新授权", "核对授权凭证", "恢复正常同步状态"],
+            durationMs: 900,
+            onSuccess: () => {
+              s.health = s.mode === "REAL" ? "连接正常" : "仅演示环境";
+              s.errNote = "";
+              s.lastSync = nowDateTimeStr();
+              s.lastSyncTs = Date.now();
+              return { summary: `「${s.name}」已重新授权并恢复正常连接`, toastMsg: `「${s.name}」重新授权成功` };
+            }
+          });
+        });
+
+        document.querySelectorAll(".m0-disc-btn").forEach(b => b.onclick = () => {
           const s = state.shops[Number(b.dataset.i)];
           commitAction({
-            title: `确认同步店铺订单 · ${s.name}`,
-            summary: `将通过模拟拉取任务生成增量订单（含幂等去重校验），实时写入 M0-2 订单主表${s.mode==="REAL"?"并更新 M2 大屏 GMV":"（MOCK 店仅限演示，不计入实盘利润）"}。`,
-            confirmText: "开始同步",
-            onConfirm: () => {
-              runAsyncTask("m0_sync", {
-                label: `增量订单同步 · ${s.name}`,
-                steps: ["拉取平台增量订单", "按订单号与哈希去重", "写入 M0-2 订单主表"],
-                durationMs: 1000,
-                onSuccess: () => {
-                  const prod = state.masterProducts[Math.floor(Math.random() * 3)];
-                  const newId = genDocId(s.mode === "MOCK" ? "SYN9D" : "ORD");
-                  const qty = 1 + Math.floor(Math.random() * 2);
-                  const usd = +(prod.priceNum * qty).toFixed(2);
-                  state.orders.unshift({
-                    id: newId, shopId: s.id, shopName: s.name, mode: s.mode,
-                    status: "PAID", buyer: "Live Sync Buyer***", sku: prod.sku, qty,
-                    currency: s.region === "TH" ? "THB" : "USD",
-                    amount: s.region === "TH" ? Math.round(usd * 35) : usd,
-                    amountUsd: usd, time: nowDateTimeStr(), historical: false,
-                    note: s.mode === "MOCK" ? "仅 M1 客服演示(不计实利)" : "刚刚同步(已计入实盘)"
-                  });
-                  s.lastSync = nowDateTimeStr();
-                  s.lastSyncTs = Date.now();
-                  return {
-                    summary: `新增 1 条 (${newId}) / 去重 2 条 / 失败 0 条`,
-                    toastMsg: `${s.name} 同步完成：新增 1 条 (${newId})，去重 2 条`
-                  };
-                }
-              });
-              return { toastMsg: "同步任务已入队 (QUEUED)…", toastLevel: "info" };
+            title: `确认断开店铺连接 · ${s.name}`,
+            danger: true,
+            summary: "断开后将暂停该店铺的订单与库存自动同步，历史订单数据仍保留，随时可点击「重新授权」恢复。",
+            confirmText: "确认断开",
+            fieldsHtml: `<div class="field"><label>断开原因说明 *</label><input id="discReason" class="input" placeholder="如：更换店铺主账号 / 暂停运营"/></div>`,
+            validate: (wrap) => {
+              const el = wrap.querySelector("#discReason");
+              return el.value.trim() ? [] : [{ el, msg: "请填写断开原因" }];
             },
-            audit: { target: `M0-1 订单同步 · ${s.name}`, action: "触发增量订单同步", detail: `模式=${s.mode}`, ok: true }
+            onConfirm: (wrap) => {
+              s.health = "连接已断开";
+              s.errNote = `已断开：${wrap.querySelector("#discReason").value.trim()}`;
+              return { toastMsg: `已断开「${s.name}」的连接`, toastLevel: "warn" };
+            },
+            audit: (wrap) => ({
+              sentence: `${ROLE_PERSON_NAMES[state.role]} 断开了店铺「${s.name}」的连接，原因：${wrap.querySelector("#discReason").value.trim()}`,
+              ok: true
+            })
           });
         });
       }
     };
   }
 
-  // ==================== M0b: Product Master & Orders ====================
+  // ==================== M0-2: 主商品档案、成本变更申请与订单台账 ====================
   if (pageId === "m0b") {
-    const canEditCost = state.role === "planner" || state.role === "approver" || state.role === "manager";
-    const q = state.m0bSearch.toLowerCase();
-    const filteredProds = state.masterProducts.filter(p =>
-      (state.m0bTypeFilter === "ALL" || p.mode === state.m0bTypeFilter) &&
-      (!q || p.sku.toLowerCase().includes(q) || p.name.toLowerCase().includes(q))
-    );
+    const canEditCost = state.role === "planner" || state.role === "approver";
+    const canApproveCost = state.role === "approver";
 
-    const filteredOrders = state.orders.filter(o =>
-      (state.m0bOrderShopFilter === "ALL" || o.shopId === state.m0bOrderShopFilter) &&
-      (state.m0bOrderStatusFilter === "ALL" || o.status === state.m0bOrderStatusFilter)
-    );
-    const oPageSize = 4;
-    const oTotalPages = Math.max(1, Math.ceil(filteredOrders.length / oPageSize));
-    if (state.m0bOrderPage > oTotalPages) state.m0bOrderPage = 1;
-    const pagedOrders = filteredOrders.slice((state.m0bOrderPage - 1) * oPageSize, state.m0bOrderPage * oPageSize);
+    const filteredProds = state.masterProducts.filter(p => {
+      const q = state.masterSearch.trim().toLowerCase();
+      const matchQ = !q || p.sku.toLowerCase().includes(q) || p.name.toLowerCase().includes(q);
+      const matchShop = state.masterShopFilter === "ALL" || p.mappings.some(m => m.shop === state.masterShopFilter);
+      return matchQ && matchShop;
+    });
+
+    const filteredOrders = state.orders.filter(o => {
+      const mShop = state.orderShopFilter === "ALL" || o.shop === state.orderShopFilter;
+      const mSt = state.orderStatusFilter === "ALL" || o.status === state.orderStatusFilter;
+      const mDt = state.orderDateFilter === "ALL" || o.orderedAt.startsWith(state.orderDateFilter);
+      return mShop && mSt && mDt;
+    });
 
     return {
       headerActions: [
-        { label: "← 店铺授权接入", primary: false, onClick: () => goPage("m0a") },
-        { label: "前往分店独立库存中心 →", primary: true, onClick: () => goPage("m0c") }
+        { label: "查看分店库存与盘点 →", primary: true, onClick: () => goPage("m0c") }
       ],
       html: `
-        <div class="card">
-          <div class="filter-bar">
-            <div class="filter-item" style="flex:2;">
-              <label>搜索主 SKU / 商品名称</label>
-              <input id="m0bSearchInp" class="input" placeholder="输入 BAG-108 / 洗衣 / 面霜…" value="${state.m0bSearch}"/>
-            </div>
-            <div class="filter-item">
-              <label>经营覆盖方式</label>
-              <select id="m0bTypeSel" class="select">
-                <option value="ALL">全部模式</option>
-                <option value="一货多店" ${state.m0bTypeFilter==="一货多店"?"selected":""}>一货多店</option>
-                <option value="泰国专卖" ${state.m0bTypeFilter==="泰国专卖"?"selected":""}>泰国专卖</option>
-                <option value="美区主推" ${state.m0bTypeFilter==="美区主推"?"selected":""}>美区主推</option>
-                <option value="美区专卖" ${state.m0bTypeFilter==="美区专卖"?"selected":""}>美区专卖</option>
-              </select>
-            </div>
-          </div>
+        <div class="banner banner-blue">
+          <span><strong>页面定位：</strong>管理商品主档案、带审批的成本变更申请，以及每笔订单的全生命周期明细。<strong>数据来源：</strong>各店铺同步订单与商品档案（最近核对：${state.lastDataRefreshAt}）。</span>
+        </div>
+
+        <div class="grid-4">
+          <div class="kpi-card highlight-blue"><div class="kpi-label">在档主商品数量</div><div class="kpi-val" style="color:var(--blue-hover)">${state.masterProducts.length} 款</div><div class="kpi-sub">跨店铺统一商品编码管理</div></div>
+          <div class="kpi-card ${state.masterProducts.some(p=>p.cost===null)?"highlight-amber":""}"><div class="kpi-label">缺成本待补全商品</div><div class="kpi-val" style="color:var(--amber-text)">${state.masterProducts.filter(p=>p.cost===null).length} 款</div><div class="kpi-sub">缺成本不可计算真实利润与补货</div></div>
+          <div class="kpi-card highlight-green"><div class="kpi-label">实盘订单明细 (已防重)</div><div class="kpi-val" style="color:var(--green-text)">${state.orders.filter(o=>o.mode==="REAL").length} 笔</div><div class="kpi-sub">仅实盘订单计入真实营收</div></div>
+          <div class="kpi-card"><div class="kpi-label">成本变更审批记录</div><div class="kpi-val">${state.costChangeLogs.length} 笔</div><div class="kpi-sub">待审批：${state.costChangeLogs.filter(c=>c.status==="待主管审批").length} 笔</div></div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-blue">1</span> 内部主商品档案（各店共用商品主档，按店独立定价与核算成本）</div>
-            <span class="pill p-blue">共 ${filteredProds.length} 个商品（含主图与成本卡版本）</span>
+            <div class="card-title">主商品档案与成本变更申请（修改成本将影响毛利、补货测算与利润驾驶舱）</div>
+          </div>
+          <div class="filter-bar" style="margin-bottom:12px;">
+            <div class="filter-item"><label>搜索商品编码或名称</label><input id="m0bSearch" class="input" placeholder="如：BAG-108 或 双肩包" value="${state.masterSearch}"/></div>
+            <div class="filter-item"><label>按上架店铺筛选</label>
+              <select id="m0bShopSel" class="select">
+                <option value="ALL">全部店铺</option>
+                <option value="TikTok Shop 美区" ${state.masterShopFilter==="TikTok Shop 美区"?"selected":""}>TikTok Shop 美区</option>
+                <option value="Shopee 泰国主店" ${state.masterShopFilter==="Shopee 泰国主店"?"selected":""}>Shopee 泰国主店</option>
+              </select>
+            </div>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>商品主图 & 名称</th><th>各店铺上架与商品编号</th><th>拿货 + 头程总成本</th><th>参考售价 / 预估毛利</th><th>覆盖模式</th><th>操作</th></tr></thead>
+              <thead><tr><th>商品实拍与编码</th><th>品类</th><th>各店铺上架编号与售价</th><th>单件采购 / 头程成本</th><th>档案状态</th><th>操作</th></tr></thead>
               <tbody>
-                ${filteredProds.map(p => {
-                  const totalCost = +(p.cost + p.ship).toFixed(2);
-                  const grossMargin = (((p.priceNum - totalCost) / p.priceNum) * 100).toFixed(1);
-                  return `
-                    <tr>
-                      <td>
-                        <div style="display:flex;align-items:center;gap:10px;">
-                          <img src="${getProductImg(p.sku)}" alt="${p.name}" class="prod-thumb-img"/>
-                          <div>
-                            <strong>${p.name}</strong>
-                            <div style="font-size:12px;color:var(--text-soft);">${p.sku} · ${p.cat}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>${p.shops.map(sh => `<span class="pill p-gray" style="margin:2px 3px 2px 0;">${sh}</span>`).join("")}</td>
-                      <td class="nowrap">
-                        <strong>$${totalCost.toFixed(2)}</strong>
-                        <div style="font-size:12px;color:var(--text-soft);">拿货 $${p.cost.toFixed(2)} + 头程 $${p.ship.toFixed(2)} <span class="pill p-green">${p.costVer}</span></div>
-                      </td>
-                      <td class="nowrap">
-                        <strong>${p.price}</strong>
-                        <div style="font-size:12px;color:var(--green-text);">毛利率 ${grossMargin}%</div>
-                      </td>
-                      <td class="nowrap"><span class="pill p-blue">${p.mode}</span></td>
-                      <td class="nowrap">
-                        <button class="btn btn-sm m0b-detail" data-sku="${p.sku}">看各仓分布</button>
-                        <button class="btn btn-sm m0b-cost" data-sku="${p.sku}" ${!canEditCost?"disabled":""} title="${!canEditCost?"需业务运营/管理者/主管权限":""}">调成本卡</button>
-                      </td>
-                    </tr>
-                  `;
-                }).join("")}
+                ${filteredProds.length ? filteredProds.map(p => `
+                  <tr>
+                    <td class="nowrap">
+                      <div style="display:flex;align-items:center;gap:10px;">
+                        <img src="${getProductImg(p.sku)}" class="prod-thumb-img" alt="${p.name}"/>
+                        <div><strong>${p.sku}</strong><div style="font-size:12.5px;color:var(--text-muted);">${p.name}</div></div>
+                      </div>
+                    </td>
+                    <td class="nowrap">${p.cat}</td>
+                    <td>${p.mappings.map(m => `<div style="font-size:12.5px;"><strong>${m.shop}</strong> · 编号 ${m.shopSku} · ${m.price}</div>`).join("")}</td>
+                    <td class="nowrap">${p.cost === null ? '<span class="pill p-amber">未知 (禁止按0算)</span>' : `$${p.cost.toFixed(2)} + 头程 $${p.freight.toFixed(2)}`}</td>
+                    <td class="nowrap"><span class="pill ${p.cost===null?"p-amber":"p-green"}">${p.status}</span></td>
+                    <td class="nowrap">
+                      <button class="btn btn-sm btn-primary m0b-cost-btn" data-sku="${p.sku}" ${!canEditCost?"disabled":""} title="${!canEditCost?"需要业务运营或主管权限":""}">发起成本变更申请</button>
+                    </td>
+                  </tr>
+                `).join("") : `<tr><td colspan="6" style="text-align:center;color:var(--text-soft);padding:20px;">暂无符合筛选条件的商品，请清空筛选词重试。</td></tr>`}
               </tbody>
             </table>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-purple">2</span> 跨平台订单明细台账（点击任意订单行可查看详情与推进状态）</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <select id="m0bOrdShop" class="select" style="width:160px;height:30px;">
-                <option value="ALL">全部店铺</option>
-                ${state.shops.map(s => `<option value="${s.id}" ${state.m0bOrderShopFilter===s.id?"selected":""}>${s.name}</option>`).join("")}
-              </select>
-              <select id="m0bOrdStatus" class="select" style="width:130px;height:30px;">
-                <option value="ALL">全部状态</option>
-                <option value="PAID" ${state.m0bOrderStatusFilter==="PAID"?"selected":""}>PAID 已付款</option>
-                <option value="SHIPPED" ${state.m0bOrderStatusFilter==="SHIPPED"?"selected":""}>SHIPPED 已发货</option>
-                <option value="DELIVERED" ${state.m0bOrderStatusFilter==="DELIVERED"?"selected":""}>DELIVERED 已妥投</option>
-              </select>
-            </div>
-          </div>
+          <div class="card-header"><div class="card-title">成本变更审批与历史版本台账（留痕可追溯）</div></div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>订单编号</th><th>归属店铺</th><th>买家 / 商品</th><th>实付金额</th><th>订单状态</th><th>防重与营收口径</th><th>操作</th></tr></thead>
+              <thead><tr><th>申请单号</th><th>商品</th><th>变更前 → 变更后</th><th>生效日期</th><th>业务原因</th><th>申请/审批人</th><th>状态</th><th>操作</th></tr></thead>
               <tbody>
-                ${pagedOrders.map(o => `
-                  <tr class="m0b-ord-row" data-oid="${o.id}" style="cursor:pointer;">
+                ${state.costChangeLogs.map((c, idx) => `
+                  <tr>
+                    <td class="nowrap"><strong>${c.id}</strong></td>
+                    <td class="nowrap">${c.sku}</td>
+                    <td class="nowrap">${c.oldCost===null?"未知":"$"+c.oldCost.toFixed(2)} → <strong>$${c.newCost.toFixed(2)}</strong> (头程 $${c.newFreight.toFixed(2)})</td>
+                    <td class="nowrap">${c.effectiveDate}</td>
+                    <td style="font-size:12.5px;">${c.reason}</td>
+                    <td class="nowrap">${c.applicant} / ${c.approver || "待主管批"}</td>
+                    <td class="nowrap"><span class="pill ${c.status==="已生效"?"p-green":"p-amber"}">${c.status}</span></td>
                     <td class="nowrap">
-                      <strong>${o.id}</strong>
-                      <div style="font-size:12px;color:var(--text-soft);">${o.time}</div>
-                    </td>
-                    <td class="nowrap">${o.shopName} <span class="pill ${o.mode==="REAL"?"p-green":"p-amber"}">${o.mode}</span></td>
-                    <td><strong>${o.buyer}</strong><div style="font-size:12px;color:var(--text-soft);">${o.sku} × ${o.qty}件</div></td>
-                    <td class="nowrap"><strong>${o.currency} ${o.amount}</strong><div style="font-size:12px;color:var(--text-soft);">≈ $${o.amountUsd.toFixed(2)}</div></td>
-                    <td class="nowrap"><span class="pill ${o.status==="DELIVERED"?"p-green":o.status==="SHIPPED"?"p-blue":"p-amber"}">${o.status}</span></td>
-                    <td>
-                      <span class="pill ${o.mode==="REAL"?"p-green":"p-amber"}">${o.mode==="REAL"?"防重已入账 · 计入真实营收":"仅测试演示 · 不计入真实营收"}</span>
-                      ${o.historical ? `<span class="pill p-gray" style="margin-left:4px;">历史示例数据</span>` : `<span class="pill p-blue" style="margin-left:4px;">新同步</span>`}
-                    </td>
-                    <td class="nowrap">
-                      <button class="btn btn-sm m0b-ord-btn" data-oid="${o.id}">订单明细</button>
-                      ${o.id === "SYN9D-005671" ? `<button class="btn btn-sm btn-primary m0b-jump-cs" data-sid="${o.csSessionId}">去客服会话 →</button>` : ""}
+                      ${c.status === "待主管审批"
+                        ? `<button class="btn btn-sm btn-success m0b-approve-cost" data-i="${idx}" ${!canApproveCost?"disabled":""} title="${!canApproveCost?"需「主管/审批人」批准":""}">批准生效</button>`
+                        : `<span style="font-size:12px;color:var(--text-soft);">已归档</span>`}
                     </td>
                   </tr>
                 `).join("")}
               </tbody>
             </table>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-            <span style="font-size:12px;color:var(--text-soft);">第 ${state.m0bOrderPage} / ${oTotalPages} 页 · 共 ${filteredOrders.length} 笔订单</span>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-sm" id="m0bOrdPrev" ${state.m0bOrderPage<=1?"disabled":""}>← 上一页</button>
-              <button class="btn btn-sm" id="m0bOrdNext" ${state.m0bOrderPage>=oTotalPages?"disabled":""}>下一页 →</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">多店铺订单台账（点击任意订单行可查看买家与生命周期时间轴）</div>
+            <span class="pill p-green">重复订单已自动过滤</span>
+          </div>
+          <div class="filter-bar" style="margin-bottom:12px;">
+            <div class="filter-item"><label>筛选店铺</label>
+              <select id="ordShopFlt" class="select">
+                <option value="ALL">全部店铺</option>
+                <option value="TikTok Shop 美区" ${state.orderShopFilter==="TikTok Shop 美区"?"selected":""}>TikTok Shop 美区</option>
+                <option value="Shopee 泰国主店" ${state.orderShopFilter==="Shopee 泰国主店"?"selected":""}>Shopee 泰国主店</option>
+                <option value="Amazon 演示沙盒店" ${state.orderShopFilter==="Amazon 演示沙盒店"?"selected":""}>Amazon 演示沙盒店</option>
+              </select>
             </div>
+            <div class="filter-item"><label>订单状态</label>
+              <select id="ordStFlt" class="select">
+                <option value="ALL">全部状态</option>
+                <option value="已付款" ${state.orderStatusFilter==="已付款"?"selected":""}>已付款</option>
+                <option value="已发货" ${state.orderStatusFilter==="已发货"?"selected":""}>已发货</option>
+                <option value="已签收" ${state.orderStatusFilter==="已签收"?"selected":""}>已签收</option>
+              </select>
+            </div>
+            <div class="filter-item"><label>下单日期</label>
+              <select id="ordDtFlt" class="select">
+                <option value="ALL">全部日期</option>
+                <option value="2026-11-19" ${state.orderDateFilter==="2026-11-19"?"selected":""}>2026-11-19</option>
+                <option value="2026-11-18" ${state.orderDateFilter==="2026-11-18"?"selected":""}>2026-11-18</option>
+                <option value="2026-11-17" ${state.orderDateFilter==="2026-11-17"?"selected":""}>2026-11-17</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>订单编号</th><th>所属店铺</th><th>买家姓名</th><th>商品明细</th><th>实付金额</th><th>下单时间</th><th>订单状态</th><th>退款登记状态</th><th>营收口径</th></tr></thead>
+              <tbody>
+                ${filteredOrders.length ? filteredOrders.map(o => `
+                  <tr class="m0b-ord-row" data-ord="${o.orderNo}" style="cursor:pointer;" title="点击查看订单全生命周期">
+                    <td class="nowrap"><strong style="color:var(--blue-hover);">${o.orderNo}</strong></td>
+                    <td class="nowrap">${o.shop}</td>
+                    <td class="nowrap">${o.buyer}</td>
+                    <td class="nowrap">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <img src="${getProductImg(o.sku)}" style="width:32px;height:32px;border-radius:6px;border:1px solid var(--border);" alt="${o.productName}"/>
+                        <span>${o.productName} × ${o.qty}</span>
+                      </div>
+                    </td>
+                    <td class="nowrap"><strong>${o.amountDisplay}</strong></td>
+                    <td class="nowrap">${o.orderedAt}</td>
+                    <td class="nowrap"><span class="pill ${o.mode==="REAL"?"p-blue":"p-amber"}">${o.status}</span></td>
+                    <td class="nowrap"><span class="pill ${o.refundSyncStatus==="无退款"?"p-gray":"p-purple"}">${o.refundSyncStatus}</span></td>
+                    <td class="nowrap"><span class="pill ${o.mode==="REAL"?"p-green":"p-amber"}">${o.mode==="REAL"?"计入真实营收":"仅演示不计营收"}</span></td>
+                  </tr>
+                `).join("") : `<tr><td colspan="9" style="text-align:center;color:var(--text-soft);padding:20px;">暂无符合当前筛选条件的订单。</td></tr>`}
+              </tbody>
+            </table>
           </div>
         </div>
       `,
       bind: () => {
-        document.getElementById("m0bSearchInp").oninput = (e) => { state.m0bSearch = e.target.value; rerender(); };
-        document.getElementById("m0bTypeSel").onchange = (e) => { state.m0bTypeFilter = e.target.value; rerender(); };
-        document.getElementById("m0bOrdShop").onchange = (e) => { state.m0bOrderShopFilter = e.target.value; state.m0bOrderPage = 1; rerender(); };
-        document.getElementById("m0bOrdStatus").onchange = (e) => { state.m0bOrderStatusFilter = e.target.value; state.m0bOrderPage = 1; rerender(); };
-        document.getElementById("m0bOrdPrev").onclick = () => { state.m0bOrderPage -= 1; rerender(); };
-        document.getElementById("m0bOrdNext").onclick = () => { state.m0bOrderPage += 1; rerender(); };
+        document.getElementById("m0bSearch").oninput = (e) => { state.masterSearch = e.target.value; rerender(); };
+        document.getElementById("m0bShopSel").onchange = (e) => { state.masterShopFilter = e.target.value; rerender(); };
+        document.getElementById("ordShopFlt").onchange = (e) => { state.orderShopFilter = e.target.value; rerender(); };
+        document.getElementById("ordStFlt").onchange = (e) => { state.orderStatusFilter = e.target.value; rerender(); };
+        document.getElementById("ordDtFlt").onchange = (e) => { state.orderDateFilter = e.target.value; rerender(); };
 
-        document.querySelectorAll(".m0b-jump-cs").forEach(b => b.onclick = (e) => {
-          e.stopPropagation();
-          state.csActiveId = b.dataset.sid || "s1";
-          goPage("m1a");
-        });
-
-        document.querySelectorAll(".m0b-detail").forEach(b => b.onclick = () => {
-          const p = state.masterProducts.find(x => x.sku === b.dataset.sku);
-          const stockRows = state.inventoryItems.filter(i => i.sku === p.sku);
-          const logs = state.costChangeLogs.filter(c => c.sku === p.sku);
-          openDrawer(`${p.sku} · ${p.name}`, `成本卡 ${p.costVer} · 各仓库存与成本变更历史`, `
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-              <img src="${getProductImg(p.sku)}" class="prod-thumb-lg" alt="${p.name}"/>
-              <div class="formula-box" style="flex:1;margin:0;">
-                <strong>单件落地成本：</strong>$${p.cost.toFixed(2)}(采购) + $${p.ship.toFixed(2)}(头程) = <strong>$${(p.cost + p.ship).toFixed(2)}</strong>
+        document.querySelectorAll(".m0b-ord-row").forEach(tr => tr.onclick = () => {
+          const o = state.orders.find(x => x.orderNo === tr.dataset.ord);
+          if (!o) return;
+          openDrawer(`订单全生命周期 · ${o.orderNo}`, `${o.shop} · ${o.mode==="REAL"?"实盘订单":"仅演示订单"}`, `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+              <img src="${getProductImg(o.sku)}" class="prod-thumb-lg" alt="${o.productName}"/>
+              <div>
+                <div style="font-size:15px;font-weight:700;">${o.productName} × ${o.qty}</div>
+                <div style="font-size:12.5px;color:var(--text-soft);margin-top:2px;">买家：${o.buyer} ｜ 实付：<strong>${o.amountDisplay}</strong></div>
+                <div style="font-size:12px;color:var(--text-soft);">下单时间：${o.orderedAt} ｜ 退款登记：${o.refundSyncStatus}</div>
               </div>
             </div>
-            <div class="drawer-sec-label">各店铺独立库存现状：</div>
-            ${stockRows.map(s => `
-              <div class="anno-card" style="border-left-color:${s.shopMode==="REAL"?"#10b981":"#f59e0b"};margin-bottom:8px;">
-                <div><strong>${s.shopName}</strong> <span class="pill ${s.shopMode==="REAL"?"p-green":"p-amber"}">${s.shopMode}</span></div>
-                <div style="font-size:12px;margin-top:4px;">店铺商品编号：<code>${s.shopSku}</code> · 存放仓库：<strong>${s.whName}</strong></div>
-                <div style="font-size:12px;margin-top:3px;">当前可售：<strong>${s.avail} 件</strong> · 锁定：${s.locked} 件 · 安全线：${s.safety} 件</div>
-              </div>
-            `).join("")}
-            <div class="drawer-sec-label" style="margin-top:12px;">成本卡版本变更留痕：</div>
-            ${logs.length ? logs.map(l => `<div class="ledger-row"><strong>${l.ver}</strong> (${l.effective})：${l.oldCost} → ${l.newCost} · 原因：${l.reason} · 审批：${l.approver}</div>`).join("") : '<div style="font-size:12px;color:var(--text-soft);">暂无近期变更</div>'}
-            <button class="btn btn-primary btn-sm" id="drGotoInv" style="margin-top:12px;">去 M0-3 分店独立库存中心盘点 →</button>
-          `, () => {
-            document.getElementById("drGotoInv").onclick = () => { closeDetailDrawer(); goPage("m0c"); };
-          });
+            <div class="drawer-sec-label">订单流转时间轴</div>
+            <div>
+              ${(o.timeline || []).map(st => `
+                <div class="timeline-step ${st.done ? "done" : ""}">
+                  <div>
+                    <div style="font-weight:700;color:${st.done?"var(--green-text)":"var(--text-soft)"};">${st.done?"✓":"○"} ${st.step}</div>
+                    <div style="font-size:12px;color:var(--text-soft);">${st.time}</div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          `);
         });
 
-        document.querySelectorAll(".m0b-cost").forEach(b => b.onclick = () => {
+        document.querySelectorAll(".m0b-cost-btn").forEach(b => b.onclick = () => {
           const p = state.masterProducts.find(x => x.sku === b.dataset.sku);
-          const nextVer = "v" + (Number(p.costVer.replace("v", "")) + 1);
           commitAction({
-            title: `调整成本卡 · ${p.sku} (${p.costVer} → ${nextVer})`,
-            summary: "影响面提示：成本卡版本升级将实时影响 M2 经营利润核算、M3 智能问数毛利、M5 预测参考金额与 M6 补货占用现金测算！",
-            confirmText: "提交生效新成本卡",
+            title: `发起成本变更申请 · ${p.sku} (${p.name})`,
+            summary: "⚠️ 重要影响提示：成本生效后将同步影响「毛利核算」、「M6 补货采购测算」与「M2 利润驾驶舱」全部利润数字。",
+            confirmText: "提交成本变更申请",
             fieldsHtml: `
               <div class="grid-2" style="gap:10px;">
-                <div class="field"><label>新采购单价 (USD) *</label><input id="cNewCost" type="number" step="0.1" class="input" value="${p.cost}"/></div>
-                <div class="field"><label>新头程运费 (USD) *</label><input id="cNewShip" type="number" step="0.1" class="input" value="${p.ship}"/></div>
+                <div class="field"><label>单件采购成本 (USD) *</label><input id="cNewCost" type="number" step="0.01" class="input" value="${p.cost ?? ""}" placeholder="例如 4.80"/></div>
+                <div class="field"><label>单件头程运费 (USD) *</label><input id="cNewFr" type="number" step="0.01" class="input" value="${p.freight ?? ""}" placeholder="例如 2.30"/></div>
               </div>
-              <div class="field"><label>生效日期 *</label><input id="cEffDate" type="date" class="input" value="${nowDateTimeStr().slice(0,10)}"/></div>
-              <div class="field"><label>变更原因说明 *</label><input id="cReason" class="input" placeholder="如：供应商原料调价 / 航运旺季附加费"/></div>
-              <div class="field"><label>审批复核人 * (不可与当前操作人同名)</label><input id="cAppr" class="input" value="${state.role==="approver"?"王总":"陈主管"}"/></div>
+              <div class="field"><label>成本生效日期 *</label><input id="cEffDate" type="date" class="input" value="2026-11-20"/></div>
+              <div class="field"><label>业务变更原因（必填）*</label><input id="cReason" class="input" placeholder="如：原材料涨价 / 供应商阶梯报价调整"/></div>
             `,
             validate: (wrap) => {
               const errs = [];
               const cEl = wrap.querySelector("#cNewCost");
-              const sEl = wrap.querySelector("#cNewShip");
+              const fEl = wrap.querySelector("#cNewFr");
               const dEl = wrap.querySelector("#cEffDate");
               const rEl = wrap.querySelector("#cReason");
-              const aEl = wrap.querySelector("#cAppr");
-              if (!(Number(cEl.value) > 0)) errs.push({ el: cEl, msg: "采购单价必须大于 0" });
-              if (Number(sEl.value) < 0 || sEl.value === "") errs.push({ el: sEl, msg: "头程运费不能小于 0" });
-              if (!dEl.value) errs.push({ el: dEl, msg: "请选择成本卡生效日期" });
-              if (!rEl.value.trim()) errs.push({ el: rEl, msg: "必须填写成本变更原因" });
-              if (!aEl.value.trim()) errs.push({ el: aEl, msg: "必须指定复核审批人" });
+              if (!(Number(cEl.value) > 0)) errs.push({ el: cEl, msg: "采购成本必须大于 0" });
+              if (!(Number(fEl.value) >= 0) || fEl.value.trim() === "") errs.push({ el: fEl, msg: "请填写合法头程运费" });
+              if (!dEl.value.trim()) errs.push({ el: dEl, msg: "请选择生效日期" });
+              if (!rEl.value.trim()) errs.push({ el: rEl, msg: "请填写成本变更业务原因" });
               return errs;
             },
             onConfirm: (wrap) => {
               const nc = Number(wrap.querySelector("#cNewCost").value);
-              const ns = Number(wrap.querySelector("#cNewShip").value);
-              const eff = wrap.querySelector("#cEffDate").value;
-              const reason = wrap.querySelector("#cReason").value.trim();
-              const appr = wrap.querySelector("#cAppr").value.trim();
-              const oldCostStr = `$${p.cost.toFixed(2)}+$${p.ship.toFixed(2)}`;
-              p.cost = nc; p.ship = ns; p.costVer = nextVer;
+              const nf = Number(wrap.querySelector("#cNewFr").value);
+              const dt = wrap.querySelector("#cEffDate").value;
+              const rsn = wrap.querySelector("#cReason").value.trim();
+              const cid = genDocId("CC");
+              const autoApprove = state.role === "approver";
               state.costChangeLogs.unshift({
-                time: nowDateTimeStr(), sku: p.sku, ver: nextVer,
-                oldCost: oldCostStr, newCost: `$${nc.toFixed(2)}+$${ns.toFixed(2)}`,
-                effective: eff, reason, approver: appr, historical: false
+                id: cid, sku: p.sku, oldCost: p.cost, oldFreight: p.freight,
+                newCost: nc, newFreight: nf, effectiveDate: dt, reason: rsn,
+                applicant: ROLE_PERSON_NAMES[state.role],
+                approver: autoApprove ? "陈主管" : "",
+                status: autoApprove ? "已生效" : "待主管审批",
+                time: nowDateTimeStr()
               });
-              return { toastMsg: `${p.sku} 成本卡已升级至 ${nextVer}（M2/M6 资金测算已联动）` };
+              if (autoApprove) {
+                p.cost = nc; p.freight = nf; p.status = "在售";
+              }
+              return { toastMsg: autoApprove ? `成本变更单 ${cid} 已生效（毛利与补货测算已同步更新）` : `已提交成本变更申请 ${cid}，请由「主管 / 审批人」批准生效` };
             },
             audit: (wrap) => ({
-              target: `M0-2 成本卡 · ${p.sku}`,
-              action: `升级成本卡至 ${nextVer}`,
-              detail: `原因：${wrap.querySelector("#cReason").value.trim()} · 复核人：${wrap.querySelector("#cAppr").value.trim()}`,
+              sentence: `${ROLE_PERSON_NAMES[state.role]} 提交了 ${p.sku} 成本变更申请（采购 $${wrap.querySelector("#cNewCost").value} + 头程 $${wrap.querySelector("#cNewFr").value}，生效日 ${wrap.querySelector("#cEffDate").value}），原因：${wrap.querySelector("#cReason").value.trim()}`,
               ok: true
             })
           });
         });
 
-        const openOrderDetail = (oid) => {
-          const o = state.orders.find(x => x.id === oid);
-          if (!o) return;
-          const nextStatus = o.status === "PAID" ? "SHIPPED" : o.status === "SHIPPED" ? "DELIVERED" : null;
-          openDrawer(`订单明细 · ${o.id}`, `${o.shopName} · ${o.mode}`, `
-            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-              <div>当前状态：<span class="pill ${o.status==="DELIVERED"?"p-green":o.status==="SHIPPED"?"p-blue":"p-amber"}">${o.status}</span></div>
-              <div>买家昵称：<strong>${o.buyer}</strong></div>
-              <div>购买商品：<strong>${o.sku} × ${o.qty} 件</strong></div>
-              <div>实付金额：<strong>${o.currency} ${o.amount} (≈ $${o.amountUsd.toFixed(2)})</strong></div>
-              <div>下单时间：<strong>${o.time}</strong></div>
-              <div>数据口径：<strong>${o.note}</strong></div>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              ${nextStatus ? `<button class="btn btn-primary btn-sm" id="advOrderBtn">推进订单状态 → ${nextStatus}</button>` : `<span class="pill p-green">已完结妥投 (DELIVERED) ✓</span>`}
-              ${o.id === "SYN9D-005671" ? `<button class="btn btn-sm" id="ordToCsBtn">跳至 M1-1 关联客服会话 →</button>` : ""}
-            </div>
-          `, () => {
-            const adv = document.getElementById("advOrderBtn");
-            if (adv) adv.onclick = () => {
-              commitAction({
-                title: `推进订单状态 · ${o.id}`,
-                summary: `确认将订单状态从 ${o.status} 推进至 ${nextStatus} 并记录状态变更时间？`,
-                confirmText: `确认改为 ${nextStatus}`,
-                onConfirm: () => {
-                  const old = o.status;
-                  o.status = nextStatus;
-                  closeDetailDrawer();
-                  return { toastMsg: `订单 ${o.id} 已推进为 ${nextStatus}（原 ${old}）` };
-                },
-                audit: { target: `M0-2 订单 ${o.id}`, action: "订单状态机推进", detail: `${o.status} → ${nextStatus}`, ok: true }
-              });
-            };
-            const tc = document.getElementById("ordToCsBtn");
-            if (tc) tc.onclick = () => { closeDetailDrawer(); state.csActiveId = "s1"; goPage("m1a"); };
-          });
-        };
-
-        document.querySelectorAll(".m0b-ord-row").forEach(r => r.onclick = () => openOrderDetail(r.dataset.oid));
-        document.querySelectorAll(".m0b-ord-btn").forEach(b => b.onclick = (e) => { e.stopPropagation(); openOrderDetail(b.dataset.oid); });
-      }
-    };
-  }
-
-  // ==================== M0c: Store×Warehouse Independent Stock Center ====================
-  if (pageId === "m0c") {
-    const canEditStock = state.role === "warehouse" || state.role === "manager";
-    const q = state.m0cSearch.toLowerCase();
-    const filtered = state.inventoryItems.filter(i =>
-      (state.m0cShopFilter === "ALL" || i.shopId === state.m0cShopFilter) &&
-      (!q || i.sku.toLowerCase().includes(q) || i.name.toLowerCase().includes(q) || i.whName.toLowerCase().includes(q))
-    );
-    const realLowCount = state.inventoryItems.filter(i => i.shopMode === "REAL" && i.avail < i.safety).length;
-
-    return {
-      headerActions: [
-        { label: "去 M6 智能补货测算 →", primary: false, onClick: () => goPage("m6b") },
-        {
-          label: "同步全部实盘仓库存", primary: true,
-          disabled: !canEditStock,
-          disabledTitle: "需「采购/仓库/物流人员」或「管理者」权限 — 请在左上角切换角色",
-          onClick: () => {
-            if (!canEditStock) { record403("M0-3 同步库存", "无仓储权限"); return; }
-            runAsyncTask("m0_inv_sync", {
-              label: "双仓实时库存快照同步",
-              steps: ["连接美国美西/美东与泰国曼谷仓", "校验锁定库存与安全库存线", "更新 M5/M6 缺口基准"],
-              durationMs: 950,
-              onSuccess: () => {
-                state.stockSyncedAt = nowDateTimeStr();
-                state.stockSyncedTs = Date.now();
-                state.inventoryItems.forEach(i => { if (i.shopMode === "REAL") i.updated = nowTimeStr(); });
-                return { summary: "双仓 5 条实盘记录已校准", toastMsg: `实盘仓库存同步完成 (${state.stockSyncedAt})` };
-              }
-            });
-          }
-        }
-      ],
-      html: `
-        <div class="banner banner-amber">
-          <span><strong>实际存放仓库说明：</strong>同款商品在不同海外仓/本地仓（如「美国美西海外仓」与「泰国曼谷本地仓」）<strong>物理隔离、独立计数</strong>；M6 采购收货凭证绝不自动改写本表库存，必须由仓管在此盘点校准。</span>
-          <span class="pill p-amber">最近同步：${state.stockSyncedTs ? `${state.stockSyncedAt} (${relTimeLabel(state.stockSyncedTs)})` : state.stockSyncedAt}</span>
-        </div>
-        ${renderAsyncBox("m0_inv_sync")}
-
-        <div class="grid-4">
-          <div class="kpi-card highlight-blue">
-            <div class="kpi-label">分店×仓 SKU 总条目</div>
-            <div class="kpi-val" style="color:var(--blue-hover)">${state.inventoryItems.length} 条</div>
-            <div class="kpi-sub">实盘 5 条 · MOCK 演示 1 条</div>
-          </div>
-          <div class="kpi-card highlight-amber">
-            <div class="kpi-label">实盘低库存预警</div>
-            <div class="kpi-val" style="color:var(--red-text)">${realLowCount} 项</div>
-            <div class="kpi-sub">可售 &lt; 安全库存，建议去 M6 补货</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">一货多店示例 (BAG-108)</div>
-            <div class="kpi-val" style="font-size:20px;">美仓 ${state.inventoryItems.find(x=>x.id==="inv1").avail} / 泰仓 ${state.inventoryItems.find(x=>x.id==="inv2").avail}</div>
-            <div class="kpi-sub">M5 建议补货实时联动重算</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">当前角色库存权限</div>
-            <div class="kpi-val" style="font-size:18px;color:${canEditStock?"var(--green-text)":"var(--text-soft)"}">${canEditStock?"可同步/盘点 ✓":"仅只读查看"}</div>
-            <div class="kpi-sub">${canEditStock?"盘点改数将直接重算 M5/M6 缺口":"需仓库/管理者权限(左上角可切)"}</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-green">2</span> 按「店铺 × 实际存放仓库」管理库存（盘点改数后实时联动 M5/M6 补货缺口）</div>
-          </div>
-
-          <div class="utabs" style="margin-bottom:12px;">
-            <div class="utab ${state.m0cShopFilter==="ALL"?"active":""} m0c-tab" data-sh="ALL">全部店铺 <span class="utab-cnt">${state.inventoryItems.length}</span></div>
-            ${state.shops.map(s => {
-              const cnt = state.inventoryItems.filter(i => i.shopId === s.id).length;
-              return `<div class="utab ${state.m0cShopFilter===s.id?"active":""} m0c-tab" data-sh="${s.id}">${s.name} (${s.mode}) <span class="utab-cnt">${cnt}</span></div>`;
-            }).join("")}
-          </div>
-
-          <div class="filter-bar" style="margin-bottom:12px;">
-            <div class="filter-item" style="max-width:380px;">
-              <input id="m0cSearchInp" class="input" placeholder="搜索 SKU / 品名 / 仓库名称 (如 美国美西海外仓)…" value="${state.m0cSearch}"/>
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>商品主 SKU & 品名</th><th>在售店铺 (模式)</th><th>实际存放仓库</th><th>当前可售</th><th>已锁定</th><th>安全库存</th><th>水位状态</th><th>操作</th></tr></thead>
-              <tbody>
-                ${filtered.map(item => {
-                  const isLow = item.avail < item.safety;
-                  return `
-                    <tr>
-                      <td><strong>${item.sku} · ${item.name}</strong><div style="font-size:12px;color:var(--text-soft)">店铺编号：<code>${item.shopSku}</code> · ${item.note}</div></td>
-                      <td class="nowrap">${item.shopName} <span class="pill ${item.shopMode==="REAL"?"p-green":"p-amber"}">${item.shopMode}</span></td>
-                      <td class="nowrap"><strong>${item.whName || WAREHOUSE_LABELS[item.wh] || item.wh}</strong></td>
-                      <td class="nowrap"><strong style="font-size:15px;color:${isLow?"var(--red-text)":"var(--text-dark)"}">${item.avail} 件</strong></td>
-                      <td class="nowrap">${item.locked} 件</td>
-                      <td class="nowrap">${item.safety} 件</td>
-                      <td class="nowrap">
-                        ${item.shopMode === "MOCK"
-                          ? '<span class="pill p-gray">仅演示·不计实仓</span>'
-                          : isLow ? '<span class="pill p-red">低库存预警</span>' : '<span class="pill p-green">库存充足</span>'}
-                      </td>
-                      <td class="nowrap">
-                        <button class="btn btn-sm m0c-edit" data-id="${item.id}" ${!canEditStock?"disabled":""} title="${!canEditStock?"需采购/仓库/物流或管理者权限":""}">盘点改数</button>
-                      </td>
-                    </tr>
-                  `;
-                }).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">🧾 盘点校准单留痕（M0-3 独立盘点记录）</div></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>盘点单号</th><th>SKU · 存放仓库</th><th>盘点前 → 盘点后</th><th>差异原因</th><th>经办人</th><th>时间</th></tr></thead>
-              <tbody>
-                ${state.stocktakes.map(st => `
-                  <tr>
-                    <td class="nowrap"><strong>${st.id}</strong> ${st.historical?'<span class="pill p-gray">历史示例</span>':'<span class="pill p-green">新单</span>'}</td>
-                    <td>${st.sku} · ${st.whName}</td>
-                    <td class="nowrap">${st.oldQty} 件 → <strong>${st.newQty} 件</strong></td>
-                    <td>${st.reason}</td>
-                    <td class="nowrap">${st.actor}</td>
-                    <td class="nowrap">${st.time}</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `,
-      bind: () => {
-        document.querySelectorAll(".m0c-tab").forEach(t => t.onclick = () => { state.m0cShopFilter = t.dataset.sh; rerender(); });
-        document.getElementById("m0cSearchInp").oninput = (e) => { state.m0cSearch = e.target.value; rerender(); };
-        document.querySelectorAll(".m0c-edit").forEach(b => b.onclick = () => {
-          const item = state.inventoryItems.find(x => x.id === b.dataset.id);
-          const pdId = genDocId("PD");
+        document.querySelectorAll(".m0b-approve-cost").forEach(b => b.onclick = () => {
+          const log = state.costChangeLogs[Number(b.dataset.i)];
+          const prod = state.masterProducts.find(p => p.sku === log.sku);
           commitAction({
-            title: `人工盘点校准 · ${item.sku} (${item.whName})`,
-            summary: `生成盘点单号 <strong>${pdId}</strong>；保存后将实时重算 M5 建议补货参考量、M6 补货缺口与库存覆盖天数！`,
-            confirmText: "确认写入盘点单并联动 M5/M6",
-            fieldsHtml: `
-              <div class="grid-2" style="gap:10px;">
-                <div class="field"><label>当前系统可售 (件)</label><input class="input" readonly value="${item.avail}"/></div>
-                <div class="field"><label>最新实盘可售 (件, ≥0) *</label><input id="invNewQty" type="number" class="input" value="${item.avail}"/></div>
-              </div>
-              <div class="field"><label>安全库存预警线 (件, ≥0) *</label><input id="invNewSafe" type="number" class="input" value="${item.safety}"/></div>
-              <div class="field"><label>盘点差异原因 * (若变动幅度 ≥ 30% 将触发大额差异提示)</label><input id="invReason" class="input" value="日常循环盘点校准同步"/></div>
-              <div id="invWarnBox"></div>
-            `,
-            onMount: (wrap) => {
-              const qEl = wrap.querySelector("#invNewQty");
-              const warn = wrap.querySelector("#invWarnBox");
-              const checkDiff = () => {
-                const v = Number(qEl.value);
-                if (v < 0) warn.innerHTML = `<div class="banner banner-red">❌ 可售库存禁止设为负数！</div>`;
-                else if (item.avail > 0 && Math.abs(v - item.avail) / item.avail >= 0.3) {
-                  warn.innerHTML = `<div class="banner banner-amber">⚠️ 注意：本次盘点变动幅度超过 30%（${item.avail} → ${v}），请务必核实实物与原因后再确认！</div>`;
-                } else warn.innerHTML = "";
-              };
-              qEl.oninput = checkDiff;
-              checkDiff();
+            title: `批准成本变更生效 · ${log.id}`,
+            summary: `批准后 ${log.sku} 的单件成本将正式更新为采购 $${log.newCost.toFixed(2)} + 头程 $${log.newFreight.toFixed(2)}，影响毛利与补货测算。`,
+            confirmText: "确认批准生效",
+            onConfirm: () => {
+              log.status = "已生效";
+              log.approver = "陈主管";
+              if (prod) { prod.cost = log.newCost; prod.freight = log.newFreight; prod.status = "在售"; }
+              return { toastMsg: `成本变更 ${log.id} 已批准生效` };
             },
-            validate: (wrap) => {
-              const errs = [];
-              const qEl = wrap.querySelector("#invNewQty");
-              const sEl = wrap.querySelector("#invNewSafe");
-              const rEl = wrap.querySelector("#invReason");
-              if (qEl.value === "" || Number(qEl.value) < 0) errs.push({ el: qEl, msg: "实盘可售库存必须为 ≥ 0 的整数" });
-              if (sEl.value === "" || Number(sEl.value) < 0) errs.push({ el: sEl, msg: "安全库存不能小于 0" });
-              if (!rEl.value.trim()) errs.push({ el: rEl, msg: "必须填写盘点差异原因" });
-              return errs;
-            },
-            onConfirm: (wrap) => {
-              const oldQty = item.avail;
-              const newQty = Math.floor(Number(wrap.querySelector("#invNewQty").value));
-              const newSafe = Math.floor(Number(wrap.querySelector("#invNewSafe").value));
-              const reason = wrap.querySelector("#invReason").value.trim();
-              item.avail = newQty;
-              item.safety = newSafe;
-              item.updated = nowTimeStr();
-              state.stocktakes.unshift({
-                id: pdId, sku: item.sku, whName: item.whName,
-                oldQty, newQty, reason, actor: state.role, time: nowDateTimeStr(), historical: false
-              });
-              return { toastMsg: `盘点单 ${pdId} 已生效：${item.sku} 库存 ${oldQty} → ${newQty} 件（M5/M6 缺口已重算）` };
-            },
-            audit: (wrap) => ({
-              target: `M0-3 盘点校准 · ${item.sku} (${pdId})`,
-              action: "库存盘点改数",
-              detail: `${item.whName}：${item.avail} 件（原因：${wrap.querySelector("#invReason").value.trim()}）`,
+            audit: {
+              sentence: `陈主管 批准了成本变更单 ${log.id}（${log.sku} 采购成本调至 $${log.newCost.toFixed(2)}）`,
               ok: true
-            })
-          });
-        });
-      }
-    };
-  }
-
-  // ==================== M1a: CS 3-Column Workbench ====================
-  if (pageId === "m1a") {
-    const activeSess = state.csSessions.find(s => s.id === state.csActiveId) || state.csSessions[0];
-    const canCs = state.role === "cs" || state.role === "approver";
-    const matchedOrder = state.orders.find(o => o.id === activeSess.orderId) || state.orders[2];
-
-    return {
-      headerActions: [
-        { label: "去客服导购商品库", primary: false, onClick: () => goPage("m1b") },
-        {
-          label: activeSess.mode === "HUMAN" ? "已人工接管 ✓" : "人工接管当前会话",
-          primary: true,
-          disabled: !canCs || activeSess.mode === "HUMAN",
-          disabledTitle: !canCs ? "需「客服」或「主管/审批人」权限 — 请在左上角切换角色" : "已人工接管",
-          onClick: () => {
-            if (!canCs) { record403("M1-1 人工接管", "非客服/主管不可接管会话"); return; }
-            commitAction({
-              title: `确认人工接管会话 · ${activeSess.buyer}`,
-              summary: "接管后将暂停 AI 自动建议发送，记录接管人身份与精确时间。",
-              confirmText: "确认接管会话",
-              onConfirm: () => {
-                activeSess.mode = "HUMAN";
-                activeSess.takenBy = state.role === "cs" ? "林客服 (cs)" : "陈主管 (approver)";
-                activeSess.takenAt = nowDateTimeStr();
-                return { toastMsg: `会话已由 ${activeSess.takenBy} 接管 (${activeSess.takenAt})` };
-              },
-              audit: { target: `M1-1 会话 ${activeSess.id}`, action: "客服人工接管", detail: `接管买家 ${activeSess.buyer}，订单 ${activeSess.orderId}`, ok: true }
-            });
-          }
-        }
-      ],
-      html: `
-        <div class="split-3col-cs">
-          <div class="card" style="padding:14px;">
-            <div class="card-header" style="margin-bottom:10px;">
-              <div class="card-title" style="font-size:14px;">会话队列 (${state.csSessions.length})</div>
-            </div>
-            ${state.csSessions.map(s => `
-              <div class="session-item ${s.id === activeSess.id ? "active" : ""}" data-sid="${s.id}">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                  <strong style="font-size:13px;">${s.buyer}</strong>
-                  <span style="font-size:12px;color:var(--text-soft)">${s.time}</span>
-                </div>
-                <div style="font-size:12px;color:var(--text-muted);margin:4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.preview}</div>
-                <span class="pill ${s.mode === "PENDING_HUMAN" ? "p-purple" : s.mode === "HUMAN" ? "p-blue" : "p-green"}">${s.mode}</span>
-              </div>
-            `).join("")}
-            <button class="btn btn-sm" id="gotoSimBuyerBtn" style="width:100%;justify-content:center;margin-top:6px;">+ 从模拟买家入口发消息</button>
-          </div>
-
-          <div class="card" style="padding:16px;">
-            <div class="card-header" style="margin-bottom:10px;">
-              <div>
-                <strong>${activeSess.buyer}</strong>
-                <span style="color:var(--text-soft);font-size:12.5px;margin-left:6px;">${activeSess.platform} · ${activeSess.intent} (${activeSess.conf})</span>
-                ${activeSess.takenBy ? `<div style="font-size:12px;color:var(--blue-hover);">接管人：${activeSess.takenBy} · ${activeSess.takenAt}</div>` : ""}
-              </div>
-              <span class="pill ${activeSess.mode === "PENDING_HUMAN" ? "p-purple" : activeSess.mode === "HUMAN" ? "p-blue" : "p-green"}">${activeSess.mode}</span>
-            </div>
-
-            <div style="max-height:210px;overflow-y:auto;margin-bottom:10px;">
-              ${activeSess.messages.map(m => `
-                <div class="chat-bubble ${m.role === "agent" ? "user" : ""}">
-                  <div>${m.text}</div>
-                  ${m.zh ? `<div class="chat-trans" style="${m.role==="agent"?"color:#dbeafe":""}">译文：${m.zh}</div>` : ""}
-                </div>
-              `).join("")}
-            </div>
-
-            ${activeSess.risk ? `
-              <div class="banner banner-amber" style="margin-bottom:10px;">
-                <div>
-                  <div><strong>售后投诉拦截：</strong>禁止 AI 自动承诺赔付或退款</div>
-                  <div style="font-size:12px;font-weight:400;margin-top:2px;">请人工核验订单并前往 M1-3 创建售后审批单</div>
-                </div>
-              </div>
-            ` : `
-              <div class="banner banner-blue" style="margin-bottom:10px;">
-                <span><strong>本店导购召回 Top-3：</strong>${activeSess.recs || "已按本店 ACTIVE/READY 商品匹配"}</span>
-              </div>
-            `}
-
-            <div class="field">
-              <label>中文拟定回复（含金额时系统将校验双语数字与本店域名）</label>
-              <textarea id="csZhInput" class="textarea" style="min-height:54px;">您好，已为您核实订单损坏情况（实付 $34.50），现为您提交退款工单审核。</textarea>
-            </div>
-            <div class="field">
-              <label>外语买家回复（支持测试改错金额如 $99.00 或放错店铺域名如 shopee.co.th 触发拦截）</label>
-              <textarea id="csEnInput" class="textarea" style="min-height:54px;">Hello, we verified your order ($34.50) and submitted a refund review.</textarea>
-            </div>
-            <div id="csSendGuardErr"></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span style="font-size:12px;color:var(--text-soft)">发送守卫：本店域名 (${activeSess.shopDomain || "amazon.com"}) & 双语数字强一致</span>
-              <button class="btn btn-primary" id="csSendBtn" ${!canCs?"disabled":""} title="${!canCs?"需客服或主管权限":""}">校验并模拟发送</button>
-            </div>
-          </div>
-
-          <div class="card" style="padding:16px;">
-            <div class="card-header" style="margin-bottom:10px;"><div class="card-title" style="font-size:14px;">客户与订单核验</div></div>
-            <div style="font-size:13px;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
-              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-soft)">客户名称</span><strong>${activeSess.buyer}</strong></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-soft)">店铺与域名</span><strong>${activeSess.shopDomain || activeSess.platform}</strong></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-soft)">意图识别</span><strong>${activeSess.intent} (${activeSess.conf})</strong></div>
-            </div>
-            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;">
-              <div style="font-size:12px;font-weight:700;color:var(--blue-hover);margin-bottom:4px;">候选订单核验详情</div>
-              <div style="font-weight:700;">${matchedOrder.id}</div>
-              <div style="font-size:12px;color:var(--text-muted);margin:4px 0;">
-                买家：${matchedOrder.buyer} · ${matchedOrder.sku} × ${matchedOrder.qty}件<br/>
-                金额：${matchedOrder.currency} ${matchedOrder.amount} ($${matchedOrder.amountUsd.toFixed(2)}) · ${matchedOrder.status}
-              </div>
-              <button class="btn btn-primary btn-sm" id="bindOrderBtn" style="width:100%;justify-content:center;margin-top:6px;" ${!canCs?"disabled":""}>
-                ${activeSess.bound ? "已核验并绑定订单 ✓" : "核验并绑定订单"}
-              </button>
-            </div>
-            <button class="btn btn-sm" id="gotoTicketsBtn" style="width:100%;justify-content:center;border-color:var(--blue);color:var(--blue);">
-              ${activeSess.bound ? "已绑单 · 带单前往 M1-3 建售后工单 →" : "前往售后工单审批页 →"}
-            </button>
-          </div>
-        </div>
-      `,
-      bind: () => {
-        document.querySelectorAll(".session-item").forEach(el => el.onclick = () => { state.csActiveId = el.dataset.sid; rerender(); });
-        document.getElementById("gotoTicketsBtn").onclick = () => goPage("m1c");
-        document.getElementById("gotoSimBuyerBtn").onclick = () => goPage("m1d");
-
-        document.getElementById("bindOrderBtn").onclick = () => {
-          commitAction({
-            title: `订单核验与绑定确认 · ${matchedOrder.id}`,
-            summary: "请人工逐项核对以下订单字段与当前会话买家诉求一致后，方可绑定至工单前序上下文：",
-            confirmText: "确认核验无误并绑定",
-            fieldsHtml: `
-              <div class="formula-box" style="margin-bottom:10px;">
-                • 订单号：<strong>${matchedOrder.id}</strong><br/>
-                • 买家姓名：<strong>${matchedOrder.buyer}</strong><br/>
-                • 商品明细：<strong>${matchedOrder.sku} × ${matchedOrder.qty} 件</strong><br/>
-                • 订单总额：<strong>${matchedOrder.currency} ${matchedOrder.amount} ($${matchedOrder.amountUsd.toFixed(2)})</strong><br/>
-                • 下单时间：<strong>${matchedOrder.time}</strong>
-              </div>
-              <label style="display:flex;align-items:center;gap:6px;font-weight:600;">
-                <input type="checkbox" id="bindChk"/> 我已人工核对以上买家、SKU、金额完全匹配
-              </label>
-            `,
-            validate: (wrap) => {
-              const ck = wrap.querySelector("#bindChk");
-              return ck.checked ? [] : [{ el: ck, msg: "请先勾选确认核对以上订单信息无误" }];
-            },
-            onConfirm: () => {
-              activeSess.bound = true;
-              activeSess.boundSnapshot = `${matchedOrder.id} ($${matchedOrder.amountUsd.toFixed(2)}) · ${nowTimeStr()}`;
-              return { toastMsg: `已完成核验并绑定订单 ${matchedOrder.id}，可前往 M1-3 创建售后工单` };
-            },
-            audit: { target: `M1-1 绑单 · ${matchedOrder.id}`, action: "人工核验绑定订单", detail: `会话 ${activeSess.id} 绑定金额 $${matchedOrder.amountUsd.toFixed(2)}`, ok: true }
-          });
-        };
-
-        document.getElementById("csSendBtn").onclick = () => {
-          const zhText = document.getElementById("csZhInput").value.trim();
-          const enText = document.getElementById("csEnInput").value.trim();
-          const guardBox = document.getElementById("csSendGuardErr");
-          guardBox.innerHTML = "";
-
-          if (!zhText || !enText) {
-            guardBox.innerHTML = `<div class="banner banner-red" style="margin-bottom:8px;">拦截：中英文回复内容均不可为空！</div>`;
-            return;
-          }
-          // Real bilingual number comparison
-          const zhNums = (zhText.match(/\d+(?:\.\d+)?/g) || []).join(",");
-          const enNums = (enText.match(/\d+(?:\.\d+)?/g) || []).join(",");
-          if (zhNums !== enNums) {
-            appendAuditLog(state, { target: `M1-1 发送校验 (${activeSess.id})`, action: "双语数字拦截", detail: `中文数字[${zhNums}] ≠ 英文数字[${enNums}]`, ok: false });
-            guardBox.innerHTML = `<div class="banner banner-red" style="margin-bottom:8px;">❌ 后端规则拦截 (FR-CS-19)：中英文回复中的数字不一致（中文：[${zhNums || "无"}] vs 英文：[${enNums || "无"}]），已阻止发送！</div>`;
-            toast("双语数字校验不通过，已拦截发送", "error");
-            return;
-          }
-          // Real cross-shop domain link check
-          const allDomains = ["shopee.co.th", "shop.tiktok.com", "amazon.com"];
-          const currentDom = activeSess.shopDomain || "amazon.com";
-          const wrongDom = allDomains.find(d => d !== currentDom && enText.toLowerCase().includes(d));
-          if (wrongDom) {
-            appendAuditLog(state, { target: `M1-1 发送校验 (${activeSess.id})`, action: "跨店链接拦截", detail: `当前店铺为 ${currentDom}，回复包含非本店域名 ${wrongDom}`, ok: false });
-            guardBox.innerHTML = `<div class="banner banner-red" style="margin-bottom:8px;">❌ 跨店链接拦截 (FR-CS-19)：当前会话属于 <strong>${currentDom}</strong>，严禁发送其他店铺域名（检测到 <code>${wrongDom}</code>）！</div>`;
-            toast("检测到非本店链接，已拦截发送", "error");
-            return;
-          }
-
-          commitAction({
-            title: "确认模拟发送外语回复",
-            summary: `已通过双语数字一致校验 (${enNums || "无数字"}) 与本店域名校验；当前为模拟发送态 (DELIVERED_MOCK)，不调用真实平台 API。`,
-            confirmText: "确认模拟发送",
-            onConfirm: () => {
-              activeSess.messages.push({ role: "agent", text: enText, zh: zhText });
-              return { toastMsg: "已写入模拟回复记录 (DELIVERED_MOCK)" };
-            },
-            audit: { target: `M1-1 回复 ${activeSess.buyer}`, action: "模拟发送双语回复", detail: `通过数字/域名强校验`, ok: true }
-          });
-        };
-      }
-    };
-  }
-
-  // ==================== M1b: CS Guided Product Catalog ====================
-  if (pageId === "m1b") {
-    const canMaintainKb = state.role === "planner" || state.role === "cs" || state.role === "approver";
-    const q = state.csSearch.toLowerCase();
-    const filtered = state.csProducts.filter(p =>
-      (state.csShopFilter === "ALL" || p.shop === state.csShopFilter) &&
-      (!q || p.sku.toLowerCase().includes(q) || p.name.toLowerCase().includes(q))
-    );
-    return {
-      headerActions: [
-        {
-          label: "重建向量索引 (模拟)", primary: false,
-          disabled: !canMaintainKb,
-          onClick: () => {
-            runAsyncTask("m1_vec", {
-              label: "重建客服商品向量索引 (每20件一批)",
-              steps: ["校验店铺 ACTIVE 状态", "按20件分批请求 Embedding", "模拟写回索引状态 (未连真实 Milvus)"],
-              durationMs: 1200,
-              onSuccess: () => {
-                state.csProducts.forEach(p => { p.vec = "READY (演示向量)"; });
-                return { summary: `已处理 ${state.csProducts.length} 件商品 (演示模拟态)`, toastMsg: "向量索引批处理模拟完成（未连接真实 Milvus）" };
-              }
-            });
-          }
-        },
-        {
-          label: "+ 导入 XLSX / CSV 文件", primary: true,
-          disabled: !canMaintainKb,
-          onClick: () => {
-            openModal("批量导入客服导购商品 (XLSX / CSV)", `
-              <div class="banner banner-amber" style="margin-bottom:10px;">⚠️ 向量库写入属于 B 类服务（未配置真实 Milvus），导入校验真实执行，向量化进度为演示模拟。</div>
-              <div class="field"><label>目标店铺 * (按组织/店铺隔离)</label><select id="kbShopSel" class="select"><option>Shopee TH</option><option>TikTok US</option></select></div>
-              <div class="field"><label>选择本地 .xlsx / .csv 文件 * (或点下方快速样例)</label>
-                <input id="kbFileInp" type="file" accept=".xlsx,.csv" class="input" style="padding:6px;"/>
-                <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
-                  <button class="btn btn-sm" id="kbPresetOk">载入正常样例文件 (kb_batch_ok.xlsx)</button>
-                  <button class="btn btn-sm btn-danger" id="kbPresetMock">载入含 mock 文件名 (mock_test_items.xlsx)</button>
-                </div>
-              </div>
-              <div id="kbPreviewBox" class="formula-box" style="margin-bottom:10px;display:none;"></div>
-              <button class="btn btn-primary" id="confirmImportKb" style="width:100%;justify-content:center;">执行列校验并启动分批向量化</button>
-            `, () => {
-              let chosenFile = "";
-              let isMockFile = false;
-              const prevBox = document.getElementById("kbPreviewBox");
-              const showPrev = (fname) => {
-                chosenFile = fname;
-                isMockFile = /mock/i.test(fname);
-                prevBox.style.display = "block";
-                if (isMockFile) {
-                  prevBox.innerHTML = `<strong style="color:var(--red-text)">❌ 校验拦截：</strong>文件名 <code>${fname}</code> 含有 <code>mock</code> 标识，严禁当作真实导购商品导入！`;
-                } else {
-                  prevBox.innerHTML = `<strong>文件预览 (${fname})：</strong><br/>1. DESK-901 · 铝合金笔记本支架 · $26.00 · 列校验通过 ✓<br/>2. LAMP-305 · 护眼夹灯 · <span style="color:var(--red-text)">缺价格列 (将记为失败行)</span>`;
-                }
-              };
-              document.getElementById("kbFileInp").onchange = (e) => {
-                const f = e.target.files && e.target.files[0];
-                if (f) showPrev(f.name);
-              };
-              document.getElementById("kbPresetOk").onclick = () => showPrev("kb_batch_ok.xlsx");
-              document.getElementById("kbPresetMock").onclick = () => showPrev("mock_test_items.xlsx");
-              document.getElementById("confirmImportKb").onclick = () => {
-                if (!chosenFile) { toast("请先选择文件或点击样例文件", "error"); return; }
-                const shop = document.getElementById("kbShopSel").value;
-                if (isMockFile) {
-                  state.csImportLogs.unshift({ file: chosenFile, shop, total: 0, okCount: 0, failCount: 0, status: "FAILED：含mock禁止导入", time: nowDateTimeStr(), note: "拦截" });
-                  appendAuditLog(state, { target: `M1-2 文件导入 (${chosenFile})`, action: "Mock 文件拦截", detail: "文件名含 mock 标识被阻断", ok: false });
-                  closeModal(); rerender(); toast("已阻断含 mock 标识的文件导入！", "error");
-                  return;
-                }
-                closeModal();
-                runAsyncTask("m1_vec", {
-                  label: `导入并分批向量化 · ${chosenFile}`,
-                  steps: ["整表列格式校验", "按 20 件每批生成向量 (模拟)", "回写 READY 与失败行原因"],
-                  durationMs: 1200,
-                  onSuccess: () => {
-                    if (!state.csProducts.some(x => x.sku === "DESK-901")) {
-                      state.csProducts.unshift({ sku: "DESK-901", name: "铝合金折叠笔记本支架", shop, domain: shop === "Shopee TH" ? "shopee.co.th" : "shop.tiktok.com", price: "$26.00", useCase: "桌面散热增高", vec: "READY (演示向量)", on: true });
-                    }
-                    state.csImportLogs.unshift({ file: chosenFile, shop, total: 2, okCount: 1, failCount: 1, status: "PARTIAL_OK (第2行缺价格)", time: nowDateTimeStr(), note: "演示模拟" });
-                    return { summary: "成功 1 条 (DESK-901) · 失败 1 条 (LAMP-305 缺价格)", toastMsg: "导入完成：1 条入库，1 条因缺价格跳过" };
-                  }
-                });
-              };
-            });
-          }
-        }
-      ],
-      html: `
-        <div class="banner banner-blue">
-          <span>💡 <strong>定位说明（SRS §3.1）：</strong>本页是供<strong>客服人员回答买家咨询</strong>时使用的「本店在售导购词典」（防编造报价、防串店发错链接）；寻找未采购的新品请前往 <strong>M4 选品分析</strong>。</span>
-        </div>
-        ${renderAsyncBox("m1_vec")}
-
-        <div class="card">
-          <div class="utabs" style="margin-bottom:12px;">
-            ${["ALL", "Shopee TH", "TikTok US"].map(sh => `
-              <div class="utab ${state.csShopFilter===sh?"active":""} shop-flt" data-shop="${sh}">${sh==="ALL"?"全部店铺":sh}</div>
-            `).join("")}
-          </div>
-          <div class="filter-bar">
-            <div class="filter-item" style="max-width:340px;">
-              <input id="m1bSearch" class="input" placeholder="搜索导购 SKU / 商品名…" value="${state.csSearch}"/>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><span class="anno-tag t-blue">1</span> 本店售前导购商品目录（CustomerRecommendedProduct）</div>
-            <span class="pill p-green">仅召回本店 ACTIVE / READY 商品</span>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>商品主图 & SKU</th><th>商品名称 / 导购卖点</th><th>归属店铺与域名</th><th>参考售价</th><th>向量状态 (B类模拟)</th><th>导购开关</th></tr></thead>
-              <tbody>
-                ${filtered.map(p => `
-                  <tr>
-                    <td>
-                      <div style="display:flex;align-items:center;gap:10px;">
-                        <img src="${getProductImg(p.sku)}" class="prod-thumb-img" alt="${p.name}"/>
-                        <strong>${p.sku}</strong>
-                      </div>
-                    </td>
-                    <td><strong>${p.name}</strong><div style="font-size:12px;color:var(--text-soft);">${p.useCase || "—"}</div></td>
-                    <td class="nowrap">${p.shop} <div style="font-size:12px;color:var(--text-soft);"><code>${p.domain || "—"}</code></div></td>
-                    <td class="nowrap"><strong>${p.price}</strong></td>
-                    <td class="nowrap"><span class="pill ${p.vec.includes("READY") ? "p-green" : "p-amber"}">${p.vec}</span></td>
-                    <td class="nowrap"><button class="btn btn-sm toggle-kb" data-sku="${p.sku}">${p.on ? "已启用 ✓" : "已停用"}</button></td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">📥 导入与向量化批次记录</div></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>文件名</th><th>店铺</th><th>解析统计</th><th>结果状态</th><th>时间</th></tr></thead>
-              <tbody>
-                ${state.csImportLogs.map(l => `
-                  <tr>
-                    <td><strong>${l.file}</strong> <span class="pill p-gray">${l.note}</span></td>
-                    <td>${l.shop}</td>
-                    <td>共 ${l.total} · 成功 ${l.okCount} · 失败 ${l.failCount}</td>
-                    <td><span class="pill ${l.status.includes("FAILED")?"p-red":l.status.includes("PARTIAL")?"p-amber":"p-green"}">${l.status}</span></td>
-                    <td>${l.time}</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `,
-      bind: () => {
-        document.querySelectorAll(".shop-flt").forEach(b => b.onclick = () => { state.csShopFilter = b.dataset.shop; rerender(); });
-        document.getElementById("m1bSearch").oninput = (e) => { state.csSearch = e.target.value; rerender(); };
-        document.querySelectorAll(".toggle-kb").forEach(b => b.onclick = () => {
-          const item = state.csProducts.find(x => x.sku === b.dataset.sku);
-          item.on = !item.on;
-          appendAuditLog(state, { target: `M1-2 导购开关 · ${item.sku}`, action: item.on ? "启用导购" : "停用导购", detail: item.shop, ok: true });
-          rerender(); toast(`${item.sku} 导购开关已${item.on ? "开启" : "停用"}`);
-        });
-      }
-    };
-  }
-
-  // ==================== M1d: Mock Buyer Simulator ====================
-  if (pageId === "m1d") {
-    return {
-      headerActions: [{ label: "前往客服三栏工作台 →", primary: true, onClick: () => goPage("m1a") }],
-      html: `
-        <div class="card" style="max-width:780px;">
-          <div class="card-header"><div class="card-title">模拟买家入站消息发送器（仅内部联调与教学演示）</div></div>
-          <div class="banner banner-blue" style="margin-bottom:12px;">说明：真实买家从不登录 CrossPilot，此页面作为联调入口模拟消息入站，将在 M1-1 中真实触发规则意图识别、Top-3 推荐或敏感拦截。</div>
-          <div class="field"><label>买家昵称与平台 *</label><input id="simBuyerName" class="input" value="Demo Buyer · AMAZON US" /></div>
-          <div class="field">
-            <label>快捷测试场景</label>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-sm sim-preset" data-msg="Do you have a waterproof desk mat under $25 for home office?">场景A：商品咨询 (触发导购 Top-3 召回)</button>
-              <button class="btn btn-sm sim-preset" data-msg="My parcel SYN9D-005671 arrived broken, I demand a full refund!">场景B：损坏退款 (触发 PENDING_HUMAN 拦截)</button>
-            </div>
-          </div>
-          <div class="field"><label>买家发送内容 (英文/多语) *</label><textarea id="simBuyerMsg" class="textarea">Do you have a waterproof desk mat under $25 for home office?</textarea></div>
-          <button class="btn btn-primary" id="sendSimMsgBtn">发送买家消息并进入 M1-1 工作台 →</button>
-        </div>
-      `,
-      bind: () => {
-        document.querySelectorAll(".sim-preset").forEach(b => b.onclick = () => { document.getElementById("simBuyerMsg").value = b.dataset.msg; });
-        document.getElementById("sendSimMsgBtn").onclick = () => {
-          const msg = document.getElementById("simBuyerMsg").value.trim();
-          const bName = document.getElementById("simBuyerName").value.split("·")[0].trim();
-          if (!msg || !bName) { toast("买家名称与消息内容不可为空", "error"); return; }
-          const isRefund = /refund|broken|damaged/i.test(msg);
-          const id = "s" + Date.now();
-          const activeItems = state.csProducts.filter(p => p.on && p.vec.includes("READY"));
-          const recs = activeItems.slice(0, 3).map((p, i) => `①②③`[i] + ` ${p.sku} ${p.name} (${p.price})`).join(" ");
-          const messages = [
-            { role: "buyer", text: msg, zh: isRefund ? "我的包裹破损了，要求全额退款！" : "请问有 25 美元以内防水办公桌垫推荐吗？" }
-          ];
-          if (!isRefund && activeItems.length) {
-            messages.push({ role: "agent", text: `[AI 规则预拟草稿] We recommend ${activeItems[0].sku} (${activeItems[0].price}) via ${activeItems[0].domain}.`, zh: `[AI 规则预拟] 推荐本店在售款 ${activeItems[0].name}（${activeItems[0].price}），待客服确认后发送。` });
-          }
-          state.csSessions.unshift({
-            id, buyer: bName, platform: "AMAZON US", shopName: "Amazon 演示沙盒店", shopDomain: "amazon.com", lang: "EN",
-            time: nowTimeStr(), preview: msg,
-            mode: isRefund ? "PENDING_HUMAN" : "AI_AUTO",
-            takenBy: "", takenAt: "",
-            intent: isRefund ? "REFUND" : "PRODUCT_INQUIRY", conf: isRefund ? "91%" : "94%", risk: isRefund,
-            recs, orderId: "SYN9D-005671", bound: false, boundSnapshot: null, messages
-          });
-          state.csActiveId = id;
-          appendAuditLog(state, { target: `M1-4 模拟入站 (${id})`, action: "模拟买家入站", detail: `意图=${isRefund?"REFUND(拦截)":"PRODUCT_INQUIRY(推荐)"}`, ok: true });
-          goPage("m1a"); toast(isRefund ? "命中退款风险词，已置为 PENDING_HUMAN 待客服接管" : "已触发导购 Top-3 召回并生成 AI 建议草稿", isRefund ? "warn" : "success");
-        };
-      }
-    };
-  }
-
-  // ==================== M1c: After-sales Tickets & SoD Approval + Voucher Backfill ====================
-  if (pageId === "m1c") {
-    const canApprove = state.role === "approver";
-    const canCreate = state.role === "cs" || state.role === "approver";
-    const t = state.tickets[state.ticketIdx] || state.tickets[0];
-    const sodSame = t.submitter === state.role;
-
-    return {
-      headerActions: [
-        { label: "返回客服工作台", primary: false, onClick: () => goPage("m1a") },
-        {
-          label: "+ 新建售后工单", primary: true,
-          disabled: !canCreate,
-          disabledTitle: "需「客服」或「主管/审批人」权限 — 请在左上角切换角色",
-          onClick: () => {
-            if (!canCreate) { record403("M1-3 新建售后工单", "无建单权限"); return; }
-            const newTkId = genDocId("TK");
-            commitAction({
-              title: `新建售后审批工单 · ${newTkId}`,
-              summary: "退款金额不得超过所选订单的实付金额上限；提交后需由不同于提交人的主管角色审批。",
-              confirmText: "提交待主管审批",
-              fieldsHtml: `
-                <div class="field"><label>关联订单 *</label>
-                  <select id="tkOrdSel" class="select">
-                    ${state.orders.map(o => `<option value="${o.id}" data-amt="${o.amountUsd}">${o.id} · ${o.buyer} · 上限 $${o.amountUsd.toFixed(2)}</option>`).join("")}
-                  </select>
-                </div>
-                <div class="grid-2" style="gap:10px;">
-                  <div class="field"><label>售后类型 *</label><select id="tkType" class="select"><option>破损部分退款</option><option>破损全额退款</option><option>补发配件</option></select></div>
-                  <div class="field"><label>申请退款金额 (USD) *</label><input id="tkAmt" type="number" step="0.01" class="input" value="15.00"/></div>
-                </div>
-                <div class="field"><label>售后核验原因与证据说明 *</label><textarea id="tkReason" class="textarea" placeholder="说明物流破损或缺失核验情况..."></textarea></div>
-              `,
-              validate: (wrap) => {
-                const errs = [];
-                const ordSel = wrap.querySelector("#tkOrdSel");
-                const maxAmt = Number(ordSel.options[ordSel.selectedIndex].dataset.amt);
-                const amtEl = wrap.querySelector("#tkAmt");
-                const amt = Number(amtEl.value);
-                const rEl = wrap.querySelector("#tkReason");
-                if (amtEl.value === "" || amt < 0) errs.push({ el: amtEl, msg: "退款金额不能小于 0" });
-                else if (amt > maxAmt) errs.push({ el: amtEl, msg: `退款金额 ($${amt}) 不得超过原订单金额上限 ($${maxAmt.toFixed(2)})` });
-                if (!rEl.value.trim()) errs.push({ el: rEl, msg: "必须填写售后原因与核验说明" });
-                return errs;
-              },
-              onConfirm: (wrap) => {
-                const ordSel = wrap.querySelector("#tkOrdSel");
-                const order = ordSel.value;
-                const orderAmount = Number(ordSel.options[ordSel.selectedIndex].dataset.amt);
-                const refundAmount = Number(wrap.querySelector("#tkAmt").value);
-                const kind = wrap.querySelector("#tkType").value;
-                const reason = wrap.querySelector("#tkReason").value.trim();
-                state.tickets.unshift({
-                  id: newTkId, order, orderAmount, refundAmount,
-                  type: `${kind} $${refundAmount.toFixed(2)}`, reason,
-                  submitter: state.role, approver: "", approveNote: "", status: "待主管审批", ext: "—", voucher: ""
-                });
-                state.ticketIdx = 0;
-                return { toastMsg: `售后工单 ${newTkId} 已提交审批` };
-              },
-              audit: (wrap) => ({
-                target: `M1-3 工单 ${newTkId}`,
-                action: "创建售后工单",
-                detail: `订单 ${wrap.querySelector("#tkOrdSel").value}，申请 $${wrap.querySelector("#tkAmt").value}`,
-                ok: true
-              })
-            });
-          }
-        }
-      ],
-      html: `
-        <div class="banner banner-amber">
-          <span><strong>闭环与诚实边界：</strong>主管审批通过后仅写入本地审批台账（<code>external_status = UNKNOWN</code>），需客服/运营在后台手动退款后<strong>上传人工退款凭证</strong>完成闭环，绝不虚构平台已自动打款！</span>
-        </div>
-        <div class="split-right-panel">
-          <div class="card">
-            <div class="card-header"><div class="card-title">售后审批队列（客服建单 → 主管审批 → 上传人工凭证回填）</div></div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>工单编号</th><th>关联订单</th><th>申请 / 上限</th><th>提交人</th><th>状态</th><th>平台回执</th></tr></thead>
-                <tbody>
-                  ${state.tickets.map((row, i) => `
-                    <tr class="tk-row ${i===state.ticketIdx?"row-selected":""}" data-idx="${i}" style="cursor:pointer;">
-                      <td class="nowrap"><strong>${row.id}</strong></td>
-                      <td class="nowrap">${row.order}</td>
-                      <td class="nowrap"><strong>${row.type}</strong><div style="font-size:12px;color:var(--text-soft);">上限 $${row.orderAmount.toFixed(2)}</div></td>
-                      <td class="nowrap">${row.submitter}</td>
-                      <td class="nowrap"><span class="pill ${row.status.includes("已批准")?"p-green":row.status==="已驳回"?"p-red":"p-amber"}">${row.status}</span></td>
-                      <td class="nowrap"><span class="pill ${row.voucher?"p-green":"p-gray"}">${row.ext}</span></td>
-                    </tr>
-                  `).join("")}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="card card-blue">
-            <div class="card-header"><div class="card-title">工单详情 · ${t.id}</div></div>
-            <div style="font-size:13px;display:flex;flex-direction:column;gap:7px;margin-bottom:12px;">
-              <div>关联订单：<strong>${t.order}</strong>（总额上限 $${t.orderAmount.toFixed(2)}）</div>
-              <div>申请内容：<strong>${t.type}</strong></div>
-              <div>售后原因：${t.reason || "—"}</div>
-              <div>提交人：<strong>${t.submitter}</strong></div>
-              <div>当前角色：<strong>${state.role}</strong> ${!canApprove ? '<span class="pill p-red">无审批权限(需主管)</span>' : sodSame ? '<span class="pill p-red">触发SoD：不可自审</span>' : '<span class="pill p-green">SoD 校验通过 ✓</span>'}</div>
-              ${t.approver ? `<div>审批人：<strong>${t.approver}</strong> · 意见：${t.approveNote}</div>` : ""}
-              ${t.voucher ? `<div>人工退款凭证：<code>${t.voucher}</code></div>` : ""}
-            </div>
-
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-success" id="approveTkBtn" ${(!canApprove || sodSame || t.status !== "待主管审批") ? "disabled" : ""} title="${!canApprove?"需「主管/审批人」权限 — 请在左上角切换角色":sodSame?"SoD禁止自审":""}">批准退款</button>
-              <button class="btn btn-danger" id="rejectTkBtn" ${(!canApprove || sodSame || t.status !== "待主管审批") ? "disabled" : ""}>驳回工单</button>
-              ${t.status === "已批准(待传凭证)" ? `<button class="btn btn-primary" id="uploadVoucherBtn">上传人工退款凭证并回填 →</button>` : ""}
-            </div>
-          </div>
-        </div>
-      `,
-      bind: () => {
-        document.querySelectorAll(".tk-row").forEach(r => r.onclick = () => { state.ticketIdx = Number(r.dataset.idx); rerender(); });
-        const ab = document.getElementById("approveTkBtn");
-        if (ab) ab.onclick = () => {
-          commitAction({
-            title: `主管批准售后工单 · ${t.id}`,
-            summary: `退款金额 $${t.refundAmount.toFixed(2)} ≤ 原订单上限 $${t.orderAmount.toFixed(2)}；批准后平台回执先标记为 <code>UNKNOWN</code>，等待上传人工打款凭证。`,
-            confirmText: "加行锁批准",
-            fieldsHtml: `<div class="field"><label>审批意见 * (必填)</label><textarea id="tkApprNote" class="textarea" placeholder="填写审核结论与依据..."></textarea></div>`,
-            validate: (wrap) => {
-              const el = wrap.querySelector("#tkApprNote");
-              return el.value.trim() ? [] : [{ el, msg: "审批意见为必填项" }];
-            },
-            onConfirm: (wrap) => {
-              t.status = "已批准(待传凭证)";
-              t.ext = "UNKNOWN";
-              t.approver = "陈主管 (approver)";
-              t.approveNote = wrap.querySelector("#tkApprNote").value.trim();
-              return { toastMsg: "工单已批准（external_status=UNKNOWN），请上传人工退款凭证完成闭环" };
-            },
-            audit: (wrap) => ({
-              target: `M1-3 工单 ${t.id}`,
-              action: "主管批准售后工单",
-              detail: `意见：${wrap.querySelector("#tkApprNote").value.trim()}`,
-              ok: true
-            })
-          });
-        };
-
-        const rb = document.getElementById("rejectTkBtn");
-        if (rb) rb.onclick = () => {
-          commitAction({
-            title: `驳回售后工单 · ${t.id}`,
-            danger: true,
-            confirmText: "确认驳回",
-            fieldsHtml: `<div class="field"><label>驳回理由 * (必填)</label><textarea id="tkRejNote" class="textarea" placeholder="说明驳回原因（如缺少破损照片）..."></textarea></div>`,
-            validate: (wrap) => {
-              const el = wrap.querySelector("#tkRejNote");
-              return el.value.trim() ? [] : [{ el, msg: "驳回必须填写明确理由" }];
-            },
-            onConfirm: (wrap) => {
-              t.status = "已驳回";
-              t.approver = "陈主管 (approver)";
-              t.approveNote = wrap.querySelector("#tkRejNote").value.trim();
-              return { toastMsg: `工单 ${t.id} 已驳回`, toastLevel: "warn" };
-            },
-            audit: (wrap) => ({ target: `M1-3 工单 ${t.id}`, action: "驳回售后工单", detail: wrap.querySelector("#tkRejNote").value.trim(), ok: true })
-          });
-        };
-
-        const vb = document.getElementById("uploadVoucherBtn");
-        if (vb) vb.onclick = () => {
-          commitAction({
-            title: `上传人工退款凭证并回填 · ${t.id}`,
-            summary: "模拟上传客服在电商后台手工打款后的截图/流水号，回填 external_status 完成售后闭环。",
-            confirmText: "保存凭证并回填状态",
-            fieldsHtml: `
-              <div class="field"><label>选择凭证截图 (可选)</label><input id="vchFile" type="file" class="input" style="padding:6px;"/></div>
-              <div class="field"><label>打款流水/凭证编号 *</label><input id="vchCode" class="input" value="${genDocId("VCH")}"/></div>
-            `,
-            validate: (wrap) => {
-              const el = wrap.querySelector("#vchCode");
-              return el.value.trim() ? [] : [{ el, msg: "请填写打款流水或凭证编号" }];
-            },
-            onConfirm: (wrap) => {
-              const f = wrap.querySelector("#vchFile").files[0];
-              t.voucher = (f ? f.name + " · " : "") + wrap.querySelector("#vchCode").value.trim();
-              t.ext = "人工凭证已登记";
-              t.status = "已批准(凭证已回填)";
-              return { toastMsg: `工单 ${t.id} 人工退款凭证已回填，售后闭环完成 ✓` };
-            },
-            audit: (wrap) => ({ target: `M1-3 工单 ${t.id}`, action: "回填退款凭证", detail: `凭证：${wrap.querySelector("#vchCode").value.trim()}`, ok: true })
-          });
-        };
-      }
-    };
-  }
-
-  // ==================== M2a: BI Designer (Draft vs Published Dual Versions) ====================
-  if (pageId === "m2a") {
-    const canDesign = state.role === "planner" || state.role === "bi_analyst" || state.role === "manager";
-    const stats = computeLiveBusinessStats();
-    const resolveVal = (metric, scope) => {
-      if (metric === "gmv") return `$${stats.gmv.toLocaleString()}`;
-      if (metric === "net_profit") return `$${stats.netProfit.toLocaleString()}`;
-      if (metric === "orders_count") return `${stats.ordersCnt.toLocaleString()} 单`;
-      return scope && scope.includes("7天") ? "$2,933.63" : `$${stats.adSpend.toLocaleString()}`;
-    };
-    const w = state.biWidgets[state.biSelectedIdx] || state.biWidgets[0];
-
-    return {
-      headerActions: [
-        {
-          label: "版本回滚到上一发布版", primary: false,
-          disabled: !canDesign || state.biPublishHistory.length === 0,
-          onClick: () => {
-            const last = state.biPublishHistory[0];
-            commitAction({
-              title: `回滚发布版至 ${last.ver}`,
-              summary: "将草稿区与已发布大屏恢复到最近一次已保存的历史快照。",
-              confirmText: "确认回滚",
-              onConfirm: () => {
-                if (last.widgets) state.biWidgets = JSON.parse(JSON.stringify(last.widgets));
-                state.biPublishedVersion = last.ver;
-                return { toastMsg: `已回滚至版本 ${last.ver}`, toastLevel: "warn" };
-              },
-              audit: { target: "M2-1 驾驶舱", action: "版本回滚", detail: `回滚到 ${last.ver}`, ok: true }
-            });
-          }
-        },
-        {
-          label: "发布草稿到大屏 →", primary: true,
-          disabled: !canDesign,
-          disabledTitle: "需「驾驶舱设计者/业务运营」或「BI/管理者」权限 — 请在左上角切换角色",
-          onClick: () => {
-            commitAction({
-              title: `发布驾驶舱草稿 (${state.biDraftVersion})`,
-              summary: `即将把当前草稿区 <strong>${state.biWidgets.length} 个组件</strong> 发布替换线上发布版 <strong>${state.biPublishedVersion}</strong>。`,
-              confirmText: "确认发布到大屏",
-              fieldsHtml: `
-                <div class="formula-box" style="margin-bottom:10px;">
-                  <strong>草稿 vs 当前发布版差异对比：</strong><br/>
-                  • 发布版组件 (${state.biPublishedWidgets.length}个)：${state.biPublishedWidgets.map(x=>x.title).join("、")}<br/>
-                  • 本次草稿组件 (${state.biWidgets.length}个)：${state.biWidgets.map(x=>x.title).join("、")}
-                </div>
-                <div class="field"><label>发布版本说明 *</label><input id="biPubNote" class="input" value="更新经营总览布局与实时M3指标绑定"/></div>
-              `,
-              validate: (wrap) => {
-                const el = wrap.querySelector("#biPubNote");
-                return el.value.trim() ? [] : [{ el, msg: "请填写发布版本说明" }];
-              },
-              onConfirm: (wrap) => {
-                const nextVer = "v1." + (state.biPublishHistory.length + 3);
-                state.biPublishHistory.unshift({
-                  ver: state.biPublishedVersion, time: nowDateTimeStr(), by: state.role,
-                  note: wrap.querySelector("#biPubNote").value.trim(),
-                  widgets: JSON.parse(JSON.stringify(state.biWidgets))
-                });
-                state.biPublishedWidgets = state.biWidgets.map(item => ({
-                  title: item.title, metric: item.metric, val: resolveVal(item.metric, item.scope), sub: item.scope
-                }));
-                state.biPublishedVersion = nextVer;
-                state.biPublishedAt = nowDateTimeStr();
-                goPage("m2b");
-                return { toastMsg: `驾驶舱已发布为 ${nextVer} 并同步至 M2-2 只读大屏` };
-              },
-              audit: (wrap) => ({ target: "M2-1 驾驶舱发布", action: "发布驾驶舱版本", detail: wrap.querySelector("#biPubNote").value.trim(), ok: true })
-            });
-          }
-        }
-      ],
-      html: `
-        <div class="banner banner-blue">
-          <span><strong>双版本隔离：</strong>草稿态 (<code>${state.biDraftVersion}</code>) 编辑不影响线上大屏 (<code>${state.biPublishedVersion}</code>)；组件数值直接绑定 M0/M3 实时事实（当前实盘 GMV <strong>$${stats.gmv.toLocaleString()}</strong>）。</span>
-        </div>
-        <div class="split-bi">
-          <div class="card" style="padding:14px;">
-            <div class="card-header"><div class="card-title" style="font-size:14px;">组件库 (点击添加)</div></div>
-            ${[
-              { t: "GMV 指标卡", m: "gmv" },
-              { t: "净利润指标卡", m: "net_profit" },
-              { t: "订单总量卡", m: "orders_count" },
-              { t: "广告花费卡", m: "ad_spend" },
-            ].map(c => `
-              <button class="btn btn-sm bi-add-comp" data-comp="${c.t}" data-m="${c.m}" style="width:100%;justify-content:flex-start;margin-bottom:8px;" ${!canDesign?"disabled":""}>+ ${c.t}</button>
-            `).join("")}
-          </div>
-
-          <div class="card" style="background:#f8fafc;border:1.5px dashed var(--blue-border);">
-            <div class="card-header">
-              <div class="card-title" style="color:var(--blue-hover);">草稿画布预览 (${state.biDraftVersion} · ${state.biWidgets.length}组件)</div>
-              <span class="pill p-blue">当前线上：${state.biPublishedVersion}</span>
-            </div>
-            <div class="grid-2" style="margin-bottom:12px;">
-              ${state.biWidgets.map((item, i) => `
-                <div class="kpi-card" style="cursor:pointer;${i===state.biSelectedIdx?"border:1.5px solid var(--blue)":""}" data-wi="${i}">
-                  <div class="kpi-label">
-                    <span>${item.title}</span>
-                    <span style="display:flex;gap:4px;">
-                      <button class="btn btn-sm bi-mv" data-i="${i}" title="前移" ${!canDesign?"disabled":""}>↑</button>
-                      <button class="btn btn-sm bi-del" data-i="${i}" title="删除" ${!canDesign?"disabled":""}>✕</button>
-                    </span>
-                  </div>
-                  <div class="kpi-val" style="color:${item.color}">${resolveVal(item.metric, item.scope)}</div>
-                  <div class="kpi-sub">绑定口径：${item.metric} · ${item.scope}</div>
-                </div>
-              `).join("")}
-            </div>
-            <div class="formula-box">
-              <strong>跨组件实时同源公式：</strong>净利率 = $${stats.netProfit.toLocaleString()} ÷ $${stats.gmv.toLocaleString()} = <strong>${stats.marginPct}%</strong> · ACOS = <strong>${stats.acosPct}%</strong>
-            </div>
-          </div>
-
-          <div class="card" style="padding:16px;">
-            <div class="card-header"><div class="card-title" style="font-size:14px;">选中组件属性</div></div>
-            <div class="field"><label>组件标题 *</label><input id="biPropTitle" class="input" value="${w.title}"/></div>
-            <div class="field"><label>绑定统一指标</label>
-              <select id="biPropMetric" class="select">
-                <option value="gmv" ${w.metric==="gmv"?"selected":""}>gmv (销售额)</option>
-                <option value="net_profit" ${w.metric==="net_profit"?"selected":""}>net_profit (净利润)</option>
-                <option value="orders_count" ${w.metric==="orders_count"?"selected":""}>orders_count (订单数)</option>
-                <option value="ad_spend" ${w.metric==="ad_spend"?"selected":""}>ad_spend (广告花费)</option>
-              </select>
-            </div>
-            <div class="field"><label>时间范围</label><select id="biPropScope" class="select"><option>全部平台 · 近30天</option><option>Amazon · 近7天</option></select></div>
-            <button class="btn btn-primary btn-sm" id="biApplyProp" style="width:100%;justify-content:center;" ${!canDesign?"disabled":""}>应用并刷新实盘数值</button>
-          </div>
-        </div>
-      `,
-      bind: () => {
-        document.querySelectorAll("[data-wi]").forEach(el => el.onclick = () => { state.biSelectedIdx = Number(el.dataset.wi); rerender(); });
-        document.querySelectorAll(".bi-mv").forEach(b => b.onclick = (e) => {
-          e.stopPropagation();
-          const i = Number(b.dataset.i);
-          if (i > 0) { const t = state.biWidgets[i - 1]; state.biWidgets[i - 1] = state.biWidgets[i]; state.biWidgets[i] = t; state.biSelectedIdx = i - 1; rerender(); }
-        });
-        document.querySelectorAll(".bi-del").forEach(b => b.onclick = (e) => {
-          e.stopPropagation();
-          if (state.biWidgets.length <= 1) { toast("画布至少保留 1 个组件", "warn"); return; }
-          state.biWidgets.splice(Number(b.dataset.i), 1); state.biSelectedIdx = 0; rerender();
-        });
-        document.querySelectorAll(".bi-add-comp").forEach(b => b.onclick = () => {
-          state.biWidgets.push({ title: b.dataset.comp, val: resolveVal(b.dataset.m), metric: b.dataset.m, scope: "全部平台 · 近30天", color: "var(--purple-text)" });
-          state.biSelectedIdx = state.biWidgets.length - 1; rerender(); toast("已添加到草稿画布");
-        });
-        document.getElementById("biApplyProp").onclick = () => {
-          const title = document.getElementById("biPropTitle").value.trim();
-          if (!title) { toast("组件标题不能为空", "error"); return; }
-          w.title = title;
-          w.metric = document.getElementById("biPropMetric").value;
-          w.scope = document.getElementById("biPropScope").value;
-          w.val = resolveVal(w.metric, w.scope);
-          rerender(); toast("已同步最新实时口径数值");
-        };
-      }
-    };
-  }
-
-  // ==================== M2b: Published BI Dashboard ====================
-  if (pageId === "m2b") {
-    const stats = computeLiveBusinessStats();
-    const jumpAsk = (q) => {
-      state.qaChat.push({ role: "user", text: q });
-      state.qaPendingQuery = q;
-      goPage("m3b");
-    };
-    return {
-      headerActions: [
-        { label: "返回设计工作台", primary: false, onClick: () => goPage("m2a") },
-        {
-          label: "↻ 刷新大屏实时数据", primary: true,
-          onClick: () => {
-            runAsyncTask("m2_refresh", {
-              label: "大屏并发拉取 M0/M3 事实快照",
-              steps: ["并发请求 4 项实时指标", "按统一币种 USD 核对口径", "刷新大屏图表与异常提示"],
-              durationMs: 850,
-              onSuccess: () => {
-                state.biPublishedAt = nowDateTimeStr();
-                return { summary: `已刷新 ${stats.ordersCnt} 笔订单事实`, toastMsg: "大屏已基于最新实盘订单重算刷新" };
-              }
-            });
-          }
-        }
-      ],
-      html: `
-        <div class="banner banner-blue">
-          <span>数据截止：<strong>${state.biPublishedAt}</strong> | 发布版本：<strong>${state.biPublishedVersion}</strong> | 实盘同步新增订单：<strong>${stats.syncedDeltaCnt} 笔</strong></span>
-          <span class="pill p-green">与 M0/M3 共用实时事实</span>
-        </div>
-        ${renderAsyncBox("m2_refresh")}
-
-        <div class="grid-4">
-          <div class="kpi-card m2-drill" data-q="请拆解当前全部实盘 GMV 销售额与新同步订单情况" style="cursor:pointer;">
-            <div class="kpi-label">GMV 销售额 <span class="pill p-blue">点击下钻</span></div>
-            <div class="kpi-val" style="color:var(--blue-hover)">$${stats.gmv.toLocaleString()}</div>
-            <div class="kpi-sub">含历史基线 + 新同步实盘订单</div>
-            <div class="formula-inline"><code>Σ(实盘订单实付USD)</code></div>
-          </div>
-          <div class="kpi-card m2-drill" data-q="当前实盘总订单数和平均客单价是多少？" style="cursor:pointer;">
-            <div class="kpi-label">订单总数 <span class="pill p-blue">点击下钻</span></div>
-            <div class="kpi-val" style="color:var(--green-text)">${stats.ordersCnt.toLocaleString()} 单</div>
-            <div class="kpi-sub">实盘已去重计数</div>
-            <div class="formula-inline">客单价 = <code>$${stats.aov}</code></div>
-          </div>
-          <div class="kpi-card m2-drill" data-q="Amazon最近7天广告花费和ACOS是多少？" style="cursor:pointer;">
-            <div class="kpi-label">广告花费 (ACOS ${stats.acosPct}%) <span class="pill p-blue">点击下钻</span></div>
-            <div class="kpi-val" style="color:var(--amber-text)">$${stats.adSpend.toLocaleString()}</div>
-            <div class="kpi-sub">Amazon近7天 $2,933.63</div>
-            <div class="formula-inline">ACOS = <code>${stats.acosPct}%</code></div>
-          </div>
-          <div class="kpi-card highlight-green m2-drill" data-q="各平台近30天净利润与净利率怎么算的？" style="cursor:pointer;">
-            <div class="kpi-label">净利润 (净利率 ${stats.marginPct}%) <span class="pill p-blue">点击下钻</span></div>
-            <div class="kpi-val" style="color:var(--purple-text)">$${stats.netProfit.toLocaleString()}</div>
-            <div class="kpi-sub">仅统计纯实盘订单</div>
-            <div class="formula-inline">净利率 = <code>${stats.marginPct}%</code></div>
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header"><div class="card-title">多平台每日 GMV 与利润趋势</div></div>
-            <svg viewBox="0 0 560 190" style="width:100%;height:auto;max-height:200px;display:block;background:#ffffff;border-radius:6px;">
-              <line x1="30" y1="45" x2="530" y2="45" stroke="#f1f5f9" stroke-width="1"/>
-              <line x1="30" y1="100" x2="530" y2="100" stroke="#f1f5f9" stroke-width="1"/>
-              <line x1="30" y1="155" x2="530" y2="155" stroke="#e2e8f0" stroke-width="1"/>
-              <polyline fill="none" stroke="#2563eb" stroke-width="2.4" points="40,140 110,120 180,126 250,88 320,76 390,54 460,44 520,28" />
-              <polyline fill="none" stroke="#10b981" stroke-width="2.2" points="40,152 110,142 180,145 250,125 320,118 390,104 460,94 520,82" />
-              <text x="40" y="175" font-size="11.5" fill="#475569">11-12</text>
-              <text x="250" y="175" font-size="11.5" fill="#475569" text-anchor="middle">11-15</text>
-              <text x="520" y="175" font-size="11.5" fill="#475569" text-anchor="end">今日最新</text>
-              <circle cx="400" cy="20" r="3.5" fill="#2563eb"/><text x="408" y="24" font-size="11.5" fill="#2563eb" font-weight="600">GMV</text>
-              <circle cx="462" cy="20" r="3.5" fill="#10b981"/><text x="470" y="24" font-size="11.5" fill="#10b981" font-weight="600">净利润</text>
-            </svg>
-          </div>
-          <div class="card card-blue">
-            <div class="card-header"><div class="card-title">经营异常告警与联动下钻</div></div>
-            <p style="margin-top:0;color:var(--text-muted)">
-              1. <strong>同源实时</strong>：当前实盘共 <strong>${stats.ordersCnt}</strong> 单，净利润 <strong>$${stats.netProfit.toLocaleString()}</strong>（净利率 ${stats.marginPct}%）。<br/><br/>
-              2. <strong>低库存告警</strong>：M0-3 检测到 <strong>${stats.realLowStocks.length} 项</strong>实盘低库存（${stats.realLowStocks.map(i=>i.sku).join(", ") || "无"}）。<br/><br/>
-              3. 点击上方任意指标卡或下方按钮，可直接带着问题下钻到 M3 智能问答！
-            </p>
-            <button class="btn btn-primary" id="biGotoQaBtn">带着低库存与利润上下文去问数 →</button>
-          </div>
-        </div>
-      `,
-      bind: () => {
-        document.querySelectorAll(".m2-drill").forEach(c => c.onclick = () => jumpAsk(c.dataset.q));
-        document.getElementById("biGotoQaBtn").onclick = () => jumpAsk("各店铺当前低库存预警有哪些？");
-      }
-    };
-  }
-
-  // ==================== M3a: QA Metrics & Celery Sync ====================
-  if (pageId === "m3a") {
-    const canMaintain = state.role === "bi_analyst" || state.role === "planner" || state.role === "manager";
-    return {
-      headerActions: [{ label: "前往经营智能问答 →", primary: true, onClick: () => goPage("m3b") }],
-      html: `
-        <div class="banner banner-amber">
-          <span>⚠️ <strong>B类边界提示：</strong>Celery Beat 调度与外部 REST 接口依赖后端配置（当前 <code>API_BASE</code> 为空，<code>METRIC_REST_BASE_URL</code> 未配置），REST 型指标触发将诚实显示“未连接后端”。</span>
-        </div>
-        ${renderAsyncBox("m3_sync")}
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">新增指标与接口绑定配置</div></div>
-          <div class="grid-4">
-            <div class="field"><label>指标代码 * (小写字母/下划线, 不可重名)</label><input id="m3Code" class="input" value="conversion_rate"/></div>
-            <div class="field"><label>指标名称 *</label><input id="m3Name" class="input" value="店铺转化率"/></div>
-            <div class="field"><label>取值方式</label><select id="m3Kind" class="select"><option value="SIMULATION">内置汇总 (SIMULATION)</option><option value="REST API">REST API</option></select></div>
-            <div class="field"><label>REST URL 模板 (REST API必填 {platform})</label><input id="m3Url" class="input" placeholder="https://api.example.com/{platform}/cvr"/></div>
-          </div>
-          <div id="m3FormErr"></div>
-          <button class="btn btn-primary btn-sm" id="addMetricBtn" ${!canMaintain?"disabled":""} title="${!canMaintain?"需 BI/运营/管理者权限":""}">校验并创建指标绑定</button>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">数据绑定与调度台账（展示上次/下次执行时间与失败重试）</div></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>绑定 / 指标</th><th>接口类型</th><th>平台</th><th>周期</th><th>上次 / 下次执行</th><th>最新数据 / 状态</th><th>操作</th></tr></thead>
-              <tbody>
-                ${state.qaBindings.map((b, i) => `
-                  <tr>
-                    <td><strong>${b.name}</strong>${b.url ? `<div style="font-size:12px;color:var(--text-soft);"><code>${b.url}</code></div>` : ""}</td>
-                    <td class="nowrap"><span class="pill p-blue">${b.kind}</span></td>
-                    <td class="nowrap">${b.platform}</td>
-                    <td class="nowrap">${b.cron}</td>
-                    <td class="nowrap" style="font-size:12px;">上次：${b.lastRun}<br/>下次：${b.nextRun}</td>
-                    <td><strong>${b.val}</strong><div style="margin-top:2px;"><span class="pill ${b.status.includes("未连接")||b.status.includes("FAILED")?"p-red":"p-green"}">${b.status}</span></div></td>
-                    <td class="nowrap"><button class="btn btn-sm run-sync-btn" data-i="${i}" ${!canMaintain?"disabled":""}>▶ 立即触发</button></td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `,
-      bind: () => {
-        document.getElementById("addMetricBtn").onclick = () => {
-          const errBox = document.getElementById("m3FormErr");
-          errBox.innerHTML = "";
-          const code = document.getElementById("m3Code").value.trim();
-          const name = document.getElementById("m3Name").value.trim();
-          const kind = document.getElementById("m3Kind").value;
-          const url = document.getElementById("m3Url").value.trim();
-
-          if (!/^[a-z][a-z0-9_]{1,30}$/.test(code)) {
-            errBox.innerHTML = `<div class="field-err" style="margin-bottom:8px;">指标代码格式错误：须小写字母开头，仅含字母/数字/下划线</div>`;
-            return;
-          }
-          if (state.qaBindings.some(b => b.code === code)) {
-            errBox.innerHTML = `<div class="field-err" style="margin-bottom:8px;">指标代码 <code>${code}</code> 已存在，违反唯一性约束！</div>`;
-            return;
-          }
-          if (!name) {
-            errBox.innerHTML = `<div class="field-err" style="margin-bottom:8px;">请填写指标中文名称</div>`;
-            return;
-          }
-          if (kind === "REST API" && (!/^https?:\/\/.+/.test(url) || !url.includes("{platform}"))) {
-            errBox.innerHTML = `<div class="field-err" style="margin-bottom:8px;">REST API 模式下 URL 须以 http(s):// 开头且包含 <code>{platform}</code> 占位符！</div>`;
-            return;
-          }
-
-          commitAction({
-            title: `新增指标绑定 · ${name} (${code})`,
-            summary: kind === "REST API" ? "将写入 REST 调度绑定；因当前未连接后端 METRIC_REST_BASE_URL，初始状态将标为未连接模拟态。" : "将写入内置汇总调度队列。",
-            confirmText: "保存绑定",
-            onConfirm: () => {
-              state.qaBindings.unshift({
-                code, name: `${name} (${code})`, kind, platform: "全部平台", cron: "每15分钟",
-                val: kind === "REST API" ? "—" : "3.42%",
-                status: kind === "REST API" ? "未连接后端 REST" : "SUCCESS (演示)",
-                lastRun: nowTimeStr(), nextRun: "15分钟后", url
-              });
-              return { toastMsg: `已创建指标绑定：${name}` };
-            },
-            audit: { target: `M3-1 指标 ${code}`, action: "新增指标绑定", detail: `${kind} · ${name}`, ok: true }
-          });
-        };
-
-        document.querySelectorAll(".run-sync-btn").forEach(b => b.onclick = () => {
-          const item = state.qaBindings[Number(b.dataset.i)];
-          const isRestFail = item.kind === "REST API" && !API_BASE;
-          runAsyncTask("m3_sync", {
-            label: `调度拉取 · ${item.name}`,
-            steps: ["检查调度锁与鉴权配置", "拉取数据并校验 JSON 路径", "写入 metric_snapshots"],
-            durationMs: 950,
-            shouldFail: isRestFail,
-            failReason: `未配置后端 METRIC_REST_BASE_URL，无法请求真实 REST 接口 (${item.url})`,
-            onFail: () => { item.status = "FAILED：未连接服务"; item.lastRun = nowTimeStr(); },
-            onSuccess: () => {
-              item.lastRun = nowTimeStr();
-              item.status = "SUCCESS (演示)";
-              return { summary: `同步成功 (${item.val})`, toastMsg: `${item.name} 演示快照刷新成功` };
             }
           });
         });
@@ -1658,142 +497,1151 @@ export function renderM0_M3(pageId, state, helpers) {
     };
   }
 
-  // ==================== M3b: QA Chat (Real State-Computed Answers + Multi-turn Context) ====================
-  if (pageId === "m3b") {
-    const stats = computeLiveBusinessStats();
-    const runQuery = (q) => {
-      if (!q.trim()) return;
-      state.qaChat.push({ role: "user", text: q });
-      const latency = 18 + Math.floor(Math.random() * 42);
+  // ==================== M0-3: 分店分仓独立库存与正式盘点单 ====================
+  if (pageId === "m0c") {
+    const canStocktake = state.role === "warehouse" || state.role === "manager" || state.role === "approver";
+    const filteredInv = state.inventoryItems.filter(i => state.inventoryShopFilter === "ALL" || i.shopName === state.inventoryShopFilter);
 
-      runAsyncTask("m3_qa", {
-        label: "只读问数解析与 SQL 校验",
-        steps: ["parse_question() 识别意图与多轮上下文", "SQL AST 只读白名单守卫", "读取当前内存实时数据计算"],
-        durationMs: 650,
-        onSuccess: () => {
-          if (/update|delete|drop|insert|alter|修改|删除/i.test(q)) {
-            state.qaChat.push({
-              role: "assistant", blocked: true,
-              text: "拦截提示：智能问数仅支持只读 SELECT 查询，已拦截并拒绝写入/修改操作！",
-              sql: "AUDIT: 写操作拦截事件已写入 rbac_audit_logs"
-            });
-            appendAuditLog(state, { target: "M3-2 SQL 守卫", action: "拦截写操作 SQL", detail: q, ok: false });
-            return { summary: "已安全拦截写操作", toastMsg: "触发只读守卫，已拒绝写操作", toastLevel: "warn" };
-          }
-
-          // Multi-turn context inheritance
-          const prevUser = [...state.qaChat].reverse().find((m, i) => i > 0 && m.role === "user")?.text || "";
-          const ctxStock = /美国|美仓|泰国|泰仓|其中/.test(q) && /库存|缺货/.test(prevUser);
-
-          if (/库存|缺货/.test(q) || ctxStock) {
-            const scopeFilter = /美国|美仓/.test(q) ? "shop_us" : /泰国|泰仓/.test(q) ? "shop_th" : null;
-            const list = state.inventoryItems.filter(i => i.shopMode === "REAL" && (!scopeFilter || i.shopId === scopeFilter));
-            const lows = list.filter(i => i.avail < i.safety);
-            const scopeTitle = scopeFilter === "shop_us" ? "美国仓" : scopeFilter === "shop_th" ? "泰国仓" : "全部实盘仓";
-            state.qaChat.push({
-              role: "assistant",
-              text: `${scopeTitle}共追踪 ${list.length} 条实盘库存（已排除 MOCK 店），其中低库存预警 ${lows.length} 项：` +
-                (lows.length ? lows.map(l => `${l.whName} ${l.sku}(可售 ${l.avail} < 安全线 ${l.safety})`).join("；") : "暂无低库存预警。"),
-              note: "实时数据源：直接从 M0-3 当前内存库存表计算（改盘点数字后再次提问即变）",
-              sql: `SELECT wh_name, sku, avail, safety FROM inventory_positions WHERE mode='REAL'${scopeFilter?` AND shop_id='${scopeFilter}'`:""} [${latency}ms]`,
-              feedback: null
-            });
-          } else if (/广告|ad_spend|acos/i.test(q)) {
-            state.qaChat.push({
-              role: "assistant",
-              text: `近 30 天实盘广告花费为 $${stats.adSpend.toLocaleString()}，结合当前实时 GMV $${stats.gmv.toLocaleString()}，实时 ACOS = ${stats.acosPct}%（Amazon 近 7 天花费 $2,933.63）。`,
-              note: "口径：M0 实盘订单汇总 + 广告快照（多币种分列不混加）",
-              sql: `SELECT SUM(ad_spend_usd), SUM(ad_spend_usd)/${stats.gmv} AS acos FROM metric_snapshots [${latency}ms]`,
-              feedback: null
-            });
-          } else if (/订单|客单价|gmv|销售/i.test(q)) {
-            const byShop = state.shops.filter(s => s.mode === "REAL").map(s => {
-              const cnt = state.orders.filter(o => o.shopId === s.id).length;
-              return `${s.name}(样本${cnt}笔)`;
-            }).join("，");
-            state.qaChat.push({
-              role: "assistant",
-              text: `当前实盘总 GMV 为 $${stats.gmv.toLocaleString()}（订单 ${stats.ordersCnt.toLocaleString()} 单，客单价 $${stats.aov}），含您在 M0-1 新同步的 ${stats.syncedDeltaCnt} 笔实盘订单。各实盘店：${byShop}。`,
-              note: "实时数据源：M0-2 实盘订单动态汇总（已自动排除 Amazon MOCK 店订单）",
-              sql: `SELECT COUNT(*), SUM(amount_usd) FROM orders WHERE mode='REAL' [${latency}ms]`,
-              feedback: null
-            });
-          } else {
-            state.qaChat.push({
-              role: "assistant",
-              text: `全部实盘近 30 天实时 GMV 为 $${stats.gmv.toLocaleString()}，净利润 $${stats.netProfit.toLocaleString()}，净利率 = ${stats.netProfit.toLocaleString()} ÷ ${stats.gmv.toLocaleString()} = ${stats.marginPct}%。`,
-              note: "口径：实时现算，未配置真实 Vanna 后端时由本地只读计算引擎从当前 state 汇总",
-              sql: `SELECT SUM(net_profit_usd), SUM(gmv_usd) FROM metric_snapshots WHERE mode='REAL' [${latency}ms]`,
-              feedback: null
-            });
-          }
-          return { summary: `查询耗时 ${latency}ms`, toastMsg: "问答结果已基于当前最新数据算出" };
-        }
-      });
-    };
-
-    // Handle pending drill-down from M2-2
-    if (state.qaPendingQuery) {
-      const pq = state.qaPendingQuery;
-      state.qaPendingQuery = "";
-      state.qaChat.pop(); // prevent duplicate push
-      setTimeout(() => runQuery(pq), 20);
-    }
+    // 实时算一个当前预测对比（BAG-108 与 FAN-203 直观显示变化）
+    const totalPred7 = state.m5DailyPred.reduce((a, b) => a + b, 0);
+    const bagUs = state.inventoryItems.find(i => i.id === "inv1");
+    const fanTh = state.inventoryItems.find(i => i.id === "inv3");
 
     return {
       headerActions: [
-        { label: "配置指标口径", primary: false, onClick: () => goPage("m3a") },
-        { label: "新建只读会话", primary: false, onClick: () => { state.qaChat = state.qaChat.slice(0, 2); rerender(); toast("已新建会话（未修改任何经营数据）"); } }
+        { label: "去 M5 查看销量预测联动 →", primary: false, onClick: () => goPage("m5b") },
+        { label: "去 M6 查看补货缺口联动 →", primary: true, onClick: () => goPage("m6b") }
       ],
       html: `
-        <div style="background:#1e3a8a;color:#fff;padding:13px 18px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-          <div>
-            <strong style="font-size:15px;">CROSSPILOT INTELLIGENCE · 基于当前内存事实实时计算</strong>
-            <div style="font-size:12px;color:#bfdbfe;margin-top:2px;">B类边界：未连接 Vanna Text-to-SQL 后端，当前由本地只读引擎读取 M0/M2 真实 state 现算 · SQL 只读守卫在线</div>
-          </div>
-          <span class="pill p-green">只读 SELECT 守卫</span>
+        <div class="banner banner-amber">
+          <span><strong>库存安全红线：</strong>仓库收货登记<strong>不会自动加减可售库存</strong>；只有在此处完成盘点并生成<strong>正式盘点单</strong>后，库存才生效，并立刻联动重算 M5 预测补货建议与 M6 缺口天数。</span>
         </div>
-        ${renderAsyncBox("m3_qa")}
+
+        <div class="grid-4">
+          <div class="kpi-card highlight-blue"><div class="kpi-label">分店独立库存台账</div><div class="kpi-val" style="color:var(--blue-hover)">${state.inventoryItems.length} 条</div><div class="kpi-sub">跨店跨仓不混算</div></div>
+          <div class="kpi-card highlight-red"><div class="kpi-label">低于安全水位预警</div><div class="kpi-val" style="color:var(--red-text)">${state.inventoryItems.filter(i=>i.avail<i.safety).length} 项</div><div class="kpi-sub">需尽快盘点核实或安排补货</div></div>
+          <div class="kpi-card"><div class="kpi-label">美西仓 BAG-108 联动补货</div><div class="kpi-val" style="color:var(--blue-hover)">${Math.max(0, totalPred7 + bagUs.safety - bagUs.avail)} 件</div><div class="kpi-sub">M5 7日参考 (当前可售 ${bagUs.avail} 件)</div></div>
+          <div class="kpi-card"><div class="kpi-label">曼谷仓 FAN-203 理论缺口</div><div class="kpi-val" style="color:var(--amber-text)">${Math.max(0, 30*(state.m6NormalLeadDays+state.m6NormalSafetyDays) - fanTh.avail)} 件</div><div class="kpi-sub">M6 常规补货缺口 (当前可售 ${fanTh.avail} 件)</div></div>
+        </div>
 
         <div class="card">
-          <div style="display:flex;flex-direction:column;gap:10px;max-height:380px;overflow-y:auto;margin-bottom:14px;">
-            ${state.qaChat.map((msg, idx) => {
-              if (msg.role === "user") return `<div class="chat-bubble user">${msg.text}</div>`;
-              if (msg.blocked) return `<div class="banner banner-red"><div><strong>${msg.text}</strong><div style="font-size:12px;font-weight:400;margin-top:3px;">${msg.sql}</div></div></div>`;
-              return `<div class="chat-bubble assistant">
-                <div><strong>${msg.text}</strong></div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${msg.note}</div>
-                <div style="background:#0f172a;color:#93c5fd;padding:6px 10px;border-radius:6px;margin-top:6px;font-family:monospace;font-size:12px;">${msg.sql}</div>
-                <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
-                  <button class="btn btn-sm qa-fb" data-idx="${idx}" data-v="up" ${msg.feedback==="up"?"style='border-color:var(--green);color:var(--green-text);'":""}>👍 采纳答案</button>
-                  <button class="btn btn-sm qa-fb" data-idx="${idx}" data-v="down" ${msg.feedback==="down"?"style='border-color:var(--red);color:var(--red-text);'":""}>👎 需核对口径</button>
-                  ${msg.feedback ? `<span style="font-size:12px;color:var(--text-soft);">已记录反馈</span>` : ""}
-                </div>
-              </div>`;
-            }).join("")}
+          <div class="card-header">
+            <div class="card-title">分店分仓独立可售库存</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select id="m0cShopFlt" class="select" style="width:190px;">
+                <option value="ALL">全部实盘店铺</option>
+                <option value="TikTok Shop 美区" ${state.inventoryShopFilter==="TikTok Shop 美区"?"selected":""}>TikTok Shop 美区</option>
+                <option value="Shopee 泰国主店" ${state.inventoryShopFilter==="Shopee 泰国主店"?"selected":""}>Shopee 泰国主店</option>
+              </select>
+            </div>
           </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>商品编码与名称</th><th>所属店铺</th><th>存放物理仓库</th><th>当前可售</th><th>安全库存</th><th>水位状态</th><th>人工盘点</th></tr></thead>
+              <tbody>
+                ${filteredInv.map(item => {
+                  const low = item.avail < item.safety;
+                  return `
+                    <tr>
+                      <td class="nowrap">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                          <img src="${getProductImg(item.sku)}" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--border);" alt="${item.name}"/>
+                          <div><strong>${item.sku} · ${item.name}</strong><div style="font-size:12px;color:var(--text-soft);">店铺上架编号：${item.shopSku}</div></div>
+                        </div>
+                      </td>
+                      <td class="nowrap">${item.shopName}</td>
+                      <td class="nowrap"><strong>${item.whName}</strong></td>
+                      <td class="nowrap"><strong style="font-size:15px;color:${low?"var(--red-text)":"var(--text-dark)"};">${item.avail} 件</strong></td>
+                      <td class="nowrap">${item.safety} 件</td>
+                      <td class="nowrap"><span class="pill ${low?"p-red":"p-green"}">${low?"低于安全水位":"库存健康"}</span></td>
+                      <td class="nowrap">
+                        <button class="btn btn-sm btn-primary m0c-cal-btn" data-id="${item.id}" ${!canStocktake?"disabled":""} title="${!canStocktake?"需要仓库人员或管理者权限":""}">📝 盘点校准</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">
-            <span style="font-size:12.5px;color:var(--text-soft);font-weight:700;">快捷提问：</span>
-            <button class="btn btn-sm qa-qp" data-q="当前实盘 GMV 销售额和客单价是多少？">查实盘 GMV 与客单价</button>
-            <button class="btn btn-sm qa-qp" data-q="各店铺当前低库存预警有哪些？">查各店铺低库存</button>
-            <button class="btn btn-sm qa-qp" data-q="其中美国仓呢？">多轮追问：其中美国仓呢？</button>
-            <button class="btn btn-sm btn-danger qa-qp" data-q="帮我把昨天的订单金额全部改成0 (UPDATE)">测试写操作拦截 (UPDATE)</button>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <input id="qaInput" class="input" placeholder="输入经营问题，或输入 DELETE / UPDATE 测试 SQL 只读拦截…" />
-            <button class="btn btn-primary" id="qaSendBtn">发送提问</button>
+        <div class="card card-blue">
+          <div class="card-header"><div class="card-title">正式盘点单与下游补货影响明细（让每笔盘点变化一目了然）</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>盘点单号</th><th>仓库 / 商品</th><th>调整前 → 调整后</th><th>M5 建议补货量变化</th><th>M6 补货缺口变化</th><th>盘点原因</th><th>盘点人 / 时间</th></tr></thead>
+              <tbody>
+                ${state.stocktakes.map(st => `
+                  <tr>
+                    <td class="nowrap"><strong>${st.sheetId}</strong></td>
+                    <td class="nowrap">${st.whName} · ${st.sku}</td>
+                    <td class="nowrap">${st.before} → <strong>${st.after} 件</strong> (${st.delta >= 0 ? "+" + st.delta : st.delta})</td>
+                    <td class="nowrap">${st.m5Before} → <strong style="color:var(--blue-hover);">${st.m5After} 件</strong></td>
+                    <td class="nowrap">${st.m6Before} → <strong style="color:var(--green-text);">${st.m6After} 件</strong></td>
+                    <td style="font-size:12.5px;">${st.reason}</td>
+                    <td class="nowrap">${st.who}<div style="font-size:12px;color:var(--text-soft);">${st.time}</div></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
           </div>
         </div>
       `,
       bind: () => {
-        document.getElementById("qaSendBtn").onclick = () => runQuery(document.getElementById("qaInput").value);
-        document.querySelectorAll(".qa-qp").forEach(b => b.onclick = () => runQuery(b.dataset.q));
+        document.getElementById("m0cShopFlt").onchange = (e) => { state.inventoryShopFilter = e.target.value; rerender(); };
+        document.querySelectorAll(".m0c-cal-btn").forEach(b => b.onclick = () => {
+          const item = state.inventoryItems.find(x => x.id === b.dataset.id);
+          const oldAvail = item.avail;
+          const m5PredBase = state.m5DailyPred.reduce((a, x) => a + x, 0);
+          const m5Old = Math.max(0, m5PredBase + item.safety - oldAvail);
+          const m6Old = Math.max(0, 30 * (state.m6NormalLeadDays + state.m6NormalSafetyDays) - oldAvail);
+
+          commitAction({
+            title: `生成正式盘点单 · ${item.whName} · ${item.sku}`,
+            summary: `当前账面可售 <strong>${oldAvail} 件</strong>；若本次调整幅度超过 20 件或 20%，系统会要求填写详细原因并二次确认。`,
+            confirmText: "确认生成盘点单并更新库存",
+            fieldsHtml: `
+              <div class="field"><label>实际清点可售数量 (件) *</label><input id="stNewQty" type="number" class="input" value="${oldAvail}"/></div>
+              <div id="stImpactPreview" class="formula-box" style="margin-bottom:10px;">请输入盘点后数量以查看对 M5/M6 建议补货量的实时影响…</div>
+              <div class="field"><label>盘点差异原因（必填）*</label><input id="stReason" class="input" placeholder="如：新到货上架入仓 / 清点出破损件"/></div>
+              <div id="stBigWarn" style="display:none;" class="banner banner-red"><span>⚠️ 检测到大幅度库存调整（变动 ≥ 20 件），请确认已核对实物无误再提交！</span></div>
+            `,
+            onMount: (wrap) => {
+              const qtyEl = wrap.querySelector("#stNewQty");
+              const prevEl = wrap.querySelector("#stImpactPreview");
+              const warnEl = wrap.querySelector("#stBigWarn");
+              const upd = () => {
+                const n = Number(qtyEl.value);
+                if (Number.isNaN(n) || n < 0) return;
+                const m5New = Math.max(0, m5PredBase + item.safety - n);
+                const m6New = Math.max(0, 30 * (state.m6NormalLeadDays + state.m6NormalSafetyDays) - n);
+                prevEl.innerHTML = `
+                  • 库存变化：${oldAvail} 件 → <strong>${n} 件</strong> (${n - oldAvail >= 0 ? "+" : ""}${n - oldAvail} 件)<br/>
+                  • 影响 M5 预测补货建议：${m5Old} 件 → <strong>${m5New} 件</strong><br/>
+                  • 影响 M6 常规补货缺口：${m6Old} 件 → <strong>${m6New} 件</strong>
+                `;
+                warnEl.style.display = Math.abs(n - oldAvail) >= 20 ? "flex" : "none";
+              };
+              qtyEl.oninput = upd;
+              upd();
+            },
+            validate: (wrap) => {
+              const errs = [];
+              const qEl = wrap.querySelector("#stNewQty");
+              const rEl = wrap.querySelector("#stReason");
+              if (qEl.value.trim() === "" || Number(qEl.value) < 0) errs.push({ el: qEl, msg: "库存数量必须为大于或等于 0 的数字" });
+              if (!rEl.value.trim()) errs.push({ el: rEl, msg: "请填写盘点调整原因" });
+              return errs;
+            },
+            onConfirm: (wrap) => {
+              const newVal = Number(wrap.querySelector("#stNewQty").value);
+              const reason = wrap.querySelector("#stReason").value.trim();
+              const m5New = Math.max(0, m5PredBase + item.safety - newVal);
+              const m6New = Math.max(0, 30 * (state.m6NormalLeadDays + state.m6NormalSafetyDays) - newVal);
+              const sid = genDocId("PD");
+              item.avail = newVal;
+              state.stocktakes.unshift({
+                sheetId: sid, whName: item.whName, sku: item.sku,
+                before: oldAvail, after: newVal, delta: newVal - oldAvail,
+                m5Before: m5Old, m5After: m5New, m6Before: m6Old, m6After: m6New,
+                reason, who: ROLE_PERSON_NAMES[state.role], time: nowDateTimeStr()
+              });
+              return { toastMsg: `盘点单 ${sid} 已生效！库存更新为 ${newVal} 件，M5/M6 建议补货量已联动重算` };
+            },
+            audit: (wrap) => ({
+              sentence: `${ROLE_PERSON_NAMES[state.role]} 生成了盘点单（${item.whName} ${item.sku} 由 ${oldAvail} 件校准为 ${wrap.querySelector("#stNewQty").value} 件），原因：${wrap.querySelector("#stReason").value.trim()}`,
+              ok: true
+            })
+          });
+        });
+      }
+    };
+  }
+
+  // ==================== M1-1: 客服会话、四要素核验绑单、三项回复检查 ====================
+  if (pageId === "m1a") {
+    const canCs = state.role === "cs" || state.role === "approver";
+    const active = state.csSessions.find(s => s.id === state.csActiveId) || state.csSessions[0];
+    const tkInfo = state.csTakeoverMap[active.id] || { who: "智能助手自动接待", at: "—" };
+    const linkedOrdObj = state.orders.find(o => o.orderNo === active.linkedOrder);
+
+    // 实时三项回复内容检查
+    const zhVal = active.draftZh || "";
+    const enVal = active.draftEn || "";
+    const zhNums = (zhVal.match(/\d+(\.\d+)?/g) || []).join(",");
+    const enNums = (enVal.match(/\d+(\.\d+)?/g) || []).join(",");
+    const numMatchOk = zhNums === enNums;
+
+    // 金额与订单一致检查
+    const orderAmt = linkedOrdObj ? linkedOrdObj.amountUsd : null;
+    const mentionNums = (zhVal + " " + enVal).match(/\$\s*(\d+(\.\d+)?)/g) || [];
+    const amountWithinOk = !orderAmt || mentionNums.every(m => Number(m.replace("$", "").trim()) <= orderAmt);
+
+    // 本店链接检查
+    const otherDomains = state.csCatalog.filter(c => c.shop !== active.shop).map(c => c.domain);
+    const wrongDom = otherDomains.find(d => (zhVal + " " + enVal).includes(d));
+    const linkMatchOk = !wrongDom;
+
+    const allReplyChecksOk = numMatchOk && amountWithinOk && linkMatchOk;
+
+    return {
+      headerActions: [
+        { label: "查看本店在售导购库 →", primary: false, onClick: () => goPage("m1b") },
+        { label: "前往售后审批台账 →", primary: true, onClick: () => goPage("m1c") }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span><strong>页面定位：</strong>一线客服处理买家咨询、人工接管并核验订单四要素后转入售后审批。<strong>数据来源：</strong>实时接入买家会话与订单台账（当前会话接待人：<strong>${tkInfo.who}</strong> · 接管时间：<strong>${tkInfo.at}</strong>）。</span>
+        </div>
+
+        <div class="grid-3">
+          <div class="kpi-card highlight-blue"><div class="kpi-label">待人工接管会话</div><div class="kpi-val" style="color:var(--blue-hover)">${state.csSessions.filter(s=>s.status==="待人工接管").length} 组</div><div class="kpi-sub">含售后投诉或敏感字眼</div></div>
+          <div class="kpi-card highlight-green"><div class="kpi-label">智能自动接待中</div><div class="kpi-val" style="color:var(--green-text)">${state.csSessions.filter(s=>s.status==="智能自动接待").length} 组</div><div class="kpi-sub">普通商品问答自动处理</div></div>
+          <div class="kpi-card"><div class="kpi-label">已确认绑单会话</div><div class="kpi-val">${state.csSessions.filter(s=>s.linkVerified).length} 组</div><div class="kpi-sub">四要素核对一致后才可建单</div></div>
+        </div>
+
+        <div class="cs-3col">
+          <div class="card">
+            <div class="card-header"><div class="card-title">买家会话列表</div></div>
+            ${state.csSessions.map(s => {
+              const info = state.csTakeoverMap[s.id] || { who: "自动", at: "" };
+              return `
+                <div class="session-item ${s.id===active.id?"active":""} cs-sess-pick" data-id="${s.id}">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                    <strong>${s.buyer}</strong>
+                    <span class="pill ${s.mode==="MOCK"?"p-amber":s.status==="待人工接管"?"p-red":"p-green"}">${s.status}</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${s.shop} · ${s.intent}</div>
+                  <div style="font-size:12px;color:var(--blue-hover);margin-top:2px;">接待：${info.who} (${info.at})</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">${active.buyer} · ${active.shop}</div>
+                <div style="font-size:12px;color:var(--text-soft);">当前接待人：<strong>${tkInfo.who}</strong> ｜ 接管时间：<strong>${tkInfo.at}</strong></div>
+              </div>
+              <button class="btn btn-sm btn-primary" id="csTakeoverBtn" ${!canCs?"disabled":""}>✋ 人工接管会话</button>
+            </div>
+
+            <div style="max-height:240px;overflow-y:auto;padding-right:4px;margin-bottom:10px;">
+              ${active.msgs.map(m => `
+                <div class="chat-bubble ${m.who==="buyer"?"user":"assistant"}">
+                  <div>${m.text}</div>
+                  <div class="chat-trans">${m.trans}</div>
+                </div>
+              `).join("")}
+            </div>
+
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+              <div style="font-weight:700;font-size:12.5px;margin-bottom:6px;">回复内容合规检查（发送前自动逐项核验）</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:12px;">
+                <span class="pill ${amountWithinOk?"p-green":"p-red"}">${amountWithinOk ? "✓ 金额与订单一致" : "✗ 报价超出实付金额"}</span>
+                <span class="pill ${linkMatchOk?"p-green":"p-red"}">${linkMatchOk ? "✓ 使用本店商品链接" : "✗ 检测到其他店铺链接"}</span>
+                <span class="pill ${numMatchOk?"p-green":"p-red"}">${numMatchOk ? "✓ 中英文数字一致" : `✗ 中英文数字不一致 (中文[${zhNums||"无"}] vs 英文[${enNums||"无"}])`}</span>
+              </div>
+            </div>
+
+            <div class="field"><label>中文核对草稿（便于客服主管抽检）</label><textarea id="csDraftZh" class="textarea ${!allReplyChecksOk?"input-err":""}">${active.draftZh}</textarea></div>
+            <div class="field"><label>发送给买家的外文回复</label><textarea id="csDraftEn" class="textarea ${!allReplyChecksOk?"input-err":""}">${active.draftEn}</textarea></div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-size:12px;color:${allReplyChecksOk?"var(--green-text)":"var(--red-text)"};">${allReplyChecksOk ? "三项检查全部通过，可以发送" : "存在不合规表述，请按红色标出项修正后再发送"}</span>
+              <button class="btn btn-primary" id="csSendBtn" ${(!canCs || !allReplyChecksOk)?"disabled":""}>发送回复给买家</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">关联订单核验与售后建单</div></div>
+            <div class="formula-box" style="margin-bottom:10px;">
+              <div><strong>会话绑定单号：</strong>${active.linkedOrder || "尚未绑定"}</div>
+              <div><strong>核验状态：</strong><span class="pill ${active.linkVerified?"p-green":"p-amber"}">${active.linkVerified?"四要素已人工核对一致 ✓":"待并排核对四要素"}</span></div>
+            </div>
+            <button class="btn btn-sm btn-primary" id="csBindOrderBtn" style="width:100%;justify-content:center;margin-bottom:10px;" ${!canCs?"disabled":""}>🔍 并排核对并绑定订单</button>
+
+            <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;"/>
+            <div class="field"><label>申请退款金额 (USD)</label><input id="csRefAmt" type="number" step="0.01" class="input" value="${linkedOrdObj ? linkedOrdObj.amountUsd : 34.50}"/></div>
+            <div class="field"><label>售后原因 *</label><input id="csRefReason" class="input" value="买家反馈包裹外箱划痕申请退款"/></div>
+            <button class="btn btn-danger" id="csCreateTicketBtn" style="width:100%;justify-content:center;" ${(!canCs || !active.linkVerified)?"disabled":""} title="${!active.linkVerified?"请先完成上方订单四要素核验":""}">
+              提交售后工单 (转主管审批) →
+            </button>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".cs-sess-pick").forEach(el => el.onclick = () => { state.csActiveId = el.dataset.id; rerender(); });
+        document.getElementById("csDraftZh").oninput = (e) => { active.draftZh = e.target.value; rerender(); };
+        document.getElementById("csDraftEn").oninput = (e) => { active.draftEn = e.target.value; rerender(); };
+
+        document.getElementById("csTakeoverBtn").onclick = () => {
+          state.csTakeoverMap[active.id] = { who: ROLE_PERSON_NAMES[state.role], at: nowTimeStr() };
+          active.status = "人工接待中";
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 接管了买家「${active.buyer}」的客服会话`, ok: true });
+          rerender();
+          toast(`已人工接管会话，当前接待人：${ROLE_PERSON_NAMES[state.role]}`, "success");
+        };
+
+        document.getElementById("csSendBtn").onclick = () => {
+          active.msgs.push({ who: "ai", text: active.draftEn, trans: "中文对照：" + active.draftZh });
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 通过三项内容检查后向买家「${active.buyer}」发送了回复`, ok: true });
+          rerender();
+          toast("内容检查通过，回复已发出", "success");
+        };
+
+        document.getElementById("csBindOrderBtn").onclick = () => {
+          const candOrders = state.orders.filter(o => o.shop === active.shop);
+          openModal("并排核对会话与候选订单（四要素人工确认）", `
+            <div class="diff-grid" style="margin-bottom:12px;">
+              <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;">
+                <strong style="font-size:13px;">当前买家会话信息</strong>
+                <div style="font-size:12.5px;margin-top:6px;line-height:1.7;">
+                  • 买家姓名：<strong>${active.buyer}</strong><br/>
+                  • 所属店铺：${active.shop}<br/>
+                  • 买家诉求：${active.intent}<br/>
+                  • 提及信息：${(active.msgs[0]?.text || "").slice(0, 80)}
+                </div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;">
+                <strong style="font-size:13px;">选择候选订单</strong>
+                <div class="field" style="margin-top:6px;">
+                  <select id="bindOrdSel" class="select">
+                    ${candOrders.map(o => `<option value="${o.orderNo}" ${active.linkedOrder===o.orderNo?"selected":""}>${o.orderNo} · ${o.buyer} · ${o.amountDisplay}</option>`).join("")}
+                  </select>
+                </div>
+                <div id="bindOrdDetail" style="font-size:12px;color:var(--text-muted);"></div>
+              </div>
+            </div>
+            <div style="background:var(--amber-bg);border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:12px;">
+              <strong style="font-size:12.5px;">人工勾选确认四要素一致（全部勾选后方可绑定）：</strong>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;font-size:12.5px;">
+                <label><input type="checkbox" class="chk-4" ${active.linkChecks?.buyer?"checked":""}/> 1. 买家姓名匹配</label>
+                <label><input type="checkbox" class="chk-4" ${active.linkChecks?.amount?"checked":""}/> 2. 订单实付金额匹配</label>
+                <label><input type="checkbox" class="chk-4" ${active.linkChecks?.product?"checked":""}/> 3. 购买商品名称匹配</label>
+                <label><input type="checkbox" class="chk-4" ${active.linkChecks?.time?"checked":""}/> 4. 下单时间一致</label>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+              <button class="btn" id="cancelBind">取消</button>
+              <button class="btn btn-primary" id="confirmBind">确认四要素一致并绑定</button>
+            </div>
+          `, (root) => {
+            const sel = root.querySelector("#bindOrdSel");
+            const det = root.querySelector("#bindOrdDetail");
+            const upd = () => {
+              const o = state.orders.find(x => x.orderNo === sel.value);
+              if (o) det.innerHTML = `商品：${o.productName} × ${o.qty}<br/>下单：${o.orderedAt}<br/>状态：${o.status}`;
+            };
+            sel.onchange = upd; upd();
+            root.querySelector("#cancelBind").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+            root.querySelector("#confirmBind").onclick = () => {
+              const allChk = [...root.querySelectorAll(".chk-4")].every(c => c.checked);
+              if (!allChk) { toast("请逐一勾选确认买家、金额、商品、时间四项均匹配！", "error"); return; }
+              active.linkedOrder = sel.value;
+              active.linkVerified = true;
+              active.linkChecks = { buyer: true, amount: true, product: true, time: true };
+              appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 核对四要素一致后，将买家「${active.buyer}」会话绑定至订单 ${sel.value}`, ok: true });
+              document.getElementById("modalRoot").innerHTML = "";
+              rerender();
+              toast(`四要素核验通过，已绑定订单 ${sel.value}`, "success");
+            };
+          });
+        };
+
+        document.getElementById("csCreateTicketBtn").onclick = () => {
+          const amt = Number(document.getElementById("csRefAmt").value);
+          const reason = document.getElementById("csRefReason").value.trim();
+          const maxOrd = linkedOrdObj ? linkedOrdObj.amountUsd : 34.50;
+          if (!reason) { toast("请填写售后原因", "error"); return; }
+          if (!(amt > 0) || amt > maxOrd) { toast(`退款金额必须在 $0.01 至实付上限 $${maxOrd.toFixed(2)} 之间`, "error"); return; }
+          commitAction({
+            title: `提交售后工单 · 关联订单 ${active.linkedOrder}`,
+            summary: `退款申请金额 <strong>$${amt.toFixed(2)}</strong>（订单实付 $${maxOrd.toFixed(2)}）；提交后需由「主管 / 审批人」审批，客服本人不可自批。`,
+            confirmText: "确认建单转交主管",
+            onConfirm: () => {
+              const tkId = genDocId("TK");
+              state.tickets.unshift({
+                id: tkId, orderNo: active.linkedOrder, shop: active.shop, buyer: active.buyer, reason,
+                orderAmount: maxOrd, refundAmount: amt, submitter: ROLE_PERSON_NAMES[state.role],
+                approver: "", approveNote: "", status: "待主管审批", refundSyncStatus: "未打款（待审批）", voucher: ""
+              });
+              return { toastMsg: `售后工单 ${tkId} 已创建，已流转至 M1-3 待主管审批` };
+            },
+            audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 为订单 ${active.linkedOrder} 创建了售后退款工单，申请退款 $${amt.toFixed(2)}`, ok: true }
+          });
+        };
+      }
+    };
+  }
+
+  // ==================== M1-2: 客服导购在售商品库 ====================
+  if (pageId === "m1b") {
+    const canMaintain = state.role === "planner" || state.role === "approver";
+    return {
+      headerActions: [
+        { label: "← 返回客服会话", primary: false, onClick: () => goPage("m1a") },
+        {
+          label: "+ 从表格导入商品", primary: true,
+          disabled: !canMaintain,
+          disabledTitle: "需要业务运营或主管权限",
+          onClick: () => {
+            openModal("从表格导入客服在售导购商品", `
+              <div class="banner banner-blue" style="margin-bottom:12px;">
+                <span>请上传在售商品表格（支持预览前 10 行数据）；若文件名含测试演示字样或存在重复商品编码，系统将自动拦截并列出失败原因。</span>
+              </div>
+              <div class="field"><label>目标实盘店铺 *</label>
+                <select id="csImpShop" class="select"><option>TikTok Shop 美区</option><option>Shopee 泰国主店</option></select>
+              </div>
+              <div class="field"><label>选择本地表格文件 (.xlsx / .csv) *</label>
+                <input id="csImpFile" type="file" accept=".xlsx,.xls,.csv" class="input" style="padding-top:6px;"/>
+              </div>
+              <div id="csImpPreview" style="margin-bottom:12px;"></div>
+              <div style="display:flex;justify-content:flex-end;gap:8px;">
+                <button class="btn" id="csImpCancel">取消</button>
+                <button class="btn btn-primary" id="csImpRun">开始导入并建立商品索引</button>
+              </div>
+            `, (root) => {
+              const fInput = root.querySelector("#csImpFile");
+              const prevBox = root.querySelector("#csImpPreview");
+              fInput.onchange = () => {
+                const f = fInput.files && fInput.files[0];
+                if (!f) { prevBox.innerHTML = ""; return; }
+                const isMock = /mock|演示|demo/i.test(f.name);
+                if (isMock) {
+                  prevBox.innerHTML = `<div class="banner banner-red"><span>❌ 拦截原因：文件「${f.name}」包含测试演示字样，严禁导入正式客服导购商品库！</span></div>`;
+                  return;
+                }
+                prevBox.innerHTML = `
+                  <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">表格前 10 行数据预览（示例抽取自 ${f.name}）：</div>
+                  <div class="table-wrap" style="max-height:160px;">
+                    <table>
+                      <thead><tr><th>行号</th><th>商品编码</th><th>商品名称</th><th>售价</th><th>预检结果</th></tr></thead>
+                      <tbody>
+                        <tr><td>第 1 行</td><td>BAG-209</td><td>防水商务斜挎包</td><td>$26.90</td><td><span class="pill p-green">格式合法</span></td></tr>
+                        <tr><td>第 2 行</td><td>BAG-108</td><td>轻量通勤双肩包</td><td>$29.90</td><td><span class="pill p-red">失败：商品编码与本店已有数据重复</span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                `;
+              };
+              root.querySelector("#csImpCancel").onclick = () => document.getElementById("modalRoot").innerHTML = "";
+              root.querySelector("#csImpRun").onclick = () => {
+                const f = fInput.files && fInput.files[0];
+                if (!f) { toast("请先选择一个表格文件", "error"); return; }
+                if (/mock|演示|demo/i.test(f.name)) {
+                  appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 尝试导入演示测试文件「${f.name}」到客服库，已被系统拦截`, ok: false });
+                  toast("禁止导入含演示标识的文件", "error");
+                  return;
+                }
+                const shop = root.querySelector("#csImpShop").value;
+                document.getElementById("modalRoot").innerHTML = "";
+                runAsyncTask("m1_catalog_imp", {
+                  label: `建立商品索引（20/200 分批校验）· ${f.name}`,
+                  steps: ["读取表格数据并检查编码重复", "分批建立客服搜索索引 (100/200)", "完成索引并生成异常行明细"],
+                  durationMs: 1200,
+                  onSuccess: () => {
+                    state.csCatalog.unshift({
+                      sku: "BAG-209", name: "防水商务斜挎包", shop, domain: shop.includes("泰国") ? "shopee.co.th/cp-th" : "tiktok.com/shop/us-cp",
+                      price: "$26.90", status: "索引已就绪", points: "防泼水帆布 / 轻便单肩 / 多隔层收纳"
+                    });
+                    state.csImportLogs.unshift({
+                      file: f.name, shop, total: 200, okCount: 199, failCount: 1,
+                      failReason: "第 2 行商品编码 BAG-108 重复，已自动跳过", status: "部分成功 (199/200)", time: nowDateTimeStr()
+                    });
+                    return { summary: "已建立商品索引 199/200（第 2 行因商品编码重复跳过）", toastMsg: "导入完成：成功 199 条，跳过 1 条重复编码" };
+                  }
+                });
+              };
+            });
+          }
+        }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span><strong>页面定位：</strong>供客服人员在回答买家时查询本店真实在售商品与卖点（未采购的新品评估请去 M4 选品中心）。<strong>数据来源：</strong>在售导购清单（最近导入：${state.csImportLogs[0]?.time || "—"}）。</span>
+        </div>
+
+        ${renderAsyncBox("m1_catalog_imp")}
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">本店在售导购商品清单（按店铺严格隔离）</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>商品实拍与编码</th><th>所属店铺与本店网址</th><th>在售标价</th><th>核心卖点摘要</th><th>索引状态</th></tr></thead>
+              <tbody>
+                ${state.csCatalog.map(p => `
+                  <tr>
+                    <td class="nowrap">
+                      <div style="display:flex;align-items:center;gap:10px;">
+                        <img src="${getProductImg(p.sku)}" class="prod-thumb-img" alt="${p.name}"/>
+                        <div><strong>${p.sku} · ${p.name}</strong></div>
+                      </div>
+                    </td>
+                    <td class="nowrap">${p.shop}<div style="font-size:12px;color:var(--text-soft);">${p.domain}</div></td>
+                    <td class="nowrap"><strong>${p.price}</strong></td>
+                    <td style="font-size:12.5px;">${p.points}</td>
+                    <td class="nowrap"><span class="pill p-green">${p.status}</span></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">导入批次与异常行原因记录</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>导入文件名</th><th>目标店铺</th><th>成功 / 总行数</th><th>异常行原因说明</th><th>导入时间</th></tr></thead>
+              <tbody>
+                ${state.csImportLogs.map(lg => `
+                  <tr>
+                    <td class="nowrap"><strong>${lg.file}</strong></td>
+                    <td class="nowrap">${lg.shop}</td>
+                    <td class="nowrap"><span class="pill ${lg.failCount?"p-amber":"p-green"}">${lg.status}</span></td>
+                    <td style="font-size:12.5px;color:${lg.failCount?"var(--red-text)":"var(--text-soft)"};">${lg.failReason}</td>
+                    <td class="nowrap">${lg.time}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {}
+    };
+  }
+
+  // ==================== M1-3: 售后工单审批与退款凭证闭环 ====================
+  if (pageId === "m1c") {
+    const isApprover = state.role === "approver";
+    const canUploadVoucher = state.role === "cs" || isApprover;
+
+    return {
+      headerActions: [
+        { label: "← 返回客服建单", primary: false, onClick: () => goPage("m1a") },
+        { label: "查看订单台账回填状态 →", primary: true, onClick: () => goPage("m0b") }
+      ],
+      html: `
+        <div class="banner banner-amber">
+          <span><strong>闭环与风控说明：</strong>① 提交人与审批人必须为不同人员；② 主管审批时须填写意见且退款不得超过实付；③ 批准后进入<strong>「待上传退款凭证」</strong>，仅上传手工打款凭证后工单才正式关闭。</span>
+        </div>
+
+        <div class="grid-3">
+          <div class="kpi-card highlight-red"><div class="kpi-label">待主管审批工单</div><div class="kpi-val" style="color:var(--red-text)">${state.tickets.filter(t=>t.status==="待主管审批").length} 单</div><div class="kpi-sub">需主管/审批人填写意见拍板</div></div>
+          <div class="kpi-card highlight-amber"><div class="kpi-label">待上传退款凭证</div><div class="kpi-val" style="color:var(--amber-text)">${state.tickets.filter(t=>t.status==="待上传退款凭证").length} 单</div><div class="kpi-sub">需在平台后台手工打款并回传截图</div></div>
+          <div class="kpi-card highlight-green"><div class="kpi-label">已上传凭证关闭</div><div class="kpi-val" style="color:var(--green-text)">${state.tickets.filter(t=>t.status==="已关闭（退款完成）").length} 单</div><div class="kpi-sub">同步更新至 M0-2 订单台账</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">售后工单与退款凭证台账</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>工单编号</th><th>关联订单 / 买家</th><th>申请退款 / 实付上限</th><th>提交人 / 审批人</th><th>退款状态与凭证</th><th>操作</th></tr></thead>
+              <tbody>
+                ${state.tickets.map((t, idx) => {
+                  const isSelfSubmit = t.submitter === ROLE_PERSON_NAMES[state.role];
+                  const canApproveThis = isApprover && !isSelfSubmit;
+                  return `
+                    <tr>
+                      <td class="nowrap"><strong>${t.id}</strong><div style="font-size:12px;color:var(--text-soft);">${t.shop}</div></td>
+                      <td><strong>${t.orderNo}</strong> (${t.buyer})<div style="font-size:12px;color:var(--text-soft);">${t.reason}</div></td>
+                      <td class="nowrap"><strong style="color:var(--red-text);">$${t.refundAmount.toFixed(2)}</strong><div style="font-size:12px;color:var(--text-soft);">实付上限 $${t.orderAmount.toFixed(2)}</div></td>
+                      <td class="nowrap">提交：${t.submitter}<div style="font-size:12px;color:var(--text-soft);">审批：${t.approver || "待批"}${t.approveNote ? ` (${t.approveNote})` : ""}</div></td>
+                      <td>
+                        <span class="pill ${t.status==="已关闭（退款完成）"?"p-green":t.status==="待上传退款凭证"?"p-blue":t.status==="已驳回"?"p-red":"p-amber"}">${t.status}</span>
+                        <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${t.refundSyncStatus}${t.voucher ? ` · 凭证：${t.voucher}` : ""}</div>
+                      </td>
+                      <td class="nowrap">
+                        ${t.status === "待主管审批" ? `
+                          <div style="display:flex;gap:6px;">
+                            <button class="btn btn-sm btn-success m1c-act" data-i="${idx}" data-act="APPROVE" ${!canApproveThis?"disabled":""} title="${!isApprover?"需要「主管 / 审批人」权限":"提交人与审批人不可为同一人"}">批准</button>
+                            <button class="btn btn-sm btn-danger m1c-act" data-i="${idx}" data-act="REJECT" ${!canApproveThis?"disabled":""}>驳回</button>
+                          </div>
+                        ` : t.status === "待上传退款凭证" ? `
+                          <button class="btn btn-sm btn-primary m1c-voucher" data-i="${idx}" ${!canUploadVoucher?"disabled":""}>📎 上传退款凭证</button>
+                        ` : `<span style="font-size:12px;color:var(--green-text);font-weight:700;">已闭环归档 ✓</span>`}
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".m1c-act").forEach(b => b.onclick = () => {
+          const t = state.tickets[Number(b.dataset.i)];
+          const isApprove = b.dataset.act === "APPROVE";
+          commitAction({
+            title: `${isApprove ? "批准" : "驳回"}售后退款工单 · ${t.id}`,
+            danger: !isApprove,
+            summary: isApprove ? `申请退款 $${t.refundAmount.toFixed(2)}（不超过原订单实付 $${t.orderAmount.toFixed(2)}）；批准后将进入「待上传退款凭证」状态。` : "驳回后工单直接终止，请填写明确退回原因以便客服向买家解释。",
+            confirmText: isApprove ? "确认批准（待传凭证）" : "确认驳回",
+            fieldsHtml: `<div class="field"><label>主管审批意见（必填）*</label><input id="m1cNote" class="input" placeholder="${isApprove ? "如：核对照片属实，同意全额退款" : "如：超出售后时效，请与买家协商"}"/></div>`,
+            validate: (wrap) => {
+              const el = wrap.querySelector("#m1cNote");
+              return el.value.trim() ? [] : [{ el, msg: "必须填写主管审批意见" }];
+            },
+            onConfirm: (wrap) => {
+              const note = wrap.querySelector("#m1cNote").value.trim();
+              t.approver = ROLE_PERSON_NAMES[state.role];
+              t.approveNote = note;
+              if (isApprove) {
+                t.status = "待上传退款凭证";
+                t.refundSyncStatus = "主管已批，待后台手工打款";
+                return { toastMsg: `工单 ${t.id} 已批准，请上传手工退款凭证后完成结案` };
+              } else {
+                t.status = "已驳回";
+                t.refundSyncStatus = "已驳回不退款";
+                return { toastMsg: `工单 ${t.id} 已驳回`, toastLevel: "warn" };
+              }
+            },
+            audit: (wrap) => ({
+              sentence: `${ROLE_PERSON_NAMES[state.role]} ${isApprove ? "批准" : "驳回"}了售后工单 ${t.id}（金额 $${t.refundAmount.toFixed(2)}），审批意见：${wrap.querySelector("#m1cNote").value.trim()}`,
+              ok: true
+            })
+          });
+        });
+
+        document.querySelectorAll(".m1c-voucher").forEach(b => b.onclick = () => {
+          const t = state.tickets[Number(b.dataset.i)];
+          commitAction({
+            title: `上传手工退款凭证并关闭工单 · ${t.id}`,
+            summary: `请填写或上传电商后台手工打款后的流水单号/截图，提交后工单状态变为「已关闭」并同步登记到 M0-2 订单台账。`,
+            confirmText: "确认回传并关闭工单",
+            fieldsHtml: `
+              <div class="field"><label>手工打款流水号或凭证文件名 *</label><input id="vchRef" class="input" placeholder="如：平台退款流水 RF-20261119-8812.jpg"/></div>
+              <div class="field"><label>选择截图附件（可选）</label><input id="vchFile" type="file" accept="image/*,.pdf" class="input" style="padding-top:6px;"/></div>
+            `,
+            validate: (wrap) => {
+              const el = wrap.querySelector("#vchRef");
+              return el.value.trim() ? [] : [{ el, msg: "请填写手工退款流水号或凭证说明" }];
+            },
+            onConfirm: (wrap) => {
+              const ref = wrap.querySelector("#vchRef").value.trim();
+              const f = wrap.querySelector("#vchFile").files?.[0];
+              t.voucher = f ? `${ref} (${f.name})` : ref;
+              t.status = "已关闭（退款完成）";
+              t.refundSyncStatus = "已人工打款并上传凭证";
+              const ord = state.orders.find(o => o.orderNo === t.orderNo);
+              if (ord) {
+                ord.refundSyncStatus = `已退款 $${t.refundAmount.toFixed(2)}`;
+                ord.timeline.push({ step: `已完成售后退款 $${t.refundAmount.toFixed(2)} (凭证：${ref})`, time: nowDateTimeStr(), done: true });
+              }
+              return { toastMsg: `工单 ${t.id} 已关闭！退款结果已同步至 M0-2 订单台账` };
+            },
+            audit: (wrap) => ({
+              sentence: `${ROLE_PERSON_NAMES[state.role]} 上传了工单 ${t.id} 的手工退款凭证（${wrap.querySelector("#vchRef").value.trim()}），售后工单正式关闭`,
+              ok: true
+            })
+          });
+        });
+      }
+    };
+  }
+
+  // ==================== M1-4: 联调测试模拟买家入口 ====================
+  if (pageId === "m1d") {
+    const canSim = state.role === "mock_buyer" || state.role === "cs" || state.role === "approver";
+    const mkSess = state.csSessions.find(s => s.id === "cs3") || state.csSessions[state.csSessions.length - 1];
+    return {
+      headerActions: [
+        { label: "去客服工作台查看处理结果 →", primary: true, onClick: () => goPage("m1a") }
+      ],
+      html: `
+        <div class="banner banner-amber">
+          <span><strong>联调测试说明：</strong>本页面仅为<strong>内部规则联调测试入口（绝对不会向真实买家或外部平台发送任何消息）</strong>，用于测试智能客服推荐与敏感词转人工拦截效果。</span>
+        </div>
+
+        <div class="grid-3">
+          <div class="kpi-card"><div class="kpi-label">联调目标环境</div><div class="kpi-val" style="font-size:18px;color:var(--amber-text)">演示测试专用</div><div class="kpi-sub">与实盘店铺营收完全隔离</div></div>
+          <div class="kpi-card highlight-blue"><div class="kpi-label">当前联调消息数</div><div class="kpi-val" style="color:var(--blue-hover)">${mkSess.msgs.length} 条</div><div class="kpi-sub">已同步推送到 M1-1 客服台</div></div>
+          <div class="kpi-card highlight-green"><div class="kpi-label">最近识别结果</div><div class="kpi-val" style="font-size:17px;color:var(--green-text)">${mkSess.status}</div><div class="kpi-sub">可去 M1-1 查看完整应答</div></div>
+        </div>
+
+        <div class="split-left-form">
+          <div class="card">
+            <div class="card-header"><div class="card-title">发送一条模拟买家咨询或售后投诉</div></div>
+            <div class="field"><label>快速选择测试场景</label>
+              <select id="mkPresetSel" class="select">
+                <option value="Is this waterproof backpack available in stock?">售前商品咨询：询问防泼水与库存</option>
+                <option value="My item arrived damaged, I want a refund of $29.90!">售后投诉测试：包含「refund」触发人工转接拦截</option>
+              </select>
+            </div>
+            <div class="field"><label>模拟买家消息内容 *</label><textarea id="mkMsgText" class="textarea">Is this waterproof backpack available in stock?</textarea></div>
+            <button class="btn btn-primary" id="mkSendBtn" style="width:100%;justify-content:center;" ${!canSim?"disabled":""}>发送模拟消息并触发规则检测</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">联调回执预览（已同步至客服工作台）</div>
+              <button class="btn btn-sm btn-primary" id="mkJumpCsBtn">前往客服页核对结果 →</button>
+            </div>
+            <div style="max-height:260px;overflow-y:auto;">
+              ${mkSess.msgs.map(m => `
+                <div class="chat-bubble ${m.who==="buyer"?"user":"assistant"}">
+                  <div>${m.text}</div>
+                  <div class="chat-trans">${m.trans}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.getElementById("mkPresetSel").onchange = (e) => { document.getElementById("mkMsgText").value = e.target.value; };
+        document.getElementById("mkJumpCsBtn").onclick = () => { state.csActiveId = mkSess.id; goPage("m1a"); };
+        document.getElementById("mkSendBtn").onclick = () => {
+          const txt = document.getElementById("mkMsgText").value.trim();
+          if (!txt) { toast("请输入模拟买家消息内容", "error"); return; }
+          const isRefund = /refund|damage|complaint|return/i.test(txt);
+          mkSess.msgs.push({ who: "buyer", text: txt, trans: "（联调测试买家消息）" });
+          if (isRefund) {
+            mkSess.status = "待人工接管";
+            mkSess.msgs.push({ who: "ai", text: "拦截回执：检测到退款/破损关键词，禁止智能助手直接承诺赔付，已标记为「待人工接管」。", trans: "请到 M1-1 客服工作台核实处理" });
+          } else {
+            mkSess.status = "智能自动接待";
+            mkSess.msgs.push({ who: "ai", text: "推荐回执：已在导购商品库匹配到「轻量通勤双肩包 ($29.90)」，生成双语推荐草稿。", trans: "可到 M1-1 查看自动推荐结果" });
+          }
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 发送了联调测试消息，系统判定为「${mkSess.status}」`, ok: true });
+          rerender();
+          toast("模拟消息已发送并同步到 M1-1 客服工作台", "success");
+        };
+      }
+    };
+  }
+
+  // ==================== M2-1: 经营驾驶舱草稿版与正式版发布 ====================
+  if (pageId === "m2a") {
+    const canDesign = state.role === "planner" || state.role === "bi_analyst" || state.role === "approver";
+    const stats = computeLiveBusinessStats();
+    const resolveWidgetVal = (w) => {
+      if (w.metricKey === "gmv") return `$${stats.gmv.toLocaleString()}`;
+      if (w.metricKey === "net_profit") return `$${stats.netProfit.toLocaleString()}`;
+      if (w.metricKey === "ad_spend") return `$${stats.adSpend.toLocaleString()}`;
+      if (w.metricKey === "orders_count") return `${stats.ordersCnt.toLocaleString()} 单`;
+      return w.val;
+    };
+
+    return {
+      headerActions: [
+        { label: "预览正式经营大屏 →", primary: false, onClick: () => goPage("m2b") },
+        {
+          label: "↺ 恢复上一正式版", primary: false,
+          disabled: !canDesign || state.biPublishHistory.length < 2,
+          disabledTitle: state.biPublishHistory.length < 2 ? "当前暂无更早的已发布历史版本" : "需要业务运营或主管权限",
+          onClick: () => {
+            const prevVer = state.biPublishHistory[1];
+            commitAction({
+              title: `恢复驾驶舱至上一正式版本 (${prevVer.ver})`,
+              danger: true,
+              summary: `将把线上「正式经营大屏」回退为 ${prevVer.ver}（发布于 ${prevVer.time}，操作人：${prevVer.by}），草稿版保留不变。`,
+              confirmText: "确认恢复上一版",
+              onConfirm: () => {
+                state.biPublishedVersion = prevVer.ver;
+                state.biPublishedAt = `${nowDateTimeStr()} (已恢复至 ${prevVer.ver})`;
+                state.biPublishedWidgets = JSON.parse(JSON.stringify(prevVer.widgets));
+                return { toastMsg: `正式大屏已恢复至 ${prevVer.ver}` };
+              },
+              audit: { sentence: `${ROLE_PERSON_NAMES[state.role]} 将正式经营大屏恢复为历史版本 ${prevVer.ver}`, ok: true }
+            });
+          }
+        },
+        {
+          label: "🚀 对比差异并发布正式版", primary: true,
+          disabled: !canDesign,
+          onClick: () => {
+            const draftList = state.biWidgets.map(w => `${w.title} (${resolveWidgetVal(w)})`);
+            const pubList = state.biPublishedWidgets.map(w => `${w.title} (${resolveWidgetVal(w)})`);
+            commitAction({
+              title: `发布驾驶舱正式版（${state.biDraftVersion} → 新正式版）`,
+              summary: "发布前请并排核对当前「正式版」与即将覆盖的「草稿版」卡片差异，确认无误后再发布给管理层浏览。",
+              confirmText: "确认发布正式版",
+              fieldsHtml: `
+                <div class="diff-grid" style="margin-bottom:12px;">
+                  <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;">
+                    <strong style="font-size:12.5px;">当前线上正式版 (${state.biPublishedVersion})</strong>
+                    <div style="font-size:12px;margin-top:6px;line-height:1.7;">${pubList.map(x => `• ${x}`).join("<br/>")}</div>
+                  </div>
+                  <div style="background:var(--blue-light);border:1px solid var(--blue-border);border-radius:8px;padding:10px;">
+                    <strong style="font-size:12.5px;color:var(--blue-hover);">即将发布的草稿版 (${state.biDraftVersion})</strong>
+                    <div style="font-size:12px;margin-top:6px;line-height:1.7;">${draftList.map(x => `• ${x}`).join("<br/>")}</div>
+                  </div>
+                </div>
+                <div class="field"><label>本次发布说明 *</label><input id="biPubNote" class="input" value="补充最新核心经营卡片并发布管理层查看"/></div>
+              `,
+              validate: (wrap) => {
+                const el = wrap.querySelector("#biPubNote");
+                return el.value.trim() ? [] : [{ el, msg: "请填写本次发布说明" }];
+              },
+              onConfirm: (wrap) => {
+                const nextVerNum = (Number((state.biPublishedVersion.match(/\d+\.\d+/) || ["1.2"])[0]) + 0.1).toFixed(1);
+                const nextVer = `正式 v${nextVerNum}`;
+                state.biPublishedWidgets = state.biWidgets.map(w => ({
+                  title: w.title, metricKey: w.metricKey, val: resolveWidgetVal(w), sub: w.scope, scope: w.scope
+                }));
+                state.biPublishedVersion = nextVer;
+                state.biPublishedAt = nowDateTimeStr();
+                state.biPublishHistory.unshift({
+                  ver: nextVer, time: state.biPublishedAt, by: ROLE_PERSON_NAMES[state.role],
+                  note: wrap.querySelector("#biPubNote").value.trim(),
+                  widgets: JSON.parse(JSON.stringify(state.biPublishedWidgets))
+                });
+                return { toastMsg: `驾驶舱已发布为 ${nextVer}，管理层可在 M2-2 查看最新大屏` };
+              },
+              audit: (wrap) => ({
+                sentence: `${ROLE_PERSON_NAMES[state.role]} 对比版本差异后发布了经营驾驶舱新正式版，说明：${wrap.querySelector("#biPubNote").value.trim()}`,
+                ok: true
+              })
+            });
+          }
+        }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span><strong>草稿与正式版双轨隔离：</strong>您在当前<strong>${state.biDraftVersion}</strong>里的增删改动不会立即影响管理层正在看的<strong>${state.biPublishedVersion}</strong>大屏。<strong>数据来源：</strong>实时关联 M0 实盘订单与 M3 指标口径。</span>
+        </div>
+
+        <div class="split-left-form">
+          <div class="card">
+            <div class="card-header"><div class="card-title">可添加指标组件库</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              ${[
+                { title: "实盘订单总数", metricKey: "orders_count", scope: "全部实盘店铺", updatedAt: "实时联动订单", color: "var(--purple-text)" },
+                { title: "平均客单价", metricKey: "aov", val: "$" + stats.aov, scope: "近30天实盘均值", updatedAt: "实时计算", color: "var(--blue-hover)" },
+              ].map((cand, ci) => `
+                <div style="border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <strong style="font-size:13px;">${cand.title}</strong>
+                    <div style="font-size:12px;color:var(--text-soft);">${cand.scope}</div>
+                  </div>
+                  <button class="btn btn-sm btn-primary m2-add-w" data-ci="${ci}" ${!canDesign?"disabled":""}>+ 加入草稿</button>
+                </div>
+              `).join("")}
+            </div>
+            <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;"/>
+            <div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">最近发布版本记录（支持回滚）</div>
+            ${state.biPublishHistory.slice(0, 3).map(h => `
+              <div style="font-size:12px;color:var(--text-muted);padding:4px 0;border-bottom:1px dashed #e2e8f0;">
+                <strong>${h.ver}</strong> · ${h.by} · ${h.time}<div style="color:var(--text-soft);">${h.note}</div>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">当前草稿版画布（${state.biDraftVersion} · 共 ${state.biWidgets.length} 个指标卡）</div>
+              <span class="pill p-amber">仅草稿态，未发布前不影响正式大屏</span>
+            </div>
+            <div class="grid-2">
+              ${state.biWidgets.map((w, i) => `
+                <div class="kpi-card ${state.biSelectedIdx===i?"highlight-blue":""}" style="cursor:pointer;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span class="kpi-label">${w.title}</span>
+                    <button class="btn btn-sm btn-danger m2-del-w" data-i="${i}" ${!canDesign?"disabled":""}>移除</button>
+                  </div>
+                  <div class="kpi-val" style="color:${w.color};margin:6px 0;">${resolveWidgetVal(w)}</div>
+                  <div style="font-size:12px;color:var(--text-soft);">来源：${w.scope} · 更新：${w.updatedAt || "实时"}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        const cands = [
+          { title: "实盘订单总数", metricKey: "orders_count", val: `${stats.ordersCnt} 单`, scope: "全部实盘店铺", updatedAt: "实时联动订单", color: "var(--purple-text)" },
+          { title: "平均客单价", metricKey: "aov", val: "$" + stats.aov, scope: "近30天实盘均值", updatedAt: "实时计算", color: "var(--blue-hover)" },
+        ];
+        document.querySelectorAll(".m2-add-w").forEach(b => b.onclick = () => {
+          const c = cands[Number(b.dataset.ci)];
+          if (state.biWidgets.some(w => w.title === c.title)) { toast("草稿画布已包含该指标卡片", "warn"); return; }
+          state.biWidgets.push({ ...c });
+          rerender();
+          toast(`已将「${c.title}」加入草稿版`);
+        });
+        document.querySelectorAll(".m2-del-w").forEach(b => b.onclick = () => {
+          state.biWidgets.splice(Number(b.dataset.i), 1);
+          rerender();
+          toast("已从草稿画布移除该卡片（不影响线上正式版）");
+        });
+      }
+    };
+  }
+
+  // ==================== M2-2: 正式经营大屏浏览与异常下钻 ====================
+  if (pageId === "m2b") {
+    const stats = computeLiveBusinessStats();
+    const resolvePublishedVal = (w) => {
+      if (w.metricKey === "gmv") return `$${stats.gmv.toLocaleString()}`;
+      if (w.metricKey === "net_profit") return `$${stats.netProfit.toLocaleString()}`;
+      if (w.metricKey === "ad_spend") return `$${stats.adSpend.toLocaleString()}`;
+      if (w.metricKey === "orders_count") return `${stats.ordersCnt.toLocaleString()} 单`;
+      return w.val;
+    };
+
+    return {
+      headerActions: [
+        { label: "↻ 刷新最新数据", primary: false, onClick: () => {
+          state.lastDataRefreshAt = nowTimeStr();
+          state.lastDataRefreshTs = Date.now();
+          rerender();
+          toast(`经营大屏已刷新至 ${state.lastDataRefreshAt}`, "success");
+        }},
+        { label: "去调整驾驶舱布局 →", primary: true, onClick: () => goPage("m2a") }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span><strong>正式经营大屏（${state.biPublishedVersion}）：</strong>发布于 ${state.biPublishedAt} ｜ <strong>数据截至时间：${state.lastDataRefreshAt}</strong>（点击任意带有「追问明细」提示的异常/核心卡片，可直达智能问数分析原因）。</span>
+        </div>
+
+        <div class="grid-4">
+          ${state.biPublishedWidgets.map(w => {
+            const isAlert = w.metricKey === "ad_spend";
+            return `
+              <div class="kpi-card ${isAlert?"highlight-amber":"highlight-blue"} m2b-drill" data-title="${w.title}" style="cursor:pointer;" title="点击进入智能问数追查明细">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span class="kpi-label">${w.title}</span>
+                  <span class="pill ${isAlert?"p-amber":"p-blue"}">${isAlert?"异常波动 · 点击追问":"点击追问明细 →"}</span>
+                </div>
+                <div class="kpi-val" style="margin:6px 0;color:${isAlert?"var(--amber-text)":"var(--blue-hover)"}">${resolvePublishedVal(w)}</div>
+                <div class="kpi-sub">${w.sub} ｜ 来源：${w.scope || "全部实盘店铺"}</div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+
+        <div class="grid-2">
+          <div class="card m2b-drill" data-title="低库存预警商品有哪些？" style="cursor:pointer;">
+            <div class="card-header">
+              <div class="card-title">⚠️ 供应链库存预警（点击跳转智能问数排查缺口）</div>
+              <span class="pill p-red">${stats.realLowStocks.length} 项低于安全线</span>
+            </div>
+            ${stats.realLowStocks.map(i => `
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                <span><strong>${i.sku} · ${i.name}</strong> (${i.whName})</span>
+                <span style="color:var(--red-text);font-weight:700;">可售 ${i.avail} / 安全 ${i.safety} 件</span>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">经营健康摘要（实时联动计算）</div>
+              <span class="pill p-green">实盘数据口径一致</span>
+            </div>
+            <div class="formula-box" style="line-height:1.8;">
+              • <strong>毛利与净利率：</strong>实盘总销售额 $${stats.gmv.toLocaleString()}，净利润 $${stats.netProfit.toLocaleString()}（净利率 <strong>${stats.marginPct}%</strong>）<br/>
+              • <strong>广告花费占比：</strong>广告投入 $${stats.adSpend.toLocaleString()}，占总销售额 <strong>${stats.acosPct}%</strong><br/>
+              • <strong>客单价表现：</strong>共 ${stats.ordersCnt.toLocaleString()} 单，平均每单 <strong>$${stats.aov}</strong>
+            </div>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".m2b-drill").forEach(el => el.onclick = () => {
+          const q = el.dataset.title.includes("广告")
+            ? "各平台广告花费占比是多少？"
+            : el.dataset.title.includes("库存")
+            ? "当前哪些仓库商品低于安全库存预警？"
+            : `请帮我分析${el.dataset.title}的实时汇总口径与最新金额`;
+          state.qaPendingQuestion = q;
+          goPage("m3b");
+        });
+      }
+    };
+  }
+
+  // ==================== M3-1: 经营指标口径与定时更新 ====================
+  if (pageId === "m3a") {
+    const canEditBi = state.role === "bi_analyst" || state.role === "approver" || state.role === "manager";
+    return {
+      headerActions: [
+        { label: "进入智能问答助手 →", primary: true, onClick: () => goPage("m3b") }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span><strong>页面定位：</strong>统一管理核心经营指标的计算口径与定时更新任务。外部数据源尚未接入时状态会诚实显示「数据源未响应」，可联系管理员或点击「立即更新」重试。</span>
+        </div>
+
+        ${renderAsyncBox("m3_sync")}
+
+        <div class="grid-3">
+          <div class="kpi-card highlight-blue"><div class="kpi-label">已登记经营指标</div><div class="kpi-val" style="color:var(--blue-hover)">${state.qaBindings.length} 项</div><div class="kpi-sub">驾驶舱与智能问数共用口径</div></div>
+          <div class="kpi-card highlight-green"><div class="kpi-label">更新正常指标</div><div class="kpi-val" style="color:var(--green-text)">${state.qaBindings.filter(b=>b.status==="更新正常").length} 项</div><div class="kpi-sub">按设定频率自动刷新</div></div>
+          <div class="kpi-card ${state.qaBindings.some(b=>b.status!=="更新正常")?"highlight-amber":""}"><div class="kpi-label">数据源未响应指标</div><div class="kpi-val" style="color:var(--amber-text)">${state.qaBindings.filter(b=>b.status!=="更新正常").length} 项</div><div class="kpi-sub">待配置外部接口地址后重连</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">经营指标口径与定时更新状态</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>指标名称与业务口径</th><th>取数方式</th><th>更新频率</th><th>最近成功时间</th><th>下次更新时间</th><th>当前最新值</th><th>更新状态</th><th>操作</th></tr></thead>
+              <tbody>
+                ${state.qaBindings.map((b, i) => `
+                  <tr>
+                    <td>
+                      <strong>${b.name}</strong>
+                      <div style="font-size:12px;color:var(--text-soft);">口径：${b.formula}</div>
+                    </td>
+                    <td class="nowrap">${b.kind} · ${b.platform}</td>
+                    <td class="nowrap">${b.cron}</td>
+                    <td class="nowrap">${b.lastRun}</td>
+                    <td class="nowrap">${b.nextRun}</td>
+                    <td class="nowrap"><strong>${b.val}</strong></td>
+                    <td>
+                      <span class="pill ${b.status==="更新正常"?"p-green":"p-red"}">${b.status}</span>
+                      ${b.errMsg ? `<div style="font-size:12px;color:var(--red-text);margin-top:3px;">${b.errMsg}</div>` : ""}
+                    </td>
+                    <td class="nowrap"><button class="btn btn-sm btn-primary m3a-run" data-i="${i}" ${!canEditBi?"disabled":""}>立即更新</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        document.querySelectorAll(".m3a-run").forEach(b => b.onclick = () => {
+          const item = state.qaBindings[Number(b.dataset.i)];
+          const isFail = item.kind === "外部接口取数" && !BACKEND_SERVICE_URL;
+          runAsyncTask("m3_sync", {
+            label: `立即更新指标 · ${item.name}`,
+            steps: ["检查数据源连通性", "按业务口径汇总最新订单事实", "刷新指标快照时间"],
+            durationMs: 900,
+            shouldFail: isFail,
+            failReason: "外部广告数据源未响应（尚未接入外部接口），请检查网络或配置后点击重试。",
+            onFail: () => { item.status = "数据源未响应"; },
+            onSuccess: () => {
+              item.status = "更新正常";
+              item.lastRun = nowTimeStr();
+              item.errMsg = "";
+              return { summary: `指标「${item.name}」已更新至 ${item.lastRun}`, toastMsg: `「${item.name}」已立即更新` };
+            }
+          });
+        });
+      }
+    };
+  }
+
+  // ==================== M3-2: 经营智能问答助手（纯只读实时计算，无SQL黑话） ====================
+  if (pageId === "m3b") {
+    const stats = computeLiveBusinessStats();
+
+    function answerBusinessQuestion(q) {
+      const lowQ = q.toLowerCase();
+      if (/update|delete|drop|insert|alter|修改|删除|调价|改库存|改成本/i.test(lowQ)) {
+        appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 在智能问数中发送了涉及修改数据的指令「${q}」，系统已触发只读守卫拦截`, ok: false });
+        return {
+          text: "拦截提示：智能问答助手仅支持「只读查数」，严禁直接修改订单、调整价格或改写库存！如需调整请前往对应业务审批页面操作。",
+          note: "安全说明：本次操作拦截已记录至 M8-2 审计台账。",
+          queryDesc: "安全拦截：拒绝修改类请求，未改动任何业务数据",
+          blocked: true
+        };
+      }
+      if (/库存|预警|缺货|仓/i.test(lowQ)) {
+        const list = stats.realLowStocks.map(i => `${i.sku} ${i.name}（${i.whName}，当前仅 ${i.avail} 件 / 安全水位 ${i.safety} 件）`).join("；");
+        return {
+          text: `当前实盘店铺共有 ${stats.realLowStocks.length} 项库存低于安全水位：${list || "暂无低库存预警"}。`,
+          note: "统计口径：实时读取 M0-3 分店分仓独立库存台账（已排除演示店铺）。",
+          queryDesc: "查询条件：店铺=全部实盘店 ｜ 指标=当前可售与安全水位对比 ｜ 状态=仅只读查询"
+        };
+      }
+      if (/广告|acos|占比/i.test(lowQ)) {
+        return {
+          text: `近 30 天实盘店铺广告花费总计 $${stats.adSpend.toLocaleString()}，占总销售额的 ${stats.acosPct}%，处于 15% 安全水位线以内。`,
+          note: "统计口径：按广告花费 ÷ 实盘总销售额计算；其中亚马逊外部广告细项为参考基线值。",
+          queryDesc: "查询条件：时间=近 30 天 ｜ 店铺=全部实盘店 ｜ 口径=广告花费与占比"
+        };
+      }
+      if (/单|客单|订单/i.test(lowQ)) {
+        return {
+          text: `实盘订单共 ${stats.ordersCnt.toLocaleString()} 单，平均客单价 $${stats.aov}（演示沙盒订单已自动剔除）。`,
+          note: "统计口径：只汇总实盘已付款订单（若刚在 M0-1 同步新订单，此处数字会立即增加）。",
+          queryDesc: "查询条件：店铺=全部实盘店 ｜ 订单状态=已付款（含已发货/签收） ｜ 模式=只读查数"
+        };
+      }
+      return {
+        text: `全部实盘店铺近 30 天总销售额 $${stats.gmv.toLocaleString()}，净利润 $${stats.netProfit.toLocaleString()}（净利率 ${stats.marginPct}%）。`,
+        note: "统计口径：直接基于当前实盘订单台账实时汇总计算，演示测试店铺订单不计入。",
+        queryDesc: "查询条件：店铺=全部实盘店 ｜ 时间=近 30 天 ｜ 口径=实盘总销售额与净利润"
+      };
+    }
+
+    const prefill = state.qaPendingQuestion || "";
+    if (state.qaPendingQuestion) state.qaPendingQuestion = "";
+
+    return {
+      headerActions: [
+        { label: "← 查看指标定时更新", primary: false, onClick: () => goPage("m3a") },
+        { label: "返回正式经营大屏 →", primary: true, onClick: () => goPage("m2b") }
+      ],
+      html: `
+        <div class="banner banner-blue">
+          <span><strong>使用说明：</strong>您可以像问财务同事一样直接输入业务问题。本助手<strong>只查数、不改数据</strong>，多币种不会强行混加，每次回答均附带统计口径说明。</span>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div style="background:#0f172a;color:#fff;padding:13px 18px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <strong>经营智能问答助手（实时查数引擎）</strong>
+              <div style="font-size:12px;color:#cbd5e1;margin-top:2px;">实时读取最新实盘订单与分店库存 · 只读安全守卫在线</div>
+            </div>
+            <span class="pill p-green">仅限只读查询</span>
+          </div>
+
+          <div style="padding:16px 18px;">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+              ${["近30天总销售额和净利润是多少？", "当前哪些仓库商品低于安全库存预警？", "各平台广告花费占比是多少？", "一共有多少实盘订单和平均客单价？", "请帮我直接删除昨天所有订单"].map(q => `
+                <button class="btn btn-sm qa-preset" data-q="${q}">${q.includes("删除") ? "🛡️ 测试只读拦截：" + q.slice(4) : q}</button>
+              `).join("")}
+            </div>
+
+            <div style="max-height:360px;overflow-y:auto;margin-bottom:12px;">
+              ${state.qaChat.map((m, idx) => `
+                <div class="chat-bubble ${m.role==="user"?"user":"assistant"}" style="${m.blocked?"background:var(--red-bg);border-color:#fca5a5;color:var(--red-text);":""}">
+                  <div style="font-weight:${m.role==="user"?600:500};">${m.text}</div>
+                  ${m.note ? `<div style="font-size:12px;color:var(--text-soft);margin-top:5px;">${m.note}</div>` : ""}
+                  ${m.queryDesc ? `<div style="font-size:12px;background:#ffffff;border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-top:6px;color:var(--text-muted);">${m.queryDesc}</div>` : ""}
+                  ${m.role==="assistant" && !m.blocked ? `
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                      <button class="btn btn-sm qa-fb" data-idx="${idx}" data-val="UP" style="${m.feedback==="UP"?"border-color:var(--green);color:var(--green-text);font-weight:700;":""}">👍 有帮助</button>
+                      <button class="btn btn-sm qa-fb" data-idx="${idx}" data-val="DOWN" style="${m.feedback==="DOWN"?"border-color:var(--red);color:var(--red-text);font-weight:700;":""}">👎 没帮助</button>
+                    </div>
+                  ` : ""}
+                </div>
+              `).join("")}
+            </div>
+
+            <div style="display:flex;gap:8px;">
+              <input id="qaInput" class="input" value="${prefill}" placeholder="输入您的经营问题（例如：近30天净利润是多少、美西仓还有多少库存）…" />
+              <button class="btn btn-primary" id="qaSendBtn">发送提问</button>
+            </div>
+          </div>
+        </div>
+      `,
+      bind: () => {
+        const ask = (qStr) => {
+          const q = (qStr ?? document.getElementById("qaInput").value).trim();
+          if (!q) { toast("请输入经营问题", "error"); return; }
+          state.qaChat.push({ role: "user", text: q });
+          const ans = answerBusinessQuestion(q);
+          state.qaChat.push({ role: "assistant", ...ans, feedback: null });
+          rerender();
+        };
+        document.getElementById("qaSendBtn").onclick = () => ask();
+        document.getElementById("qaInput").onkeydown = (e) => { if (e.key === "Enter") ask(); };
+        document.querySelectorAll(".qa-preset").forEach(b => b.onclick = () => ask(b.dataset.q));
         document.querySelectorAll(".qa-fb").forEach(b => b.onclick = () => {
-          const msg = state.qaChat[Number(b.dataset.idx)];
-          msg.feedback = b.dataset.v;
-          appendAuditLog(state, { target: "M3-2 问答反馈", action: b.dataset.v === "up" ? "采纳答案" : "反馈口径疑问", detail: msg.text.slice(0, 48), ok: true });
-          rerender(); toast("反馈已写入审计台账");
+          const item = state.qaChat[Number(b.dataset.idx)];
+          item.feedback = b.dataset.val;
+          appendAuditLog(state, { sentence: `${ROLE_PERSON_NAMES[state.role]} 对智能问数回答评价为「${b.dataset.val === "UP" ? "有帮助" : "没帮助"}」`, ok: true });
+          rerender();
+          toast(b.dataset.val === "UP" ? "感谢您的正面反馈" : "已记录您的反馈，数据分析师将核查该指标口径");
         });
       }
     };

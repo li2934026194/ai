@@ -1,27 +1,35 @@
 import { MODULE_DEFS, PAGE_META } from "./annotations.js";
-import { SRS_ROLES, createInitialState, getRoleTodos, appendAuditLog } from "./state.js";
+import { BIZ_ROLES, ROLE_PERSON_NAMES, createInitialState, getRoleTodos, appendAuditLog } from "./state.js";
 import { renderM0_M3 } from "./pages_m0_m3.js";
 import { renderM4_M6 } from "./pages_m4_m6.js";
 import { renderM7_M8 } from "./pages_m7_m8.js";
 
-const ROLE_HINTS = Object.fromEntries(SRS_ROLES.map(r => [r.key, r.desc]));
-const state = createInitialState();
+const ROLE_HINTS = Object.fromEntries(BIZ_ROLES.map(r => [r.key, r.desc]));
+let state = createInitialState();
+
+function findModuleOfPage(pid) {
+  return MODULE_DEFS.find(m => m.pages.some(p => p.id === pid)) || MODULE_DEFS[0];
+}
 
 function toast(msg, level = "info") {
-  const c = document.getElementById("toastContainer");
-  const t = document.createElement("div");
-  t.className = `toast ${level === "success" ? "toast-success" : level === "warn" ? "toast-warn" : level === "error" ? "toast-error" : ""}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => t.remove(), 3600);
+  const box = document.getElementById("toastContainer");
+  const el = document.createElement("div");
+  el.className = `toast ${level === "error" ? "toast-error" : level === "warn" ? "toast-warn" : level === "success" ? "toast-success" : ""}`;
+  el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(() => { el.style.opacity = "0"; setTimeout(() => el.remove(), 250); }, 3600);
+}
+
+function closeModal() {
+  document.getElementById("modalRoot").innerHTML = "";
 }
 
 function openModal(title, bodyHtml, onMount) {
   const root = document.getElementById("modalRoot");
   root.innerHTML = `
-    <div class="modal-backdrop" id="modalBd">
+    <div class="modal-backdrop">
       <div class="modal-box">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <strong style="font-size:16px;">${title}</strong>
           <button class="btn btn-sm" id="modalCloseBtn">✕</button>
         </div>
@@ -29,145 +37,140 @@ function openModal(title, bodyHtml, onMount) {
       </div>
     </div>
   `;
-  document.getElementById("modalCloseBtn").onclick = closeModal;
-  document.getElementById("modalBd").onclick = (e) => { if (e.target.id === "modalBd") closeModal(); };
-  if (onMount) onMount();
-}
-
-function closeModal() {
-  document.getElementById("modalRoot").innerHTML = "";
-}
-
-function clearModalErrors(container) {
-  container.querySelectorAll(".input-err").forEach(el => el.classList.remove("input-err"));
-  container.querySelectorAll(".field-err").forEach(el => el.remove());
-}
-
-function showFieldError(inputEl, message) {
-  if (!inputEl) return;
-  inputEl.classList.add("input-err");
-  const err = document.createElement("div");
-  err.className = "field-err";
-  err.textContent = message;
-  inputEl.parentElement.appendChild(err);
-  inputEl.focus();
+  root.querySelector("#modalCloseBtn").onclick = closeModal;
+  root.querySelector(".modal-backdrop").onclick = (e) => { if (e.target === root.querySelector(".modal-backdrop")) closeModal(); };
+  if (onMount) onMount(root);
 }
 
 /**
- * Unified confirmation + validation + execution + graded toast + audit closure
+ * 统一业务写操作提交器（影响面提示 -> 字段校验 -> 二次确认 -> 留痕反馈）
  */
-function commitAction({ title, summary, fieldsHtml = "", confirmText = "确认执行", danger = false, validate, onConfirm, audit, onMount }) {
+function commitAction({
+  title,
+  summary = "",
+  fieldsHtml = "",
+  confirmText = "确认执行",
+  danger = false,
+  validate = null,
+  onMount = null,
+  onConfirm,
+  audit = null,
+}) {
   openModal(title, `
-    ${summary ? `<div class="banner ${danger ? "banner-red" : "banner-blue"}" style="margin-bottom:12px;">${summary}</div>` : ""}
-    <div id="commitFormWrap">${fieldsHtml}</div>
+    ${summary ? `<div class="banner ${danger ? "banner-red" : "banner-blue"}" style="margin-bottom:12px;"><span>${summary}</span></div>` : ""}
+    <div id="commitFieldsWrap">${fieldsHtml}</div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
       <button class="btn" id="commitCancelBtn">取消</button>
-      <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="commitOkBtn">${confirmText}</button>
+      <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="commitConfirmBtn">${confirmText}</button>
     </div>
-  `, () => {
-    const wrap = document.getElementById("commitFormWrap");
-    if (onMount) onMount(wrap);
-    document.getElementById("commitCancelBtn").onclick = closeModal;
-    document.getElementById("commitOkBtn").onclick = () => {
-      clearModalErrors(wrap);
+  `, (root) => {
+    const wrap = root.querySelector("#commitFieldsWrap");
+    if (onMount) onMount(wrap, root);
+    root.querySelector("#commitCancelBtn").onclick = closeModal;
+    root.querySelector("#commitConfirmBtn").onclick = () => {
+      wrap.querySelectorAll(".input-err").forEach(el => el.classList.remove("input-err"));
+      wrap.querySelectorAll(".field-err").forEach(el => el.remove());
+
       if (validate) {
-        const errors = validate(wrap) || [];
-        if (errors.length > 0) {
-          errors.forEach(({ el, msg }) => showFieldError(el, msg));
-          toast(errors[0].msg, "error");
+        const errs = validate(wrap) || [];
+        if (errs.length > 0) {
+          errs.forEach(err => {
+            if (err.el) {
+              err.el.classList.add("input-err");
+              const msg = document.createElement("div");
+              msg.className = "field-err";
+              msg.textContent = err.msg;
+              err.el.parentElement.appendChild(msg);
+            }
+          });
+          toast(errs[0].msg || "请检查红色标注的必填信息", "error");
           return;
         }
       }
-      try {
-        const res = onConfirm ? onConfirm(wrap) : {};
-        if (res === false) return;
-        const auditInfo = typeof audit === "function" ? audit(wrap, res) : audit;
-        if (auditInfo) {
-          appendAuditLog(state, auditInfo);
-        }
-        closeModal();
-        rerender();
-        if (res && res.toastMsg) toast(res.toastMsg, res.toastLevel || "success");
-      } catch (err) {
-        toast(err.message || "操作失败", "error");
+
+      const res = onConfirm(wrap) || {};
+      if (res === false || res.cancel) return;
+      if (audit) {
+        const entry = typeof audit === "function" ? audit(wrap, res) : audit;
+        if (entry) appendAuditLog(state, entry);
+      }
+      closeModal();
+      rerender();
+      if (res.toastMsg !== false) {
+        toast(res.toastMsg || `${title} 已完成并记录审计`, res.toastLevel || "success");
       }
     };
   });
 }
 
 /**
- * Async Task Runner: QUEUED -> RUNNING (progress%) -> SUCCESS / FAILED
+ * 异步任务执行器：排队中 -> 处理中 (进度%) -> 已完成 / 失败（支持重试与排查指引）
  */
-function runAsyncTask(key, { label, steps = ["校验输入参数", "执行队列处理", "写入结果与日志"], durationMs = 1100, shouldFail = false, failReason = "服务未连接或参数异常", onSuccess, onFail }) {
-  state.asyncTasks[key] = { status: "QUEUED", progress: 12, label, stepText: "排队中 (QUEUED)...", retryOpts: { label, steps, durationMs, shouldFail, failReason, onSuccess, onFail } };
+function runAsyncTask(key, { label, steps, durationMs = 1100, shouldFail = false, failReason = "外部服务暂未连接，请检查网络或配置后重试", onSuccess, onFail }) {
+  state.asyncTasks[key] = { status: "排队中", progress: 15, label, stepText: "任务排队等待处理…", retryOpts: { label, steps, durationMs, shouldFail, failReason, onSuccess, onFail } };
   rerender();
 
   setTimeout(() => {
     if (!state.asyncTasks[key]) return;
-    state.asyncTasks[key].status = "RUNNING";
-    state.asyncTasks[key].progress = 48;
-    state.asyncTasks[key].stepText = `执行中：${steps[0] || "处理中"} (48%)`;
+    state.asyncTasks[key].status = "处理中";
+    state.asyncTasks[key].progress = 58;
+    state.asyncTasks[key].stepText = (steps && steps[1]) || "正在校验业务数据与状态…";
     rerender();
-  }, Math.round(durationMs * 0.25));
+  }, Math.round(durationMs * 0.38));
 
   setTimeout(() => {
     if (!state.asyncTasks[key]) return;
-    state.asyncTasks[key].progress = 82;
-    state.asyncTasks[key].stepText = `执行中：${steps[1] || "校对回写"} (82%)`;
-    rerender();
-  }, Math.round(durationMs * 0.65));
-
-  setTimeout(() => {
-    const failed = typeof shouldFail === "function" ? shouldFail() : shouldFail;
-    if (failed) {
-      const reason = typeof failReason === "function" ? failReason() : failReason;
-      state.asyncTasks[key] = {
-        status: "FAILED", progress: 100, label, stepText: reason,
-        retryOpts: { label, steps, durationMs, shouldFail, failReason, onSuccess, onFail }
-      };
-      appendAuditLog(state, { target: label, action: "异步任务失败", detail: reason, ok: false });
-      if (onFail) onFail(reason);
+    if (shouldFail) {
+      state.asyncTasks[key].status = "失败";
+      state.asyncTasks[key].progress = 100;
+      state.asyncTasks[key].stepText = failReason;
+      if (onFail) onFail();
+      appendAuditLog(state, { target: label, action: "执行任务未通过", detail: failReason, ok: false });
       rerender();
-      toast(`${label} 失败：${reason}`, "error");
-      return;
+      toast(`${label} 未完成：${failReason}`, "error");
+    } else {
+      const outcome = onSuccess ? (onSuccess() || {}) : {};
+      state.asyncTasks[key].status = "已完成";
+      state.asyncTasks[key].progress = 100;
+      state.asyncTasks[key].stepText = outcome.summary || "任务已处理完成并更新结果";
+      appendAuditLog(state, { target: label, action: "完成任务处理", detail: outcome.summary || "成功", ok: true });
+      rerender();
+      toast(outcome.toastMsg || `${label} 已完成`, outcome.toastLevel || "success");
     }
-    const extra = onSuccess ? onSuccess() : {};
-    state.asyncTasks[key] = {
-      status: "SUCCESS", progress: 100, label,
-      stepText: (extra && extra.summary) || `${steps[2] || "完成"} ✓`,
-      retryOpts: { label, steps, durationMs, shouldFail, failReason, onSuccess, onFail }
-    };
-    appendAuditLog(state, { target: label, action: "异步任务完成", detail: state.asyncTasks[key].stepText, ok: true });
-    rerender();
-    toast((extra && extra.toastMsg) || `${label} 执行完成`, "success");
   }, durationMs);
 }
 
 function renderAsyncBox(key) {
   const t = state.asyncTasks[key];
   if (!t) return "";
-  const color = t.status === "FAILED" ? "var(--red)" : t.status === "SUCCESS" ? "var(--green)" : "var(--blue)";
+  const isErr = t.status === "失败";
+  const isOk = t.status === "已完成";
   return `
-    <div class="async-card" style="border-color:${t.status==="FAILED"?"#fca5a5":t.status==="SUCCESS"?"#a7f3d0":"var(--blue-border)"};">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-        <strong>${t.label} · <span class="pill ${t.status==="FAILED"?"p-red":t.status==="SUCCESS"?"p-green":"p-blue"}">${t.status}</span></strong>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:12px;color:var(--text-soft);">${t.stepText}</span>
-          ${t.status === "FAILED" ? `<button class="btn btn-sm btn-primary async-retry-btn" data-task="${key}">↻ 重试</button>` : ""}
+    <div class="async-card" style="margin-bottom:12px;border-color:${isErr ? "#fca5a5" : isOk ? "#a7f3d0" : "var(--blue-border)"};background:${isErr ? "var(--red-bg)" : isOk ? "var(--green-bg)" : "#f8fbff"};">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div>
+          <strong>${t.label}</strong>
+          <span class="pill ${isErr ? "p-red" : isOk ? "p-green" : "p-blue"}" style="margin-left:8px;">${t.status} · ${t.progress}%</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          ${isErr ? `<button class="btn btn-sm btn-danger async-retry-btn" data-tkey="${key}">↻ 重试</button>` : ""}
+          ${(isOk || isErr) ? `<button class="btn btn-sm async-dismiss-btn" data-tkey="${key}">关闭提示</button>` : ""}
         </div>
       </div>
-      <div class="async-bar"><div class="async-fill" style="width:${t.progress}%;background:${color};"></div></div>
+      <div class="async-bar"><div class="async-fill" style="width:${t.progress}%;background:${isErr ? "var(--red)" : isOk ? "var(--green)" : "var(--blue)"};"></div></div>
+      <div style="font-size:12.5px;color:${isErr ? "var(--red-text)" : "var(--text-muted)"};">${t.stepText}</div>
     </div>
   `;
 }
 
 function openDrawer(title, sub, bodyHtml, onMount) {
   document.getElementById("detailDrawerTitle").textContent = title;
-  document.getElementById("detailDrawerSub").textContent = sub;
-  document.getElementById("detailDrawerBody").innerHTML = bodyHtml;
+  document.getElementById("detailDrawerSub").textContent = sub || "";
+  const body = document.getElementById("detailDrawerBody");
+  body.innerHTML = bodyHtml;
   document.getElementById("detailDrawer").classList.remove("hidden");
   document.getElementById("detailDrawerBackdrop").classList.remove("hidden");
-  if (onMount) onMount();
+  if (onMount) onMount(body);
 }
 
 function closeDetailDrawer() {
@@ -175,15 +178,22 @@ function closeDetailDrawer() {
   document.getElementById("detailDrawerBackdrop").classList.add("hidden");
 }
 
-function findModuleOfPage(pageId) {
-  return MODULE_DEFS.find(m => m.pages.some(p => p.id === pageId)) || MODULE_DEFS[0];
+function goPage(pid) {
+  if (!PAGE_META[pid]) return;
+  state.pageId = pid;
+  state.openModuleId = findModuleOfPage(pid).id;
+  window.location.hash = pid;
+  rerender();
 }
 
-function goPage(pageId) {
-  state.pageId = pageId;
-  state.openModuleId = findModuleOfPage(pageId).id;
-  if (typeof window !== "undefined") window.location.hash = pageId;
-  rerender();
+function record403(target, reason) {
+  const actorName = ROLE_PERSON_NAMES[state.role] || "当前操作人";
+  const curLabel = BIZ_ROLES.find(r => r.key === state.role)?.label || state.role;
+  appendAuditLog(state, {
+    sentence: `${actorName}（${curLabel}）尝试操作「${target}」，因权限不足被系统拦截：${reason}`,
+    ok: false,
+  });
+  toast(`当前岗位「${curLabel}」无权执行：${reason}`, "error");
 }
 
 function computeLiveBusinessStats() {
@@ -208,7 +218,6 @@ function rerender() {
 
   document.getElementById("roleHint").textContent = ROLE_HINTS[state.role] || "";
 
-  // Accordion Left Sidebar
   document.getElementById("sidebarNav").innerHTML = MODULE_DEFS.map(m => {
     const isOpen = state.openModuleId === m.id;
     const isModActive = mod.id === m.id;
@@ -226,9 +235,9 @@ function rerender() {
         </div>
         <div class="nav-children">
           ${m.pages.map(p => `
-            <div class="nav-child ${p.id === state.pageId ? "active" : ""}" data-pid="${p.id}">
-              <span>${p.label}</span>
-              ${todos[p.id] ? `<span class="nav-todo">${todos[p.id]}</span>` : ""}
+            <div class="nav-child ${state.pageId === p.id ? "active" : ""}" data-page="${p.id}">
+              <span class="nav-child-label">${p.label}</span>
+              ${todos[p.id] ? `<span class="nav-dot-todo" title="当前岗位有待办事项"></span>` : ""}
             </div>
           `).join("")}
         </div>
@@ -238,110 +247,116 @@ function rerender() {
 
   document.querySelectorAll(".nav-parent").forEach(el => {
     el.onclick = () => {
-      const mId = el.dataset.mod;
-      state.openModuleId = (state.openModuleId === mId) ? null : mId;
+      const mid = el.dataset.mod;
+      state.openModuleId = state.openModuleId === mid ? "" : mid;
       rerender();
     };
   });
   document.querySelectorAll(".nav-child").forEach(el => {
-    el.onclick = () => goPage(el.dataset.pid);
+    el.onclick = () => goPage(el.dataset.page);
   });
 
-  // Top Header
-  document.getElementById("breadcrumb").textContent = meta.breadcrumb;
+  const curPageObj = mod.pages.find(p => p.id === state.pageId) || mod.pages[0];
+  document.getElementById("breadcrumb").textContent = `${mod.label}  /  ${curPageObj.label}`;
   document.getElementById("pageTitle").textContent = meta.title;
   document.getElementById("pageSubtitle").textContent = meta.subtitle;
 
   const helpers = {
     toast, goPage, openModal, closeModal, openDrawer, closeDetailDrawer,
-    rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats,
-    record403(target, detail) {
-      appendAuditLog(state, { target, action: "权限拦截 (403)", detail, ok: false });
-      toast(`权限不足（已写入审计台账）：${detail}`, "error");
-      rerender();
-    }
+    rerender, commitAction, runAsyncTask, renderAsyncBox, computeLiveBusinessStats, record403
   };
-  const view = renderM0_M3(state.pageId, state, helpers) || renderM4_M6(state.pageId, state, helpers) || renderM7_M8(state.pageId, state, helpers);
+  const pageResult =
+    renderM0_M3(state.pageId, state, helpers) ||
+    renderM4_M6(state.pageId, state, helpers) ||
+    renderM7_M8(state.pageId, state, helpers) ||
+    { headerActions: [], html: `<div class="card">页面建设中</div>`, bind: () => {} };
 
-  const actBox = document.getElementById("headerActions");
-  actBox.innerHTML = "";
-  (view.headerActions || []).forEach(a => {
+  const hBox = document.getElementById("headerActions");
+  hBox.innerHTML = "";
+  (pageResult.headerActions || []).forEach(act => {
     const btn = document.createElement("button");
-    btn.className = `btn ${a.primary ? "btn-primary" : ""}`;
-    btn.textContent = a.label;
-    if (a.disabled) {
+    btn.className = `btn ${act.primary ? "btn-primary" : act.danger ? "btn-danger" : ""}`;
+    btn.textContent = act.label;
+    if (act.disabled) {
       btn.disabled = true;
-      btn.title = a.disabledTitle || "当前角色无权限执行此操作";
+      btn.title = act.disabledTitle || "当前登录岗位无权操作（请在左侧切换对应岗位）";
     }
-    btn.onclick = a.onClick;
-    actBox.appendChild(btn);
+    btn.onclick = () => {
+      if (btn.disabled) return;
+      act.onClick();
+    };
+    hBox.appendChild(btn);
   });
 
-  const bodyEl = document.getElementById("pageBody");
-  bodyEl.innerHTML = view.html;
-  bodyEl.querySelectorAll(".async-retry-btn").forEach(btn => {
-    btn.onclick = () => {
-      const t = state.asyncTasks[btn.dataset.task];
-      if (t && t.retryOpts) runAsyncTask(btn.dataset.task, t.retryOpts);
+  document.getElementById("pageBody").innerHTML = pageResult.html;
+
+  document.querySelectorAll(".async-retry-btn").forEach(b => {
+    b.onclick = () => {
+      const t = state.asyncTasks[b.dataset.tkey];
+      if (t && t.retryOpts) runAsyncTask(b.dataset.tkey, t.retryOpts);
     };
   });
-  if (view.bind) view.bind();
+  document.querySelectorAll(".async-dismiss-btn").forEach(b => {
+    b.onclick = () => { delete state.asyncTasks[b.dataset.tkey]; rerender(); };
+  });
 
-  // Slide-over SRS Annotation Drawer
-  const annoDrawer = document.getElementById("annoDrawer");
-  const annoBd = document.getElementById("annoDrawerBackdrop");
-  if (state.showAnno) {
-    annoDrawer.classList.remove("hidden");
-    annoBd.classList.remove("hidden");
-  } else {
-    annoDrawer.classList.add("hidden");
-    annoBd.classList.add("hidden");
-  }
+  if (pageResult.bind) pageResult.bind();
 
-  document.getElementById("annoPageTitle").textContent = `SRS注释与来源台账 · ${state.pageId.toUpperCase()}`;
-  document.getElementById("annoCards").innerHTML = meta.blocks.map((b, idx) => `
-    <div class="anno-card" style="border-left-color:${b.color};">
+  // 业务规则说明抽屉（纯业务管理语言，无代码编号与字段）
+  const annoBtn = document.getElementById("toggleAnnoBtn");
+  annoBtn.classList.toggle("active", state.showAnno);
+  document.getElementById("annoDrawer").classList.toggle("hidden", !state.showAnno);
+  document.getElementById("annoDrawerBackdrop").classList.toggle("hidden", !state.showAnno);
+
+  document.getElementById("annoPageTitle").textContent = `业务规则说明 · ${curPageObj.label}`;
+  document.getElementById("annoCards").innerHTML = (meta.blocks || []).map((b, idx) => `
+    <div class="anno-card" style="border-left-color:${b.color}">
       <div class="anno-card-head">
-        <span class="anno-tag" style="background:${b.color};">${idx + 1}</span>
+        <span class="anno-tag" style="background:${b.color};width:20px;height:20px;font-size:12px;">${idx + 1}</span>
         <span>${b.title}</span>
       </div>
-      <div class="anno-line anno-k-step">【对应步骤】${b.step}</div>
-      <div class="anno-line anno-k-srs">【SRS依据】${b.srs}</div>
-      <div class="anno-line anno-k-tech">【技术支撑】${b.tech}</div>
+      <div class="anno-line anno-k-step">【管理目的】${b.why}</div>
+      <div class="anno-line anno-k-rule">【制度约束】${b.rule}</div>
+      <div class="anno-line anno-k-tech">【负责岗位】${b.owner}</div>
+      <div class="anno-line anno-k-rule">【异常处理】${b.fix}</div>
     </div>
   `).join("");
 
-  document.getElementById("ledgerGrid").innerHTML = meta.ledger.map(([term, kind, src]) => `
+  document.getElementById("ledgerGrid").innerHTML = (meta.ledger || []).map(([term, kind, src]) => `
     <div class="ledger-row">
       <div class="ledger-row-top">
         <span class="ledger-term">${term}</span>
-        <span class="${kind.includes("SRS") || kind.includes("参考") || kind.includes("实时") ? "ledger-kind-srs" : "ledger-kind-mock"}">${kind}</span>
+        <span class="${kind.includes("规则") || kind.includes("实时") ? "ledger-kind-rule" : "ledger-kind-mock"}">${kind}</span>
       </div>
       <div class="ledger-src">${src}</div>
     </div>
   `).join("");
 }
 
-// Init Events (Unique role switcher: top-left roleSelect)
-const roleSelEl = document.getElementById("roleSelect");
-roleSelEl.value = state.role;
-roleSelEl.onchange = (e) => {
-  const prev = SRS_ROLES.find(r => r.key === state.role)?.label || state.role;
+const roleSelectEl = document.getElementById("roleSelect");
+roleSelectEl.onchange = (e) => {
+  const prev = BIZ_ROLES.find(r => r.key === state.role)?.label || state.role;
   state.role = e.target.value;
-  const next = SRS_ROLES.find(r => r.key === state.role)?.label || state.role;
-  appendAuditLog(state, { target: "全局身份切换 (roleSelect)", action: "切换体验角色", detail: `${prev} → ${next}`, ok: true });
+  const next = BIZ_ROLES.find(r => r.key === state.role)?.label || state.role;
+  appendAuditLog(state, {
+    sentence: `演示岗位由「${prev}」切换为「${next}」`,
+    ok: true,
+  });
   rerender();
-  toast(`已切换登录角色：${next}`, "info");
+  toast(`已切换岗位：${next}（菜单红点待办与按钮权限已同步更新）`, "info");
 };
 
-document.getElementById("toggleAnnoBtn").onclick = () => { state.showAnno = !state.showAnno; rerender(); };
+document.getElementById("toggleAnnoBtn").onclick = () => {
+  state.showAnno = !state.showAnno;
+  rerender();
+};
 document.getElementById("closeAnnoDrawer").onclick = () => { state.showAnno = false; rerender(); };
 document.getElementById("annoDrawerBackdrop").onclick = () => { state.showAnno = false; rerender(); };
 
 document.getElementById("closeDetailDrawer").onclick = closeDetailDrawer;
 document.getElementById("detailDrawerBackdrop").onclick = closeDetailDrawer;
 
-const initHash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
+const initHash = window.location.hash.replace("#", "");
 if (PAGE_META[initHash]) {
   state.pageId = initHash;
   state.openModuleId = findModuleOfPage(initHash).id;
