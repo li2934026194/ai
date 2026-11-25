@@ -18,6 +18,29 @@ const certExpire = ref("2027-12-31");
 
 type OverviewTab = "buyer" | "copy" | "images" | "video" | "aplus" | "audit";
 const activeTab = ref<OverviewTab>("buyer");
+const buyerImgIdx = ref(0);
+const buyerVarIdx = ref(0);
+
+const IMAGE_SLOT_LABELS = ["白底主图", "场景使用图", "细节特写图", "尺寸参数图", "包装清单图"];
+
+const buyerVariants = computed(() => {
+  const base = ws.summary?.buyer_preview.sale_price_usd ?? ws.currentProduct?.sale_price_usd ?? 26.9;
+  const prod = ws.currentProduct?.name || ws.currentSku || "Standard";
+  return [
+    { name: "标准单机版 (Standard)", price: base },
+    { name: `${prod.slice(0, 10)} 礼盒装 (+配件)`, price: Number((base + 6.0).toFixed(2)) },
+  ];
+});
+
+const activeBuyerPrice = computed(() => {
+  return buyerVariants.value[buyerVarIdx.value]?.price ?? ws.summary?.buyer_preview.sale_price_usd ?? null;
+});
+
+const activeBuyerImg = computed(() => {
+  const imgs = ws.summary?.buyer_preview.images || [];
+  if (!imgs.length) return null;
+  return imgs[Math.min(buyerImgIdx.value, imgs.length - 1)] || imgs[0];
+});
 
 const activeRule = computed(() => {
   const cat = ws.currentProduct?.category;
@@ -27,6 +50,8 @@ const activeRule = computed(() => {
 watch(
   () => ws.currentSku,
   () => {
+    buyerImgIdx.value = 0;
+    buyerVarIdx.value = 0;
     void comp.loadMatrix();
   },
   { immediate: true }
@@ -243,51 +268,199 @@ async function saveEditedRule() {
           </div>
         </div>
 
-        <!-- Tab 1: 买家视角预览 -->
-        <div v-if="activeTab === 'buyer' && ws.summary">
-          <div class="alert alert-amber" style="font-weight:700;">
-            ⚠ {{ ws.summary.buyer_preview.banner }} · 非真实上架（MOCK 隔离演示）
+        <!-- Tab 1: 买家视角预览（亚马逊详情页双栏 9 大模块排版） -->
+        <div v-if="activeTab === 'buyer' && ws.summary" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fff;">
+          <div style="background:#fffbeb;border-bottom:1px solid #fde68a;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+            <div style="font-size:12px;font-weight:700;color:#92400e;">
+              🛍️ 买家视角预览 · {{ ws.summary.buyer_preview.banner }}（模拟 {{ ws.platform }} 详情页排版，非真实上架 MOCK 隔离演示）
+            </div>
+            <span class="pill p-amber">按 M0-2 商品主档实时渲染</span>
           </div>
-          <h2 style="margin:8px 0;">{{ ws.summary.buyer_preview.title }}</h2>
-          <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
-            <span style="font-size:22px;font-weight:800;color:#b91c1c;" class="tnum">
-              ${{ ws.summary.buyer_preview.sale_price_usd ?? "--" }}
-            </span>
-            <span
-              v-if="ws.summary.buyer_preview.strike_price_usd"
-              style="text-decoration:line-through;color:#64748b;"
-              class="tnum"
-            >
-              ${{ ws.summary.buyer_preview.strike_price_usd }}
-            </span>
-            <span v-if="ws.summary.buyer_preview.discount_pct !== null" class="pill p-red">
-              -{{ ws.summary.buyer_preview.discount_pct }}% OFF
-            </span>
-          </div>
-          <div class="grid-5" style="margin-bottom:12px;">
-            <img
-              v-for="img in ws.summary.buyer_preview.images"
-              :key="img.media_id"
-              :src="img.media_url"
-              style="width:100%;aspect-ratio:1/1;object-fit:contain;border:1px solid #e2e8f0;border-radius:6px;"
-            />
-          </div>
-          <ul>
-            <li v-for="(b, idx) in ws.summary.buyer_preview.bullets" :key="idx">{{ b }}</li>
-          </ul>
-          <div style="margin-top:12px;">
-            <div class="field-label">M0-2 实标属性表（缺失字段标黄提示补齐）</div>
-            <table class="table">
-              <tbody>
-                <tr v-for="(val, key) in ws.summary.buyer_preview.specs" :key="key">
-                  <td style="width:180px;font-weight:600;">{{ key }}</td>
-                  <td>
-                    <span v-if="val">{{ val }}</span>
-                    <span v-else class="pill p-amber">待补（去 M0-2）</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+
+          <div style="padding:14px;display:grid;grid-template-columns:minmax(0,250px) minmax(0,1fr);gap:16px;align-items:start;">
+            <!-- 左栏：主图大展区 + 1+4 缩略图切换器 -->
+            <div style="min-width:0;">
+              <div v-if="!ws.summary.buyer_preview.images.length" style="padding:24px 10px;text-align:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;">
+                <div style="font-size:12px;font-weight:700;margin-bottom:6px;">商品主图与附图待生成</div>
+                <button type="button" class="btn btn-primary btn-sm" @click="router.push('/m7/images')">去 M7-2 生成 1+4 套图</button>
+              </div>
+              <template v-else>
+                <div style="border:1px solid #e2e8f0;border-radius:8px;padding:8px;background:#fff;position:relative;text-align:center;">
+                  <span class="pill p-gray" style="position:absolute;top:6px;left:6px;font-size:10px;">演示图</span>
+                  <img
+                    v-if="activeBuyerImg"
+                    :src="activeBuyerImg.media_url"
+                    alt="买家视角主图"
+                    style="width:100%;max-height:220px;object-fit:contain;"
+                  />
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:8px;">
+                  <button
+                    v-for="(img, idx) in ws.summary.buyer_preview.images"
+                    :key="img.media_id"
+                    type="button"
+                    :style="{
+                      border: buyerImgIdx === idx ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '2px',
+                      background: '#fff',
+                      cursor: 'pointer',
+                    }"
+                    @click="buyerImgIdx = idx"
+                  >
+                    <img :src="img.media_url" style="width:100%;height:38px;object-fit:contain;" :alt="IMAGE_SLOT_LABELS[idx] || '图'" />
+                  </button>
+                </div>
+                <div style="font-size:11.5px;color:#64748b;margin-top:6px;">
+                  当前预览：{{ IMAGE_SLOT_LABELS[buyerImgIdx] || `附图 ${buyerImgIdx}` }}（点击缩略图切换）
+                </div>
+              </template>
+            </div>
+
+            <!-- 右栏：亚马逊详情页 1~9 结构化板块 -->
+            <div style="min-width:0;display:flex;flex-direction:column;gap:12px;">
+              <!-- 1. 商品标题 -->
+              <div style="border-bottom:1px solid #e2e8f0;padding-bottom:8px;">
+                <div style="font-size:11.5px;color:#64748b;margin-bottom:2px;">
+                  1. 商品标题 · Brand: <strong>{{ ws.currentProduct?.brand_name || "CrossPilot" }}</strong>
+                </div>
+                <div style="font-size:16px;font-weight:800;line-height:1.4;color:#0f172a;">
+                  {{ ws.summary.buyer_preview.title }}
+                </div>
+              </div>
+
+              <!-- 2. 售价 / 划线价 / 折扣与库存 -->
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;">
+                <div style="font-size:11px;color:#64748b;margin-bottom:4px;">
+                  2. 售价 / 划线价 / 实时折扣与库存（联动 M0-2）
+                </div>
+                <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+                  <span style="font-size:22px;font-weight:800;color:#b91c1c;" class="tnum">
+                    ${{ activeBuyerPrice ?? "--" }}
+                  </span>
+                  <span
+                    v-if="ws.summary.buyer_preview.strike_price_usd"
+                    style="text-decoration:line-through;color:#64748b;font-size:13px;"
+                    class="tnum"
+                  >
+                    ${{ ws.summary.buyer_preview.strike_price_usd }}
+                  </span>
+                  <span v-if="ws.summary.buyer_preview.discount_pct !== null" class="pill p-red">
+                    -{{ ws.summary.buyer_preview.discount_pct }}% OFF
+                  </span>
+                  <span style="font-size:12px;color:#15803d;font-weight:700;">
+                    库存：有货可售（实时同步 M0-3）
+                  </span>
+                </div>
+              </div>
+
+              <!-- 3. 买家评分与累计销量 -->
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 10px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px;color:#475569;">
+                <strong>3. 买家评分与累计销量：</strong>
+                <span>暂无评分与销量（上架后由平台生成）</span>
+              </div>
+
+              <!-- 4. 规格变体选择 -->
+              <div>
+                <div style="font-size:12px;font-weight:700;margin-bottom:4px;">4. 规格变体选择（联动 M0-2）：</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button
+                    v-for="(v, vi) in buyerVariants"
+                    :key="v.name"
+                    type="button"
+                    class="btn btn-sm"
+                    :class="buyerVarIdx === vi ? 'btn-primary' : ''"
+                    @click="buyerVarIdx = vi"
+                  >
+                    {{ v.name }} · ${{ v.price }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 5. 关键属性表 -->
+              <div>
+                <div style="font-size:12px;font-weight:700;margin-bottom:4px;">5. 关键属性表（M0-2 实标属性 · 缺失字段标黄提示补齐）：</div>
+                <table class="table">
+                  <tbody>
+                    <tr v-for="(val, key) in ws.summary.buyer_preview.specs" :key="key">
+                      <td style="width:160px;font-weight:600;">{{ key }}</td>
+                      <td>
+                        <span v-if="val">{{ val }}</span>
+                        <button
+                          v-else
+                          type="button"
+                          class="btn btn-sm"
+                          style="padding:2px 8px;font-size:11.5px;color:#b45309;background:#fffbeb;border-color:#fcd34d;"
+                          @click="router.push('/m0/ledger')"
+                        >
+                          待补（去 M0-2）
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- 6. 五点核心卖点 -->
+              <div>
+                <div style="font-size:12px;font-weight:700;margin-bottom:4px;">6. 五点核心卖点 (About this item)：</div>
+                <ul style="margin:0;padding-left:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding-top:8px;padding-bottom:8px;font-size:12.5px;line-height:1.55;">
+                  <li v-for="(b, idx) in ws.summary.buyer_preview.bullets" :key="idx">{{ b }}</li>
+                </ul>
+              </div>
+
+              <!-- 7. 商品详细描述 -->
+              <div>
+                <div style="font-size:12px;font-weight:700;margin-bottom:4px;">7. 商品详细描述：</div>
+                <div
+                  v-if="ws.summary.buyer_preview.description"
+                  style="font-size:12.5px;line-height:1.55;background:#f8fafc;border:1px solid #e2e8f0;padding:8px 10px;border-radius:6px;white-space:pre-wrap;"
+                >
+                  {{ ws.summary.buyer_preview.description }}
+                </div>
+                <button v-else type="button" class="btn btn-sm" @click="router.push('/m7/copy')">
+                  待选定商品描述（去 M7-1）→
+                </button>
+              </div>
+
+              <!-- 8. A+ 品牌图文详情模块 -->
+              <div>
+                <div style="font-size:12px;font-weight:700;margin-bottom:4px;">8. A+ 品牌图文详情模块：</div>
+                <div
+                  v-if="ws.summary.buyer_preview.aplus_html"
+                  style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;"
+                >
+                  <div style="min-width:0;">
+                    <strong style="font-size:12.5px;">{{ ws.summary.product_name }} · A+ Story</strong>
+                    <div style="font-size:11px;color:#cbd5e1;margin-top:2px;">
+                      已配置品牌横幅 + 场景卖点 + 参数对比表（点击上方「A+ 长页」查看完整渲染）
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-sm" @click="activeTab = 'aplus'">查看 A+ 完整长页</button>
+                </div>
+                <button v-else type="button" class="btn btn-sm" @click="router.push('/m7/video-aplus')">
+                  待生成 A+ 图文（去 M7-3）→
+                </button>
+              </div>
+
+              <!-- 9. 商品主图视频 (15s) -->
+              <div>
+                <div style="font-size:12px;font-weight:700;margin-bottom:4px;">9. 商品主图视频 (15s)：</div>
+                <div
+                  v-if="ws.summary.buyer_preview.video"
+                  style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:#0f172a;color:#fff;font-size:12px;"
+                >
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="pill p-green">▶ 15s 演示视频</span>
+                    <span>{{ ws.summary.buyer_preview.video.duration_sec }}s · 3段分镜双语字幕成片</span>
+                  </div>
+                  <button type="button" class="btn btn-sm" @click="activeTab = 'video'">播放成片</button>
+                </div>
+                <button v-else type="button" class="btn btn-sm" @click="router.push('/m7/video-aplus')">
+                  待生成 15s 短视频（去 M7-3）→
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
