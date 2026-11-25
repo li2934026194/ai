@@ -9,6 +9,7 @@ from app.core.config import get_settings
 from app.core.exceptions import M7Error
 from app.modules.m0_catalog.models import M0Order
 from app.modules.m1_cs.models import M1AftersalesTicket, M1CsSession, M1FaqEntry
+from app.modules.m1_cs.vector_store import milvus_adapter
 from app.modules.m1_cs.schemas import (
     AftersalesCreateReq,
     AftersalesDecisionReq,
@@ -122,7 +123,11 @@ class M1CsService:
             trace_id=trace_id,
         )
         await session.commit()
-        return {"faq_id": fid, "sku": sku_norm, "faq_count": len(req.faq_pairs)}
+        faq_text = " ".join(
+            [sku_norm, *(req.pain_points or []), *(f"{p.get('q', '')} {p.get('a', '')}" for p in (req.faq_pairs or []))]
+        )
+        vector_sync = milvus_adapter.index_products_batch_20(org_id, [{"sku": sku_norm, "text": faq_text}])
+        return {"faq_id": fid, "sku": sku_norm, "faq_count": len(req.faq_pairs), "vector_index": vector_sync}
 
     async def list_sessions(
         self,

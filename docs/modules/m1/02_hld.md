@@ -14,7 +14,7 @@
 ### 1.2 范围
 
 - **覆盖范围**：M1-1 会话与建单（`m1a`）、M1-2 导购 FAQ 知识库（`m1b`）、M1-4 买家咨询模拟（`m1d`）、M1-3 售后退款审批（`m1c`），以及向 M7 供数契约与向 M2 扣减净利的只读聚合关系。
-- **不覆盖范围**：V1 不覆盖 Amazon/Shopee/TikTok 真实站内信 Webhook 收发、独立向量数据库 Milvus 部署以及自动化第三方支付通道打款 API。
+- **不覆盖范围**：V1 不覆盖 Amazon/Shopee/TikTok 真实站内信 Webhook 收发与自动化第三方支付通道打款 API；向量检索（Milvus）与对象存储（MinIO）通过 `Compose profile` 按需启用并保留主库兜底。
 
 ### 1.3 术语表
 
@@ -157,7 +157,11 @@
 
 ---
 
-## 10. 运行环境与外部依赖
+## 10. 运行环境与外部依赖（对齐 V1.1 老师数据库与中间件标准）
 
-- **运行环境**：Python 3.11+、FastAPI、SQLAlchemy 2.0 Async；Vue 3 + TypeScript 前端工作台。
-- **V1.1 演进依赖**：V1.1 增加关键词/向量混合检索增强 FAQ 命中、防串店/双语一致合规校验器及上传打款截图资产存储（复用 `core/storage.py`）。
+- **运行环境**：Python 3.11+、FastAPI、SQLAlchemy 2.0 Async + `asyncpg`；Vue 3 + TypeScript 前端工作台。
+- **数据库与中间件架构**：
+  - **关系主库（必选）**：**PostgreSQL 15+**（存储 FAQ、会话、售后工单与审计台账，单库 `org_id` 隔离；开发单测兼容 SQLite 3.40+）。
+  - **向量检索（按需 `vector` profile）**：**Milvus + `pymilvus`**（`crosspilot_m1_products` 集合，按 20 件一批写入向量并校验维度，召回后回查 PostgreSQL 核验在售状态与店铺归属；未启用 Milvus 时自动回退主库停用词+CJK双字精准匹配）。
+  - **文件存储（按需）**：**MinIO**（`crosspilot-assets` Bucket 存放打款截图/售后附件；本地未起 MinIO 时回退 `FileStorage` 磁盘存储）。
+  - **异步队列与缓存（按需）**：**Redis + Celery Worker/Beat**（批量建索引任务调度，业务事实以 PostgreSQL 为唯一真源）。

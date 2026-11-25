@@ -18,7 +18,9 @@
 
 ---
 
-## 2. 数据库物理表结构设计
+## 2. 数据库物理表结构设计（PostgreSQL 15+ 标准方言）
+
+> **存储与事务规范**：基于 **PostgreSQL 15+ (`JSONB`, `TIMESTAMPTZ`, `asyncpg`)**；采购收货状态机 (`create_po -> ship -> receive -> cancel`) 采用行级事务与状态前置校验；周期性缺货预警扫描按需由 **Redis + Celery Beat** 触发；周复盘指标与采购快照使用 `JSONB` 持久化。
 
 ### 2.1 `m5_sales_history`（历史日销量流水表）
 

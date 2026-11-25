@@ -15,7 +15,9 @@
 
 ---
 
-## 2. 数据库物理表结构设计
+## 2. 数据库物理表结构设计（PostgreSQL 15+ 标准方言）
+
+> **存储规范**：基于 **PostgreSQL 15+ (`JSONB`, `TIMESTAMPTZ`, `asyncpg`)**，选品五维评分存为原生 `JSONB`，过会批准写 `m4_candidates` 与 `m0_products` 在同一事务中提交；批量导入 CSV 原件通过 `FileStorage` 存入 **MinIO**，大批量导入按需由 **Redis + Celery** 异步调度。
 
 ### 2.1 `m4_candidates`（选品候选评估表）
 

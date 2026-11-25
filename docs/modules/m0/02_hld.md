@@ -222,8 +222,9 @@
 
 ---
 
-## 10. 运行环境与外部依赖
+## 10. 运行环境与外部依赖（对齐 V1.1 老师数据库与中间件标准）
 
-- **服务端环境**：Python 3.11+、FastAPI 0.115+、SQLAlchemy 2.0 Async、Alembic；PostgreSQL 15+（生产）/ SQLite 3.40+（单机开发演示）。
+- **服务端环境**：Python 3.11+、FastAPI 0.115+、SQLAlchemy 2.0 Async + `asyncpg`、Alembic；**PostgreSQL 15+ 为正式主库**（本地单机无 Docker 测试态兼容 SQLite 3.40+）。
+- **配套基础设施**：**Redis + Celery**（订单/同步批处理异步任务与汇率缓存）、**MinIO**（导入原始 CSV/附件归档对象存储），由根目录 `docker-compose.yml` 一键拉起。
 - **前端环境**：Node.js 20+、Vue 3.4+、TypeScript 5+、Pinia 2+、Vite 5+；浏览器兼容 Chrome / Edge / Safari 最新两代主版本。
 - **V1 外部依赖说明**：V1 阶段不依赖外网电商开放平台生产密钥，可纯离线闭环运行；V2 对接真实店铺时通过环境变量注入平台 OAuth AppKey/Secret。

@@ -4,10 +4,13 @@ pydantic==2.10.4
 pydantic-settings==2.7.0
 sqlalchemy==2.0.36
 aiosqlite==0.20.0
+asyncpg==0.30.0
 alembic==1.14.0
 httpx==0.28.1
 pillow==11.0.0
+redis>=5.0.0
+celery>=5.4.0
+minio>=7.2.0
+pymilvus>=2.4.0
 pytest==8.3.4
 pytest-asyncio==0.25.0
-# 生产环境使用 PostgreSQL 时启用：
-# asyncpg==0.30.0

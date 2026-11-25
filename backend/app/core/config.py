@@ -22,7 +22,25 @@ class Settings(BaseSettings):
 
     M7_ENV: str = "development"
     DATABASE_URL: str = "sqlite+aiosqlite:///./m7_dev.db"
+
+    # 对象/文件存储（支持 local / minio / auto）
+    STORAGE_BACKEND: str = "auto"
     STORAGE_ROOT: str = "./m7_storage"
+    MINIO_ENDPOINT: str = ""
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin"
+    MINIO_BUCKET: str = "crosspilot-assets"
+    MINIO_SECURE: bool = False
+
+    # 缓存与异步任务队列（Redis + Celery）
+    REDIS_URL: str = ""
+    CELERY_BROKER_URL: str = ""
+    CELERY_RESULT_BACKEND: str = ""
+
+    # 向量检索（Milvus）
+    VECTOR_BACKEND: str = "auto"
+    MILVUS_URI: str = ""
+    MILVUS_COLLECTION: str = "crosspilot_m1_products"
 
     # 默认云端大模型：阿里云百炼；允许本地无密钥时按双模式策略回退
     CLOUD_LLM_PROVIDER: str = "dashscope"

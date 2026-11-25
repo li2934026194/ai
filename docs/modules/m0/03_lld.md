@@ -19,7 +19,9 @@
 
 ---
 
-## 2. 数据库物理表结构设计
+## 2. 数据库物理表结构设计（PostgreSQL 15+ 标准方言）
+
+> **存储引擎与跨库规范**：生产与标准测试环境采用 **PostgreSQL 15+ (`SQLAlchemy 2.0 Async + asyncpg`)**，统一使用 `TIMESTAMPTZ` 与 `org_id` 租户索引；批量 CSV 导入原件及同步日志通过 `core/storage.py` 归档至 **MinIO (`crosspilot-assets`)**；汇率/批处理状态按需使用 **Redis** 缓存（本地无中间件环境兼容 SQLite 3.40+ 与本地目录存储）。
 
 ### 2.1 `m0_shops`（店铺授权表）
 

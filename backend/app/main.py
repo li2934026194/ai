@@ -8,6 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth_rbac import ActorContext, require_perm
+from app.core.cache_queue import redis_cache
 from app.core.config import get_settings
 from app.core.database import AsyncSessionLocal, Base, engine, get_db_session
 from app.core.docs_router import router as docs_router
@@ -15,6 +16,7 @@ from app.core.exceptions import M7Error, build_envelope, m7_exception_handler
 from app.core.storage import FileStorage
 from app.core.tenant import OrgContext, get_org_context
 from app.mocks.seed_data import ensure_seed_data
+from app.modules.m1_cs.vector_store import milvus_adapter
 from app.modules.m0_catalog import models as _m0_models  # noqa: F401
 from app.modules.m1_cs import models as _m1_models  # noqa: F401
 from app.modules.m2_m3_bi import models as _m2_m3_models  # noqa: F401
@@ -106,12 +108,22 @@ def create_app() -> FastAPI:
     @app.get("/healthz")
     async def healthz(request: Request, session: AsyncSession = Depends(get_db_session)):
         await session.execute(text("SELECT 1"))
+        db_dialect = session.bind.dialect.name if session.bind else "unknown"
         storage = FileStorage()
         probe_file = storage.root / ".healthcheck"
         probe_file.write_text("ok", encoding="utf-8")
         probe_file.unlink(missing_ok=True)
+        redis_status = await redis_cache.ping()
+        milvus_status = milvus_adapter.status()
         return build_envelope(
-            data={"status": "healthy", "storage_writable": True},
+            data={
+                "status": "healthy",
+                "database_dialect": db_dialect,
+                "storage_writable": True,
+                "storage_backend": storage.backend_name,
+                "redis_status": redis_status,
+                "milvus_status": milvus_status,
+            },
             trace_id=getattr(request.state, "trace_id", ""),
         )
 

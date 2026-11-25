@@ -175,7 +175,13 @@
 
 ---
 
-## 10. 运行环境与外部依赖
+## 10. 运行环境与外部依赖（对齐 V1.1 老师数据库与中间件标准）
 
-- **运行环境**：Python 3.11+、FastAPI、PyJWT、SQLAlchemy 2.0 Async；前端 Vue 3 + Pinia 认证上下文存储。
-- **配置项**：`M7_JWT_SECRET`（生产强制强随机秘钥）、`M7_ENABLE_DEMO_ROLE_SWITCH`、`M7_STRICT_SEPARATION_OF_DUTIES`。
+- **运行环境**：Python 3.11+、FastAPI、PyJWT、SQLAlchemy 2.0 Async + `asyncpg`；前端 Vue 3 + Pinia 认证上下文存储。
+- **全平台基础设施栈（`docker-compose.yml`）**：
+  1. **关系主库（必选）**：**PostgreSQL 16**（`asyncpg` 驱动），承载全平台 31 张业务表、`JSONB`、`TIMESTAMPTZ`、局部唯一索引与不可篡改审计台账；本地无 Docker 时兼容 SQLite 3.40+。
+  2. **缓存与异步任务**：**Redis 7 + Celery Worker/Beat**（`core/cache_queue.py`），承担权限/合规规则矩阵 TTL 缓存与跨模块异步任务队列；连不通时回退进程内缓存与 `asyncio`。
+  3. **对象存储**：**MinIO**（`core/storage.py`），托管 `crosspilot-assets` Bucket；未配置时回退本地 `STORAGE_ROOT`。
+  4. **向量检索（`profiles: ["vector"]` 按需启动）**：**Milvus 2.4 + etcd**，供 M1 导购推荐与 M3 知识检索使用。
+  5. **健康探针（`/healthz`）**：统一返回 `database_dialect`、`storage_backend`、`redis_status`、`milvus_status`。
+- **配置项**：`DATABASE_URL`、`REDIS_URL`、`MINIO_ENDPOINT`、`MILVUS_URI`、`JWT_SECRET_KEY`、`M7_ENABLE_DEMO_ROLE_SWITCH`、`M7_STRICT_SEPARATION_OF_DUTIES`。

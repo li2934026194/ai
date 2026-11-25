@@ -16,7 +16,9 @@
 
 ---
 
-## 2. 数据库物理表结构设计
+## 2. 数据库物理表结构设计（PostgreSQL 15+ + Milvus + MinIO）
+
+> **存储分工（严格对齐 V1.1 老师技术栈标准）**：结构化业务事实（FAQ、会话、售后工单）全量落 **PostgreSQL 15+ (`JSONB`, `TIMESTAMPTZ`, `asyncpg`)** 作为唯一最终真源；导购商品推荐向量索引使用 **Milvus (`crosspilot_m1_products`)**；售后凭证附件与截图归档至 **MinIO (`crosspilot-assets`)**。
 
 ### 2.1 `m1_faq_entries`（SKU 导购痛点与 FAQ 表）
 
@@ -57,6 +59,12 @@
 | `decision_note` | `TEXT` | NULLABLE | `NULL` | 主管审批意见 |
 
 ---
+
+### 2.4 Milvus 向量集合与 MinIO 对象键设计（`vector_store.py` / `storage.py`）
+
+- **Milvus Collection**：`crosspilot_m1_products`（`COSINE` 相似度，64 维归一化向量，标量字段 `org_id`, `sku`, `seq`）。
+- **20 件批量索引流程**：`upsert_faq` / 批量导入调用 `milvus_adapter.index_products_batch_20()`，每 20 条一批校验向量维度与条数后 `upsert` 进 Milvus；检索时先按 `org_id` 标量过滤召回 Top-3 SKU，再回表 PostgreSQL 复核 `M0Product` 与 `M1FaqEntry` 实时状态；未启用 Milvus profile 时安全降级为主库停用词+CJK双字匹配。
+- **MinIO 对象路径**：`orgs/{org_id}/m1/aftersales/{ticket_id}/{filename}`（Magic MIME 白名单校验）。
 
 ## 3. 状态流转与异常错误码
 

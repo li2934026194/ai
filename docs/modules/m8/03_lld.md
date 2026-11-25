@@ -16,7 +16,13 @@
 
 ---
 
-## 2. 数据库物理表结构设计
+## 2. 数据库物理表结构设计（PostgreSQL 15+ + Redis + Celery + MinIO）
+
+> **全平台底座基础设施规范**：
+> - **PostgreSQL 15+ (`asyncpg`)**：Alembic 迁移（`0001_init_m7.py` + `0002_platform_m0_m8.py`）全量兼容 PostgreSQL `JSONB`、`TIMESTAMPTZ`、布尔标准 `TRUE/FALSE` 默认值及局部唯一索引（`WHERE deleted_at IS NULL`）。
+> - **Redis + Celery (`core/cache_queue.py`)**：缓存 Key `cp:{org_id}:m7:rules`（TTL 300s，规则变更即时 `delete_prefix` 广播清除）；Celery Broker/Backend 承载异步任务。
+> - **MinIO (`core/storage.py`)**：统一对象存储 Bucket `crosspilot-assets`，支持自动建桶与本地磁盘无容器回退。
+> - **健康探针（`GET /healthz`）**：实时返回 `database_dialect`、`storage_backend`、`redis_status`、`milvus_status`。
 
 ### 2.1 `m8_orgs`（组织租户表）& `m8_users`（员工名册表）
 

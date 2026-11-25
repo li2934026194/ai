@@ -17,7 +17,9 @@
 
 ---
 
-## 2. 数据库物理表结构设计
+## 2. 数据库物理表结构设计（PostgreSQL 15+ 标准方言）
+
+> **存储与并发隔离**：基于 **PostgreSQL 15+ (`asyncpg`)**，M2 经营驾驶舱多指标卡各自使用独立异步数据库会话，互不阻塞；指标汇总缓存按需写入 **Redis**（TTL 60s）；M3 问数只读连接严禁对 PostgreSQL 执行任何 DML/DDL 语句；知识库检索按需使用 **Milvus (`vector` profile)**。
 
 ### 2.1 `m2_ad_campaigns`（广告投放计划表）
 
