@@ -35,19 +35,25 @@ from app.modules.m8_org.router import auth_router as m8_auth_router, router as m
 
 async def _ensure_compat_columns(conn) -> None:
     alters = [
-        ("m8_users", "password_hash", "VARCHAR(256)"),
-        ("m8_users", "allowed_shop_ids_json", "TEXT NOT NULL DEFAULT '[]'"),
-        ("m0_shops", "credential_mask", "VARCHAR(32) NOT NULL DEFAULT '****4821'"),
-        ("m4_candidates", "source_nature", "VARCHAR(32) NOT NULL DEFAULT 'internal_live'"),
-        ("m4_candidates", "fulfillment_mode", "VARCHAR(16) NOT NULL DEFAULT 'FBA'"),
-        ("m4_candidates", "ip_risk_note", "TEXT NOT NULL DEFAULT ''"),
+        ("m8_users", "password_hash", "VARCHAR(256)", "VARCHAR(256)"),
+        ("m8_users", "allowed_shop_ids_json", "TEXT NOT NULL DEFAULT '[]'", "JSONB NOT NULL DEFAULT '[]'::jsonb"),
+        ("m0_shops", "credential_mask", "VARCHAR(32) NOT NULL DEFAULT '****4821'", "VARCHAR(32) NOT NULL DEFAULT '****4821'"),
+        ("m4_candidates", "source_nature", "VARCHAR(32) NOT NULL DEFAULT 'internal_live'", "VARCHAR(32) NOT NULL DEFAULT 'internal_live'"),
+        ("m4_candidates", "fulfillment_mode", "VARCHAR(16) NOT NULL DEFAULT 'FBA'", "VARCHAR(16) NOT NULL DEFAULT 'FBA'"),
+        ("m4_candidates", "ip_risk_note", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
     ]
-    for tbl, col, ddl in alters:
+    if conn.dialect.name == "postgresql":
+        for tbl, col, _sqlite_ddl, pg_ddl in alters:
+            await conn.execute(text(f"ALTER TABLE IF EXISTS {tbl} ADD COLUMN IF NOT EXISTS {col} {pg_ddl}"))
+        return
+    if conn.dialect.name != "sqlite":
+        return
+    for tbl, col, sqlite_ddl, _pg_ddl in alters:
         try:
             res = await conn.execute(text(f"PRAGMA table_info({tbl})"))
             existing = {r[1] for r in res.fetchall()}
             if existing and col not in existing:
-                await conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN {col} {ddl}"))
+                await conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN {col} {sqlite_ddl}"))
         except Exception:
             pass
 

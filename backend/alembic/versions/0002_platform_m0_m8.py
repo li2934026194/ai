@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column("display_name", sa.String(64), nullable=False),
         sa.Column("role_code", sa.String(64), nullable=False),
         sa.Column("email", sa.String(128), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
     op.create_index("ix_m8_users_org_id", "m8_users", ["org_id"])
@@ -45,8 +45,8 @@ def upgrade() -> None:
         sa.Column("name", sa.String(128), nullable=False),
         sa.Column("threshold_rule", sa.String(256), nullable=False),
         sa.Column("approver_role", sa.String(64), nullable=False),
-        sa.Column("enforce_sod", sa.Boolean(), nullable=False, server_default=sa.text("1")),
-        sa.Column("is_enabled", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("enforce_sod", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column("is_enabled", sa.Boolean(), nullable=False, server_default=sa.true()),
     )
     op.create_index("ix_m8_approval_policies_org_id", "m8_approval_policies", ["org_id"])
 
@@ -58,7 +58,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(128), nullable=False),
         sa.Column("platform", sa.String(24), nullable=False),
         sa.Column("currency", sa.String(12), nullable=False, server_default="USD"),
-        sa.Column("is_mock", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_mock", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("status", sa.String(24), nullable=False, server_default="CONNECTED"),
         sa.Column("last_sync_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.UniqueConstraint("org_id", "shop_code", name="uq_m0_shop_code"),
@@ -117,7 +117,7 @@ def upgrade() -> None:
         sa.Column("order_date", sa.String(16), nullable=False),
         sa.Column("qty", sa.Integer(), nullable=False, server_default="1"),
         sa.Column("revenue_usd", sa.Float(), nullable=False, server_default="0.0"),
-        sa.Column("is_mock", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_mock", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("status", sa.String(24), nullable=False, server_default="PAID"),
     )
     op.create_index("ix_m0_orders_org_id", "m0_orders", ["org_id"])
@@ -148,7 +148,7 @@ def upgrade() -> None:
         sa.Column("unit_price_rmb", sa.Float(), nullable=False),
         sa.Column("moq", sa.Integer(), nullable=False, server_default="100"),
         sa.Column("lead_time_days", sa.Integer(), nullable=False, server_default="18"),
-        sa.Column("is_simulated", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_simulated", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("note", sa.Text(), nullable=False, server_default=""),
     )
     op.create_index("ix_m0_supplier_quotes_org_id", "m0_supplier_quotes", ["org_id"])
@@ -176,7 +176,7 @@ def upgrade() -> None:
         sa.Column("channel", sa.String(32), nullable=False, server_default="Amazon Buyer Msg"),
         sa.Column("question", sa.Text(), nullable=False),
         sa.Column("reply", sa.Text(), nullable=False, server_default=""),
-        sa.Column("is_mock", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_mock", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("status", sa.String(24), nullable=False, server_default="OPEN"),
         sa.Column("handler_id", sa.String(64), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
@@ -343,7 +343,7 @@ def upgrade() -> None:
         sa.Column("week_label", sa.String(32), nullable=False),
         sa.Column("summary_text", sa.Text(), nullable=False),
         sa.Column("metrics_json", JSONBCompat, nullable=False),
-        sa.Column("is_mock", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("is_mock", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("created_by", sa.String(64), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
