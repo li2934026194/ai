@@ -35,6 +35,7 @@ class RuleEvaluator:
 
         # 1. 文案合规与字符/字节校验（使用数据库持久化的服务端规则词库）
         copy_issues: list[str] = []
+        soft_warnings: list[str] = []
         for slot in CORE_COPY_SLOTS:
             asset = by_slot.get(slot)
             if not asset:
@@ -44,6 +45,8 @@ class RuleEvaluator:
             res = self.scanner.scan(
                 text_val, slot=slot, rule=rule, platform=rule.platform
             )
+            if res.all_caps_words:
+                soft_warnings.append(f"{slot} 含全大写词（软提示）: {', '.join(res.all_caps_words)}")
             if not res.passed:
                 reasons = []
                 if res.ban_hits:
@@ -52,8 +55,6 @@ class RuleEvaluator:
                     reasons.append(f"商标词:{','.join(res.trademark_hits)}")
                 if res.regulatory_hits:
                     reasons.append(f"监管词:{','.join(res.regulatory_hits)}")
-                if res.all_caps_words:
-                    reasons.append(f"全大写:{','.join(res.all_caps_words)}")
                 if res.over_len:
                     reasons.append(f"超限({res.utf8_bytes if res.limit_unit=='bytes' else res.char_count}>{res.max_limit}{res.limit_unit})")
                 copy_issues.append(f"{slot}({'; '.join(reasons)})")
@@ -186,7 +187,7 @@ class RuleEvaluator:
             "checks": checks,
             "deliverable_count": deliverable_count,
             "overall_pass": all(c["passed"] for c in checks),
-            "warnings": cert_warnings,
+            "warnings": [*cert_warnings, *soft_warnings],
         }
 
     @staticmethod

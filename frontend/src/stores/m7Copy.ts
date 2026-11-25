@@ -20,6 +20,48 @@ export const EXT_COPY_SLOT_DEFS = [
   { key: "copy_warranty", label: "质保与售后说明", core: false },
 ] as const;
 
+export const QUICK_MUST_CHIPS = ["CrossPilot Lab", "USB-C", "BPA-Free", "Lightweight"] as const;
+
+export function escapeHtml(raw: string): string {
+  return (raw || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function highlightCopyHtml(
+  rawText: string,
+  mustHits: string[] = [],
+  badHits: string[] = []
+): string {
+  let out = escapeHtml(rawText);
+  for (const term of badHits) {
+    const t = term.trim();
+    if (!t) continue;
+    const re = new RegExp(`(${escapeRegExp(escapeHtml(t))})`, "gi");
+    out = out.replace(
+      re,
+      '<mark style="background:#fee2e2;color:#991b1b;text-decoration:underline;padding:0 2px;border-radius:3px;">$1</mark>'
+    );
+  }
+  for (const term of mustHits) {
+    const t = term.trim();
+    if (!t) continue;
+    const re = new RegExp(`(${escapeRegExp(escapeHtml(t))})`, "gi");
+    out = out.replace(
+      re,
+      '<mark style="background:#dcfce7;color:#166534;padding:0 2px;border-radius:3px;">$1</mark>'
+    );
+  }
+  return out;
+}
+
 export const useM7CopyStore = defineStore("m7Copy", () => {
   const activeSlot = ref("copy_title");
   const lang = ref("en-US");
@@ -34,6 +76,7 @@ export const useM7CopyStore = defineStore("m7Copy", () => {
   const editStatus = ref<string>("AI_GENERATED");
   const scanResult = ref<CopyScanResult | null>(null);
   const errorMsg = ref("");
+  const isConflict409 = ref(false);
   const busy = ref(false);
 
   let scanTimer: ReturnType<typeof setTimeout> | null = null;
@@ -43,6 +86,15 @@ export const useM7CopyStore = defineStore("m7Copy", () => {
       .split(/[,，]/)
       .map((s) => s.trim())
       .filter(Boolean);
+  }
+
+  function appendMustChip(chip: string) {
+    const cur = parseList(extraMust.value);
+    if (!cur.some((x) => x.toLowerCase() === chip.toLowerCase())) {
+      cur.push(chip);
+      extraMust.value = cur.join(", ");
+    }
+    scheduleRealtimeScan();
   }
 
   function loadSelectedFromSummary() {
@@ -64,6 +116,7 @@ export const useM7CopyStore = defineStore("m7Copy", () => {
       scanResult.value = null;
     }
     errorMsg.value = "";
+    isConflict409.value = false;
   }
 
   async function generateVariants() {
@@ -86,6 +139,39 @@ export const useM7CopyStore = defineStore("m7Copy", () => {
       ws.showToast(`已生成 3 组 ${activeSlot.value} 候选文案`);
     } catch (e) {
       errorMsg.value = (e as Error).message;
+    } finally {
+      busy.value = false;
+    }
+  }
+
+  async function autoAdopt4CoreSlots() {
+    const ws = useM7WorkspaceStore();
+    busy.value = true;
+    errorMsg.value = "";
+    try {
+      for (const s of CORE_COPY_SLOT_DEFS) {
+        const res = await m7Api.generateCopy(
+          {
+            sku: ws.currentSku,
+            platform: ws.platform,
+            lang: lang.value,
+            asset_slot: s.key,
+            extra_must: parseList(extraMust.value),
+            extra_ban: parseList(extraBan.value),
+          },
+          `auto4-${ws.currentSku}-${ws.platform}-${s.key}-${Date.now()}`
+        );
+        const compliant =
+          res.variants.find((v) => v.scan_result_json?.passed) || res.variants[0];
+        if (compliant) {
+          await m7Api.selectCopyAsset(compliant.asset_id);
+        }
+      }
+      await ws.hydrateSummary();
+      loadSelectedFromSummary();
+      ws.showToast("已完成 4 类核心文案一键生成与合规采纳（4/4）");
+    } catch (e) {
+      if (e instanceof M7ApiError) errorMsg.value = `${e.code}: ${e.message}`;
     } finally {
       busy.value = false;
     }
@@ -143,9 +229,14 @@ export const useM7CopyStore = defineStore("m7Copy", () => {
 
   async function saveManualEdit() {
     if (!editingAssetId.value) return;
+    if (!editingText.value.trim()) {
+      errorMsg.value = "修改后的文案不能为空";
+      return;
+    }
     const ws = useM7WorkspaceStore();
     busy.value = true;
     errorMsg.value = "";
+    isConflict409.value = false;
     try {
       const updated = await m7Api.editCopyAsset(editingAssetId.value, {
         text: editingText.value,
@@ -161,6 +252,7 @@ export const useM7CopyStore = defineStore("m7Copy", () => {
     } catch (e) {
       if (e instanceof M7ApiError) {
         errorMsg.value = `${e.code}: ${e.message}`;
+        if (e.code === "M7-4091") isConflict409.value = true;
         if (e.code === "M7-4221" && e.data) {
           scanResult.value = e.data as CopyScanResult;
         }
@@ -168,6 +260,13 @@ export const useM7CopyStore = defineStore("m7Copy", () => {
     } finally {
       busy.value = false;
     }
+  }
+
+  async function refreshLatestFromServer() {
+    const ws = useM7WorkspaceStore();
+    await ws.hydrateSummary();
+    loadSelectedFromSummary();
+    ws.showToast("已同步服务端最新版本");
   }
 
   async function restoreOriginal() {
@@ -203,13 +302,18 @@ export const useM7CopyStore = defineStore("m7Copy", () => {
     editStatus,
     scanResult,
     errorMsg,
+    isConflict409,
     busy,
+    parseList,
+    appendMustChip,
     loadSelectedFromSummary,
     generateVariants,
+    autoAdopt4CoreSlots,
     selectVariant,
     scheduleRealtimeScan,
     runRealtimeScan,
     saveManualEdit,
+    refreshLatestFromServer,
     restoreOriginal,
   };
 });

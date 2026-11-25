@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { usePermission } from "@/composables/usePermission";
 import {
   CORE_COPY_SLOT_DEFS,
   EXT_COPY_SLOT_DEFS,
+  QUICK_MUST_CHIPS,
+  highlightCopyHtml,
   useM7CopyStore,
 } from "@/stores/m7Copy";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
@@ -11,6 +13,18 @@ import { useM7WorkspaceStore } from "@/stores/m7Workspace";
 const ws = useM7WorkspaceStore();
 const copy = useM7CopyStore();
 const { canEdit } = usePermission();
+const showBilingual = ref(true);
+
+const editorHighlightHtml = computed(() => {
+  const sr = copy.scanResult;
+  const must = sr?.must_hits || [];
+  const bad = [
+    ...(sr?.ban_hits || []),
+    ...(sr?.trademark_hits || []),
+    ...(sr?.regulatory_hits || []),
+  ];
+  return highlightCopyHtml(copy.editingText, must, bad);
+});
 
 function switchSlot(slotKey: string) {
   copy.activeSlot = slotKey;
@@ -37,7 +51,10 @@ onMounted(() => {
     <div v-if="ws.currentProduct" class="card">
       <div class="card-title">
         <span>M7-1 多语言商品文案 · 上游事实与 FAQ 锚定（只读）</span>
-        <span class="pill p-blue">{{ ws.currentProduct.category_label_zh }} · ${{ ws.currentProduct.sale_price_usd }}</span>
+        <span class="pill p-blue">
+          {{ ws.currentProduct.origin === "M4_APPROVED" ? "M4已批准测款" : "在售老品翻新" }} ·
+          {{ ws.currentProduct.category_label_zh }} · ${{ ws.currentProduct.sale_price_usd }}
+        </span>
       </div>
       <div class="grid-2">
         <div>
@@ -65,6 +82,10 @@ onMounted(() => {
     <div class="card">
       <div class="card-title">
         <span>文案交付槽位（核心 4 项计入 8/8 · 扩展 6 项独立统计）</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;cursor:pointer;">
+          <input v-model="showBilingual" type="checkbox" />
+          <span>展示双语与高亮预览</span>
+        </label>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
         <button
@@ -104,8 +125,21 @@ onMounted(() => {
           </select>
         </div>
         <div>
-          <label class="field-label">附加品牌必用词（逗号分隔）</label>
+          <label class="field-label">附加品牌必用词（快捷追加去重）</label>
           <input v-model="copy.extraMust" class="input" :disabled="!canEdit" />
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+            <button
+              v-for="chip in QUICK_MUST_CHIPS"
+              :key="chip"
+              type="button"
+              class="btn btn-sm"
+              style="padding:2px 8px;font-size:11px;"
+              :disabled="!canEdit"
+              @click="copy.appendMustChip(chip)"
+            >
+              + {{ chip }}
+            </button>
+          </div>
         </div>
         <div>
           <label class="field-label">附加禁用词（逗号分隔）</label>
@@ -113,7 +147,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div style="display:flex;gap:10px;align-items:center;">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <button
           type="button"
           class="btn btn-primary"
@@ -121,6 +155,14 @@ onMounted(() => {
           @click="copy.generateVariants()"
         >
           {{ copy.busy ? "生成中..." : "✨ 生成 3 组合规候选文案" }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-success"
+          :disabled="!canEdit || copy.busy"
+          @click="copy.autoAdopt4CoreSlots()"
+        >
+          ⚡ 一键采纳 4 类核心文案
         </button>
         <span v-if="!canEdit" class="pill p-gray">当前角色为只读视图，生成与编辑已禁用</span>
       </div>
@@ -135,9 +177,20 @@ onMounted(() => {
             {{ v.scan_result_json?.passed ? "扫描通过" : "命中拦截" }}
           </span>
         </div>
-        <p style="font-size:12.5px;white-space:pre-wrap;min-height:86px;color:#1e293b;">
-          {{ v.content_json.text }}
-        </p>
+        <div
+          style="font-size:12.5px;white-space:pre-wrap;min-height:86px;color:#1e293b;margin-bottom:8px;"
+          v-html="
+            highlightCopyHtml(
+              v.content_json.text || '',
+              v.scan_result_json?.must_hits || [],
+              [
+                ...(v.scan_result_json?.ban_hits || []),
+                ...(v.scan_result_json?.trademark_hits || []),
+                ...(v.scan_result_json?.regulatory_hits || []),
+              ]
+            )
+          "
+        />
         <button
           type="button"
           class="btn btn-sm btn-primary"
@@ -154,17 +207,28 @@ onMounted(() => {
       <div class="card-title">
         <span>已选交付文案微调与实时合规扫描（{{ copy.activeSlot }}）</span>
         <div style="display:flex;gap:6px;align-items:center;">
+          <span v-if="copy.editStatus === 'MANUALLY_EDITED'" class="pill p-amber">（已人工微调）</span>
           <span class="pill p-gray">状态: {{ copy.editStatus }}</span>
           <span class="pill p-blue">版本: v{{ copy.editingVersion }}</span>
         </div>
       </div>
 
       <div v-if="!copy.editingAssetId" class="alert alert-blue">
-        当前槽位尚未采纳文案，请先点击上方「生成 3 组合规候选文案」并采纳任意一组。
+        当前槽位尚未采纳文案，请先点击上方「生成 3 组合规候选文案」或「⚡ 一键采纳 4 类核心文案」。
       </div>
 
       <template v-else>
-        <div v-if="copy.errorMsg" class="alert alert-red">{{ copy.errorMsg }}</div>
+        <div v-if="copy.errorMsg" class="alert alert-red" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <span>{{ copy.errorMsg }}</span>
+          <button
+            v-if="copy.isConflict409"
+            type="button"
+            class="btn btn-sm"
+            @click="copy.refreshLatestFromServer()"
+          >
+            刷新最新版本
+          </button>
+        </div>
 
         <textarea
           v-model="copy.editingText"
@@ -172,6 +236,17 @@ onMounted(() => {
           :disabled="!canEdit"
           @input="copy.scheduleRealtimeScan()"
         />
+
+        <!-- 绿底品牌词 + 红底违禁词实时高亮透视 -->
+        <div
+          v-if="showBilingual"
+          style="margin-top:8px;padding:8px 10px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;font-size:12.5px;white-space:pre-wrap;"
+        >
+          <span style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;">
+            词库实时高亮透视（绿底=品牌必用词 · 红底下划线=违禁/商标/监管拦截词）：
+          </span>
+          <span v-html="editorHighlightHtml" />
+        </div>
 
         <!-- 实时扫描提示 -->
         <div
@@ -194,13 +269,13 @@ onMounted(() => {
             违禁词命中：{{ copy.scanResult.ban_hits.join(", ") }}
           </div>
           <div v-if="copy.scanResult.trademark_hits.length" style="margin-top:4px;">
-            商标词命中：{{ copy.scanResult.trademark_hits.join(", ") }}
+            商标侵权词命中：{{ copy.scanResult.trademark_hits.join(", ") }}
           </div>
           <div v-if="copy.scanResult.regulatory_hits.length" style="margin-top:4px;">
             监管敏感词命中：{{ copy.scanResult.regulatory_hits.join(", ") }}
           </div>
-          <div v-if="copy.scanResult.all_caps_words.length" style="margin-top:4px;">
-            全大写禁用词：{{ copy.scanResult.all_caps_words.join(", ") }}
+          <div v-if="copy.scanResult.all_caps_words.length" style="margin-top:4px;color:#b45309;">
+            ⚠ 全大写词软提示（不阻断保存，建议改写）：{{ copy.scanResult.all_caps_words.join(", ") }}
           </div>
           <div v-if="Object.keys(copy.scanResult.suggestions).length" style="margin-top:4px;">
             合规改写建议：
@@ -222,7 +297,7 @@ onMounted(() => {
             :disabled="!canEdit || copy.busy"
             @click="copy.saveManualEdit()"
           >
-            💾 保存微调（校验入库并保留 AI 原稿）
+            💾 保存修改（校验入库并保留 AI 原稿）
           </button>
           <button
             type="button"

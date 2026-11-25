@@ -5,6 +5,8 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import M7RelayBar from "@/components/M7RelayBar.vue";
 import { ALL_9_ROLES, usePermission } from "@/composables/usePermission";
 import { useM7ComplianceStore } from "@/stores/m7Compliance";
+import { highlightCopyHtml, useM7CopyStore } from "@/stores/m7Copy";
+import { useM7MediaStore } from "@/stores/m7Media";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
 import M7CompliancePackView from "@/views/m7/M7CompliancePackView.vue";
 
@@ -29,7 +31,7 @@ vi.mock("@/api/m7", async (importOriginal) => {
   };
 });
 
-describe("M7 Frontend RBAC & Components", () => {
+describe("M7 Frontend RBAC, Compliance & Components", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
   });
@@ -66,7 +68,44 @@ describe("M7 Frontend RBAC & Components", () => {
     }
   });
 
-  it("renders relay progress and buyer preview without NaN", async () => {
+  it("handles copy chips deduplication, regex metacharacters, XSS escape & empty edit guard", async () => {
+    const copy = useM7CopyStore();
+    copy.extraMust = "CrossPilot Lab";
+    copy.appendMustChip("USB-C");
+    copy.appendMustChip("USB-C");
+    expect(copy.extraMust).toBe("CrossPilot Lab, USB-C");
+
+    // TC-CMP-05 & TC-SEC-04: special regex characters + XSS escaping
+    const html = highlightCopyHtml(
+      'C++ 2.4G [Pro] #1 <script>alert(1)</script>',
+      ["C++", "2.4G", "[Pro]"],
+      ["#1"]
+    );
+    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("<mark");
+
+    // TC-FN-08: empty copy edit guard
+    copy.editingAssetId = "ast_123";
+    copy.editingText = "   ";
+    await copy.saveManualEdit();
+    expect(copy.errorMsg).toBe("修改后的文案不能为空");
+  });
+
+  it("guards M7-3 M7-1 copy reference and M7-4 empty approval note", async () => {
+    const ws = useM7WorkspaceStore();
+    const media = useM7MediaStore();
+    ws.summary = null;
+    expect(media.fillSegmentFromM7Copy(0)).toBe(false);
+    expect(media.videoError).toContain("M7-1 尚未选定标题或五点描述");
+
+    const comp = useM7ComplianceStore();
+    comp.approveNote = "   ";
+    await comp.approve("APPROVED");
+    expect(comp.errorMsg).toBe("请填写主管审批意见");
+  });
+
+  it("renders relay progress, 6-tab overview, buyer preview without NaN, and RBAC gates", async () => {
     const ws = useM7WorkspaceStore();
     ws.products = [
       {
@@ -81,7 +120,7 @@ describe("M7 Frontend RBAC & Components", () => {
         approver: "王总监",
         decision_reason: "M4 approved",
         brand_name: "AeroChef",
-        specs: { capacity: "5.5L" },
+        specs: { capacity: "5.5L", wattage: "" },
         selling_points: ["1700W rapid air"],
         faq: { pain_points: ["Non-stick cleaning"], faq_pairs: [] },
         progress_hint: { core_copy_done: 4, ext_copy_done: 2 },
@@ -97,11 +136,11 @@ describe("M7 Frontend RBAC & Components", () => {
         { slot: "copy_title", label: "Title", done: true, jump_route: "/m7/copy" },
         { slot: "copy_bullets", label: "Bullets", done: true, jump_route: "/m7/copy" },
         { slot: "copy_desc", label: "Desc", done: true, jump_route: "/m7/copy" },
-        { slot: "copy_search_terms", label: "ST", done: true, jump_route: "/m7/copy" },
-        { slot: "img_pack_1_4", label: "Images", done: true, jump_route: "/m7/images" },
-        { slot: "vid_15s", label: "Video", done: false, jump_route: "/m7/video-aplus" },
+        { slot: "copy_kw", label: "KW", done: true, jump_route: "/m7/copy" },
+        { slot: "img_0", label: "Main", done: true, jump_route: "/m7/images" },
+        { slot: "img_1_4", label: "Images", done: true, jump_route: "/m7/images" },
         { slot: "aplus_page", label: "A+", done: true, jump_route: "/m7/video-aplus" },
-        { slot: "compliance_5check", label: "5-Check", done: true, jump_route: "/m7/compliance" },
+        { slot: "vid_15s", label: "Video", done: false, jump_route: "/m7/video-aplus" },
       ],
       ext_items: [],
       missing_items: [{ slot: "vid_15s", label: "Video", done: false, jump_route: "/m7/video-aplus" }],
@@ -111,7 +150,7 @@ describe("M7 Frontend RBAC & Components", () => {
       active_approval: null,
       approval_status: "PENDING_CHECK",
       buyer_preview: {
-        banner: "预览，尚未发布 · MOCK",
+        banner: "预览，尚未发布",
         is_mock: true,
         title: "5.5L Air Fryer",
         sale_price_usd: 79.99,
@@ -119,7 +158,7 @@ describe("M7 Frontend RBAC & Components", () => {
         discount_pct: null,
         bullets: ["Easy clean basket"],
         description: "Reliable 5.5L kitchen air fryer.",
-        specs: { capacity: "5.5L" },
+        specs: { capacity: "5.5L", wattage: "" },
         images: [],
         video: null,
         aplus_html: "",
@@ -144,11 +183,7 @@ describe("M7 Frontend RBAC & Components", () => {
     expect(relayWrapper.text()).toContain("核心交付进度 7/8");
     expect(relayWrapper.text()).toContain("扩展文案 2/6");
 
-    // Creator cannot click approve button
     ws.currentRole = "creator";
-    const comp = useM7ComplianceStore();
-    comp.buyerDrawerOpen = true;
-
     const compWrapper = mount(M7CompliancePackView, {
       global: { plugins: [router] },
     });
@@ -156,8 +191,8 @@ describe("M7 Frontend RBAC & Components", () => {
     expect((approveBtn.element as HTMLButtonElement).disabled).toBe(true);
     expect(compWrapper.text()).not.toContain("NaN");
     expect(compWrapper.text()).toContain("预览，尚未发布");
+    expect(compWrapper.text()).toContain("待补（去 M0-2）");
 
-    // Approver enables approve button
     ws.currentRole = "approver";
     await compWrapper.vm.$nextTick();
     expect((approveBtn.element as HTMLButtonElement).disabled).toBe(false);

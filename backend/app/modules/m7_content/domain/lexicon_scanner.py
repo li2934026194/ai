@@ -29,6 +29,7 @@ REWRITE_SUGGESTIONS: dict[str, str] = {
 
 ALLOWED_ACRONYMS: set[str] = {
     "USB",
+    "USBC",
     "USB-C",
     "HDMI",
     "LED",
@@ -175,7 +176,6 @@ class LexiconScanner:
             len(ban_hits) == 0
             and len(tm_hits) == 0
             and len(reg_hits) == 0
-            and len(all_caps) == 0
             and not over_len
         )
 

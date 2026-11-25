@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { ComplianceRuleDTO } from "@/api/m7";
 import { usePermission } from "@/composables/usePermission";
@@ -15,6 +15,14 @@ const editingRule = ref<ComplianceRuleDTO | null>(null);
 const certType = ref("UL");
 const certNo = ref("UL-2026-88412");
 const certExpire = ref("2027-12-31");
+
+type OverviewTab = "buyer" | "copy" | "images" | "video" | "aplus" | "audit";
+const activeTab = ref<OverviewTab>("buyer");
+
+const activeRule = computed(() => {
+  const cat = ws.currentProduct?.category;
+  return comp.rules.find((r) => r.platform === ws.platform && (!cat || r.category === cat)) || null;
+});
 
 watch(
   () => ws.currentSku,
@@ -44,185 +52,36 @@ async function saveEditedRule() {
   <div>
     <div v-if="comp.errorMsg" class="alert alert-red">{{ comp.errorMsg }}</div>
 
-    <!-- 1. 8+N 交付总览 + 5 项独立上架合规检查 -->
+    <!-- 上方双栏：左=站点×类目规则与资质；右=5项合规检查与主管审批导出 -->
     <div class="grid-2">
       <div class="card">
         <div class="card-title">
-          <span>8+N 交付清单完整度与缺失一键跳修</span>
-          <span class="pill" :class="ws.doneCnt === 8 ? 'p-green' : 'p-amber'">
-            核心 {{ ws.doneCnt }}/8 · 扩展 {{ ws.extDoneCnt }}/6
-          </span>
+          <span>规则矩阵（{{ ws.platform }} / {{ ws.currentProduct?.category_label_zh || "-" }}）& 资质台账</span>
+          <span v-if="!canMaintainRules" class="pill p-gray">仅主管可维护</span>
         </div>
 
-        <table class="table">
-          <thead>
-            <tr><th>交付项</th><th>状态</th><th>操作</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in ws.summary?.core_items || []" :key="item.slot">
-              <td>{{ item.label }}</td>
-              <td>
-                <span class="pill" :class="item.done ? 'p-green' : 'p-red'">
-                  {{ item.done ? "已就绪" : "缺失" }}
-                </span>
-              </td>
-              <td>
-                <button
-                  v-if="!item.done"
-                  type="button"
-                  class="btn btn-sm btn-primary"
-                  @click="router.push(item.jump_route)"
-                >
-                  去补齐 →
-                </button>
-                <span v-else style="color:#64748b;font-size:12px;">已入库</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <div class="card-title">
-          <span>5 项独立上架合规检查 & 买家视角预览</span>
-          <div style="display:flex;gap:6px;">
+        <div
+          v-if="activeRule"
+          style="padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;font-size:12.5px;"
+        >
+          <div>
+            <strong>当前命中规则 {{ activeRule.rule_version }}：</strong>
+            标题 ≤ {{ activeRule.title_max_chars }} 字符 · 搜索词 ≤ {{ activeRule.search_terms_max_bytes }}B ·
+            必备资质：{{ activeRule.required_certs_json.length ? activeRule.required_certs_json.join(", ") : "无" }}
+          </div>
+          <div style="margin-top:4px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#475569;">全平台规则矩阵（共 {{ comp.rules.length }} 条）</span>
             <button
               type="button"
               class="btn btn-sm"
-              @click="comp.buyerDrawerOpen = true"
+              :disabled="!canMaintainRules"
+              @click="openRuleEditor(activeRule)"
             >
-              👁 买家视角预览
-            </button>
-            <button
-              type="button"
-              class="btn btn-sm btn-primary"
-              :disabled="!canRunCompliance || comp.busy"
-              @click="comp.run5Checks()"
-            >
-              {{ comp.busy ? "核查中..." : "🛡 1. 运行 5 项上架合规检查" }}
+              编辑当前规则
             </button>
           </div>
         </div>
 
-        <div v-if="!ws.summary?.latest_check" class="alert alert-blue">
-          尚未运行正式上架合规检查。点击「运行 5 项上架合规检查」将依据服务端词库与磁盘实读完成核验。
-        </div>
-
-        <div v-else>
-          <div
-            class="alert"
-            :class="ws.summary.latest_check.overall_pass ? 'alert-green' : 'alert-red'"
-          >
-            检查结论：{{ ws.summary.latest_check.overall_pass ? "5 项全绿通过，等待主管审批" : "存在阻断项，已禁止主管放行" }}
-            （交付物 {{ ws.summary.latest_check.deliverable_count }}/8）
-          </div>
-
-          <div
-            v-for="chk in ws.summary.latest_check.checks"
-            :key="chk.code"
-            style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;gap:8px;"
-          >
-            <div>
-              <div style="font-weight:600;font-size:13px;">{{ chk.name }}</div>
-              <div style="font-size:12px;color:#475569;">{{ chk.detail }}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span class="pill" :class="chk.passed ? 'p-green' : 'p-red'">
-                {{ chk.passed ? "通过" : "阻断" }}
-              </span>
-              <button
-                v-if="!chk.passed"
-                type="button"
-                class="btn btn-sm"
-                @click="router.push(chk.jump_route)"
-              >
-                定位
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. 主管审批（禁自批）与离线交付导出 -->
-    <div class="card">
-      <div class="card-title">
-        <span>2. 主管审批发布包（职责分离强门禁）与本地离线导出</span>
-        <span
-          class="pill"
-          :class="ws.summary?.approval_status === 'APPROVED' ? 'p-green' : 'p-amber'"
-        >
-          当前门禁状态：{{ ws.summary?.approval_status || "PENDING_CHECK" }}
-        </span>
-      </div>
-
-      <div class="grid-2">
-        <div>
-          <label class="field-label">主管审批意见（仅主管/审批人可操作，且禁止自我审批）</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <input
-              v-model="comp.approveNote"
-              class="input"
-              style="flex:1;min-width:200px;"
-              :disabled="!canApprove"
-            />
-            <button
-              id="m7ApproveBtn"
-              type="button"
-              class="btn btn-primary"
-              :disabled="!canApprove || comp.busy"
-              @click="comp.approve('APPROVED')"
-            >
-              ✓ 2. 主管批准发布包
-            </button>
-            <button
-              type="button"
-              class="btn btn-danger"
-              :disabled="!canApprove || comp.busy"
-              @click="comp.approve('REJECTED')"
-            >
-              驳回
-            </button>
-          </div>
-          <div v-if="!canApprove" style="font-size:12px;color:#b45309;margin-top:6px;">
-            当前岗位无 <code>m7:publish:approve</code> 审批权限（请切换「主管 / 审批人 (陈主管)」执行复核放行）。
-          </div>
-          <div v-if="ws.summary?.active_approval" style="font-size:12px;color:#047857;margin-top:6px;">
-            已批准凭证：{{ ws.summary.active_approval.approval_id }} · 审批人 {{ ws.summary.active_approval.approver_id }}
-          </div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
-          <div class="field-label">3. 本地离线交付包下载（必须「5 项过检 + 有效主管批准」方可导出）</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button
-              type="button"
-              class="btn btn-success"
-              :disabled="!canExport || comp.busy || ws.summary?.approval_status !== 'APPROVED'"
-              @click="comp.exportFile('zip')"
-            >
-              📦 下载 .ZIP 分目录交付包
-            </button>
-            <button
-              type="button"
-              class="btn"
-              :disabled="!canExport || comp.busy || ws.summary?.approval_status !== 'APPROVED'"
-              @click="comp.exportFile('html')"
-            >
-              📄 下载 .HTML 可视化归档
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. 资质台账与 3×4 规则矩阵 -->
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">
-          <span>类目资质与 TikTok 授权台账（{{ ws.currentSku }}）</span>
-          <span v-if="!canMaintainRules" class="pill p-gray">仅主管可续期</span>
-        </div>
         <table class="table" style="margin-bottom:10px;">
           <thead>
             <tr><th>资质类型</th><th>编号</th><th>到期日</th><th>状态</th></tr>
@@ -244,9 +103,9 @@ async function saveEditedRule() {
           </tbody>
         </table>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <input v-model="certType" class="input" style="width:120px;" placeholder="UL/FCC" :disabled="!canMaintainRules" />
-          <input v-model="certNo" class="input" style="width:140px;" placeholder="证书编号" :disabled="!canMaintainRules" />
-          <input v-model="certExpire" class="input" style="width:140px;" placeholder="YYYY-MM-DD" :disabled="!canMaintainRules" />
+          <input v-model="certType" class="input" style="width:110px;" placeholder="UL/FCC" :disabled="!canMaintainRules" />
+          <input v-model="certNo" class="input" style="width:130px;" placeholder="证书编号" :disabled="!canMaintainRules" />
+          <input v-model="certExpire" class="input" style="width:130px;" placeholder="YYYY-MM-DD" :disabled="!canMaintainRules" />
           <button
             type="button"
             class="btn btn-sm btn-primary"
@@ -258,34 +117,264 @@ async function saveEditedRule() {
         </div>
       </div>
 
+      <!-- 右上：5项检查 + 禁自批审批 + 导出 -->
       <div class="card">
         <div class="card-title">
-          <span>三平台 × 四类目合规规则矩阵（共 {{ comp.rules.length }} 条）</span>
-          <span v-if="!canMaintainRules" class="pill p-gray">只读</span>
+          <span>5 项上架合规检查 & 主管审批门禁</span>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            :disabled="!canRunCompliance || comp.busy"
+            @click="comp.run5Checks()"
+          >
+            {{ comp.busy ? "核查中..." : "🛡 1. 运行 5 项上架合规检查" }}
+          </button>
         </div>
-        <div style="max-height:260px;overflow-y:auto;">
+
+        <div v-if="!ws.summary?.latest_check" class="alert alert-blue">
+          尚未运行正式上架合规检查。请点击右上角「1. 运行 5 项上架合规检查」。
+        </div>
+        <div v-else style="margin-bottom:10px;">
+          <div
+            class="alert"
+            :class="ws.summary.latest_check.overall_pass ? 'alert-green' : 'alert-red'"
+          >
+            检查结论：{{ ws.summary.latest_check.overall_pass ? "5 项全绿通过，等待主管审批" : "存在阻断项，已禁止主管放行" }}
+            （交付物 {{ ws.summary.latest_check.deliverable_count }}/8）
+          </div>
+          <div
+            v-for="chk in ws.summary.latest_check.checks"
+            :key="chk.code"
+            style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;gap:8px;"
+          >
+            <div>
+              <div style="font-weight:600;font-size:12.5px;">{{ chk.name }}</div>
+              <div style="font-size:11.5px;color:#475569;">{{ chk.detail }}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="pill" :class="chk.passed ? 'p-green' : 'p-red'">
+                {{ chk.passed ? "通过" : "阻断" }}
+              </span>
+              <button
+                v-if="!chk.passed"
+                type="button"
+                class="btn btn-sm"
+                @click="router.push(chk.jump_route)"
+              >
+                定位
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
+          <label class="field-label" for="m7ApprNote">2. 主管审批意见（必填，禁自批，当前：{{ ws.summary?.approval_status || "PENDING_CHECK" }}）</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+            <input
+              id="m7ApprNote"
+              v-model="comp.approveNote"
+              class="input"
+              style="flex:1;min-width:180px;"
+              :disabled="!canApprove"
+            />
+            <button
+              id="m7ApproveBtn"
+              type="button"
+              class="btn btn-primary"
+              :disabled="!canApprove || comp.busy"
+              @click="comp.approve('APPROVED')"
+            >
+              ✓ 2. 主管批准发布包
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              :disabled="!canApprove || comp.busy"
+              @click="comp.approve('REJECTED')"
+            >
+              驳回
+            </button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button
+              type="button"
+              class="btn btn-success"
+              :disabled="!canExport || comp.busy || ws.summary?.approval_status !== 'APPROVED'"
+              @click="comp.exportFile('zip')"
+            >
+              📦 下载 .ZIP 交付包
+            </button>
+            <button
+              type="button"
+              class="btn"
+              :disabled="!canExport || comp.busy || ws.summary?.approval_status !== 'APPROVED'"
+              @click="comp.exportFile('html')"
+            >
+              📄 下载 .HTML 离线归档
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下方主从结构：左侧 6 页签总览（minmax(0,1fr)） + 右侧 280px 8+N 交付清单 -->
+    <div class="m7d-overview-split">
+      <div class="card">
+        <div class="card-title">
+          <span>6 页签成品总览</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button
+              v-for="t in [
+                { key: 'buyer', label: '买家视角预览' },
+                { key: 'copy', label: '商品文案' },
+                { key: 'images', label: '1+4 套图' },
+                { key: 'video', label: '15s 视频' },
+                { key: 'aplus', label: 'A+ 长页' },
+                { key: 'audit', label: `审计台账 (${ws.auditEvents.length})` },
+              ]"
+              :key="t.key"
+              type="button"
+              class="btn btn-sm"
+              :class="activeTab === t.key ? 'btn-primary' : ''"
+              @click="activeTab = t.key as OverviewTab"
+            >
+              {{ t.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 1: 买家视角预览 -->
+        <div v-if="activeTab === 'buyer' && ws.summary">
+          <div class="alert alert-amber" style="font-weight:700;">
+            ⚠ {{ ws.summary.buyer_preview.banner }} · 非真实上架（MOCK 隔离演示）
+          </div>
+          <h2 style="margin:8px 0;">{{ ws.summary.buyer_preview.title }}</h2>
+          <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
+            <span style="font-size:22px;font-weight:800;color:#b91c1c;" class="tnum">
+              ${{ ws.summary.buyer_preview.sale_price_usd ?? "--" }}
+            </span>
+            <span
+              v-if="ws.summary.buyer_preview.strike_price_usd"
+              style="text-decoration:line-through;color:#64748b;"
+              class="tnum"
+            >
+              ${{ ws.summary.buyer_preview.strike_price_usd }}
+            </span>
+            <span v-if="ws.summary.buyer_preview.discount_pct !== null" class="pill p-red">
+              -{{ ws.summary.buyer_preview.discount_pct }}% OFF
+            </span>
+          </div>
+          <div class="grid-5" style="margin-bottom:12px;">
+            <img
+              v-for="img in ws.summary.buyer_preview.images"
+              :key="img.media_id"
+              :src="img.media_url"
+              style="width:100%;aspect-ratio:1/1;object-fit:contain;border:1px solid #e2e8f0;border-radius:6px;"
+            />
+          </div>
+          <ul>
+            <li v-for="(b, idx) in ws.summary.buyer_preview.bullets" :key="idx">{{ b }}</li>
+          </ul>
+          <div style="margin-top:12px;">
+            <div class="field-label">M0-2 实标属性表（缺失字段标黄提示补齐）</div>
+            <table class="table">
+              <tbody>
+                <tr v-for="(val, key) in ws.summary.buyer_preview.specs" :key="key">
+                  <td style="width:180px;font-weight:600;">{{ key }}</td>
+                  <td>
+                    <span v-if="val">{{ val }}</span>
+                    <span v-else class="pill p-amber">待补（去 M0-2）</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: 商品文案 -->
+        <div v-else-if="activeTab === 'copy' && ws.summary">
+          <div
+            v-for="(asset, slot) in ws.summary.selected_copy_assets"
+            :key="slot"
+            style="padding:10px;border-bottom:1px solid #f1f5f9;"
+          >
+            <div style="font-weight:700;margin-bottom:4px;">{{ slot }} (v{{ asset.version }} · {{ asset.edit_status }})</div>
+            <div style="font-size:12.5px;white-space:pre-wrap;">{{ asset.content_json?.text }}</div>
+          </div>
+        </div>
+
+        <!-- Tab 3: 1+4 套图 -->
+        <div v-else-if="activeTab === 'images' && ws.summary" class="grid-5">
+          <div v-for="img in ws.summary.buyer_preview.images" :key="img.media_id">
+            <img :src="img.media_url" style="width:100%;aspect-ratio:1/1;object-fit:contain;border:1px solid #e2e8f0;border-radius:6px;" />
+            <div style="font-size:11px;margin-top:4px;">img_{{ img.slot_idx }} · IPTC {{ img.iptc_verified ? "✓" : "✕" }}</div>
+          </div>
+        </div>
+
+        <!-- Tab 4: 15s 视频 -->
+        <div v-else-if="activeTab === 'video' && ws.summary">
+          <video
+            v-if="ws.summary.buyer_preview.video"
+            :src="ws.summary.buyer_preview.video.media_url"
+            controls
+            style="width:100%;max-height:320px;border-radius:8px;background:#0f172a;"
+          />
+          <div v-else class="alert alert-blue" style="margin-bottom:0;">
+            尚未生成 15 秒短视频成片，请前往 M7-3 合成。
+          </div>
+        </div>
+
+        <!-- Tab 5: A+ 长页 -->
+        <div v-else-if="activeTab === 'aplus' && ws.summary">
+          <div v-if="ws.summary.buyer_preview.aplus_html" v-html="ws.summary.buyer_preview.aplus_html" />
+          <div v-else class="alert alert-blue" style="margin-bottom:0;">
+            尚未组装 A+ 图文详情长页，请前往 M7-3 一键组装。
+          </div>
+        </div>
+
+        <!-- Tab 6: M8-2 中文操作审计台账 -->
+        <div v-else-if="activeTab === 'audit'">
           <table class="table">
             <thead>
-              <tr><th>站点 / 类目</th><th>标题上限</th><th>搜索词字节</th><th>操作</th></tr>
+              <tr><th>时间</th><th>操作人 / 岗位</th><th>结果</th><th>审计摘要</th></tr>
             </thead>
             <tbody>
-              <tr v-for="r in comp.rules" :key="r.rule_id">
-                <td>{{ r.platform }} / {{ r.category }}</td>
-                <td class="tnum">{{ r.title_max_chars }} 字符</td>
-                <td class="tnum">{{ r.search_terms_max_bytes }} B</td>
+              <tr v-for="ev in ws.auditEvents" :key="ev.event_id">
+                <td class="tnum" style="font-size:11.5px;">{{ ev.created_at.slice(0, 19).replace("T", " ") }}</td>
+                <td>{{ ev.actor_id }} ({{ ev.actor_role }})</td>
                 <td>
-                  <button
-                    type="button"
-                    class="btn btn-sm"
-                    :disabled="!canMaintainRules"
-                    @click="openRuleEditor(r)"
-                  >
-                    编辑
-                  </button>
+                  <span class="pill" :class="ev.ok ? 'p-green' : 'p-red'">{{ ev.ok ? "放行" : "拦截" }}</span>
                 </td>
+                <td>{{ ev.sentence_zh }}</td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- 右侧窄栏：8+N 交付清单 -->
+      <div class="card">
+        <div class="card-title">
+          <span>8+N 清单</span>
+          <span class="pill" :class="ws.doneCnt === 8 ? 'p-green' : 'p-amber'">
+            {{ ws.doneCnt }}/8 · 扩展 {{ ws.extDoneCnt }}/6
+          </span>
+        </div>
+        <div
+          v-for="item in ws.summary?.core_items || []"
+          :key="item.slot"
+          style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:12.5px;"
+        >
+          <span>{{ item.label }}</span>
+          <button
+            v-if="!item.done"
+            type="button"
+            class="btn btn-sm btn-primary"
+            @click="router.push(item.jump_route)"
+          >
+            补齐
+          </button>
+          <span v-else class="pill p-green">✓</span>
         </div>
       </div>
     </div>
@@ -314,57 +403,8 @@ async function saveEditedRule() {
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
           <button type="button" class="btn" @click="editingRule = null">取消</button>
-          <button type="button" class="btn btn-primary" @click="saveEditedRule()">保存规则</button>
+          <button type="button" class="btn btn-primary" @click="saveEditedRule()">保存规则（自动作废旧审批）</button>
         </div>
-      </div>
-    </div>
-
-    <!-- 买家视角模拟预览抽屉 -->
-    <div v-if="comp.buyerDrawerOpen && ws.summary" class="modal-backdrop">
-      <div class="modal-card">
-        <div class="alert alert-amber" style="font-weight:700;display:flex;justify-content:space-between;align-items:center;">
-          <span>⚠ {{ ws.summary.buyer_preview.banner }} · 模拟店铺隔离预览（严禁视为线上真实发布）</span>
-          <button type="button" class="btn btn-sm" @click="comp.buyerDrawerOpen = false">关闭</button>
-        </div>
-
-        <h2 style="margin:8px 0;">{{ ws.summary.buyer_preview.title }}</h2>
-        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
-          <span style="font-size:22px;font-weight:800;color:#b91c1c;" class="tnum">
-            ${{ ws.summary.buyer_preview.sale_price_usd ?? "--" }}
-          </span>
-          <span
-            v-if="ws.summary.buyer_preview.strike_price_usd"
-            style="text-decoration:line-through;color:#64748b;"
-            class="tnum"
-          >
-            ${{ ws.summary.buyer_preview.strike_price_usd }}
-          </span>
-          <span
-            v-if="ws.summary.buyer_preview.discount_pct !== null"
-            class="pill p-red"
-          >
-            -{{ ws.summary.buyer_preview.discount_pct }}% OFF
-          </span>
-        </div>
-
-        <div class="grid-5" style="margin-bottom:12px;">
-          <img
-            v-for="img in ws.summary.buyer_preview.images"
-            :key="img.media_id"
-            :src="img.media_url"
-            style="width:100%;aspect-ratio:1/1;object-fit:contain;border:1px solid #e2e8f0;border-radius:6px;"
-          />
-        </div>
-
-        <ul>
-          <li v-for="(b, idx) in ws.summary.buyer_preview.bullets" :key="idx">{{ b }}</li>
-        </ul>
-
-        <div
-          v-if="ws.summary.buyer_preview.aplus_html"
-          style="margin-top:12px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;"
-          v-html="ws.summary.buyer_preview.aplus_html"
-        />
       </div>
     </div>
   </div>

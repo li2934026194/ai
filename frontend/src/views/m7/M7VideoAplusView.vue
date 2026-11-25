@@ -8,6 +8,7 @@ const ws = useM7WorkspaceStore();
 const media = useM7MediaStore();
 const { canEdit } = usePermission();
 const videoEl = ref<HTMLVideoElement | null>(null);
+const activeSegIdx = ref(0);
 
 watch(
   () => ws.summary,
@@ -42,39 +43,56 @@ onUnmounted(() => {
         </div>
 
         <div v-if="media.videoError" class="alert alert-red">
-          <strong>合成被后端真实阻断：</strong>{{ media.videoError }}
+          <strong>操作/合成提示：</strong>{{ media.videoError }}
           <div style="margin-top:4px;font-size:12px;">
             系统绝不伪造空 MP4；前序 M7-1 文案与 M7-2 1+4 套图成果（当前 {{ ws.doneCnt }}/8）已完整保留。
           </div>
         </div>
 
-        <div class="grid-2" style="margin-bottom:10px;">
+        <div class="grid-3" style="margin-bottom:10px;">
           <div>
-            <label class="field-label">背景配乐风格 (BGM)</label>
+            <label class="field-label">脚本风格</label>
+            <select v-model="media.scriptStyle" class="select" :disabled="!canEdit">
+              <option value="产品展示">产品展示</option>
+              <option value="开箱测评">开箱测评</option>
+              <option value="场景种草">场景种草</option>
+              <option value="卖点快剪">卖点快剪</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">配音音色</label>
+            <select v-model="media.voiceOver" class="select" :disabled="!canEdit">
+              <option value="女声">女声 (Warm EN)</option>
+              <option value="男声">男声 (Crisp Pro)</option>
+              <option value="无配音">无配音（仅字幕+BGM）</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">背景配乐 (BGM)</label>
             <select v-model="media.bgm" class="select" :disabled="!canEdit">
               <option value="Upbeat Acoustic">轻快原声吉他 (Upbeat Acoustic)</option>
               <option value="Modern Tech Beat">科技节奏 (Modern Tech)</option>
               <option value="Soft Lifestyle">舒缓居家 (Soft Lifestyle)</option>
             </select>
           </div>
-          <div style="display:flex;align-items:flex-end;padding-bottom:6px;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;">
-              <input v-model="media.useM7Copy" type="checkbox" :disabled="!canEdit" />
-              <span>自动引用 M7-1 选定标题与卖点生成字幕</span>
-            </label>
-          </div>
         </div>
 
-        <button
-          type="button"
-          class="btn btn-primary"
-          :disabled="!canEdit || media.busy"
-          @click="media.generateVideo()"
-        >
-          {{ media.busy ? "合成 MP4 中..." : "🎬 合成 15 秒竖屏短视频 (.mp4)" }}
-        </button>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;">
+            <input v-model="media.useM7Copy" type="checkbox" :disabled="!canEdit" />
+            <span>自动引用 M7-1 选定标题与卖点生成字幕</span>
+          </label>
+          <button
+            type="button"
+            class="btn btn-primary"
+            :disabled="!canEdit || media.busy"
+            @click="media.generateVideo()"
+          >
+            {{ media.busy ? "合成 MP4 中..." : "🎬 合成 15 秒竖屏短视频 (.mp4)" }}
+          </button>
+        </div>
 
-        <div v-if="media.videoUrl" style="margin-top:14px;">
+        <div v-if="media.videoUrl" style="margin-top:12px;">
           <video
             ref="videoEl"
             :src="media.videoUrl"
@@ -82,36 +100,64 @@ onUnmounted(() => {
             style="width:100%;max-height:360px;border-radius:10px;background:#0f172a;"
           />
         </div>
+        <div
+          v-else
+          style="padding:12px;border:1px dashed #cbd5e1;border-radius:10px;background:#0f172a;color:#f8fafc;"
+        >
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span class="pill p-blue">分镜预览窗 · {{ media.scriptStyle }} · {{ media.voiceOver }}</span>
+            <span class="pill p-amber">{{ ws.healthInfo?.video_ready ? "待合成" : "未配置合成节点" }}</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">
+            [分镜 {{ activeSegIdx + 1 }}] {{ media.segments[activeSegIdx]?.title }} ({{ media.segments[activeSegIdx]?.motion }})
+          </div>
+          <div style="font-size:12.5px;color:#cbd5e1;">
+            EN: {{ media.segments[activeSegIdx]?.sub_en }}<br />
+            CN: {{ media.segments[activeSegIdx]?.sub_cn }}
+          </div>
+        </div>
       </div>
 
-      <!-- 3 段分镜热编辑 -->
-      <div v-if="media.segments.length > 0" class="card">
+      <!-- 3 段分镜热编辑（无论 FFmpeg 是否就绪始终可用，支持引用 M7-1） -->
+      <div class="card">
         <div class="card-title">
-          <span>3 段分镜脚本文案与单镜重做（v{{ media.videoVersion }}）</span>
+          <span>3 段分镜脚本文案与单镜控制（v{{ media.videoVersion }}）</span>
         </div>
         <div
           v-for="seg in media.segments"
           :key="seg.seg_idx"
-          style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;"
+          style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;overflow:hidden;"
+          :style="activeSegIdx === seg.seg_idx ? { borderColor: '#2563eb' } : undefined"
+          @click="activeSegIdx = seg.seg_idx"
         >
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <strong>{{ seg.title }} ({{ seg.duration_sec }}s)</strong>
-            <div style="display:flex;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <strong class="m7-vid-seg" style="flex:1;min-width:140px;white-space:normal;word-break:break-word;">
+              {{ seg.title }} ({{ seg.duration_sec }}s)
+            </strong>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button
+                type="button"
+                class="btn btn-sm"
+                :disabled="!canEdit"
+                @click.stop="media.fillSegmentFromM7Copy(seg.seg_idx)"
+              >
+                📥 引用M7-1
+              </button>
               <button
                 type="button"
                 class="btn btn-sm"
                 :disabled="!canEdit || media.busy"
-                @click="media.saveSegmentEdit(seg.seg_idx, seg)"
+                @click.stop="media.saveSegmentEdit(seg.seg_idx, seg)"
               >
                 保存分镜
               </button>
               <button
                 type="button"
                 class="btn btn-sm btn-primary"
-                :disabled="!canEdit || media.busy"
-                @click="media.regenerateSegment(seg.seg_idx)"
+                :disabled="!canEdit || media.busy || !media.videoUrl"
+                @click.stop="media.regenerateSegment(seg.seg_idx)"
               >
-                仅重做本镜
+                🔄 重做本镜
               </button>
             </div>
           </div>
@@ -123,9 +169,9 @@ onUnmounted(() => {
             <div>
               <label class="field-label">运镜模式</label>
               <select v-model="seg.motion" class="select" :disabled="!canEdit">
-                <option value="zoom_in">缓慢推进 (zoom_in)</option>
-                <option value="pan_left">横向平移 (pan_left)</option>
-                <option value="zoom_out">全景拉远 (zoom_out)</option>
+                <option value="zoom_in">微距慢推 (zoom_in)</option>
+                <option value="pan_left">平滑横移 (pan_left)</option>
+                <option value="zoom_out">轻缓拉远 (zoom_out)</option>
               </select>
             </div>
           </div>

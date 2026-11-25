@@ -320,6 +320,8 @@ export const m7Api = {
     payload: {
       sku: string;
       platform: PlatformCode;
+      script_style?: string;
+      voice_over?: string;
       bgm: string;
       use_m7_copy: boolean;
       segments?: VideoSegmentDTO[];

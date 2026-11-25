@@ -314,6 +314,8 @@ class CopyService:
                 f"文案已被他人更新（当前版本 v{asset.version}，提交版本 v{req.version}），请刷新后重试",
                 http_status=409,
             )
+        if not req.text or not req.text.strip():
+            raise M7Error("M7-4221", "修改后的文案不能为空", http_status=422)
 
         product = self.catalog.get_product(org_id, asset.sku)
         cat = product.category if product else "kitchen_appliance"

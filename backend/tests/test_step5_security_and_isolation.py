@@ -92,6 +92,23 @@ async def test_multi_tenant_isolation_and_all_5_skus(test_ctx):
         )
         assert sr.status_code == 200, f"{sku} failed"
 
+    # 4. 空文案拦截 & 空局部修改指令拦截
+    empty_edit = await client.put(
+        f"/api/v1/orgs/org_demo/m7/copy/assets/{aid}",
+        headers=hdr_a,
+        json={"text": "   ", "version": 1},
+    )
+    assert empty_edit.status_code == 422
+    assert empty_edit.json()["code"] == "M7-4221"
+
+    empty_inpaint = await client.post(
+        "/api/v1/orgs/org_demo/m7/images/slots/1/inpaint",
+        headers=hdr_a,
+        json={"sku": "FAN-203", "platform": "shopee_th", "instruction": "   "},
+    )
+    assert empty_inpaint.status_code == 422
+    assert empty_inpaint.json()["code"] == "M7-4001"
+
 
 def test_alembic_upgrade_head_on_clean_sqlite(tmp_path: Path):
     db_file = tmp_path / "alembic_clean.db"

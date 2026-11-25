@@ -329,6 +329,8 @@ class ImageService:
     ) -> dict:
         if slot_idx < 0 or slot_idx > 4:
             raise M7Error("M7-4001", f"图位索引越界: {slot_idx}（必须为 0..4）", http_status=400)
+        if mode == "inpaint" and not (req.instruction or "").strip():
+            raise M7Error("M7-4001", "请填写局部修改要求", http_status=422)
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
         product = self.catalog.get_product(org_id, req.sku)

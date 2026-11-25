@@ -85,6 +85,10 @@ export const useM7ComplianceStore = defineStore("m7Compliance", () => {
 
   async function approve(decision: "APPROVED" | "REJECTED") {
     const ws = useM7WorkspaceStore();
+    if (!approveNote.value.trim()) {
+      errorMsg.value = "请填写主管审批意见";
+      return;
+    }
     busy.value = true;
     errorMsg.value = "";
     try {
@@ -92,7 +96,7 @@ export const useM7ComplianceStore = defineStore("m7Compliance", () => {
         sku: ws.currentSku,
         platform: ws.platform,
         decision,
-        note: approveNote.value,
+        note: approveNote.value.trim(),
       });
       await ws.hydrateSummary();
       ws.showToast(decision === "APPROVED" ? "主管已批准发布包，现可导出离线包" : "已驳回发布包");

@@ -207,6 +207,8 @@ class VideoSegmentInput(BaseModel):
 class VideoGenerateReq(BaseModel):
     sku: str = Field(..., min_length=1, max_length=64)
     platform: str = "amazon_us"
+    script_style: str = "产品展示"
+    voice_over: str = "女声"
     bgm: str = "Upbeat Acoustic"
     use_m7_copy: bool = True
     segments: list[VideoSegmentInput] = Field(default_factory=list)

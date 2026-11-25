@@ -55,7 +55,7 @@ def test_lexicon_scanner_layers_caps_and_utf8_bytes():
     rule = _make_rule("amazon_us")
 
     ok_res = scanner.scan(
-        "CrossPilot Lab USB-C Mini Sealer BPA-Free Compact Kitchen Tool",
+        "CrossPilot Lab USBC USB-C Mini Sealer BPA-Free Compact Kitchen Tool",
         slot="copy_title",
         rule=rule,
         platform="amazon_us",
@@ -64,7 +64,17 @@ def test_lexicon_scanner_layers_caps_and_utf8_bytes():
     assert "CrossPilot Lab" in ok_res.must_hits
     assert ok_res.all_caps_words == []
 
-    # 违禁词/商标/监管词与改写建议 + 全大写词拦截
+    # ALL CAPS（如 AMAZING/SAVE）仅黄色软提示，不阻断保存（TC-FN-10）
+    caps_res = scanner.scan(
+        "CrossPilot Lab AMAZING SAVE BPA-Free Sealer",
+        slot="copy_title",
+        rule=rule,
+        platform="amazon_us",
+    )
+    assert caps_res.passed is True
+    assert set(caps_res.all_caps_words) == {"AMAZING", "SAVE"}
+
+    # 违禁词/商标/监管词与改写建议（硬阻断）
     bad_res = scanner.scan(
         "AMAZING Velcro Waterproof FDA Approved 100% Best Sealer",
         slot="copy_title",

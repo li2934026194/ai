@@ -128,17 +128,18 @@ class M7Repository:
         )
 
     async def invalidate_active_approvals(
-        self, org_id: str, sku: str, platform: str | None, reason: str
+        self, org_id: str, sku: str | None, platform: str | None, reason: str
     ) -> int:
         stmt = (
             update(M7ApprovalRecord)
             .where(
                 M7ApprovalRecord.org_id == org_id,
-                M7ApprovalRecord.sku == sku,
                 M7ApprovalRecord.is_active.is_(True),
             )
             .values(is_active=False, invalidated_reason=reason)
         )
+        if sku:
+            stmt = stmt.where(M7ApprovalRecord.sku == sku)
         if platform:
             stmt = stmt.where(M7ApprovalRecord.platform == platform)
         res = await self.session.execute(stmt)

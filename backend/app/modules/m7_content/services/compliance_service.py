@@ -123,6 +123,9 @@ class ComplianceService:
         # 规则调整后失效该站点的既有有效审批
         repo = M7Repository(session)
         await session.flush()
+        inv = await repo.invalidate_active_approvals(
+            org_id, None, rule.platform, "RULE_MATRIX_UPDATED"
+        )
         await write_audit_event(
             session,
             org_id=org_id,
@@ -130,8 +133,9 @@ class ComplianceService:
             actor_id=actor.user_id,
             actor_role=actor.role,
             ok=True,
-            sentence_zh=f"{actor.display_name} 更新了规则矩阵 {rule.platform}/{rule.category} 的词库与限长配置",
-            payload={"rule_id": rule.rule_id},
+            sentence_zh=f"{actor.display_name} 更新了规则矩阵 {rule.platform}/{rule.category} 的词库与限长配置"
+            + (f"（已作废 {inv} 条旧审批）" if inv else ""),
+            payload={"rule_id": rule.rule_id, "invalidated_approvals": inv},
             trace_id=trace_id,
         )
         await session.commit()
