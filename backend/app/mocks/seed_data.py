@@ -335,10 +335,11 @@ async def ensure_seed_data(session: AsyncSession, org_id: str = "org_demo") -> N
             )
 
     # 4. M8 组织与权限种子（9角色 / 演示账号 / 审批流规则）
-    from app.core.auth_rbac import ROLE_PERMISSIONS
+    from app.core.auth_rbac import ROLE_PERMISSIONS, hash_password
     from app.modules.m8_org.models import M8ApprovalPolicy, M8RoleDefinition, M8UserAccount
     from app.modules.m0_catalog.models import (
         M0CostRequest,
+        M0FxRate,
         M0Inventory,
         M0Order,
         M0Product,
@@ -390,9 +391,11 @@ async def ensure_seed_data(session: AsyncSession, org_id: str = "org_demo") -> N
         ("usr_cs", "李客服", "cs", "li@crosspilot.ai"),
         ("usr_buyer", "测试买家", "mock_buyer", "buyer@crosspilot.ai"),
     ]
+    default_pw_hash = hash_password("crosspilot123")
     for uid, uname, urole, uemail in user_seeds:
         full_uid = f"{uid}_{org_id}" if org_id != "org_demo" else uid
-        if not await session.get(M8UserAccount, full_uid):
+        existing_u = await session.get(M8UserAccount, full_uid)
+        if not existing_u:
             session.add(
                 M8UserAccount(
                     user_id=full_uid,
@@ -400,9 +403,13 @@ async def ensure_seed_data(session: AsyncSession, org_id: str = "org_demo") -> N
                     display_name=uname,
                     role_code=urole,
                     email=uemail,
+                    password_hash=default_pw_hash,
+                    allowed_shop_ids_json=[],
                     is_active=True,
                 )
             )
+        elif not existing_u.password_hash:
+            existing_u.password_hash = default_pw_hash
 
     policy_seeds = [
         ("pol_m4_sel", "M4", "新品选品过会审批", "预估毛利率 >= 18% 且综合分 >= 75", "SUPERVISOR", True),
@@ -429,11 +436,11 @@ async def ensure_seed_data(session: AsyncSession, org_id: str = "org_demo") -> N
 
     # 5. M0 店铺授权、商品主档、仓储库存、订单、1688 报价、成本审批
     shop_seeds = [
-        ("shop_amz_us", "AMZ-US-01", "Amazon US Flagship", "amazon_us", "USD", "CONNECTED"),
-        ("shop_tt_us", "TT-US-01", "TikTok Shop CrossPilot US", "tiktok_us", "USD", "CONNECTED"),
-        ("shop_shp_th", "SHP-TH-01", "Shopee Thailand Official", "shopee_th", "THB", "CONNECTED"),
+        ("shop_amz_us", "AMZ-US-01", "Amazon US Flagship", "amazon_us", "USD", "CONNECTED", False, "****4821"),
+        ("shop_tt_us", "TT-US-01", "TikTok Shop CrossPilot US", "tiktok_us", "USD", "CONNECTED", False, "****9013"),
+        ("shop_shp_th", "SHP-TH-01", "Shopee Thailand Sandbox (演示)", "shopee_th", "THB", "CONNECTED", True, "****7710"),
     ]
-    for sid, scode, sname, plat, curr, st in shop_seeds:
+    for sid, scode, sname, plat, curr, st, is_mk, mask in shop_seeds:
         full_sid = f"{sid}_{org_id}"
         if not await session.get(M0Shop, full_sid):
             session.add(
@@ -444,8 +451,30 @@ async def ensure_seed_data(session: AsyncSession, org_id: str = "org_demo") -> N
                     name=sname,
                     platform=plat,
                     currency=curr,
-                    is_mock=True,
+                    credential_mask=mask,
+                    is_mock=is_mk,
                     status=st,
+                )
+            )
+
+    fx_seeds = [
+        ("USD", 1.0, "基准记账币种"),
+        ("RMB", 0.1389, "固定参考汇率 (1 USD = 7.20 RMB)"),
+        ("THB", 0.029, "参考汇率 (1 USD ≈ 34.48 THB)"),
+        ("GBP", 1.27, "参考汇率 (1 GBP = 1.27 USD)"),
+        ("EUR", 1.08, "参考汇率 (1 EUR = 1.08 USD)"),
+        ("SGD", 0.75, "参考汇率 (1 SGD = 0.75 USD)"),
+    ]
+    for curr, rate, src in fx_seeds:
+        rid = f"fx_{org_id}_{curr}"
+        if not await session.get(M0FxRate, rid):
+            session.add(
+                M0FxRate(
+                    rate_id=rid,
+                    org_id=org_id,
+                    currency=curr,
+                    rate_to_usd=rate,
+                    rate_source=src,
                 )
             )
 
@@ -522,13 +551,14 @@ async def ensure_seed_data(session: AsyncSession, org_id: str = "org_demo") -> N
                 )
 
     order_seeds = [
-        ("ord_1001", "shop_amz_us", "SKU-00704", 42, 1129.8, "DELIVERED", 14),
-        ("ord_1002", "shop_tt_us", "BAG-108", 35, 1046.5, "SHIPPED", 5),
-        ("ord_1003", "shop_shp_th", "FAN-203", 58, 1073.0, "DELIVERED", 9),
-        ("ord_1004", "shop_amz_us", "COS-052", 28, 641.2, "PAID", 2),
-        ("ord_1005", "shop_amz_us", "MNT-405", 64, 1273.6, "DELIVERED", 7),
+        ("ord_1001", "shop_amz_us", "SKU-00704", 42, 1129.8, "DELIVERED", 14, False),
+        ("ord_1002", "shop_tt_us", "BAG-108", 35, 1046.5, "SHIPPED", 5, False),
+        ("ord_1003", "shop_amz_us", "FAN-203", 58, 1073.0, "DELIVERED", 9, False),
+        ("ord_1004", "shop_amz_us", "COS-052", 28, 641.2, "PAID", 2, False),
+        ("ord_1005", "shop_amz_us", "MNT-405", 64, 1273.6, "DELIVERED", 7, False),
+        ("ord_mock_01", "shop_shp_th", "SKU-00704", 10, 269.0, "DEMO_PAID", 1, True),
     ]
-    for oid, shid, sku, qty, rev, st, days_ago in order_seeds:
+    for oid, shid, sku, qty, rev, st, days_ago, is_mk in order_seeds:
         full_oid = f"{oid}_{org_id}"
         if not await session.get(M0Order, full_oid):
             session.add(
@@ -540,7 +570,7 @@ async def ensure_seed_data(session: AsyncSession, org_id: str = "org_demo") -> N
                     order_date=(today - timedelta(days=days_ago)).isoformat(),
                     qty=qty,
                     revenue_usd=rev,
-                    is_mock=True,
+                    is_mock=is_mk,
                     status=st,
                 )
             )

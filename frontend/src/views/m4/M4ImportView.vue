@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
@@ -15,9 +15,36 @@ const form = reactive({
   name: "",
   category: "kitchen_appliance",
   source_channel: "1688 趋势选品",
+  source_nature: "internal_live",
+  fulfillment_mode: "FBA",
+  ip_risk_note: "",
   target_price_usd: 32.9,
   est_cost_rmb: 45.0,
   est_shipping_rmb: 16.0,
+});
+
+const csvText = ref(
+  "sku,name,category,fulfillment_mode,target_price_usd,est_cost_rmb,est_shipping_rmb,ip_risk_note\nMUG-301,智能恒温陶瓷杯,kitchen_appliance,FBA,34.9,46,18,\nCLIP-302,便携磁吸补光灯,3c_accessories,FBM,21.5,24,12,疑似含第三方卡扣专利待查"
+);
+const csvFilename = ref("");
+const csvSourceNature = ref("internal_live");
+const csvReport = ref<any>(null);
+
+const csvPreview = computed(() => {
+  const lines = csvText.value
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (!lines.length) return { headers: [] as string[], rows: [] as string[][] };
+  return {
+    headers: lines[0].split(",").map((s) => s.trim()),
+    rows: lines.slice(1, 11).map((l) => l.split(",").map((c) => c.trim())),
+  };
+});
+
+const hasMockFilenameHint = computed(() => {
+  const fn = csvFilename.value.toLowerCase();
+  return ["mock", "demo", "演示", "测试"].some((k) => fn.includes(k));
 });
 
 async function load() {
@@ -33,9 +60,38 @@ async function importCand() {
   errMsg.value = "";
   try {
     const res = await platformApi.importCandidate(form);
-    ws.showToast(`已导入候选商品（预估毛利率 ${(res.est_margin_pct * 100).toFixed(1)}%）`);
+    ws.showToast(`已导入候选商品（未舍入毛利率 ${(res.est_margin_pct * 100).toFixed(2)}%）`);
     form.sku = "";
     form.name = "";
+    form.ip_risk_note = "";
+    await load();
+  } catch (e) {
+    if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
+  }
+}
+
+function handleCsvFile(ev: Event) {
+  const f = (ev.target as HTMLInputElement).files?.[0];
+  if (!f) return;
+  csvFilename.value = f.name;
+  const r = new FileReader();
+  r.onload = () => {
+    csvText.value = String(r.result || "");
+  };
+  r.readAsText(f, "utf-8");
+}
+
+async function importCsv() {
+  errMsg.value = "";
+  csvReport.value = null;
+  try {
+    const res = await platformApi.importCandidatesCsv(
+      csvText.value,
+      csvFilename.value,
+      csvSourceNature.value
+    );
+    csvReport.value = res;
+    ws.showToast(`批量导入 ${res.imported} 款（可投产 ${res.ready_count}，待核价 ${res.pending_quote_count}，风险 ${res.risk_blocked_count}）`);
     await load();
   } catch (e) {
     if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
@@ -51,7 +107,7 @@ onMounted(() => void load());
 
     <div class="grid-2">
       <div class="card">
-        <div class="card-title">候选商品导入（M4-1 · 需 m4:edit）</div>
+        <div class="card-title">单品候选导入（M4-1 · 四源性质隔离）</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div class="grid-2">
             <div>
@@ -63,7 +119,7 @@ onMounted(() => void load());
               <input v-model="form.name" class="input" placeholder="如 便携无线奶泡器" />
             </div>
           </div>
-          <div class="grid-2">
+          <div class="grid-3">
             <div>
               <label class="field-label">所属类目</label>
               <select v-model="form.category" class="select">
@@ -74,8 +130,20 @@ onMounted(() => void load());
               </select>
             </div>
             <div>
-              <label class="field-label">选品来源渠道</label>
-              <input v-model="form.source_channel" class="input" />
+              <label class="field-label">数据性质（四源隔离）</label>
+              <select v-model="form.source_nature" class="select">
+                <option value="internal_live">内部实盘选品</option>
+                <option value="external_estimate">外购行业估算（待核价）</option>
+                <option value="public_bestseller">平台公开热销</option>
+                <option value="demo_only">仅演示数据</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">履约模式</label>
+              <select v-model="form.fulfillment_mode" class="select">
+                <option value="FBA">FBA</option>
+                <option value="FBM">FBM</option>
+              </select>
             </div>
           </div>
           <div class="grid-3">
@@ -92,36 +160,73 @@ onMounted(() => void load());
               <input v-model.number="form.est_shipping_rmb" type="number" step="0.5" class="input" />
             </div>
           </div>
+          <div>
+            <label class="field-label">商标/专利检索证据备注（可选）</label>
+            <input v-model="form.ip_risk_note" class="input" placeholder="如：外观无冲突，或疑似含竞品卡扣专利待审" />
+          </div>
           <button type="button" class="btn btn-primary" @click="importCand">导入至选品工作台</button>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title">
-          <span>当前选品候选池（{{ candidates.length }} 款）</span>
-          <button type="button" class="btn btn-sm btn-primary" @click="router.push('/m4/workbench')">进入 M4-2 评估 →</button>
+          <span>批量 CSV 表格导入与三分类分诊（支持前 10 行预览）</span>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>名称</th>
-              <th>来源</th>
-              <th>预估毛利率</th>
-              <th>状态</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in candidates" :key="c.candidate_id">
-              <td><code>{{ c.sku }}</code></td>
-              <td>{{ c.name }}</td>
-              <td>{{ c.source_channel }}</td>
-              <td class="tnum">{{ (c.est_margin_pct * 100).toFixed(1) }}%</td>
-              <td><span class="pill p-blue">{{ c.status }}</span></td>
-            </tr>
-          </tbody>
-        </table>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+          <input type="file" accept=".csv" style="font-size:12px;" @change="handleCsvFile" />
+          <select v-model="csvSourceNature" class="select" style="width:180px;">
+            <option value="internal_live">内部实盘选品</option>
+            <option value="external_estimate">外购行业估算</option>
+            <option value="public_bestseller">平台热销公开</option>
+            <option value="demo_only">仅演示数据</option>
+          </select>
+        </div>
+        <div v-if="hasMockFilenameHint && csvSourceNature === 'internal_live'" class="alert alert-red" style="margin-bottom:8px;">
+          警告：文件名「{{ csvFilename }}」含演示/测试字样，禁止以「内部实盘选品」导入！
+        </div>
+        <textarea v-model="csvText" class="textarea" style="min-height:66px;font-family:monospace;font-size:12px;"></textarea>
+        <div v-if="csvPreview.rows.length" style="margin-top:8px;overflow-x:auto;">
+          <table class="table" style="font-size:11px;">
+            <thead><tr><th v-for="h in csvPreview.headers" :key="h">{{ h }}</th></tr></thead>
+            <tbody>
+              <tr v-for="(r, i) in csvPreview.rows" :key="i"><td v-for="(c, j) in r" :key="j">{{ c }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <button type="button" class="btn btn-sm btn-primary" style="margin-top:8px;" @click="importCsv">批量分诊入池</button>
+        <div v-if="csvReport" class="alert alert-blue" style="margin-top:8px;font-size:12px;">
+          分诊结果：可投产 <strong>{{ csvReport.ready_count }}</strong> · 外购待核价 <strong>{{ csvReport.pending_quote_count }}</strong> · 风险/低毛利拦截 <strong>{{ csvReport.risk_blocked_count }}</strong>
+        </div>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>当前选品候选池（{{ candidates.length }} 款）</span>
+        <button type="button" class="btn btn-sm btn-primary" @click="router.push('/m4/workbench')">进入 M4-2 评估 →</button>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>名称</th>
+            <th>来源性质 / 履约</th>
+            <th>未舍入毛利率</th>
+            <th>侵权证据</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="c in candidates" :key="c.candidate_id">
+            <td><code>{{ c.sku }}</code></td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.source_nature }} / {{ c.fulfillment_mode }}</td>
+            <td class="tnum">{{ (c.est_margin_pct * 100).toFixed(2) }}%</td>
+            <td style="font-size:11px;color:#b45309;">{{ c.ip_risk_note || "无异常" }}</td>
+            <td><span class="pill p-blue">{{ c.status }}</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>

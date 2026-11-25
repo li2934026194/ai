@@ -6,6 +6,7 @@ class ShopCreateReq(BaseModel):
     name: str = Field(..., min_length=2, max_length=128)
     platform: str = "amazon_us"
     currency: str = "USD"
+    credential_mask: str = Field(default="****4821", min_length=2, max_length=32)
     is_mock: bool = True
 
 
@@ -45,3 +46,5 @@ class StocktakeReq(BaseModel):
 
 class CsvImportReq(BaseModel):
     csv_text: str = Field(..., min_length=5)
+    filename: str = ""
+    source_type: str = Field(default="auto", pattern="^(auto|live|mock)$")

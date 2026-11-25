@@ -11,6 +11,8 @@ from app.modules.m5_m6_supply.schemas import (
     ApplyRejectReq,
     PoCancelReq,
     PoReceiveReq,
+    SalesHistoryCsvReq,
+    SkuSupplyParamsReq,
     WeeklyReviewCreateReq,
     WhatIfSandboxReq,
 )
@@ -199,3 +201,39 @@ async def create_weekly_review(
 ):
     await ensure_seed_data(session, org_id=org_ctx.org_id)
     return build_envelope(data=await svc.create_weekly_review(session, org_ctx.org_id, req, actor, _trace(request)), trace_id=_trace(request))
+
+
+@router.post("/sales-history/import-csv")
+async def import_sales_csv(
+    request: Request,
+    req: SalesHistoryCsvReq,
+    org_ctx: OrgContext = Depends(get_org_context),
+    actor: ActorContext = Depends(require_perm("m5:run")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    await ensure_seed_data(session, org_id=org_ctx.org_id)
+    return build_envelope(data=await svc.import_sales_csv(session, org_ctx.org_id, req, actor, _trace(request)), trace_id=_trace(request))
+
+
+@router.patch("/sku-params/{sku}")
+async def update_sku_params(
+    request: Request,
+    sku: str,
+    req: SkuSupplyParamsReq,
+    org_ctx: OrgContext = Depends(get_org_context),
+    actor: ActorContext = Depends(require_perm("m5:run")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    await ensure_seed_data(session, org_id=org_ctx.org_id)
+    return build_envelope(data=await svc.update_sku_supply_params(session, org_ctx.org_id, sku, req, actor, _trace(request)), trace_id=_trace(request))
+
+
+@router.post("/alerts/scan")
+async def scan_alerts(
+    request: Request,
+    org_ctx: OrgContext = Depends(get_org_context),
+    actor: ActorContext = Depends(require_perm("m5:run")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    await ensure_seed_data(session, org_id=org_ctx.org_id)
+    return build_envelope(data=await svc.scan_alerts(session, org_ctx.org_id, actor, _trace(request)), trace_id=_trace(request))

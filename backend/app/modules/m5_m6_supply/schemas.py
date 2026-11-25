@@ -34,3 +34,14 @@ class WhatIfSandboxReq(BaseModel):
 class WeeklyReviewCreateReq(BaseModel):
     week_label: str = Field(..., min_length=2, max_length=32)
     summary_text: str = Field(..., min_length=4)
+
+
+class SalesHistoryCsvReq(BaseModel):
+    csv_text: str = Field(..., min_length=5)
+    filename: str = ""
+
+
+class SkuSupplyParamsReq(BaseModel):
+    moq: int = Field(..., ge=1, le=50000)
+    pack_size: int = Field(..., ge=1, le=1000)
+    lead_time_days: int = Field(..., ge=3, le=180)

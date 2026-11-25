@@ -6,13 +6,14 @@ import { useM7WorkspaceStore } from "@/stores/m7Workspace";
 
 const ws = useM7WorkspaceStore();
 const tickets = ref<any[]>([]);
+const statusFilter = ref("");
 const noteMap = ref<Record<string, string>>({});
 const errMsg = ref("");
 
 async function load() {
   errMsg.value = "";
   try {
-    tickets.value = (await platformApi.listAftersales()).items;
+    tickets.value = (await platformApi.listAftersales(statusFilter.value || undefined)).items;
   } catch (e) {
     if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
   }
@@ -38,8 +39,16 @@ onMounted(() => void load());
 
     <div class="card">
       <div class="card-title">
-        <span>售后审批与退款凭证台账（M1-3 · 严格 SoD 禁建单人自批）</span>
-        <button type="button" class="btn btn-sm" @click="load">刷新工单</button>
+        <span>售后审批与退款凭证台账（M1-3 · 严格 SoD 禁建单人自批 / 禁重复终审）</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <select v-model="statusFilter" class="select" style="width:140px;" @change="load">
+            <option value="">全部状态</option>
+            <option value="PENDING_APPROVAL">待审批</option>
+            <option value="APPROVED">已批准</option>
+            <option value="REJECTED">已驳回</option>
+          </select>
+          <button type="button" class="btn btn-sm" @click="load">刷新工单</button>
+        </div>
       </div>
       <table class="table">
         <thead>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
@@ -9,19 +9,79 @@ const products = ref<any[]>([]);
 const orders = ref<any[]>([]);
 const quotes = ref<any[]>([]);
 const costReqs = ref<any[]>([]);
+const fxRates = ref<any[]>([]);
 const errMsg = ref("");
+const showAddProd = ref(false);
+
+const prodForm = reactive({
+  sku: "",
+  name: "",
+  category: "kitchen_appliance",
+  category_label_zh: "厨卫小电",
+  platform: "amazon_us",
+  sale_price_usd: 29.9,
+  unit_cost_usd: 6.5,
+  moq: 100,
+  pack_size: 20,
+  lead_time_days: 21,
+});
 
 const costForm = reactive({ sku: "SKU-00704", new_cost_usd: 5.15, reason: "供应商阶梯报价调整" });
-const csvText = ref("shop_id,sku,order_date,qty,revenue_usd\nshop_amz_us,SKU-00704,2026-11-18,12,322.8");
+const csvText = ref(
+  "order_id,shop_id,sku,order_date,qty,revenue_usd,is_mock,status\nORD-CSV-1001,shop_amz_us_org_demo,SKU-00704,2026-11-18,12,322.8,false,SETTLED"
+);
+const csvFilename = ref("");
+const csvSourceType = ref<"auto" | "live" | "mock">("auto");
+const csvReport = ref<{ imported: number; skipped_duplicates: number; errors: any[] } | null>(null);
+
+const rmbRate = computed(() => {
+  const r = fxRates.value.find((x) => x.currency === "RMB");
+  return r ? Number(r.rate_to_usd) : 0.1389;
+});
+
+const csvPreviewRows = computed(() => {
+  const lines = csvText.value
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return { headers: [] as string[], rows: [] as string[][] };
+  const headers = lines[0].split(",").map((h) => h.trim());
+  const rows = lines.slice(1, 11).map((line) => line.split(",").map((c) => c.trim()));
+  return { headers, rows };
+});
+
+const hasMockFilenameHint = computed(() => {
+  const fn = csvFilename.value.toLowerCase();
+  return ["mock", "demo", "演示", "测试"].some((k) => fn.includes(k));
+});
 
 async function load() {
   errMsg.value = "";
   try {
-    const [p, l] = await Promise.all([platformApi.listProducts(), platformApi.getLedger()]);
+    const [p, l, fx] = await Promise.all([
+      platformApi.listProducts(),
+      platformApi.getLedger(),
+      platformApi.listFxRates(),
+    ]);
     products.value = p.items;
     orders.value = l.orders;
     quotes.value = l.quotes;
     costReqs.value = l.cost_requests;
+    fxRates.value = fx.items;
+  } catch (e) {
+    if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
+  }
+}
+
+async function saveProduct() {
+  errMsg.value = "";
+  try {
+    await platformApi.upsertProduct(prodForm);
+    ws.showToast(`已保存商品主档 ${prodForm.sku}`);
+    showAddProd.value = false;
+    prodForm.sku = "";
+    prodForm.name = "";
+    await load();
   } catch (e) {
     if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
   }
@@ -49,11 +109,25 @@ async function decideCost(reqId: string, decision: "APPROVED" | "REJECTED") {
   }
 }
 
+function handleCsvFile(ev: Event) {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  csvFilename.value = file.name;
+  const reader = new FileReader();
+  reader.onload = () => {
+    csvText.value = String(reader.result || "");
+  };
+  reader.readAsText(file, "utf-8");
+}
+
 async function importCsv() {
   errMsg.value = "";
+  csvReport.value = null;
   try {
-    const res = await platformApi.importOrdersCsv(csvText.value);
-    ws.showToast(`已成功导入 ${res.imported} 条订单记录`);
+    const res = await platformApi.importOrdersCsv(csvText.value, csvFilename.value, csvSourceType.value);
+    csvReport.value = res;
+    ws.showToast(`导入完成：新增 ${res.imported} 单，去重跳过 ${res.skipped_duplicates} 单`);
     await load();
   } catch (e) {
     if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
@@ -70,8 +144,52 @@ onMounted(() => void load());
     <div class="card">
       <div class="card-title">
         <span>商品主档与成本卡（M0-2 · 已联动 M4/M5/M6/M7）</span>
-        <button type="button" class="btn btn-sm" @click="load">刷新台账</button>
+        <div style="display:flex;gap:6px;">
+          <button type="button" class="btn btn-sm btn-primary" @click="showAddProd = !showAddProd">
+            {{ showAddProd ? "收起建品" : "+ 新增/维护主档 SKU" }}
+          </button>
+          <button type="button" class="btn btn-sm" @click="load">刷新台账</button>
+        </div>
       </div>
+
+      <div v-if="showAddProd" style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:12px;">
+        <div class="grid-4" style="margin-bottom:8px;">
+          <div>
+            <label class="field-label">SKU</label>
+            <input v-model="prodForm.sku" class="input" placeholder="如 SKU-8899" />
+          </div>
+          <div>
+            <label class="field-label">商品名称</label>
+            <input v-model="prodForm.name" class="input" placeholder="商品中文名称" />
+          </div>
+          <div>
+            <label class="field-label">售价 (USD)</label>
+            <input v-model.number="prodForm.sale_price_usd" type="number" step="0.1" class="input" />
+          </div>
+          <div>
+            <label class="field-label">核算成本 (USD)</label>
+            <input v-model.number="prodForm.unit_cost_usd" type="number" step="0.1" class="input" />
+          </div>
+        </div>
+        <div class="grid-4">
+          <div>
+            <label class="field-label">MOQ</label>
+            <input v-model.number="prodForm.moq" type="number" class="input" />
+          </div>
+          <div>
+            <label class="field-label">箱规</label>
+            <input v-model.number="prodForm.pack_size" type="number" class="input" />
+          </div>
+          <div>
+            <label class="field-label">交期(天)</label>
+            <input v-model.number="prodForm.lead_time_days" type="number" class="input" />
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button type="button" class="btn btn-primary btn-sm" @click="saveProduct">保存商品主档</button>
+          </div>
+        </div>
+      </div>
+
       <table class="table">
         <thead>
           <tr>
@@ -148,13 +266,21 @@ onMounted(() => void load());
       </div>
 
       <div class="card">
-        <div class="card-title">1688 模拟比价与 CSV 订单导入</div>
+        <div class="card-title">
+          <span>1688 模拟比价（透明参考汇率）与 CSV 订单防重导入</span>
+        </div>
+        <div style="font-size:11px;color:#475569;margin-bottom:8px;">
+          组织参考汇率：
+          <span v-for="fx in fxRates" :key="fx.currency" class="pill p-gray" style="margin-right:4px;">
+            1 {{ fx.currency }} = ${{ fx.rate_to_usd }} USD
+          </span>
+        </div>
         <table class="table" style="margin-bottom:12px;">
           <thead>
             <tr>
               <th>SKU</th>
               <th>供应商</th>
-              <th>报价 (RMB)</th>
+              <th>报价 (RMB / 折合 USD)</th>
               <th>MOQ / 交期</th>
             </tr>
           </thead>
@@ -162,14 +288,46 @@ onMounted(() => void load());
             <tr v-for="q in quotes" :key="q.quote_id">
               <td><code>{{ q.sku }}</code></td>
               <td>{{ q.supplier_name }}</td>
-              <td class="tnum">¥{{ q.unit_price_rmb }}</td>
+              <td class="tnum">¥{{ q.unit_price_rmb }} <span style="color:#64748b;">(≈ ${{ (q.unit_price_rmb * rmbRate).toFixed(2) }})</span></td>
               <td class="tnum">{{ q.moq }} / {{ q.lead_time_days }}d</td>
             </tr>
           </tbody>
         </table>
-        <label class="field-label">批量 CSV 订单导入</label>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+          <input type="file" accept=".csv" style="font-size:12px;" @change="handleCsvFile" />
+          <select v-model="csvSourceType" class="select" style="width:160px;">
+            <option value="auto">按文件与店铺自动判别</option>
+            <option value="live">实盘订单 (is_mock=false)</option>
+            <option value="mock">演示订单 (is_mock=true)</option>
+          </select>
+        </div>
+        <div v-if="hasMockFilenameHint && csvSourceType === 'live'" class="alert alert-red" style="margin-bottom:6px;">
+          安全警示：文件名「{{ csvFilename }}」包含演示/测试标识，禁止作为实盘订单导入！
+        </div>
+
         <textarea v-model="csvText" class="textarea" style="min-height:66px;font-family:monospace;font-size:12px;"></textarea>
-        <button type="button" class="btn btn-sm btn-primary" style="margin-top:8px;" @click="importCsv">导入 CSV 订单</button>
+
+        <div v-if="csvPreviewRows.rows.length" style="margin-top:8px;overflow-x:auto;">
+          <div style="font-size:11px;color:#64748b;margin-bottom:4px;">前 10 行数据预览（共 {{ csvPreviewRows.rows.length }} 行展示）：</div>
+          <table class="table" style="font-size:11px;">
+            <thead>
+              <tr><th v-for="h in csvPreviewRows.headers" :key="h">{{ h }}</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, idx) in csvPreviewRows.rows" :key="idx">
+                <td v-for="(col, cidx) in row" :key="cidx">{{ col }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button type="button" class="btn btn-sm btn-primary" style="margin-top:8px;" @click="importCsv">
+          导入 CSV 订单（按 order_id 幂等去重）
+        </button>
+        <div v-if="csvReport" class="alert alert-blue" style="margin-top:8px;font-size:12px;">
+          导入结果：新增 <strong>{{ csvReport.imported }}</strong> 单，去重跳过 <strong>{{ csvReport.skipped_duplicates }}</strong> 单，格式错误 <strong>{{ csvReport.errors.length }}</strong> 行
+        </div>
       </div>
     </div>
 
@@ -184,6 +342,7 @@ onMounted(() => void load());
             <th>日期</th>
             <th>件数</th>
             <th>营收 (USD)</th>
+            <th>口径隔离</th>
             <th>状态</th>
           </tr>
         </thead>
@@ -195,7 +354,12 @@ onMounted(() => void load());
             <td>{{ o.order_date }}</td>
             <td class="tnum">{{ o.qty }}</td>
             <td class="tnum">${{ o.revenue_usd }}</td>
-            <td><span class="pill p-green">{{ o.status }}</span></td>
+            <td>
+              <span class="pill" :class="o.is_mock ? 'p-amber' : 'p-green'">
+                {{ o.is_mock ? "演示隔离" : "实盘" }}
+              </span>
+            </td>
+            <td><span class="pill p-blue">{{ o.status }}</span></td>
           </tr>
         </tbody>
       </table>

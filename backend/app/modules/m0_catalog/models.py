@@ -15,9 +15,39 @@ class M0Shop(Base):
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     platform: Mapped[str] = mapped_column(String(24), nullable=False)
     currency: Mapped[str] = mapped_column(String(12), nullable=False, default="USD")
+    credential_mask: Mapped[str] = mapped_column(String(32), nullable=False, default="****4821")
     is_mock: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="CONNECTED")
     last_sync_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class M0SyncBatch(Base):
+    __tablename__ = "m0_sync_batches"
+
+    batch_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    org_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    shop_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    added_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    dedup_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    error_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    missing_dates_json: Mapped[list] = mapped_column(JSONBCompat, nullable=False, default=list)
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="SUCCESS")
+    triggered_by: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class M0FxRate(Base):
+    __tablename__ = "m0_fx_rates"
+    __table_args__ = (UniqueConstraint("org_id", "currency", name="uq_m0_fx_org_curr"),)
+
+    rate_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    org_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    currency: Mapped[str] = mapped_column(String(12), nullable=False)
+    rate_to_usd: Mapped[float] = mapped_column(Float, nullable=False)
+    rate_source: Mapped[str] = mapped_column(String(64), nullable=False, default="组织配置参考汇率")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class M0Product(Base):

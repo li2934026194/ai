@@ -3,9 +3,11 @@ from dataclasses import dataclass
 import hashlib
 import hmac
 import json
+import secrets
 import time
 from typing import Callable
 from fastapi import Depends, Header, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import write_audit_event
@@ -13,6 +15,22 @@ from app.core.config import get_settings
 from app.core.database import get_db_session
 from app.core.exceptions import M7Error
 from app.core.tenant import OrgContext, get_org_context
+
+
+def hash_password(raw_password: str, salt: str | None = None) -> str:
+    salt_val = salt or secrets.token_hex(8)
+    dk = hashlib.pbkdf2_hmac("sha256", raw_password.encode("utf-8"), salt_val.encode("utf-8"), 120_000)
+    return f"pbkdf2_sha256${salt_val}${dk.hex()}"
+
+
+def verify_password(raw_password: str, stored_hash: str | None) -> bool:
+    if not stored_hash or "$" not in stored_hash:
+        return False
+    parts = stored_hash.split("$", 2)
+    if len(parts) != 3 or parts[0] != "pbkdf2_sha256":
+        return False
+    expected = hash_password(raw_password, salt=parts[1])
+    return hmac.compare_digest(expected, stored_hash)
 
 
 ROLE_LABELS_ZH: dict[str, str] = {
@@ -120,6 +138,7 @@ class ActorContext:
     display_name: str
     actor_org_id: str | None = None
     auth_mode: str = "header"
+    allowed_shop_ids: tuple[str, ...] = ()
 
     @property
     def permissions(self) -> set[str]:
@@ -185,7 +204,10 @@ async def get_actor_context(
     x_actor_role: str | None = Header(default=None),
     x_org_id: str | None = Header(default=None),
 ) -> ActorContext:
+    from app.modules.m8_org.models import M8UserAccount
+
     trace_id = getattr(request.state, "trace_id", "")
+    settings = get_settings()
 
     if authorization and authorization.lower().startswith("bearer "):
         claims = verify_actor_jwt(authorization.split(" ", 1)[1].strip())
@@ -195,6 +217,8 @@ async def get_actor_context(
         display_name = str(claims.get("name", user_id))
         auth_mode = "jwt"
     else:
+        if not settings.M7_ENABLE_DEMO_ROLE_SWITCH:
+            raise M7Error("M7-4011", "演示切岗已关闭，请先通过账号密码登录获取 Bearer 令牌", http_status=401)
         role = (x_actor_role or "creator").strip()
         user_id = (x_actor_id or f"demo-{role}").strip()
         actor_org = x_org_id.strip() if x_org_id and x_org_id.strip() else None
@@ -209,7 +233,7 @@ async def get_actor_context(
             actor_id=user_id,
             actor_role=role,
             ok=False,
-            sentence_zh=f"未知角色 {role}（用户 {user_id}）尝试访问组织 {org_ctx.org_id} 的 M7 接口，系统已拒绝",
+            sentence_zh=f"未知角色 {role}（用户 {user_id}）尝试访问组织 {org_ctx.org_id} 的接口，系统已拒绝",
             trace_id=trace_id,
         )
         await session.commit()
@@ -230,12 +254,34 @@ async def get_actor_context(
         await session.commit()
         raise M7Error("M7-4031", "跨组织访问被租户隔离门禁拒绝", http_status=403)
 
+    allowed_shops: tuple[str, ...] = ()
+    user_row = await session.scalar(
+        select(M8UserAccount).where(M8UserAccount.org_id == org_ctx.org_id, M8UserAccount.user_id == user_id)
+    )
+    if user_row:
+        if not user_row.is_active:
+            await write_audit_event(
+                session,
+                org_id=org_ctx.org_id,
+                module="RBAC",
+                action="ACCOUNT_DISABLED_DENIED",
+                actor_id=user_id,
+                actor_role=role,
+                ok=False,
+                sentence_zh=f"已停用账号 {user_row.display_name}（{user_id}）尝试访问组织 {org_ctx.org_id}，已被拦截",
+                trace_id=trace_id,
+            )
+            await session.commit()
+            raise M7Error("M7-4031", f"账号 {user_id} 已停用，禁止访问平台", http_status=403)
+        allowed_shops = tuple(user_row.allowed_shop_ids_json or [])
+
     return ActorContext(
         user_id=user_id,
         role=role,
         display_name=display_name,
         actor_org_id=actor_org,
         auth_mode=auth_mode,
+        allowed_shop_ids=allowed_shops,
     )
 
 

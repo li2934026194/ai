@@ -49,12 +49,17 @@ async def upsert_faq(
 @router.get("/sessions")
 async def list_sessions(
     request: Request,
+    is_mock: bool | None = None,
+    status: str | None = None,
     org_ctx: OrgContext = Depends(get_org_context),
     _actor: ActorContext = Depends(require_perm("m1:read")),
     session: AsyncSession = Depends(get_db_session),
 ):
     await ensure_seed_data(session, org_id=org_ctx.org_id)
-    return build_envelope(data={"items": await svc.list_sessions(session, org_ctx.org_id)}, trace_id=_trace(request))
+    return build_envelope(
+        data={"items": await svc.list_sessions(session, org_ctx.org_id, is_mock=is_mock, status=status)},
+        trace_id=_trace(request),
+    )
 
 
 @router.post("/sessions/{session_id}/reply")
@@ -84,12 +89,16 @@ async def simulate_inquiry(
 @router.get("/aftersales")
 async def list_aftersales(
     request: Request,
+    status: str | None = None,
     org_ctx: OrgContext = Depends(get_org_context),
     _actor: ActorContext = Depends(require_perm("m1:read")),
     session: AsyncSession = Depends(get_db_session),
 ):
     await ensure_seed_data(session, org_id=org_ctx.org_id)
-    return build_envelope(data={"items": await svc.list_tickets(session, org_ctx.org_id)}, trace_id=_trace(request))
+    return build_envelope(
+        data={"items": await svc.list_tickets(session, org_ctx.org_id, status=status)},
+        trace_id=_trace(request),
+    )
 
 
 @router.post("/aftersales")

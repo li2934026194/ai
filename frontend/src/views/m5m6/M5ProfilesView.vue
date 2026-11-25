@@ -1,20 +1,38 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
+import { useM7WorkspaceStore } from "@/stores/m7Workspace";
 
+const ws = useM7WorkspaceStore();
 const sku = ref("SKU-00704");
 const products = ref<any[]>([]);
 const data = ref<any>(null);
+const params = reactive({ moq: 60, pack_size: 20, lead_time_days: 21 });
 const errMsg = ref("");
 
 async function load() {
   errMsg.value = "";
   try {
-    if (products.value.length === 0) {
-      products.value = (await platformApi.listProducts()).items;
+    products.value = (await platformApi.listProducts()).items;
+    const prod = products.value.find((p) => p.sku === sku.value);
+    if (prod) {
+      params.moq = prod.moq || 60;
+      params.pack_size = prod.pack_size || 20;
+      params.lead_time_days = prod.lead_time_days || 21;
     }
     data.value = await platformApi.getForecast(sku.value);
+  } catch (e) {
+    if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
+  }
+}
+
+async function saveParams() {
+  errMsg.value = "";
+  try {
+    await platformApi.updateSkuSupplyParams(sku.value, params);
+    ws.showToast(`已更新 ${sku.value} 供应参数（MOQ=${params.moq}，整箱=${params.pack_size}，交期=${params.lead_time_days}d）并重算模型`);
+    await load();
   } catch (e) {
     if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
   }
@@ -35,6 +53,24 @@ onMounted(() => void load());
             <option v-for="p in products" :key="p.sku" :value="p.sku">{{ p.sku }} · {{ p.name }}</option>
           </select>
           <button type="button" class="btn btn-sm" @click="load">重算回测</button>
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-bottom:12px;align-items:end;">
+        <div>
+          <label class="field-label">起订量 MOQ</label>
+          <input v-model.number="params.moq" type="number" min="1" class="input" />
+        </div>
+        <div>
+          <label class="field-label">整箱装箱数 (Pack Size)</label>
+          <input v-model.number="params.pack_size" type="number" min="1" class="input" />
+        </div>
+        <div>
+          <label class="field-label">供应链总交期 (天)</label>
+          <input v-model.number="params.lead_time_days" type="number" min="3" class="input" />
+        </div>
+        <div>
+          <button type="button" class="btn btn-primary" style="width:100%;" @click="saveParams">保存参数并重算建议</button>
         </div>
       </div>
 

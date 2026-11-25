@@ -1,3 +1,4 @@
+import re
 import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,8 +9,20 @@ from app.core.exceptions import M7Error
 from app.modules.m0_catalog.models import M0Inventory, M0Order, M0Product, M0Shop
 from app.modules.m1_cs.models import M1AftersalesTicket
 from app.modules.m2_m3_bi.models import M2AdCampaign, M3CompetitorWatch
-from app.modules.m2_m3_bi.schemas import AdAdjustReq, CompetitorCreateReq
+from app.modules.m2_m3_bi.schemas import (
+    AdAdjustReq,
+    AdCreateReq,
+    BiAskReq,
+    CompetitorCreateReq,
+    CompetitorUpdateReq,
+)
 from app.modules.m5_m6_supply.models import M5SalesHistory, M6AlertEvent, M6PurchaseOrder, M6ReplenishApply
+
+
+_MUTATION_RE = re.compile(
+    r"\b(delete|drop|update|insert|alter|truncate|grant|revoke)\b|修改|删除|清空|篡改",
+    re.IGNORECASE,
+)
 
 
 class M2M3BiService:
@@ -20,7 +33,9 @@ class M2M3BiService:
         alerts = (await session.scalars(select(M6AlertEvent).where(M6AlertEvent.org_id == org_id, M6AlertEvent.status == "OPEN"))).all()
         tickets = (await session.scalars(select(M1AftersalesTicket).where(M1AftersalesTicket.org_id == org_id, M1AftersalesTicket.status == "PENDING_APPROVAL"))).all()
         orders = (await session.scalars(select(M0Order).where(M0Order.org_id == org_id))).all()
-        gmv = round(sum(float(o.revenue_usd) for o in orders), 2)
+        live_orders = [o for o in orders if not o.is_mock]
+        calc_orders = live_orders if live_orders else orders
+        gmv = round(sum(float(o.revenue_usd) for o in calc_orders), 2)
         return {
             "kpis": {
                 "active_skus": len(prods),
@@ -62,8 +77,26 @@ class M2M3BiService:
             ],
         }
 
-    async def get_m2_overview(self, session: AsyncSession, org_id: str) -> dict:
-        orders = (await session.scalars(select(M0Order).where(M0Order.org_id == org_id))).all()
+    async def get_m2_overview(
+        self,
+        session: AsyncSession,
+        org_id: str,
+        include_mock: bool = False,
+        shop_id: str | None = None,
+        actor: ActorContext | None = None,
+    ) -> dict:
+        all_orders = (await session.scalars(select(M0Order).where(M0Order.org_id == org_id))).all()
+        if actor and actor.allowed_shop_ids:
+            all_orders = [o for o in all_orders if o.shop_id in actor.allowed_shop_ids]
+        if shop_id:
+            all_orders = [o for o in all_orders if o.shop_id == shop_id]
+
+        mock_excluded_count = sum(1 for o in all_orders if o.is_mock) if not include_mock else 0
+        orders = all_orders if include_mock else [o for o in all_orders if not o.is_mock]
+        if not orders and all_orders and not include_mock:
+            # Fallback only when org has zero non-mock orders yet, clearly flagged
+            orders = []
+
         prods = (await session.scalars(select(M0Product).where(M0Product.org_id == org_id))).all()
         inv = (await session.scalars(select(M0Inventory).where(M0Inventory.org_id == org_id))).all()
         ads = (await session.scalars(select(M2AdCampaign).where(M2AdCampaign.org_id == org_id))).all()
@@ -74,7 +107,6 @@ class M2M3BiService:
         prod_map = {p.sku: p for p in prods}
         inv_map = {i.sku: i for i in inv}
 
-        # Product & Profit breakdown from real orders + cost
         by_sku: dict[str, dict] = {}
         for o in orders:
             entry = by_sku.setdefault(
@@ -102,9 +134,15 @@ class M2M3BiService:
         total_profit = round(sum(r["net_profit_usd"] for r in by_sku.values()), 2)
         total_ad_spend = round(sum(float(a.spend_7d_usd) for a in ads), 2)
         total_refund = round(sum(float(t.refund_usd) for t in tickets if t.status == "APPROVED"), 2)
-        po_commit_rmb = round(sum(p.order_qty * (round(float(prod_map[p.sku].unit_cost_usd) * 7.2, 2) if p.sku in prod_map else 40.0) for p in pos if p.status != "cancelled"), 2)
+        po_commit_rmb = round(
+            sum(
+                p.order_qty * (round(float(prod_map[p.sku].unit_cost_usd) * 7.2, 2) if p.sku in prod_map else 40.0)
+                for p in pos
+                if p.status != "cancelled"
+            ),
+            2,
+        )
 
-        # Daily trend from M5SalesHistory
         daily_agg: dict[str, dict] = {}
         for h in hist:
             ds = h.sales_date.isoformat()
@@ -121,6 +159,9 @@ class M2M3BiService:
                 "ad_spend_7d_usd": total_ad_spend,
                 "approved_refund_usd": total_refund,
                 "po_commitment_rmb": po_commit_rmb,
+                "include_mock": include_mock,
+                "mock_excluded_count": mock_excluded_count,
+                "live_order_count": len(orders),
             },
             "sku_profits": list(by_sku.values()),
             "trend_30d": trend,
@@ -162,9 +203,45 @@ class M2M3BiService:
                 "acos": r.acos,
                 "roas": r.roas,
                 "status": r.status,
+                "high_acos_alert": r.acos > 0.30,
             }
             for r in rows
         ]
+
+    async def create_ad(
+        self, session: AsyncSession, org_id: str, req: AdCreateReq, actor: ActorContext, trace_id: str
+    ) -> dict:
+        cid = f"ad_{uuid.uuid4().hex[:8]}"
+        sku_norm = req.sku.strip().upper()
+        session.add(
+            M2AdCampaign(
+                campaign_id=cid,
+                org_id=org_id,
+                sku=sku_norm,
+                platform=req.platform,
+                campaign_name=req.campaign_name.strip(),
+                daily_budget_usd=req.daily_budget_usd,
+                spend_7d_usd=0.0,
+                sales_7d_usd=0.0,
+                acos=0.0,
+                roas=0.0,
+                status="ACTIVE",
+            )
+        )
+        await write_audit_event(
+            session,
+            org_id=org_id,
+            sku=sku_norm,
+            module="M2",
+            action="AD_CAMPAIGN_CREATED",
+            actor_id=actor.user_id,
+            actor_role=actor.role,
+            ok=True,
+            sentence_zh=f"{actor.display_name} 新建广告计划 {req.campaign_name}（日预算 ${req.daily_budget_usd}）",
+            trace_id=trace_id,
+        )
+        await session.commit()
+        return {"campaign_id": cid, "sku": sku_norm, "status": "ACTIVE"}
 
     async def adjust_ad(
         self, session: AsyncSession, org_id: str, campaign_id: str, req: AdAdjustReq, actor: ActorContext, trace_id: str
@@ -193,10 +270,14 @@ class M2M3BiService:
 
     async def list_competitors(self, session: AsyncSession, org_id: str) -> list[dict]:
         rows = (await session.scalars(select(M3CompetitorWatch).where(M3CompetitorWatch.org_id == org_id))).all()
+        prods = (await session.scalars(select(M0Product).where(M0Product.org_id == org_id))).all()
+        price_map = {p.sku: float(p.sale_price_usd) for p in prods}
         return [
             {
                 "watch_id": r.watch_id,
                 "sku": r.sku,
+                "our_price_usd": price_map.get(r.sku),
+                "price_diff_usd": round(r.price_usd - price_map[r.sku], 2) if r.sku in price_map else None,
                 "competitor_brand": r.competitor_brand,
                 "asin_or_ref": r.asin_or_ref,
                 "price_usd": r.price_usd,
@@ -214,11 +295,12 @@ class M2M3BiService:
         self, session: AsyncSession, org_id: str, req: CompetitorCreateReq, actor: ActorContext, trace_id: str
     ) -> dict:
         wid = f"cmp_{uuid.uuid4().hex[:8]}"
+        sku_norm = req.sku.strip().upper()
         session.add(
             M3CompetitorWatch(
                 watch_id=wid,
                 org_id=org_id,
-                sku=req.sku,
+                sku=sku_norm,
                 competitor_brand=req.competitor_brand,
                 asin_or_ref=req.asin_or_ref,
                 price_usd=req.price_usd,
@@ -233,14 +315,124 @@ class M2M3BiService:
         await write_audit_event(
             session,
             org_id=org_id,
-            sku=req.sku,
+            sku=sku_norm,
             module="M3",
             action="COMPETITOR_ADDED",
             actor_id=actor.user_id,
             actor_role=actor.role,
             ok=True,
-            sentence_zh=f"{actor.display_name} 新增竞品监控 {req.competitor_brand}（{req.asin_or_ref}）对标 {req.sku}",
+            sentence_zh=f"{actor.display_name} 新增竞品监控 {req.competitor_brand}（{req.asin_or_ref}）对标 {sku_norm}",
             trace_id=trace_id,
         )
         await session.commit()
         return {"watch_id": wid}
+
+    async def update_competitor(
+        self,
+        session: AsyncSession,
+        org_id: str,
+        watch_id: str,
+        req: CompetitorUpdateReq,
+        actor: ActorContext,
+        trace_id: str,
+    ) -> dict:
+        row = await session.scalar(
+            select(M3CompetitorWatch).where(M3CompetitorWatch.org_id == org_id, M3CompetitorWatch.watch_id == watch_id)
+        )
+        if not row:
+            raise M7Error("M7-4041", f"未找到竞品监控记录: {watch_id}", http_status=404)
+        price_delta = round(req.price_usd - row.price_usd, 2)
+        row.price_usd = req.price_usd
+        row.rating = req.rating
+        row.bsr_rank = req.bsr_rank
+        if req.negative_topics:
+            row.negative_topics_json = req.negative_topics
+        if price_delta < 0:
+            row.last_alert = f"竞品降价 ${abs(price_delta):.2f} 至 ${req.price_usd:.2f}"
+        await write_audit_event(
+            session,
+            org_id=org_id,
+            sku=row.sku,
+            module="M3",
+            action="COMPETITOR_UPDATED",
+            actor_id=actor.user_id,
+            actor_role=actor.role,
+            ok=True,
+            sentence_zh=f"{actor.display_name} 更新竞品 {row.competitor_brand}（售价 ${req.price_usd}，BSR #{req.bsr_rank}）",
+            trace_id=trace_id,
+        )
+        await session.commit()
+        return {"watch_id": watch_id, "last_alert": row.last_alert}
+
+    async def ask_bi_assistant(
+        self, session: AsyncSession, org_id: str, req: BiAskReq, actor: ActorContext, trace_id: str
+    ) -> dict:
+        if _MUTATION_RE.search(req.question):
+            await write_audit_event(
+                session,
+                org_id=org_id,
+                module="M3",
+                action="BI_MUTATION_BLOCKED",
+                actor_id=actor.user_id,
+                actor_role=actor.role,
+                ok=False,
+                sentence_zh=f"拦截 {actor.display_name} 的只读问数越权写入尝试",
+                trace_id=trace_id,
+            )
+            await session.commit()
+            raise M7Error("M7-4033", "经营智能问数仅限只读指标分析，禁止执行任何修改或删除指令", http_status=403)
+
+        ov = await self.get_m2_overview(session, org_id, include_mock=req.include_mock, actor=actor)
+        alerts = (
+            await session.scalars(
+                select(M6AlertEvent).where(M6AlertEvent.org_id == org_id, M6AlertEvent.status == "OPEN")
+            )
+        ).all()
+        applies = (
+            await session.scalars(
+                select(M6ReplenishApply).where(
+                    M6ReplenishApply.org_id == org_id, M6ReplenishApply.status == "pending_approve"
+                )
+            )
+        ).all()
+        comps = await self.list_competitors(session, org_id)
+
+        s = ov["summary"]
+        top_sku = max(ov["sku_profits"], key=lambda x: x["net_profit_usd"], default=None)
+        scope_label = "含演示订单" if req.include_mock else f"仅实盘订单（已剔除 {s['mock_excluded_count']} 条 MOCK）"
+        lines = [
+            f"【实时数据库口径溯源 · {scope_label}】",
+            f"1. 经营大盘：实盘 GMV ${s['total_gmv_usd']:.2f}，预估净利润 ${s['net_profit_usd']:.2f}（毛利率 {s['margin_pct']}%）。",
+        ]
+        if top_sku:
+            lines.append(
+                f"2. 最优利润单品：{top_sku['sku']}（{top_sku['name']}），销量 {top_sku['units']} 件，净利 ${top_sku['net_profit_usd']:.2f}。"
+            )
+        lines.append(
+            f"3. 扣减明细：7日广告花费 ${s['ad_spend_7d_usd']:.2f}；已批售后退款 ${s['approved_refund_usd']:.2f}；未取消采购承诺 ¥{s['po_commitment_rmb']:.0f}。"
+        )
+        lines.append(
+            f"4. 供应链与竞品风险：待审补货申请 {len(applies)} 笔；未处理断货/逾期告警 {len(alerts)} 条；监控竞品 {len(comps)} 家。"
+        )
+        if alerts:
+            lines.append("   └ 重点告警：" + "；".join(a.message for a in alerts[:3]))
+
+        await write_audit_event(
+            session,
+            org_id=org_id,
+            module="M3",
+            action="BI_ASK_EXECUTED",
+            actor_id=actor.user_id,
+            actor_role=actor.role,
+            ok=True,
+            sentence_zh=f"{actor.display_name} 执行只读经营智能问数",
+            trace_id=trace_id,
+        )
+        await session.commit()
+        return {
+            "answer": "\n".join(lines),
+            "lineage_sources": ["m0_orders", "m0_products", "m2_ad_campaigns", "m1_aftersales_tickets", "m6_alert_events"],
+            "metrics": s,
+            "open_alerts_count": len(alerts),
+            "pending_applies_count": len(applies),
+        }

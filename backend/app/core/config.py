@@ -37,6 +37,7 @@ class Settings(BaseSettings):
 
     # 职责分离（禁自批）：默认严格开启
     M7_STRICT_SEPARATION_OF_DUTIES: bool = True
+    M7_ENABLE_DEMO_ROLE_SWITCH: bool = True
 
     # 安全与跨域
     JWT_SECRET_KEY: str = "dev-local-placeholder-secret"

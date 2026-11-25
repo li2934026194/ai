@@ -44,6 +44,8 @@ from app.modules.m5_m6_supply.schemas import (
     ApplyRejectReq,
     PoCancelReq,
     PoReceiveReq,
+    SalesHistoryCsvReq,
+    SkuSupplyParamsReq,
     WeeklyReviewCreateReq,
     WhatIfSandboxReq,
 )
@@ -673,3 +675,167 @@ class M5M6SupplyService:
         )
         await session.commit()
         return {"review_id": rid, "metrics": metrics}
+
+    async def import_sales_csv(
+        self, session: AsyncSession, org_id: str, req: SalesHistoryCsvReq, actor: ActorContext, trace_id: str
+    ) -> dict:
+        import csv
+        import io
+
+        fn_low = (req.filename or "").lower()
+        if any(k in fn_low for k in ("mock", "demo", "演示", "测试")):
+            raise M7Error("M7-4221", f"文件名「{req.filename}」含演示/测试字样，禁止导入实盘销量历史", http_status=422)
+
+        reader = csv.DictReader(io.StringIO(req.csv_text.strip()))
+        imported = 0
+        errors: list[dict] = []
+        for idx, row in enumerate(reader, start=2):
+            sku = (row.get("sku") or "").strip().upper()
+            d_str = (row.get("sales_date") or row.get("date") or "").strip()
+            if not sku or not d_str:
+                errors.append({"line": idx, "message": "缺少 sku 或 sales_date"})
+                continue
+            try:
+                s_date = date.fromisoformat(d_str)
+                qty = float(row.get("qty_raw") or row.get("qty") or 0)
+                eod = float(row.get("on_hand_eod") or 0)
+                rev = float(row.get("revenue_usd") or 0)
+            except (TypeError, ValueError):
+                errors.append({"line": idx, "message": f"{sku} {d_str} 日期或数值非法"})
+                continue
+            if qty < 0 or eod < 0:
+                errors.append({"line": idx, "message": f"{sku} {d_str} 销量或库存不能为负"})
+                continue
+
+            existing = await session.scalar(
+                select(M5SalesHistory).where(
+                    M5SalesHistory.org_id == org_id,
+                    M5SalesHistory.sku == sku,
+                    M5SalesHistory.sales_date == s_date,
+                )
+            )
+            if existing:
+                existing.qty_raw = qty
+                existing.on_hand_eod = eod
+                existing.revenue_usd = rev
+            else:
+                session.add(
+                    M5SalesHistory(
+                        org_id=org_id,
+                        sku=sku,
+                        sales_date=s_date,
+                        qty_raw=qty,
+                        on_hand_eod=eod,
+                        revenue_usd=rev,
+                    )
+                )
+            imported += 1
+
+        await write_audit_event(
+            session,
+            org_id=org_id,
+            module="M5",
+            action="SALES_HISTORY_IMPORTED",
+            actor_id=actor.user_id,
+            actor_role=actor.role,
+            ok=True,
+            sentence_zh=f"{actor.display_name} 导入 {imported} 条日度销量与期末库存流水",
+            trace_id=trace_id,
+        )
+        await session.commit()
+        return {"imported": imported, "errors": errors}
+
+    async def update_sku_supply_params(
+        self, session: AsyncSession, org_id: str, sku: str, req: SkuSupplyParamsReq, actor: ActorContext, trace_id: str
+    ) -> dict:
+        sku_norm = sku.strip().upper()
+        prod = await session.scalar(select(M0Product).where(M0Product.org_id == org_id, M0Product.sku == sku_norm))
+        if not prod:
+            raise M7Error("M7-4041", f"未找到 SKU 主档: {sku_norm}", http_status=404)
+        prod.moq = req.moq
+        prod.pack_size = req.pack_size
+        prod.lead_time_days = req.lead_time_days
+        await write_audit_event(
+            session,
+            org_id=org_id,
+            sku=sku_norm,
+            module="M5",
+            action="SKU_SUPPLY_PARAMS_UPDATED",
+            actor_id=actor.user_id,
+            actor_role=actor.role,
+            ok=True,
+            sentence_zh=f"{actor.display_name} 调整 {sku_norm} 补货参数（MOQ={req.moq}，整箱={req.pack_size}，交期={req.lead_time_days}天）",
+            trace_id=trace_id,
+        )
+        await session.commit()
+        return {"sku": sku_norm, "moq": prod.moq, "pack_size": prod.pack_size, "lead_time_days": prod.lead_time_days}
+
+    async def scan_alerts(self, session: AsyncSession, org_id: str, actor: ActorContext, trace_id: str) -> dict:
+        created = 0
+        prods = (await session.scalars(select(M0Product).where(M0Product.org_id == org_id))).all()
+        open_alerts = (
+            await session.scalars(
+                select(M6AlertEvent).where(M6AlertEvent.org_id == org_id, M6AlertEvent.status == "OPEN")
+            )
+        ).all()
+        open_keys = {(a.sku, a.alert_type) for a in open_alerts}
+
+        for p in prods:
+            try:
+                fc = await self.get_forecast_and_suggestion(session, org_id, p.sku)
+                fwd = (fc.get("suggestion", {}).get("inputs_json") or {}).get("stockout_forward") or {}
+                if (fwd.get("zero_days") or 0) > 0 and (p.sku, "STOCKOUT_RISK") not in open_keys:
+                    session.add(
+                        M6AlertEvent(
+                            alert_id=f"alt_{uuid.uuid4().hex[:8]}",
+                            org_id=org_id,
+                            sku=p.sku,
+                            severity="HIGH",
+                            alert_type="STOCKOUT_RISK",
+                            message=f"未来 90 天预计断货 {fwd.get('zero_days')} 天（首次见底：{fwd.get('first_zero_date')}），建议按 ROP={fc['suggestion']['rop']} 及时补货",
+                            status="OPEN",
+                        )
+                    )
+                    open_keys.add((p.sku, "STOCKOUT_RISK"))
+                    created += 1
+            except M7Error:
+                continue
+
+        today = date.today()
+        open_pos = (
+            await session.scalars(
+                select(M6PurchaseOrder).where(
+                    M6PurchaseOrder.org_id == org_id,
+                    M6PurchaseOrder.status.in_(["created", "shipping", "partial_received"]),
+                )
+            )
+        ).all()
+        for po in open_pos:
+            if po.expect_arrive and po.expect_arrive < today and (po.sku, "PO_OVERDUE") not in open_keys:
+                session.add(
+                    M6AlertEvent(
+                        alert_id=f"alt_{uuid.uuid4().hex[:8]}",
+                        org_id=org_id,
+                        sku=po.sku,
+                        severity="HIGH",
+                        alert_type="PO_OVERDUE",
+                        message=f"采购单 {po.po_id} 已逾期（预计到货 {po.expect_arrive}，未收 {po.order_qty - po.receive_qty} 件）",
+                        status="OPEN",
+                    )
+                )
+                open_keys.add((po.sku, "PO_OVERDUE"))
+                created += 1
+
+        await write_audit_event(
+            session,
+            org_id=org_id,
+            module="M6",
+            action="ALERTS_SCANNED",
+            actor_id=actor.user_id,
+            actor_role=actor.role,
+            ok=True,
+            sentence_zh=f"{actor.display_name} 执行全盘断货与逾期 PO 巡检，新增 {created} 条预警",
+            trace_id=trace_id,
+        )
+        await session.commit()
+        return {"created": created}

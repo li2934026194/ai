@@ -9,6 +9,7 @@ const pos = ref<any[]>([]);
 const alerts = ref<any[]>([]);
 const recvQty = ref<Record<string, number>>({});
 const defQty = ref<Record<string, number>>({});
+const cancelReasonMap = ref<Record<string, string>>({});
 const errMsg = ref("");
 
 async function load() {
@@ -49,8 +50,19 @@ async function receive(po: any) {
 async function cancel(id: string) {
   errMsg.value = "";
   try {
-    await platformApi.cancelPo(id, "供应商交期变更取消采购单");
+    await platformApi.cancelPo(id, cancelReasonMap.value[id] || "供应商交期变更取消采购单");
     ws.showToast("已取消采购单并释放未到货在途");
+    await load();
+  } catch (e) {
+    if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
+  }
+}
+
+async function scanAlerts() {
+  errMsg.value = "";
+  try {
+    const res = await platformApi.scanAlerts();
+    ws.showToast(`断货与逾期 PO 巡检完成，新增 ${res.created} 条预警`);
     await load();
   } catch (e) {
     if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
@@ -101,9 +113,10 @@ onMounted(() => void load());
             <td>
               <template v-if="!['fully_received', 'cancelled'].includes(po.status)">
                 <button v-if="po.status === 'created'" type="button" class="btn btn-sm" @click="ship(po.po_id)">标记发货</button>
-                <input v-model.number="recvQty[po.po_id]" type="number" class="input" style="width:72px;display:inline-block;margin:0 4px;" placeholder="实收" />
-                <input v-model.number="defQty[po.po_id]" type="number" class="input" style="width:64px;display:inline-block;margin-right:4px;" placeholder="不良" />
+                <input v-model.number="recvQty[po.po_id]" type="number" class="input" style="width:68px;display:inline-block;margin:0 4px;" placeholder="实收" />
+                <input v-model.number="defQty[po.po_id]" type="number" class="input" style="width:60px;display:inline-block;margin-right:4px;" placeholder="不良" />
                 <button type="button" class="btn btn-sm btn-success" @click="receive(po)">质检收货</button>
+                <input v-model="cancelReasonMap[po.po_id]" class="input" style="width:110px;display:inline-block;margin-left:6px;" placeholder="取消原因" />
                 <button type="button" class="btn btn-sm btn-danger" style="margin-left:4px;" @click="cancel(po.po_id)">取消</button>
               </template>
               <span v-else style="font-size:12px;color:#64748b;">{{ po.cancel_reason || "已收满闭环" }}</span>
@@ -114,7 +127,10 @@ onMounted(() => void load());
     </div>
 
     <div class="card">
-      <div class="card-title">供应链断货与交期告警中心（M6-8）</div>
+      <div class="card-title">
+        <span>供应链断货与交期告警中心（M6-8 · 支持全盘巡检生成）</span>
+        <button type="button" class="btn btn-sm btn-primary" @click="scanAlerts">立即巡检断货/逾期预警</button>
+      </div>
       <table class="table">
         <thead>
           <tr>

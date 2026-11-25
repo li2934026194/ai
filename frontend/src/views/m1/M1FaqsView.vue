@@ -8,8 +8,7 @@ const ws = useM7WorkspaceStore();
 const faqs = ref<any[]>([]);
 const sku = ref("SKU-00704");
 const painText = ref("");
-const faqQ = ref("");
-const faqA = ref("");
+const faqPairs = ref<Array<{ q: string; a: string }>>([{ q: "", a: "" }]);
 const errMsg = ref("");
 
 async function load() {
@@ -26,19 +25,32 @@ async function load() {
 function selectFaq(f: any) {
   sku.value = f.sku;
   painText.value = (f.pain_points || []).join("\n");
-  faqQ.value = f.faq_pairs?.[0]?.q || "";
-  faqA.value = f.faq_pairs?.[0]?.a || "";
+  faqPairs.value =
+    f.faq_pairs && f.faq_pairs.length
+      ? JSON.parse(JSON.stringify(f.faq_pairs))
+      : [{ q: "", a: "" }];
+}
+
+function addPair() {
+  faqPairs.value.push({ q: "", a: "" });
+}
+
+function removePair(idx: number) {
+  if (faqPairs.value.length > 1) faqPairs.value.splice(idx, 1);
 }
 
 async function saveFaq() {
   errMsg.value = "";
   try {
+    const cleanPairs = faqPairs.value
+      .map((p) => ({ q: p.q.trim(), a: p.a.trim() }))
+      .filter((p) => p.q && p.a);
     await platformApi.upsertFaq({
       sku: sku.value,
       pain_points: painText.value.split("\n").map((s) => s.trim()).filter(Boolean),
-      faq_pairs: faqQ.value ? [{ q: faqQ.value, a: faqA.value }] : [],
+      faq_pairs: cleanPairs,
     });
-    ws.showToast(`已更新 ${sku.value} 导购 FAQ，M7 文案引擎将实时引用！`);
+    ws.showToast(`已保存 ${sku.value} 导购 FAQ（${cleanPairs.length} 组问答），M7 与 M1-4 将实时引用！`);
     await load();
   } catch (e) {
     if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
@@ -76,7 +88,10 @@ onMounted(() => void load());
       </div>
 
       <div class="card">
-        <div class="card-title">维护 SKU 痛点与 FAQ（需 m1:faq:edit）</div>
+        <div class="card-title">
+          <span>维护 SKU 痛点与多组 FAQ（需 m1:faq:edit）</span>
+          <button type="button" class="btn btn-sm" @click="addPair">+ 新增问答</button>
+        </div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div>
             <label class="field-label">SKU</label>
@@ -84,15 +99,26 @@ onMounted(() => void load());
           </div>
           <div>
             <label class="field-label">买家高频痛点（每行一条）</label>
-            <textarea v-model="painText" class="textarea" style="min-height:76px;"></textarea>
+            <textarea v-model="painText" class="textarea" style="min-height:66px;"></textarea>
           </div>
-          <div>
-            <label class="field-label">高频问题 Q</label>
-            <input v-model="faqQ" class="input" />
-          </div>
-          <div>
-            <label class="field-label">标准回复 A</label>
-            <textarea v-model="faqA" class="textarea" style="min-height:66px;"></textarea>
+          <div
+            v-for="(pair, idx) in faqPairs"
+            :key="idx"
+            style="border:1px solid var(--border);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;"
+          >
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="font-size:12px;">问答 #{{ idx + 1 }}</strong>
+              <button
+                v-if="faqPairs.length > 1"
+                type="button"
+                class="btn btn-sm btn-danger"
+                @click="removePair(idx)"
+              >
+                删除
+              </button>
+            </div>
+            <input v-model="pair.q" class="input" placeholder="高频问题 Q..." />
+            <textarea v-model="pair.a" class="textarea" style="min-height:48px;" placeholder="标准合规回复 A..."></textarea>
           </div>
           <button type="button" class="btn btn-primary" @click="saveFaq">保存导购知识库</button>
         </div>

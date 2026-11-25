@@ -29,13 +29,33 @@ from app.modules.m5_m6_supply.router import router as m5_m6_router
 from app.modules.m7_content.repository import M7Repository
 from app.modules.m7_content.router import router as m7_router
 from app.modules.m7_content.schemas import AuditEventOut
-from app.modules.m8_org.router import router as m8_router
+from app.modules.m8_org.router import auth_router as m8_auth_router, router as m8_router
+
+
+async def _ensure_compat_columns(conn) -> None:
+    alters = [
+        ("m8_users", "password_hash", "VARCHAR(256)"),
+        ("m8_users", "allowed_shop_ids_json", "TEXT NOT NULL DEFAULT '[]'"),
+        ("m0_shops", "credential_mask", "VARCHAR(32) NOT NULL DEFAULT '****4821'"),
+        ("m4_candidates", "source_nature", "VARCHAR(32) NOT NULL DEFAULT 'internal_live'"),
+        ("m4_candidates", "fulfillment_mode", "VARCHAR(16) NOT NULL DEFAULT 'FBA'"),
+        ("m4_candidates", "ip_risk_note", "TEXT NOT NULL DEFAULT ''"),
+    ]
+    for tbl, col, ddl in alters:
+        try:
+            res = await conn.execute(text(f"PRAGMA table_info({tbl})"))
+            existing = {r[1] for r in res.fetchall()}
+            if existing and col not in existing:
+                await conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN {col} {ddl}"))
+        except Exception:
+            pass
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await _ensure_compat_columns(conn)
     async with AsyncSessionLocal() as session:
         await ensure_seed_data(session, org_id="org_demo")
     yield
@@ -66,6 +86,7 @@ def create_app() -> FastAPI:
         return response
 
     app.add_exception_handler(M7Error, m7_exception_handler)
+    app.include_router(m8_auth_router)
     app.include_router(m8_router)
     app.include_router(m0_router)
     app.include_router(m1_router)

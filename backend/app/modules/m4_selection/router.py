@@ -6,7 +6,12 @@ from app.core.database import get_db_session
 from app.core.exceptions import build_envelope
 from app.core.tenant import OrgContext, get_org_context
 from app.mocks.seed_data import ensure_seed_data
-from app.modules.m4_selection.schemas import CandidateDecisionReq, CandidateEvaluateReq, CandidateImportReq
+from app.modules.m4_selection.schemas import (
+    CandidateCsvImportReq,
+    CandidateDecisionReq,
+    CandidateEvaluateReq,
+    CandidateImportReq,
+)
 from app.modules.m4_selection.service import M4SelectionService
 
 router = APIRouter(prefix="/api/v1/orgs/{org_id}/m4", tags=["M4 Selection"])
@@ -38,6 +43,21 @@ async def import_candidate(
 ):
     await ensure_seed_data(session, org_id=org_ctx.org_id)
     return build_envelope(data=await svc.import_candidate(session, org_ctx.org_id, req, actor, _trace(request)), trace_id=_trace(request))
+
+
+@router.post("/candidates/import-csv")
+async def import_csv_candidates(
+    request: Request,
+    req: CandidateCsvImportReq,
+    org_ctx: OrgContext = Depends(get_org_context),
+    actor: ActorContext = Depends(require_perm("m4:edit")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    await ensure_seed_data(session, org_id=org_ctx.org_id)
+    return build_envelope(
+        data=await svc.import_csv_candidates(session, org_ctx.org_id, req, actor, _trace(request)),
+        trace_id=_trace(request),
+    )
 
 
 @router.post("/candidates/{candidate_id}/evaluate")

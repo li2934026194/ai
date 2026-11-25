@@ -28,7 +28,7 @@ async function submitStocktake() {
   errMsg.value = "";
   try {
     await platformApi.submitStocktake(form);
-    ws.showToast(`已完成 ${form.sku} 人工盘点，在手库存更新为 ${form.counted_qty} 件`);
+    ws.showToast(`已完成 ${form.sku} 人工盘点，在手净可售更新为 ${form.counted_qty} 件`);
     await load();
   } catch (e) {
     if (e instanceof M7ApiError) errMsg.value = `${e.code}: ${e.message}`;
@@ -42,6 +42,10 @@ onMounted(() => void load());
   <div>
     <div v-if="errMsg" class="alert alert-red">{{ errMsg }}</div>
 
+    <div class="alert alert-blue" style="margin-bottom:12px;">
+      口径红线：<strong>在手净可售 (on_hand)</strong> 已为可用净库存，下游预测与补货直接取用 <code>available = on_hand</code>，<strong>不会二次扣减预占参考数 (reserved)</strong>；在途 (in_transit) 未盘点入库前不可售。
+    </div>
+
     <div class="grid-2">
       <div class="card">
         <div class="card-title">
@@ -53,9 +57,9 @@ onMounted(() => void load());
             <tr>
               <th>仓库</th>
               <th>SKU</th>
-              <th>在手可售</th>
-              <th>在途</th>
-              <th>预占</th>
+              <th>在手净可售</th>
+              <th>在途 (不可售)</th>
+              <th>预占 (参考展示)</th>
               <th>盘点人</th>
             </tr>
           </thead>
@@ -65,9 +69,12 @@ onMounted(() => void load());
               <td><code>{{ it.sku }}</code></td>
               <td class="tnum" :style="{ color: it.on_hand < 120 ? '#b91c1c' : '#047857', fontWeight: 700 }">
                 {{ it.on_hand }}
+                <router-link v-if="it.on_hand < 120" to="/m6/smart" style="font-size:11px;margin-left:6px;color:#b91c1c;">
+                  低库存补货→
+                </router-link>
               </td>
               <td class="tnum">{{ it.in_transit }}</td>
-              <td class="tnum">{{ it.reserved }}</td>
+              <td class="tnum" style="color:#64748b;">{{ it.reserved }}</td>
               <td>{{ it.last_stocktake_by || "系统初始化" }}</td>
             </tr>
           </tbody>

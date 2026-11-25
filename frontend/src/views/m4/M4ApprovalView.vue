@@ -9,6 +9,7 @@ const router = useRouter();
 const ws = useM7WorkspaceStore();
 const candidates = ref<any[]>([]);
 const noteMap = ref<Record<string, string>>({});
+const triggerM7Map = ref<Record<string, boolean>>({});
 const errMsg = ref("");
 
 async function load() {
@@ -23,10 +24,16 @@ async function load() {
 async function decide(cid: string, decision: "APPROVED" | "REJECTED") {
   errMsg.value = "";
   try {
-    await platformApi.decideCandidate(cid, decision, noteMap.value[cid] || "符合测款毛利门槛，同意立项");
+    const triggerM7 = decision === "APPROVED" && Boolean(triggerM7Map.value[cid]);
+    const res = await platformApi.decideCandidate(
+      cid,
+      decision,
+      noteMap.value[cid] || "符合测款毛利门槛，同意立项",
+      triggerM7
+    );
     ws.showToast(
       decision === "APPROVED"
-        ? "选品已终审批准并自动同步 M0 主档与 M7 内容工作台！"
+        ? `选品已终审批准并同步 M0 主档${res.m7_draft_triggered ? "，且已自动生成 M7 首版文案草稿！" : "！"}`
         : "已驳回选品"
     );
     await ws.bootstrap();
@@ -53,25 +60,33 @@ onMounted(() => void load());
           <tr>
             <th>SKU</th>
             <th>商品名称</th>
-            <th>综合分 / 毛利率</th>
+            <th>加权分 / 未舍入毛利</th>
             <th>提交人</th>
-            <th>审批意见</th>
+            <th>审批意见 & M7 联动</th>
             <th>状态 / 拍板</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="c in candidates" :key="c.candidate_id">
             <td><code>{{ c.sku }}</code></td>
-            <td>{{ c.name }}</td>
-            <td class="tnum">{{ c.total_score }} 分 / {{ (c.est_margin_pct * 100).toFixed(1) }}%</td>
+            <td>
+              {{ c.name }}
+              <div v-if="c.ip_risk_note" style="font-size:11px;color:#b45309;">风险备忘：{{ c.ip_risk_note }}</div>
+            </td>
+            <td class="tnum">{{ c.total_score }} 分 / {{ (c.est_margin_pct * 100).toFixed(2) }}%</td>
             <td><code>{{ c.submitter_id || "-" }}</code></td>
             <td>
-              <input
-                v-if="c.status === 'PENDING_APPROVAL'"
-                v-model="noteMap[c.candidate_id]"
-                class="input"
-                placeholder="填写终审拍板意见"
-              />
+              <template v-if="c.status === 'PENDING_APPROVAL'">
+                <input
+                  v-model="noteMap[c.candidate_id]"
+                  class="input"
+                  placeholder="填写终审拍板意见"
+                />
+                <label style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:4px;color:#0369a1;">
+                  <input v-model="triggerM7Map[c.candidate_id]" type="checkbox" />
+                  批准同时自动触发 M7 首版文案草稿
+                </label>
+              </template>
               <span v-else>{{ c.decision_note || "-" }}</span>
             </td>
             <td>

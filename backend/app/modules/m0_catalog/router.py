@@ -28,11 +28,11 @@ def _trace(r: Request) -> str:
 async def list_shops(
     request: Request,
     org_ctx: OrgContext = Depends(get_org_context),
-    _actor: ActorContext = Depends(require_perm("m0:read")),
+    actor: ActorContext = Depends(require_perm("m0:read")),
     session: AsyncSession = Depends(get_db_session),
 ):
     await ensure_seed_data(session, org_id=org_ctx.org_id)
-    return build_envelope(data={"items": await svc.list_shops(session, org_ctx.org_id)}, trace_id=_trace(request))
+    return build_envelope(data={"items": await svc.list_shops(session, org_ctx.org_id, actor=actor)}, trace_id=_trace(request))
 
 
 @router.post("/shops")
@@ -45,6 +45,18 @@ async def create_shop(
 ):
     await ensure_seed_data(session, org_id=org_ctx.org_id)
     return build_envelope(data=await svc.create_shop(session, org_ctx.org_id, req, actor, _trace(request)), trace_id=_trace(request))
+
+
+@router.post("/shops/{shop_id}/sync")
+async def sync_shop(
+    request: Request,
+    shop_id: str,
+    org_ctx: OrgContext = Depends(get_org_context),
+    actor: ActorContext = Depends(require_perm("m0:shop:manage")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    await ensure_seed_data(session, org_id=org_ctx.org_id)
+    return build_envelope(data=await svc.sync_shop(session, org_ctx.org_id, shop_id, actor, _trace(request)), trace_id=_trace(request))
 
 
 @router.get("/products")
@@ -74,11 +86,11 @@ async def upsert_product(
 async def get_orders_and_quotes(
     request: Request,
     org_ctx: OrgContext = Depends(get_org_context),
-    _actor: ActorContext = Depends(require_perm("m0:read")),
+    actor: ActorContext = Depends(require_perm("m0:read")),
     session: AsyncSession = Depends(get_db_session),
 ):
     await ensure_seed_data(session, org_id=org_ctx.org_id)
-    return build_envelope(data=await svc.list_orders_and_quotes(session, org_ctx.org_id), trace_id=_trace(request))
+    return build_envelope(data=await svc.list_orders_and_quotes(session, org_ctx.org_id, actor=actor), trace_id=_trace(request))
 
 
 @router.post("/cost-requests")
@@ -137,4 +149,26 @@ async def import_csv(
     session: AsyncSession = Depends(get_db_session),
 ):
     await ensure_seed_data(session, org_id=org_ctx.org_id)
-    return build_envelope(data=await svc.import_csv_orders(session, org_ctx.org_id, req.csv_text, actor, _trace(request)), trace_id=_trace(request))
+    return build_envelope(
+        data=await svc.import_csv_orders(
+            session,
+            org_ctx.org_id,
+            req.csv_text,
+            actor,
+            _trace(request),
+            filename=req.filename,
+            source_type=req.source_type,
+        ),
+        trace_id=_trace(request),
+    )
+
+
+@router.get("/fx-rates")
+async def list_fx_rates(
+    request: Request,
+    org_ctx: OrgContext = Depends(get_org_context),
+    _actor: ActorContext = Depends(require_perm("m0:read")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    await ensure_seed_data(session, org_id=org_ctx.org_id)
+    return build_envelope(data={"items": await svc.list_fx_rates(session, org_ctx.org_id)}, trace_id=_trace(request))
