@@ -1,31 +1,52 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";
-import { ALL_9_ROLES } from "@/composables/usePermission";
+import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ALL_9_ROLES, usePermission } from "@/composables/usePermission";
+import { MODULE_DEFS } from "@/data/navigation";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
 
 const route = useRoute();
+const router = useRouter();
 const ws = useM7WorkspaceStore();
+const { roleMeta } = usePermission();
 
-const navItems = [
-  { path: "/m7/copy", num: "M7-1", label: "多语言商品文案" },
-  { path: "/m7/images", num: "M7-2", label: "主图与详情套图" },
-  { path: "/m7/video-aplus", num: "M7-3", label: "短视频与 A+ 长页" },
-  { path: "/m7/compliance", num: "M7-4", label: "合规检查与成品打包" },
-];
+const openGroupId = ref<string>("G2");
+
+function findGroupByPath(path: string): string | null {
+  const g = MODULE_DEFS.find((m) => m.pages.some((p) => p.route === path));
+  return g ? g.id : null;
+}
+
+watch(
+  () => route.path,
+  (p) => {
+    const g = findGroupByPath(p);
+    if (g) openGroupId.value = g;
+  },
+  { immediate: true }
+);
+
+function toggleGroup(id: string) {
+  openGroupId.value = openGroupId.value === id ? "" : id;
+}
+
+function isGroupActive(id: string): boolean {
+  return findGroupByPath(route.path) === id;
+}
 </script>
 
 <template>
   <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-logo">M7</div>
+    <div class="brand" style="cursor:pointer;" title="回到岗位工作台首页" @click="router.push('/home')">
+      <div class="brand-logo">CP</div>
       <div>
         <div class="brand-name">CrossPilot</div>
-        <div class="brand-sub">商品内容与合规交付</div>
+        <div class="brand-sub">跨境电商业务协作工作台</div>
       </div>
     </div>
 
     <div class="role-box">
-      <label class="role-label" for="roleSwitcher">当前演示岗位（9 角色）</label>
+      <label class="role-label" for="roleSwitcher">当前登录岗位（9 大业务岗位）</label>
       <select
         id="roleSwitcher"
         class="role-select"
@@ -33,34 +54,57 @@ const navItems = [
         @change="ws.switchRole(($event.target as HTMLSelectElement).value)"
       >
         <option v-for="r in ALL_9_ROLES" :key="r.key" :value="r.key">
-          {{ r.label }} [{{ r.badge }}]
+          {{ r.label }}
         </option>
       </select>
-      <div style="margin-top:6px;font-size:11px;color:#94a3b8;">
-        账号：<code style="color:#e2e8f0">{{ ws.currentActorId }}</code> · 租户 <code>{{ ws.currentOrgId }}</code>
+      <div class="role-hint">
+        账号 <code>{{ ws.currentActorId }}</code> · 权限标签：{{ roleMeta.badge }}
       </div>
     </div>
 
-    <nav style="margin-top:4px;flex:1;">
-      <router-link
-        v-for="item in navItems"
-        :key="item.path"
-        :to="item.path"
-        class="nav-item"
-        :class="{ active: route.path === item.path }"
-      >
-        <span>{{ item.num }} {{ item.label }}</span>
-      </router-link>
+    <router-link
+      to="/home"
+      class="nav-home-btn"
+      :class="{ active: route.path === '/home' }"
+    >
+      <span>🏠 岗位工作台（今日待办）</span>
+      <span class="nav-todo">M0-M8</span>
+    </router-link>
+
+    <nav class="nav-list">
+      <div v-for="grp in MODULE_DEFS" :key="grp.id" class="nav-group">
+        <div
+          class="nav-parent"
+          :class="{ open: openGroupId === grp.id, 'active-mod': isGroupActive(grp.id) }"
+          @click="toggleGroup(grp.id)"
+        >
+          <span>{{ grp.label }}</span>
+          <span style="font-size:10px;opacity:0.7;">{{ openGroupId === grp.id ? "▾" : "▸" }}</span>
+        </div>
+
+        <div v-if="openGroupId === grp.id" class="nav-children">
+          <router-link
+            v-for="p in grp.pages"
+            :key="p.id"
+            :to="p.route"
+            class="nav-child"
+            :class="{ active: route.path === p.route }"
+          >
+            <span>{{ p.label }}</span>
+          </router-link>
+        </div>
+      </div>
     </nav>
 
-    <div
-      v-if="ws.healthInfo"
-      style="margin-top:auto;padding:10px;background:#1e293b;border-radius:8px;font-size:11.5px;color:#cbd5e1;"
-    >
-      <div style="font-weight:700;margin-bottom:4px;">引擎状态（实时探测）</div>
-      <div>云模型：{{ ws.healthInfo.dashscope_key_configured ? "百炼已配置" : "本地兜底模式" }}</div>
-      <div>视频合成：{{ ws.healthInfo.video_ready ? "FFmpeg 就绪" : "未配置（503 门禁）" }}</div>
-      <div>禁自批：{{ ws.healthInfo.strict_separation_of_duties ? "已开启" : "已关闭" }}</div>
+    <div class="sidebar-footer">
+      <div style="font-weight:700;color:#cbd5e1;margin-bottom:2px;">
+        6 大业务环节 · 27 页协同工作台
+      </div>
+      <div v-if="ws.healthInfo">
+        LLM：{{ ws.healthInfo.dashscope_key_configured ? "百炼已配置" : "本地兜底" }} · 视频：{{
+          ws.healthInfo.video_ready ? "FFmpeg 就绪" : "503 门禁"
+        }} · SoD：{{ ws.healthInfo.strict_separation_of_duties ? "开启" : "关闭" }}
+      </div>
     </div>
   </aside>
 </template>

@@ -53,8 +53,8 @@ class CopyService:
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
         items = []
-        for p in self.catalog.list_available_products(org_id):
-            faq_snap = self.faq.get_faq_for_sku(org_id, p.sku)
+        for p in await self.catalog.alist_available_products(session, org_id):
+            faq_snap = await self.faq.aget_faq_for_sku(session, org_id, p.sku)
             selected = await repo.list_selected_assets(org_id, p.sku, p.platform)
             slots = {a.asset_slot for a in selected}
             core_copy_done = sum(1 for s in CORE_COPY_SLOTS if s in slots)
@@ -98,7 +98,7 @@ class CopyService:
     ) -> dict:
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
-        product = self.catalog.get_product(org_id, req.sku)
+        product = await self.catalog.aget_product(session, org_id, req.sku)
         if not product:
             raise M7Error("M7-4041", f"未找到可用商品 SKU: {req.sku}", http_status=404)
 
@@ -120,7 +120,7 @@ class CopyService:
             }
 
         rule = await repo.get_rule(org_id, req.platform, product.category)
-        faq_snap = self.faq.get_faq_for_sku(org_id, req.sku)
+        faq_snap = await self.faq.aget_faq_for_sku(session, org_id, req.sku)
         must_terms = list(
             dict.fromkeys(((rule.lexicon_json or {}).get("must") if rule else []) + req.extra_must)
         )
@@ -207,7 +207,7 @@ class CopyService:
     async def scan_copy(self, session: AsyncSession, *, org_id: str, req: CopyScanReq) -> dict:
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
-        product = self.catalog.get_product(org_id, req.sku)
+        product = await self.catalog.aget_product(session, org_id, req.sku)
         cat = product.category if product else req.category
         rule = await repo.get_rule(org_id, req.platform, cat)
         res = self.scanner.scan(
@@ -234,7 +234,7 @@ class CopyService:
         if not asset:
             raise M7Error("M7-4041", f"未找到文案资产: {asset_id}", http_status=404)
 
-        product = self.catalog.get_product(org_id, asset.sku)
+        product = await self.catalog.aget_product(session, org_id, asset.sku)
         cat = product.category if product else "kitchen_appliance"
         rule = await repo.get_rule(org_id, asset.platform, cat)
         text_val = str((asset.content_json or {}).get("text", ""))
@@ -317,7 +317,7 @@ class CopyService:
         if not req.text or not req.text.strip():
             raise M7Error("M7-4221", "修改后的文案不能为空", http_status=422)
 
-        product = self.catalog.get_product(org_id, asset.sku)
+        product = await self.catalog.aget_product(session, org_id, asset.sku)
         cat = product.category if product else "kitchen_appliance"
         rule = await repo.get_rule(org_id, asset.platform, cat)
         scan_res = self.scanner.scan(
@@ -397,7 +397,7 @@ class CopyService:
         asset.version += 1
         asset.last_edited_by = actor.user_id
 
-        product = self.catalog.get_product(org_id, asset.sku)
+        product = await self.catalog.aget_product(session, org_id, asset.sku)
         cat = product.category if product else "kitchen_appliance"
         rule = await repo.get_rule(org_id, asset.platform, cat)
         text_val = str((asset.content_json or {}).get("text", ""))

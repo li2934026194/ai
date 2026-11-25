@@ -101,7 +101,7 @@ class ImageService:
     ) -> dict:
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
-        product = self.catalog.get_product(org_id, req.sku)
+        product = await self.catalog.aget_product(session, org_id, req.sku)
         if not product:
             raise M7Error("M7-4041", f"未找到可用商品 SKU: {req.sku}", http_status=404)
 
@@ -191,7 +191,7 @@ class ImageService:
                 ],
             }
 
-        product = self.catalog.get_product(org_id, job.sku)
+        product = await self.catalog.aget_product(session, org_id, job.sku)
         if not product:
             job.status = "FAILED"
             job.error_code = "M7-4041"
@@ -333,7 +333,7 @@ class ImageService:
             raise M7Error("M7-4001", "请填写局部修改要求", http_status=422)
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
-        product = self.catalog.get_product(org_id, req.sku)
+        product = await self.catalog.aget_product(session, org_id, req.sku)
         if not product:
             raise M7Error("M7-4041", f"未找到 SKU: {req.sku}", http_status=404)
 

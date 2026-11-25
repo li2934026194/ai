@@ -73,7 +73,7 @@ class VideoAplusService:
     ) -> dict:
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
-        product = self.catalog.get_product(org_id, req.sku)
+        product = await self.catalog.aget_product(session, org_id, req.sku)
         if not product:
             raise M7Error("M7-4041", f"未找到 SKU: {req.sku}", http_status=404)
 
@@ -363,7 +363,7 @@ class VideoAplusService:
     ) -> dict:
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
-        product = self.catalog.get_product(org_id, req.sku)
+        product = await self.catalog.aget_product(session, org_id, req.sku)
         if not product:
             raise M7Error("M7-4041", f"未找到 SKU: {req.sku}", http_status=404)
 

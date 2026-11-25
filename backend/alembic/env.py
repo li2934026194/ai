@@ -7,7 +7,13 @@ import asyncio
 from alembic import context
 from app.core.config import get_settings
 from app.core.database import Base
+from app.modules.m0_catalog import models as _m0_models  # noqa: F401
+from app.modules.m1_cs import models as _m1_models  # noqa: F401
+from app.modules.m2_m3_bi import models as _m2_m3_models  # noqa: F401
+from app.modules.m4_selection import models as _m4_models  # noqa: F401
+from app.modules.m5_m6_supply import models as _m5_m6_models  # noqa: F401
 from app.modules.m7_content import models as _m7_models  # noqa: F401
+from app.modules.m8_org import models as _m8_models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

@@ -14,9 +14,22 @@ from app.core.exceptions import M7Error, build_envelope, m7_exception_handler
 from app.core.storage import FileStorage
 from app.core.tenant import OrgContext, get_org_context
 from app.mocks.seed_data import ensure_seed_data
+from app.modules.m0_catalog import models as _m0_models  # noqa: F401
+from app.modules.m1_cs import models as _m1_models  # noqa: F401
+from app.modules.m2_m3_bi import models as _m2_m3_models  # noqa: F401
+from app.modules.m4_selection import models as _m4_models  # noqa: F401
+from app.modules.m5_m6_supply import models as _m5_m6_models  # noqa: F401
+from app.modules.m7_content import models as _m7_models  # noqa: F401
+from app.modules.m8_org import models as _m8_models  # noqa: F401
+from app.modules.m0_catalog.router import router as m0_router
+from app.modules.m1_cs.router import router as m1_router
+from app.modules.m2_m3_bi.router import router as m2_m3_router
+from app.modules.m4_selection.router import router as m4_router
+from app.modules.m5_m6_supply.router import router as m5_m6_router
 from app.modules.m7_content.repository import M7Repository
 from app.modules.m7_content.router import router as m7_router
 from app.modules.m7_content.schemas import AuditEventOut
+from app.modules.m8_org.router import router as m8_router
 
 
 @asynccontextmanager
@@ -53,6 +66,12 @@ def create_app() -> FastAPI:
         return response
 
     app.add_exception_handler(M7Error, m7_exception_handler)
+    app.include_router(m8_router)
+    app.include_router(m0_router)
+    app.include_router(m1_router)
+    app.include_router(m2_m3_router)
+    app.include_router(m4_router)
+    app.include_router(m5_m6_router)
     app.include_router(m7_router)
 
     @app.get("/healthz")

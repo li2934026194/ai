@@ -212,7 +212,7 @@ class ComplianceService:
     ) -> dict:
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
-        product = self.catalog.get_product(org_id, req.sku)
+        product = await self.catalog.aget_product(session, org_id, req.sku)
         if not product:
             raise M7Error("M7-4041", f"未找到 SKU: {req.sku}", http_status=404)
         rule = await repo.get_rule(org_id, req.platform, product.category)
@@ -284,7 +284,7 @@ class ComplianceService:
     ) -> dict:
         await ensure_seed_data(session, org_id=org_id)
         repo = M7Repository(session)
-        product = self.catalog.get_product(org_id, sku)
+        product = await self.catalog.aget_product(session, org_id, sku)
         if not product:
             raise M7Error("M7-4041", f"未找到 SKU: {sku}", http_status=404)
 

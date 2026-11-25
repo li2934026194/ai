@@ -9,6 +9,8 @@ import { highlightCopyHtml, useM7CopyStore } from "@/stores/m7Copy";
 import { useM7MediaStore } from "@/stores/m7Media";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
 import M7CompliancePackView from "@/views/m7/M7CompliancePackView.vue";
+import { MODULE_DEFS, PAGE_FLOW_META } from "@/data/navigation";
+import appRouter from "@/router";
 
 vi.mock("@/api/m7", async (importOriginal) => {
   const mod = await importOriginal<typeof import("@/api/m7")>();
@@ -196,5 +198,22 @@ describe("M7 Frontend RBAC, Compliance & Components", () => {
     ws.currentRole = "approver";
     await compWrapper.vm.$nextTick();
     expect((approveBtn.element as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("exposes all 6 business groups, 27 sub-pages, and Home route", () => {
+    expect(MODULE_DEFS.length).toBe(6);
+    const totalPages = MODULE_DEFS.reduce((acc, g) => acc + g.pages.length, 0);
+    expect(totalPages).toBe(27);
+
+    const registeredPaths = new Set(appRouter.getRoutes().map((r) => r.path));
+    expect(registeredPaths.has("/home")).toBe(true);
+    expect(PAGE_FLOW_META["/home"]).toBeTruthy();
+
+    for (const grp of MODULE_DEFS) {
+      for (const page of grp.pages) {
+        expect(registeredPaths.has(page.route)).toBe(true);
+        expect(PAGE_FLOW_META[page.route]).toBeTruthy();
+      }
+    }
   });
 });

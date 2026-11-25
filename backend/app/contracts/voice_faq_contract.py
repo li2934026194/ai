@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @dataclass(frozen=True)
@@ -16,3 +18,18 @@ class VoiceFaqContract:
         from app.mocks.seed_data import get_mock_faq
 
         return get_mock_faq(org_id, sku)
+
+    async def aget_faq_for_sku(self, session: AsyncSession, org_id: str, sku: str) -> VoiceFaqSnapshot:
+        from app.modules.m1_cs.models import M1FaqEntry
+
+        row = await session.scalar(
+            select(M1FaqEntry).where(M1FaqEntry.org_id == org_id, M1FaqEntry.sku == sku)
+        )
+        if row:
+            return VoiceFaqSnapshot(
+                org_id=org_id,
+                sku=sku,
+                pain_points=row.pain_points_json or [],
+                faq_pairs=row.faq_pairs_json or [],
+            )
+        return self.get_faq_for_sku(org_id, sku)
