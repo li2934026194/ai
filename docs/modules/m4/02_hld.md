@@ -153,5 +153,5 @@
 ## 10. 运行环境与外部依赖（对齐 V1.1 老师数据库与中间件标准）
 
 - **运行环境**：Python 3.11+、FastAPI、SQLAlchemy 2.0 Async + `asyncpg`；**PostgreSQL 15+ 为正式主库**（单机开发演示兼容 SQLite 3.40+）；Vue 3 + TypeScript 前端工作台。
-- **配套存储与异步栈**：选品原始批量导入文件归档至 **MinIO**（`FileStorage` 抽象层），大批量三态分流导入任务支持通过 **Redis + Celery** 异步执行，业务事实表统一落 **PostgreSQL**（`JSONB` 存储五维评分权重）。
+- **配套存储与异步栈**：选品原始批量导入文件归档至 **MinIO**（`FileStorage` 抽象层），大批量三态分流导入（≤25 MB 上限，Nginx 同步放开 `client_max_body_size 30m`）提供 **`202 Accepted` 异步导入端点（`POST /m4/candidates/import-csv-async`）** 与 **Redis + Celery / `M7GenerationJob`** 异步任务进度轮询，业务事实表统一落 **PostgreSQL**（`JSONB` 存储五维评分权重）。
 - **V1 外部依赖**：无需外网大模型或付费侵权 API Key 即可完整跑通评估与过会闭环；V1.1 扩展 CSV 导入预览与一键触发 M7 文案草稿。

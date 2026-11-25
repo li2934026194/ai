@@ -97,3 +97,13 @@ ROLE_PERMISSIONS = {
 - **`M8UsersView.vue`**：员工名册表（支持即时调岗下拉 + 停用/启用按钮）与新增授权表单；非 `m8:manage` 权限提示只读边界。
 - **`M8RolesView.vue`**：9 岗位只读矩阵表 + 5 大审批流策略开关表 + 模块筛选审计台账表（`ALLOWED` 绿标 / `DENIED` 红标）。
 - **`M7Sidebar.vue` & Pinia `auth` Store**：管理当前组织、角色上下文并在切换角色时自动触发当前页面重算刷新。
+
+---
+
+## 6. 容器编排、Celery Worker 与 E2E 测试规范
+
+- **Docker Compose 分层 Profiles（`docker-compose.yml`）**：
+  - 核心层（默认启动）：`postgres`（16-alpine）、`redis`（7-alpine）、`minio` + `minio-init`（自动创建 `crosspilot-assets`）。
+  - `--profile worker`：`celery-worker` 与 `celery-beat`（加载 `app.core.cache_queue` 注册的 `crosspilot.index_m1_vectors` 与 `crosspilot.health_ping` 任务）。
+  - `--profile vector`：`etcd` + `milvus:v2.4.15`；`--profile app`：`backend` + `frontend`（Nginx 含 WebSocket 反代）。
+- **CI/CD & Playwright**：`Jenkinsfile` 与 `deploy/deploy.sh` 固化标准发布流水线；`frontend/playwright.config.ts` 与 `frontend/e2e/crosspilot.spec.ts` 覆盖真实浏览器登录、经营工作台及 `/docs` 中心验收。

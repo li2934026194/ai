@@ -64,7 +64,7 @@ services:
       exit 0;
       "
 
-  # 按需启用向量检索链路（对齐 V1.1 Compose profile 设计）：docker compose --profile vector up -d
+  # 按需启用向量检索链路（对齐 V1.1 Compose profile）：docker compose --profile vector up -d
   etcd:
     image: quay.io/coreos/etcd:v3.5.14
     container_name: crosspilot-milvus-etcd
@@ -96,6 +96,71 @@ services:
       - "9091:9091"
     volumes:
       - milvus_data:/var/lib/milvus
+
+  # 按需启用异步 Celery Worker/Beat：docker compose --profile worker up -d
+  celery-worker:
+    build: ./backend
+    container_name: crosspilot-celery-worker
+    profiles: ["worker"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://crosspilot:crosspilot123@postgres:5432/crosspilot
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    command: celery -A app.core.cache_queue.celery_app worker --loglevel=info
+
+  celery-beat:
+    build: ./backend
+    container_name: crosspilot-celery-beat
+    profiles: ["worker"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    command: celery -A app.core.cache_queue.celery_app beat --loglevel=info
+
+  # 全容器化前后端部署：docker compose --profile app up -d --build
+  backend:
+    build: ./backend
+    container_name: crosspilot-backend
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://crosspilot:crosspilot123@postgres:5432/crosspilot
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    container_name: crosspilot-frontend
+    profiles: ["app"]
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
 
 volumes:
   pg_data:

@@ -8,8 +8,9 @@
 
 | 文档类型 | 路径 | 说明 |
 | :--- | :--- | :--- |
+| **本地运行与部署实操手册** | [`docs/07_local_operation_guide.md`](07_local_operation_guide.md) | 零依赖极速运行、Docker Compose 全栈（PG/Redis/MinIO/Celery/Milvus）、AI 配置与全量测试指引 |
 | **测试与冒烟总报告** | [`docs/06_test_execution_report.md`](06_test_execution_report.md) | 25 项冒烟用例实测结果、4 处文档对账缺陷根因与修复、压测与综合评分 |
-| **全平台使用与联调指南** | [`README_M7.md`](../README_M7.md) | 本地安装、启动命令与 M0–M8 端到端操作说明 |
+| **全平台使用与联调指南** | [`README_M7.md`](../README_M7.md) | M7 与全平台目录索引及快捷启动说明 |
 
 ---
 

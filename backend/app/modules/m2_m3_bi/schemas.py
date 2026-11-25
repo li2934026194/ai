@@ -32,3 +32,14 @@ class CompetitorUpdateReq(BaseModel):
 class BiAskReq(BaseModel):
     question: str = Field(..., min_length=2, max_length=500)
     include_mock: bool = False
+
+
+class DesignerCardItem(BaseModel):
+    card_id: str = Field(..., min_length=1, max_length=64)
+    title: str = Field(..., min_length=1, max_length=64)
+    metric_key: str = Field(..., pattern="^(gmv_usd|net_profit_usd|ad_spend_7d_usd|open_alerts_count)$")
+
+
+class DesignerLayoutSaveReq(BaseModel):
+    cards: list[DesignerCardItem] = Field(..., min_length=1, max_length=4)
+    version: int = Field(1, ge=1)

@@ -183,5 +183,6 @@
   2. **缓存与异步任务**：**Redis 7 + Celery Worker/Beat**（`core/cache_queue.py`），承担权限/合规规则矩阵 TTL 缓存与跨模块异步任务队列；连不通时回退进程内缓存与 `asyncio`。
   3. **对象存储**：**MinIO**（`core/storage.py`），托管 `crosspilot-assets` Bucket；未配置时回退本地 `STORAGE_ROOT`。
   4. **向量检索（`profiles: ["vector"]` 按需启动）**：**Milvus 2.4 + etcd**，供 M1 导购推荐与 M3 知识检索使用。
-  5. **健康探针（`/healthz`）**：统一返回 `database_dialect`、`storage_backend`、`redis_status`、`milvus_status`。
-- **配置项**：`DATABASE_URL`、`REDIS_URL`、`MINIO_ENDPOINT`、`MILVUS_URI`、`JWT_SECRET_KEY`、`M7_ENABLE_DEMO_ROLE_SWITCH`、`M7_STRICT_SEPARATION_OF_DUTIES`。
+  5. **健康探针（`/healthz`）**：统一返回 `database_dialect`、`storage_backend`、`redis_status`、`milvus_status` 及可选 AI 服务（`vanna`、`comfyui`）配置状态。
+  6. **容器化与 CI/CD 工程交付（对齐 V1.1 第 12 行）**：提供 `backend/Dockerfile`、`frontend/Dockerfile`、`frontend/nginx.conf.example`（含 `client_max_body_size 30m` 与 WebSocket `/ws/` 升级反代）、`Jenkinsfile`（后端 `pytest` + 前端 `vue-tsc`/`vitest`/`vite build` + 镜像构建）、`deploy/deploy.sh` 一键部署脚本，以及 `frontend/playwright.config.ts` & `frontend/e2e/crosspilot.spec.ts` 端到端测试骨架。
+- **配置项**：`DATABASE_URL`、`REDIS_URL`、`MINIO_ENDPOINT`、`MILVUS_URI`、`VANNA_BASE_URL`、`COMFYUI_BASE_URL`、`JWT_SECRET_KEY`、`M7_ENABLE_DEMO_ROLE_SWITCH`、`M7_STRICT_SEPARATION_OF_DUTIES`。

@@ -11,14 +11,16 @@ from app.modules.m7_content.adapters.base import (
     GeneratedImageSlot,
     GeneratorAdapter,
 )
+from app.modules.m7_content.adapters.comfyui_adapter import ComfyUIGeneratorAdapter
 from app.modules.m7_content.adapters.local_media_adapter import LocalMediaAdapter
 
 
 class CloudApiAdapter(GeneratorAdapter):
-    """阿里云百炼（通义千问 Qwen + 万相 Wanxiang）适配器，支持无密钥本地双模式兜底"""
+    """阿里云百炼（通义千问 Qwen + 万相 Wanxiang）与 ComfyUI 适配器，支持无密钥本地双模式兜底"""
 
     def __init__(self, local_fallback: LocalMediaAdapter | None = None) -> None:
         self.local = local_fallback or LocalMediaAdapter()
+        self.comfyui = ComfyUIGeneratorAdapter()
 
     async def generate_copy_variants(
         self,
@@ -87,6 +89,18 @@ class CloudApiAdapter(GeneratorAdapter):
                 )
             except Exception as exc:
                 _ = redact_secrets(str(exc))
+
+        if self.comfyui.is_configured():
+            prompt = f"{product.title_seed}, {style}, {', '.join(selling_points[:3])}, {custom_instruction}".strip(", ")
+            raw_bytes = await self.comfyui.generate_image_bytes(prompt)
+            if raw_bytes:
+                return self.local.finalize_image_bytes(
+                    raw_bytes,
+                    slot_idx=slot_idx,
+                    prompt_used=prompt,
+                    ai_person_flag=ai_person_flag,
+                    engine_mode="comfyui",
+                )
 
         return await self.local.generate_slot_image(
             product,

@@ -126,3 +126,11 @@
 - `M1FaqsView.vue`：支持选定 SKU、换行维护多条痛点、动态增删 Q&A 对并一键保存同步。
 - `M1SimulatorView.vue`：页首明示「MOCK 安全沙盒，绝不外发真实平台」，实时回显知识库命中回复及跳往会话台。
 - `M1AftersalesView.vue`：待审批工单与已审批历史分组展示，提供审批意见输入与通过/驳回按钮。
+
+---
+
+## 6. V1.1 实时推送与售后多附件详细接口
+
+- **`WS /api/v1/orgs/{org_id}/m1/ws/{session_id}`**：由 `M1EventHub` 管理按 `org_id:session_id` 隔离的房间连接，支持 `ping -> {"type":"pong"}` 心跳保活，并在 `reply_session` / `simulate_inquiry` 落库后广播实时事件；Nginx 侧配置 `proxy_http_version 1.1` 与 `Upgrade` 升级头。
+- **`POST /api/v1/orgs/{org_id}/m1/aftersales/{ticket_id}/attachments`**：接收 `multipart/form-data`（`files: list[UploadFile]`），校验文件扩展名（`.pdf/.jpg/.jpeg/.png/.docx/.txt`）、单件 ≤5MB、累计 ≤10 件并写入 `m1_aftersales_attachments` 表与 `FileStorage`。
+- **`GET /api/v1/orgs/{org_id}/m1/aftersales/{ticket_id}/attachments/{att_id}`**：严格校验 `org_id` + `ticket_id` 归属后从 `FileStorage` 返回文件流（非法后缀返回 `422`，跨组织访问返回 `404`）。

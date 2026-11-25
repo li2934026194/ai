@@ -1,21 +1,24 @@
+import asyncio
 import re
 import uuid
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.audit import write_audit_event
 from app.core.auth_rbac import ActorContext
 from app.core.exceptions import M7Error
 from app.modules.m0_catalog.models import M0Inventory, M0Order, M0Product, M0Shop
 from app.modules.m1_cs.models import M1AftersalesTicket
-from app.modules.m2_m3_bi.models import M2AdCampaign, M3CompetitorWatch
+from app.modules.m2_m3_bi.models import M2AdCampaign, M2DashboardLayout, M3CompetitorWatch
 from app.modules.m2_m3_bi.schemas import (
     AdAdjustReq,
     AdCreateReq,
     BiAskReq,
     CompetitorCreateReq,
     CompetitorUpdateReq,
+    DesignerLayoutSaveReq,
 )
+from app.modules.m2_m3_bi.vanna_client import query_vanna_if_configured
 from app.modules.m5_m6_supply.models import M5SalesHistory, M6AlertEvent, M6PurchaseOrder, M6ReplenishApply
 
 
@@ -417,6 +420,9 @@ class M2M3BiService:
         if alerts:
             lines.append("   └ 重点告警：" + "；".join(a.message for a in alerts[:3]))
 
+        vanna_res = await query_vanna_if_configured(org_id, req.question)
+        engine_mode = "vanna_http" if vanna_res else "pg_readonly_fact"
+
         await write_audit_event(
             session,
             org_id=org_id,
@@ -425,14 +431,121 @@ class M2M3BiService:
             actor_id=actor.user_id,
             actor_role=actor.role,
             ok=True,
-            sentence_zh=f"{actor.display_name} 执行只读经营智能问数",
+            sentence_zh=f"{actor.display_name} 执行只读经营智能问数（引擎 {engine_mode}）",
             trace_id=trace_id,
         )
         await session.commit()
+        answer_text = "\n".join(lines)
+        if vanna_res and vanna_res.get("answer"):
+            answer_text = f"{answer_text}\n\n【Vanna 2 增强解读】\n{vanna_res['answer']}"
         return {
-            "answer": "\n".join(lines),
+            "answer": answer_text,
+            "engine_mode": engine_mode,
             "lineage_sources": ["m0_orders", "m0_products", "m2_ad_campaigns", "m1_aftersales_tickets", "m6_alert_events"],
             "metrics": s,
             "open_alerts_count": len(alerts),
             "pending_applies_count": len(applies),
         }
+
+    async def get_designer_layout(self, session: AsyncSession, org_id: str) -> dict:
+        row = await session.scalar(select(M2DashboardLayout).where(M2DashboardLayout.org_id == org_id))
+        default_cards = [
+            {"card_id": "c1", "title": "实盘 GMV", "metric_key": "gmv_usd"},
+            {"card_id": "c2", "title": "预估净利", "metric_key": "net_profit_usd"},
+            {"card_id": "c3", "title": "7日广告费", "metric_key": "ad_spend_7d_usd"},
+            {"card_id": "c4", "title": "待处理告警", "metric_key": "open_alerts_count"},
+        ]
+        if not row:
+            return {"draft_layout": default_cards, "published_layout": None, "version": 1}
+        return {
+            "draft_layout": row.draft_layout_json or default_cards,
+            "published_layout": row.published_layout_json or None,
+            "version": row.version,
+        }
+
+    async def save_designer_draft(
+        self, session: AsyncSession, org_id: str, req: DesignerLayoutSaveReq, actor: ActorContext, trace_id: str
+    ) -> dict:
+        row = await session.scalar(select(M2DashboardLayout).where(M2DashboardLayout.org_id == org_id))
+        cards_payload = [c.model_dump() for c in req.cards]
+        if not row:
+            row = M2DashboardLayout(
+                layout_id=f"lyt_{uuid.uuid4().hex[:10]}",
+                org_id=org_id,
+                draft_layout_json=cards_payload,
+                published_layout_json=[],
+                version=1,
+                updated_by=actor.user_id,
+            )
+            session.add(row)
+        else:
+            if req.version != row.version:
+                raise M7Error("M7-4091", f"驾驶舱布局版本冲突（期望 {row.version}，收到 {req.version}）", http_status=409)
+            row.draft_layout_json = cards_payload
+            row.version += 1
+            row.updated_by = actor.user_id
+        await write_audit_event(
+            session,
+            org_id=org_id,
+            module="M2",
+            action="DESIGNER_DRAFT_SAVED",
+            actor_id=actor.user_id,
+            actor_role=actor.role,
+            ok=True,
+            sentence_zh=f"{actor.display_name} 保存了驾驶舱草稿布局（共 {len(cards_payload)} 张卡，v{row.version}）",
+            trace_id=trace_id,
+        )
+        await session.commit()
+        return {"draft_layout": row.draft_layout_json, "version": row.version}
+
+    async def publish_designer_layout(
+        self, session: AsyncSession, org_id: str, actor: ActorContext, trace_id: str
+    ) -> dict:
+        row = await session.scalar(select(M2DashboardLayout).where(M2DashboardLayout.org_id == org_id))
+        if not row or not row.draft_layout_json:
+            raise M7Error("M7-4221", "请先保存驾驶舱草稿布局后再发布", http_status=422)
+        row.published_layout_json = list(row.draft_layout_json)
+        row.version += 1
+        row.updated_by = actor.user_id
+        await write_audit_event(
+            session,
+            org_id=org_id,
+            module="M2",
+            action="DESIGNER_LAYOUT_PUBLISHED",
+            actor_id=actor.user_id,
+            actor_role=actor.role,
+            ok=True,
+            sentence_zh=f"{actor.display_name} 发布了驾驶舱正式布局（v{row.version}）",
+            trace_id=trace_id,
+        )
+        await session.commit()
+        return {"published_layout": row.published_layout_json, "version": row.version}
+
+    async def query_designer_cards(self, session: AsyncSession, org_id: str, actor: ActorContext) -> dict:
+        """对齐 SRS FR-BI-06：最多 4 张卡并发问数，每张卡使用独立数据库会话并按卡隔离异常"""
+        layout = await self.get_designer_layout(session, org_id)
+        cards = (layout["published_layout"] or layout["draft_layout"])[:4]
+        maker = async_sessionmaker(bind=session.bind, class_=AsyncSession, expire_on_commit=False, autoflush=False)
+
+        async def _eval_card(card: dict) -> dict:
+            try:
+                async with maker() as card_session:
+                    key = card["metric_key"]
+                    if key == "open_alerts_count":
+                        cnt = len(
+                            (
+                                await card_session.scalars(
+                                    select(M6AlertEvent).where(
+                                        M6AlertEvent.org_id == org_id, M6AlertEvent.status == "OPEN"
+                                    )
+                                )
+                            ).all()
+                        )
+                        return {**card, "ok": True, "value": cnt, "error": None}
+                    ov = await self.get_m2_overview(card_session, org_id, include_mock=False, actor=actor)
+                    return {**card, "ok": True, "value": ov["summary"].get(key, 0), "error": None}
+            except Exception as exc:
+                return {**card, "ok": False, "value": None, "error": str(exc)}
+
+        results = await asyncio.gather(*[_eval_card(c) for c in cards])
+        return {"cards": list(results), "published": layout["published_layout"] is not None}

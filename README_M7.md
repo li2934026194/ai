@@ -1,5 +1,7 @@
 # CrossPilot M7 商品内容创作与合规交付系统 · 本地运行与测试指南
 
+> **推荐优先阅读完整版全平台实操手册**：[`docs/07_local_operation_guide.md`](docs/07_local_operation_guide.md)（含零依赖极速模式、Docker Compose PG/Redis/MinIO/Celery/Milvus 全栈编排、9 角色账号密码及全量测试命令）。
+
 > **Git 分支与仓库路径**
 > - **远程仓库**：`https://github.com/li2934026194/ai.git`
 > - **开发分支**：`arena/20303949-ai`

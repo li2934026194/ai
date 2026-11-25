@@ -173,5 +173,5 @@
 ## 10. 运行环境与外部依赖（对齐 V1.1 老师数据库与中间件标准）
 
 - **运行环境**：Python 3.11+、FastAPI、SQLAlchemy 2.0 Async + `asyncpg`；**PostgreSQL 15+ 为正式主库**（单机开发演示兼容 SQLite 3.40+）；Vue 3 + TypeScript 前端工作台。
-- **配套存储与计算栈**：时序预测回测（MA/EWMA/Holt/Seasonal）与补货优化基于 PostgreSQL 历史销量表在后端线程池执行；周期性预警扫描与长耗时 CSV 导入通过 **Redis + Celery Beat/Worker** 按需调度；采购/质检单据快照以 `JSONB` 存于 PostgreSQL，附件归档至 **MinIO**。
-- **V1 零外网依赖**：所有时序模型回测与路线方案均本地计算完成，不依赖外部 GPU 或第三方预测 SaaS。
+- **配套存储与计算栈**：时序预测回测（覆盖 `ma7`、`es`、`snaive`、`croston_sba` 及 V1.1 扩展的 **`prophet`、`lightgbm`、`catboost`** 七大模型策略）与补货优化基于 PostgreSQL 历史销量表在后端执行；周期性预警扫描与长耗时 CSV 导入通过 **Redis + Celery Beat/Worker** 按需调度；采购/质检单据快照以 `JSONB` 存于 PostgreSQL，附件归档至 **MinIO**。
+- **V1 零外网依赖**：所有时序模型（含内置确定性 `f_prophet_trend` / `f_lightgbm_gbdt` / `f_catboost_tree` 策略实现）与路线方案均本地计算完成，不依赖外部 GPU 或第三方预测 SaaS。

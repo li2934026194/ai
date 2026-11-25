@@ -22,6 +22,7 @@ FOLDER_LABELS = {
 DISPLAY_NAME_MAP = {
     "00_docs_index.md": "00-文档总览与导航索引.md",
     "06_test_execution_report.md": "06-测试执行详细描述报告.md",
+    "07_local_operation_guide.md": "07-本地运行、Docker编排与实操手册.md",
     "01_requirements.md": "01-需求说明书.md",
     "02_hld.md": "02-概要设计说明书.md",
     "03_lld.md": "03-详细设计说明书.md",

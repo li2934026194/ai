@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth_rbac import ActorContext, require_perm
@@ -12,6 +12,7 @@ from app.modules.m2_m3_bi.schemas import (
     BiAskReq,
     CompetitorCreateReq,
     CompetitorUpdateReq,
+    DesignerLayoutSaveReq,
 )
 from app.modules.m2_m3_bi.service import M2M3BiService
 
@@ -136,5 +137,58 @@ async def ask_bi_assistant(
     await ensure_seed_data(session, org_id=org_ctx.org_id)
     return build_envelope(
         data=await svc.ask_bi_assistant(session, org_ctx.org_id, req, actor, _trace(request)),
+        trace_id=_trace(request),
+    )
+
+
+@router.get("/m2/designer/layout")
+async def get_designer_layout(
+    request: Request,
+    org_ctx: OrgContext = Depends(get_org_context),
+    _actor: ActorContext = Depends(require_perm("m2:read")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    return build_envelope(data=await svc.get_designer_layout(session, org_ctx.org_id), trace_id=_trace(request))
+
+
+@router.put("/m2/designer/layout")
+async def save_designer_layout(
+    request: Request,
+    req: DesignerLayoutSaveReq,
+    org_ctx: OrgContext = Depends(get_org_context),
+    actor: ActorContext = Depends(require_perm("m2:edit")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    return build_envelope(
+        data=await svc.save_designer_draft(session, org_ctx.org_id, req, actor, _trace(request)),
+        trace_id=_trace(request),
+    )
+
+
+@router.post("/m2/designer/publish")
+async def publish_designer_layout(
+    request: Request,
+    org_ctx: OrgContext = Depends(get_org_context),
+    actor: ActorContext = Depends(require_perm("m2:edit")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    return build_envelope(
+        data=await svc.publish_designer_layout(session, org_ctx.org_id, actor, _trace(request)),
+        trace_id=_trace(request),
+    )
+
+
+@router.get("/m2/designer/cards")
+async def query_designer_cards(
+    request: Request,
+    response: Response,
+    org_ctx: OrgContext = Depends(get_org_context),
+    actor: ActorContext = Depends(require_perm("m2:read")),
+    session: AsyncSession = Depends(get_db_session),
+):
+    await ensure_seed_data(session, org_id=org_ctx.org_id)
+    response.headers["Cache-Control"] = "no-store"
+    return build_envelope(
+        data=await svc.query_designer_cards(session, org_ctx.org_id, actor),
         trace_id=_trace(request),
     )

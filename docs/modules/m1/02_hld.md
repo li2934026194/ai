@@ -165,3 +165,5 @@
   - **向量检索（按需 `vector` profile）**：**Milvus + `pymilvus`**（`crosspilot_m1_products` 集合，按 20 件一批写入向量并校验维度，召回后回查 PostgreSQL 核验在售状态与店铺归属；未启用 Milvus 时自动回退主库停用词+CJK双字精准匹配）。
   - **文件存储（按需）**：**MinIO**（`crosspilot-assets` Bucket 存放打款截图/售后附件；本地未起 MinIO 时回退 `FileStorage` 磁盘存储）。
   - **异步队列与缓存（按需）**：**Redis + Celery Worker/Beat**（批量建索引任务调度，业务事实以 PostgreSQL 为唯一真源）。
+  - **实时推送与 Nginx WebSocket 网关**：进程内 `M1EventHub` 提供 `/api/v1/orgs/{org_id}/m1/ws/{session_id}` 双向通道（Nginx 显式透传 `Upgrade` / `Connection` 升级头），数据库为最终真源、断线由 HTTP 自动兜底补全。
+  - **多附件上传**：`M1AftersalesAttachment` 支撑 `multipart/form-data`（单工单 ≤10 件、单文件 ≤5MB、白名单 `pdf/jpg/jpeg/png/docx/txt`），字节落盘 `FileStorage`（MinIO / 本地磁盘）并校验归属防越权下载。

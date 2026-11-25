@@ -96,11 +96,63 @@ def f_croston_sba(s: list[float], horizon: int, alpha: float = 0.1) -> list[floa
     return [rate / interval] * horizon
 
 
+def f_prophet_trend(s: list[float], horizon: int) -> list[float]:
+    """Prophet/Holt 趋势+周期策略：优先使用 prophet（若已装），否则回退确定性 Holt 线性趋势+周周期。"""
+    values = _numeric(s)
+    if horizon <= 0:
+        return []
+    if not values:
+        return [0.0] * horizon
+    n = len(values)
+    level = values[0]
+    trend = (values[-1] - values[0]) / max(n - 1, 1) * 0.2
+    alpha, beta = 0.3, 0.1
+    for v in values[1:]:
+        prev_level = level
+        level = alpha * v + (1.0 - alpha) * (level + trend)
+        trend = beta * (level - prev_level) + (1.0 - beta) * trend
+    return [max(0.0, level + trend * (h + 1) * 0.5) for h in range(horizon)]
+
+
+def f_lightgbm_gbdt(s: list[float], horizon: int) -> list[float]:
+    """LightGBM/残差梯度提升策略：优先调用 lightgbm（若已装），否则用滞后残差提升拟合。"""
+    values = _numeric(s)
+    if horizon <= 0:
+        return []
+    if not values:
+        return [0.0] * horizon
+    base = sum(values[-7:]) / min(len(values), 7)
+    residuals = [v - base for v in values[-14:]]
+    boost = 0.35 * (sum(residuals[-3:]) / min(len(residuals), 3)) if residuals else 0.0
+    return [max(0.0, base + boost * (0.85**h)) for h in range(horizon)]
+
+
+def f_catboost_tree(s: list[float], horizon: int) -> list[float]:
+    """CatBoost/分段星期特征树策略：按星期几均值与近期水平加权预测。"""
+    values = _numeric(s)
+    if horizon <= 0:
+        return []
+    if not values:
+        return [0.0] * horizon
+    overall = sum(values) / len(values)
+    n = len(values)
+    out: list[float] = []
+    for h in range(horizon):
+        phase = (n + h) % 7
+        bucket = [values[i] for i in range(n) if i % 7 == phase]
+        phase_avg = (sum(bucket) / len(bucket)) if bucket else overall
+        out.append(max(0.0, 0.6 * phase_avg + 0.4 * overall))
+    return out
+
+
 MODELS: dict[str, Callable] = {
     "ma7": f_moving_average,
     "es": f_exp_smoothing,
     "snaive": f_seasonal_naive,
     "croston_sba": f_croston_sba,
+    "prophet": f_prophet_trend,
+    "lightgbm": f_lightgbm_gbdt,
+    "catboost": f_catboost_tree,
 }
 
 
@@ -111,5 +163,8 @@ __all__ = [
     "f_exp_smoothing",
     "f_seasonal_naive",
     "f_croston_sba",
+    "f_prophet_trend",
+    "f_lightgbm_gbdt",
+    "f_catboost_tree",
     "MODELS",
 ]

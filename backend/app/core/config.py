@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     MILVUS_URI: str = ""
     MILVUS_COLLECTION: str = "crosspilot_m1_products"
 
+    # Vanna 2 智能问数 & ComfyUI 图像算力（按需配置外部地址）
+    VANNA_BASE_URL: str = ""
+    COMFYUI_BASE_URL: str = ""
+
     # 默认云端大模型：阿里云百炼；允许本地无密钥时按双模式策略回退
     CLOUD_LLM_PROVIDER: str = "dashscope"
     DASHSCOPE_API_KEY: str = ""

@@ -166,5 +166,5 @@
 ## 10. 运行环境与外部依赖（对齐 V1.1 老师数据库与中间件标准）
 
 - **运行环境**：Python 3.11+、FastAPI、SQLAlchemy 2.0 Async + `asyncpg`；**PostgreSQL 15+ 为正式主库**（单机开发演示兼容 SQLite 3.40+）；Vue 3 + TypeScript 前端视图。
-- **配套存储与智能问数栈**：M2 经营驾驶舱多卡并发查询各自使用独立 PostgreSQL 会话，指标缓存按需接入 **Redis**；M3 智能问数基于只读 SQL 白名单守卫与 **Vanna 2 / 可配置模型接口**，禁止直接执行写删 SQL；知识文档向量检索按需启用 **Milvus（`vector` profile）**。
-- **V1.1 升级重点**：修复 `todo-m7` 路由为 `/m7/compliance`、全量强制过滤 `M0Order.is_mock == False`、后端落地 `POST /m3/ask`（`m3:ask`）四类写删指令拦截。
+- **配套存储与智能问数栈**：M2 经营驾驶舱支持 **草稿/发布双态布局（`M2DashboardLayout`）与乐观锁版本校验（`409`）**，最多 4 张业务卡并发问数各自使用独立 PostgreSQL 会话并按卡隔离异常（响应头 `Cache-Control: no-store`）；指标缓存按需接入 **Redis**；M3 智能问数基于只读 SQL 白名单守卫与 **Vanna 2 HTTP 服务（`VANNA_BASE_URL`，未配时安全回退只读引擎）**，禁止直接执行写删 SQL；知识文档向量检索按需启用 **Milvus（`vector` profile）**。
+- **V1.1 升级重点**：修复 `todo-m7` 路由为 `/m7/compliance`、全量强制过滤 `M0Order.is_mock == False`、后端落地 `POST /m3/ask`（`m3:ask`）四类写删指令拦截、Vanna 2 适配器接入及 M2 驾驶舱设计器接口。

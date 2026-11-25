@@ -104,6 +104,17 @@ def build_celery_app():
             timezone="UTC",
             enable_utc=True,
         )
+
+        @capp.task(name="crosspilot.index_m1_vectors")
+        def task_index_m1_vectors(org_id: str, items: list[dict]) -> dict:
+            from app.modules.m1_cs.vector_store import milvus_adapter
+
+            return milvus_adapter.index_products_batch_20(org_id, items)
+
+        @capp.task(name="crosspilot.health_ping")
+        def task_health_ping() -> str:
+            return "pong"
+
         return capp
     except Exception:
         return None

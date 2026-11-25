@@ -105,4 +105,16 @@ po_commitment_rmb = sum(po.order_qty * round(unit_cost_usd * 7.2, 2) for po in p
 - **`HomeWorkbenchView.vue`**：6 项 KPI 卡片 + 4 项动态待办流转卡（M7 跳转 `/m7/compliance`）+ 8 项快捷通道按钮；对 `mock_buyer` 展示 403 引导跳转 `/m1/simulator`。
 - **`M2AdsView.vue`**：行内可编辑 `daily_budget_usd` 输入框 + 「保存启用 / 暂停」双按钮。
 - **`M2OverviewView.vue`**：四格财务 KPI + 单 SKU 盈利拆解表 + 多渠道结算对账表，右上角「追问智能助手 →」跳 `/m3/ask`。
-- **`M3CompetitorsView.vue`** & **`M3AskView.vue`**：竞品监控表/新增表单；问答预设问题按钮 + 写意图安全阻断 + 溯源输出区。
+- **`M3CompetitorsView.vue`** & **`M3AskView.vue`**：竞品监控表/新增表单；问答预设问题按钮 + 写意图安全阻断 + 溯源输出区（返回 `engine_mode`: `vanna_http` 或 `pg_readonly_fact`）。
+
+---
+
+## 6. M2 驾驶舱设计器与 Vanna 2 详细设计
+
+- **`m2_dashboard_layouts` 数据表**：存储 `org_id`（唯一索引）、`draft_layout_json`、`published_layout_json`、`version`（乐观锁版本号）及 `updated_by`。
+- **设计器接口群**：
+  - `GET /api/v1/orgs/{org_id}/m2/designer/layout`：返回草稿、已发布布局与当前 `version`。
+  - `PUT /api/v1/orgs/{org_id}/m2/designer/layout`：校验 `req.version == row.version`（冲突返回 `409 M7-4091`），保存最多 4 张卡配置并自增版本号。
+  - `POST /api/v1/orgs/{org_id}/m2/designer/publish`：将草稿原子升级为正式布局并写中文审计。
+  - `GET /api/v1/orgs/{org_id}/m2/designer/cards`：使用 `asyncio.gather` 对最多 4 张卡并行派生独立 `AsyncSession` 执行指标查询（单卡异常仅标记该卡 `ok=false` 而不拖垮整页），响应强制附带 `Cache-Control: no-store`。
+- **Vanna 2 可配置接入（`vanna_client.py`）**：`POST /m3/ask` 先执行 `_MUTATION_RE` 写删阻断，再调用 `query_vanna_if_configured(org_id, question)`；未配置 `VANNA_BASE_URL` 或服务不可达时自动回退 PostgreSQL 只读事实引擎。

@@ -106,3 +106,13 @@ def compute_total_score(scores: dict[str, float]) -> float:
 - **`M4ImportView.vue`**：单品导入表单，录入即时预览预估净毛利率，导入后支持直达 `/m4/workbench`。
 - **`M4WorkbenchView.vue`**：左列候选清单（状态徽章 + 毛利率）+ 右列成本/五维评分滑块与双按钮（「保存评估」/「保存并提交审批」）。
 - **`M4ApprovalView.vue`**：展示待审与已决队列，提交人视图禁用审批并提示 SoD；`approver` 填写理由一键同意/驳回，同意后出现「前往 M7-1 开始内容制作 →」引导链接。
+
+---
+
+## 6. M4 异步 CSV 导入详细设计（`202 Accepted`）
+
+- **`POST /api/v1/orgs/{org_id}/m4/candidates/import-csv-async`**：
+  1. 校验 UTF-8 字节长度 ≤ `25 * 1024 * 1024`（25 MB，超限直接返回 `422 M7-4221`）。
+  2. 写入 `m7_generation_jobs` 任务记录（`job_type="m4_csv_import"`、`status="QUEUED"`），通过 `spawn_background_job` 派发独立 `AsyncSession` 执行去重与三态分流导入。
+  3. 立即返回 **HTTP `202 Accepted`** 及 `{ "job_id": "m4job_...", "status": "QUEUED" }`。
+- **`GET /api/v1/orgs/{org_id}/m4/jobs/{job_id}`**：按 `org_id + job_id` 隔离查询当前任务状态（`QUEUED/RUNNING/SUCCEEDED/FAILED`）、`progress` 及导入结果统计 `result`。

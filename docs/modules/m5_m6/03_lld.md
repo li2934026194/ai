@@ -119,3 +119,12 @@
 - `M5ProfilesView.vue` / `M5ForecastView.vue` / `M5ReviewView.vue`：画像历史覆盖天数、6 模型回测对比表 + 14 天趋势柱状/折线 + BI 周复盘提交表单。
 - `M6StandardView.vue` / `M6SmartView.vue`：What-If 四参数滑块并排对比 + 4 路线对比选优直达生成补货草案。
 - `M6AppliesView.vue` / `M6ReceivingView.vue`：申请单状态标签与禁自批提示；PO 发货/分批质检收货（实时显示剩余可收数）/取消按钮与告警中心分组列表。
+
+---
+
+## 6. M5 扩展时序模型（Prophet / LightGBM / CatBoost）详细规范
+
+在 `backend/app/modules/m5_m6_supply/domain/models.py` 中 `MODELS` 注册表除基础 4 策略外，新增 V1.1 对齐的三类高阶模型包装器，全部保证输出非负有限浮点值（无 `NaN` / `Inf`）：
+1. **`f_prophet_trend` (`prophet`)**：线性趋势+周周期双重平滑预测。
+2. **`f_lightgbm_gbdt` (`lightgbm`)**：基于近 7/14 日滞后残差的梯度提升残差迭代拟合。
+3. **`f_catboost_tree` (`catboost`)**：按星期几相位分桶均值与全局水平加权的类别特征树拟合。

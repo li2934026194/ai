@@ -39,3 +39,17 @@ class M3CompetitorWatch(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class M2DashboardLayout(Base):
+    __tablename__ = "m2_dashboard_layouts"
+
+    layout_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    org_id: Mapped[str] = mapped_column(String(64), index=True, unique=True, nullable=False)
+    draft_layout_json: Mapped[list] = mapped_column(JSONBCompat, nullable=False, default=list)
+    published_layout_json: Mapped[list] = mapped_column(JSONBCompat, nullable=False, default=list)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    updated_by: Mapped[str] = mapped_column(String(64), nullable=False, default="system")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
