@@ -41,6 +41,9 @@ onMounted(() => {
 
         <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#475569;">
           <span>Org: <code>{{ ws.currentOrgId }}</code></span>
+          <router-link to="/docs" class="btn btn-sm" style="text-decoration:none;">
+            📁 交付文档中心
+          </router-link>
           <button type="button" class="btn btn-sm" @click="ws.hydrateSummary()">刷新状态</button>
           <button type="button" class="btn btn-sm btn-primary" @click="drawerOpen = true">
             📖 规则与流程说明

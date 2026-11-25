@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import DocsHubView from "@/views/DocsHubView.vue";
 import HomeWorkbenchView from "@/views/HomeWorkbenchView.vue";
 import M0InventoryView from "@/views/m0/M0InventoryView.vue";
 import M0LedgerView from "@/views/m0/M0LedgerView.vue";
@@ -33,6 +34,7 @@ const router = createRouter({
   routes: [
     { path: "/", redirect: "/home" },
     { path: "/home", name: "home", component: HomeWorkbenchView },
+    { path: "/docs", name: "docs-hub", component: DocsHubView },
 
     // G1: M0
     { path: "/m0/shops", name: "m0-shops", component: M0ShopsView },

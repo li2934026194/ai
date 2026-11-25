@@ -368,4 +368,14 @@ export const PAGE_FLOW_META: Record<string, PageFlowMeta> = {
     downRoute: "/home",
     ruleSummary: "每条写操作与 RBAC/SoD 拦截均以完整中文句子记录至 core_audit_events。",
   },
+  "/docs": {
+    title: "交付文档中心（M0–M8 规格书、测试用例与报告）",
+    subtitle: "按模块文件夹浏览全部需求、概要设计、详细设计、测试用例及测试执行报告，支持在线阅读与一键下载 .docx/.md。",
+    up: "全平台 M0–M8 研发与测试交付物",
+    upRoute: "/home",
+    cur: "按模块文件夹分类浏览 Markdown 正文与下载 Word (.docx) 交付物",
+    down: "回到业务工作台",
+    downRoute: "/home",
+    ruleSummary: "只读展示仓库 docs/ 目录下的全部规范文档与测试执行报告。",
+  },
 };

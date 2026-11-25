@@ -71,6 +71,16 @@ function isGroupActive(id: string): boolean {
       <span class="nav-todo">M0-M8</span>
     </router-link>
 
+    <router-link
+      to="/docs"
+      class="nav-home-btn"
+      :class="{ active: route.path === '/docs' }"
+      style="margin-top:6px;"
+    >
+      <span>📁 交付文档中心（按文件夹）</span>
+      <span class="nav-todo">26+24</span>
+    </router-link>
+
     <nav class="nav-list">
       <div v-for="grp in MODULE_DEFS" :key="grp.id" class="nav-group">
         <div
