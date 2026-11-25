@@ -119,13 +119,15 @@ class M8OrgService:
     async def update_user(
         self, session: AsyncSession, org_id: str, user_id: str, req: UserRoleUpdateReq, actor: ActorContext, trace_id: str
     ) -> dict:
-        if req.role_code not in ROLE_PERMISSIONS:
-            raise M7Error("M7-4221", f"未知角色代码: {req.role_code}", http_status=422)
         u = await session.scalar(select(M8UserAccount).where(M8UserAccount.org_id == org_id, M8UserAccount.user_id == user_id))
         if not u:
             raise M7Error("M7-4041", f"未找到账号: {user_id}", http_status=404)
-        u.role_code = req.role_code
-        u.is_active = req.is_active
+        if req.role_code is not None:
+            if req.role_code not in ROLE_PERMISSIONS:
+                raise M7Error("M7-4221", f"未知角色代码: {req.role_code}", http_status=422)
+            u.role_code = req.role_code
+        if req.is_active is not None:
+            u.is_active = req.is_active
         if req.allowed_shop_ids is not None:
             u.allowed_shop_ids_json = req.allowed_shop_ids
         await write_audit_event(
@@ -136,7 +138,7 @@ class M8OrgService:
             actor_id=actor.user_id,
             actor_role=actor.role,
             ok=True,
-            sentence_zh=f"{actor.display_name} 将账号 {u.display_name} 角色变更为 {req.role_code}（active={req.is_active}）",
+            sentence_zh=f"{actor.display_name} 将账号 {u.display_name} 角色变更为 {u.role_code}（active={u.is_active}）",
             trace_id=trace_id,
         )
         await session.commit()

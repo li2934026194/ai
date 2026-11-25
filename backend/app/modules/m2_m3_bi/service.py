@@ -20,7 +20,7 @@ from app.modules.m5_m6_supply.models import M5SalesHistory, M6AlertEvent, M6Purc
 
 
 _MUTATION_RE = re.compile(
-    r"\b(delete|drop|update|insert|alter|truncate|grant|revoke)\b|修改|删除|清空|篡改",
+    r"\b(delete|drop|update|insert|alter|truncate|grant|revoke)\b|修改|删除|改价|调价|删单|改库存|下采购单|清空|篡改",
     re.IGNORECASE,
 )
 

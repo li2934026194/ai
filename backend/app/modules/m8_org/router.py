@@ -52,6 +52,7 @@ async def create_user(
 
 
 @router.put("/users/{user_id}")
+@router.patch("/users/{user_id}")
 async def update_user(
     request: Request,
     user_id: str,

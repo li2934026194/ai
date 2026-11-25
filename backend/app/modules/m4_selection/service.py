@@ -63,7 +63,7 @@ class M4SelectionService:
                 "est_cost_rmb": r.est_cost_rmb,
                 "est_shipping_rmb": r.est_shipping_rmb,
                 "est_margin_pct": r.est_margin_pct,
-                "margin_gate_pass": r.est_margin_pct >= 0.18,
+                "margin_gate_pass": r.est_margin_pct >= 0.30,
                 "scores": r.scores_json or {},
                 "total_score": r.total_score,
                 "operator_note": r.operator_note,

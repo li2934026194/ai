@@ -17,8 +17,8 @@ class UserCreateReq(BaseModel):
 
 
 class UserRoleUpdateReq(BaseModel):
-    role_code: str = Field(..., min_length=2, max_length=64)
-    is_active: bool = True
+    role_code: str | None = Field(default=None, min_length=2, max_length=64)
+    is_active: bool | None = None
     allowed_shop_ids: list[str] | None = None
 
 

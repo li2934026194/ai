@@ -203,6 +203,7 @@ async def get_actor_context(
     x_actor_id: str | None = Header(default=None),
     x_actor_role: str | None = Header(default=None),
     x_org_id: str | None = Header(default=None),
+    x_actor_org_id: str | None = Header(default=None),
 ) -> ActorContext:
     from app.modules.m8_org.models import M8UserAccount
 
@@ -221,7 +222,8 @@ async def get_actor_context(
             raise M7Error("M7-4011", "演示切岗已关闭，请先通过账号密码登录获取 Bearer 令牌", http_status=401)
         role = (x_actor_role or "creator").strip()
         user_id = (x_actor_id or f"demo-{role}").strip()
-        actor_org = x_org_id.strip() if x_org_id and x_org_id.strip() else None
+        raw_org = x_actor_org_id or x_org_id
+        actor_org = raw_org.strip() if raw_org and raw_org.strip() else None
         display_name = ROLE_DEFAULT_NAMES.get(role, user_id)
         auth_mode = "demo_header"
 
@@ -229,6 +231,7 @@ async def get_actor_context(
         await write_audit_event(
             session,
             org_id=org_ctx.org_id,
+            module="RBAC",
             action="RBAC_UNKNOWN_ROLE",
             actor_id=user_id,
             actor_role=role,
@@ -243,6 +246,7 @@ async def get_actor_context(
         await write_audit_event(
             session,
             org_id=org_ctx.org_id,
+            module="RBAC",
             action="CROSS_ORG_DENIED",
             actor_id=user_id,
             actor_role=role,
@@ -305,6 +309,7 @@ def require_perm(perm_code: str) -> Callable:
             await write_audit_event(
                 session,
                 org_id=org_ctx.org_id,
+                module="RBAC",
                 action=action,
                 actor_id=actor.user_id,
                 actor_role=actor.role,
