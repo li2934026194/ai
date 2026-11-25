@@ -32,6 +32,9 @@ _CROSS_LANG_SYNONYMS: dict[str, str] = {
     "battery": "电池 续航 充电",
     "charge": "充电 续航",
     "waterproof": "防水",
+    "吵": "噪音 分贝 声音 静音",
+    "噪音": "分贝 吵 声音",
+    "分贝": "噪音 吵 声音",
 }
 
 
@@ -41,9 +44,11 @@ def _tokenize_faq(text: str) -> set[str]:
     cjk_chars = re.findall(r"[\u4e00-\u9fff]", low)
     cjk_bigrams = {cjk_chars[i] + cjk_chars[i + 1] for i in range(len(cjk_chars) - 1)}
     expanded = en_tokens | cjk_bigrams
-    for t in en_tokens:
+    for t in list(en_tokens | set(cjk_chars) | cjk_bigrams):
         if t in _CROSS_LANG_SYNONYMS:
             expanded.update(_CROSS_LANG_SYNONYMS[t].split())
+            if any("\u4e00" <= ch <= "\u9fff" for ch in _CROSS_LANG_SYNONYMS[t]):
+                expanded.update(_CROSS_LANG_SYNONYMS[t].split())
     return expanded
 
 
