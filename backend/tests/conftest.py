@@ -1,5 +1,7 @@
 from collections.abc import AsyncGenerator
+from contextlib import closing
 from pathlib import Path
+import sqlite3
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -22,6 +24,8 @@ async def test_ctx(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     get_settings.cache_clear()
 
     eng = create_engine_from_url(f"sqlite+aiosqlite:///{db_file}")
+    with closing(sqlite3.connect(db_file, timeout=30.0)) as boot_conn:
+        boot_conn.execute("PRAGMA journal_mode=WAL;")
     async with eng.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
