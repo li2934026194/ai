@@ -1,53 +1,30 @@
-# CrossPilot 全平台文档与交付物导航索引
+# CrossPilot AI 全平台文档总索引（精简合并版）
 
-> **说明**：由于仓库 `.gitignore` 规则默认屏蔽了二进制 `*.docx` 文件（仅用于本地下载/排版归档），我们在各模块同级目录下同步落盘了完整对应的 **Markdown (`.md`) 版本**（采用标准 ASCII 文件名以确保 Git 差异视图清晰显示路径），同时在网站内置了 **「交付文档中心 (`/docs`)」** 支持按文件夹树直接阅读与下载全部 `.md` / `.docx` 文件。
-
----
-
-## 一、快速直达入口
-
-| 文档类型 | 路径 | 说明 |
-| :--- | :--- | :--- |
-| **本地运行与部署实操手册** | [`docs/07_local_operation_guide.md`](07_local_operation_guide.md) | 零依赖极速运行、Docker Compose 全栈（PG/Redis/MinIO/Celery/Milvus）、AI 配置与全量测试指引 |
-| **测试与冒烟总报告** | [`docs/06_test_execution_report.md`](06_test_execution_report.md) | 25 项冒烟用例实测结果、4 处文档对账缺陷根因与修复、压测与综合评分 |
-| **全平台使用与联调指南** | [`README_M7.md`](../README_M7.md) | M7 与全平台目录索引及快捷启动说明 |
+> **整编说明**：项目全套设计、需求、测试与部署文档已由分散的分模块文件**合并精简为 5 份总项目文档**（每份同时提供 Markdown 在线阅读版与图文并茂的 Word `.docx` 交付版，并统一打包至根目录 [`docs-deliverables.zip`](../docs-deliverables.zip)）。**老师提供的原始需求与基线文档全部原封保留，未作任何修改。**
 
 ---
 
-## 二、按模块文件夹分类（M0 – M8）
+## 一、总项目交付文档（5 份核心文档，`.md` + `.docx`）
 
-### 1. `docs/modules/m0/` — M0 店铺接入、商品主档与仓储盘点
-- `docs/modules/m0/01_requirements.md`（需求说明书 / `.docx`：`CrossPilot-M0店铺接入与商品主档需求说明书.docx`）
-- `docs/modules/m0/02_hld.md`（概要设计说明书 / `.docx`：`CrossPilot-M0店铺接入与商品主档概要设计说明书.docx`）
-- `docs/modules/m0/03_lld.md`（详细设计说明书 / `.docx`：`CrossPilot-M0店铺接入与商品主档详细设计说明书.docx`）
-- `docs/modules/m0/04_test_cases.md`（测试用例 / `.docx`：`CrossPilot-M0店铺接入与商品主档测试用例.docx`）
+| 序号 | 文档名称 | Markdown 版（Git 跟踪 / 站内预览） | Word 版（含嵌入架构图 / 打包下载） | 内容范围 |
+| :--- | :--- | :--- | :--- | :--- |
+| **1** | **总需求说明书** | [`docs/01_project_requirements.md`](01_project_requirements.md) | `docs/CrossPilot-总需求说明书.docx` | M0–M8 全平台需求、9 大角色与契约、V1.0 SRS & V1.1 对齐 |
+| **2** | **总概要设计说明书** | [`docs/02_project_hld.md`](02_project_hld.md) | `docs/CrossPilot-总概要设计说明书.docx` | 全平台架构、9 张 DFD 图、V1.1 老师技术栈标准（PG/Redis/MinIO/Celery/Milvus/Nginx/Docker） |
+| **3** | **总详细设计说明书** | [`docs/03_project_lld.md`](03_project_lld.md) | `docs/CrossPilot-总详细设计说明书.docx` | 33 张表字典、REST & WebSocket 接口、核心算法与 29 视图规范 |
+| **4** | **总测试用例与执行报告** | [`docs/04_project_test_cases_and_report.md`](04_project_test_cases_and_report.md) | `docs/CrossPilot-总测试用例与执行报告.docx` | 24 项冒烟 + M0–M8 测试用例矩阵 + 37 项后端 / 34 项前端实测执行报告 |
+| **5** | **本地运行与部署实操手册** | [`docs/05_local_operation_guide.md`](05_local_operation_guide.md) | `docs/CrossPilot-本地运行与部署实操手册.docx` | 零依赖极速本地运行、Docker Compose 全栈编排、9 角色账号密码与故障排查 |
 
-### 2. `docs/modules/m1/` — M1 客服导购、咨询模拟与售后闭环
-- `docs/modules/m1/01_requirements.md`（需求说明书 / `.docx`：`CrossPilot-M1客服导购与售后闭环需求说明书.docx`）
-- `docs/modules/m1/02_hld.md`（概要设计说明书 / `.docx`：`CrossPilot-M1客服导购与售后闭环概要设计说明书.docx`）
-- `docs/modules/m1/03_lld.md`（详细设计说明书 / `.docx`：`CrossPilot-M1客服导购与售后闭环详细设计说明书.docx`）
-- `docs/modules/m1/04_test_cases.md`（测试用例 / `.docx`：`CrossPilot-M1客服导购与售后闭环测试用例.docx`）
+- **一键打包下载**：[`docs-deliverables.zip`](../docs-deliverables.zip)（内含上述全部 5 份总项目 `.docx` 交付文档）。
+- **快捷入口**：[`README_M7.md`](../README_M7.md)（仓库根目录快速启动说明）。
 
-### 3. `docs/modules/m2_m3/` — M2 经营分析与 M3 竞品舆情/只读问数
-- `docs/modules/m2_m3/01_requirements.md`（需求说明书 / `.docx`：`CrossPilot-M2M3经营分析与智能问数需求说明书.docx`）
-- `docs/modules/m2_m3/02_hld.md`（概要设计说明书 / `.docx`：`CrossPilot-M2M3经营分析与智能问数概要设计说明书.docx`）
-- `docs/modules/m2_m3/03_lld.md`（详细设计说明书 / `.docx`：`CrossPilot-M2M3经营分析与智能问数详细设计说明书.docx`）
-- `docs/modules/m2_m3/04_test_cases.md`（测试用例 / `.docx`：`CrossPilot-M2M3经营分析与智能问数测试用例.docx`）
+---
 
-### 4. `docs/modules/m4/` — M4 智能选品与过会决策
-- `docs/modules/m4/01_requirements.md`（需求说明书 / `.docx`：`CrossPilot-M4智能选品与过会决策需求说明书.docx`）
-- `docs/modules/m4/02_hld.md`（概要设计说明书 / `.docx`：`CrossPilot-M4智能选品与过会决策概要设计说明书.docx`）
-- `docs/modules/m4/03_lld.md`（详细设计说明书 / `.docx`：`CrossPilot-M4智能选品与过会决策详细设计说明书.docx`）
-- `docs/modules/m4/04_test_cases.md`（测试用例 / `.docx`：`CrossPilot-M4智能选品与过会决策测试用例.docx`）
+## 二、原始基线与老师参考文件（原封保留，未作任何改动）
 
-### 5. `docs/modules/m5_m6/` — M5 销量预测与 M6 智能补货闭环
-- `docs/modules/m5_m6/01_requirements.md`（需求说明书 / `.docx`：`CrossPilot-M5M6销量预测与智能补货需求说明书.docx`）
-- `docs/modules/m5_m6/02_hld.md`（概要设计说明书 / `.docx`：`CrossPilot-M5M6销量预测与智能补货概要设计说明书.docx`）
-- `docs/modules/m5_m6/03_lld.md`（详细设计说明书 / `.docx`：`CrossPilot-M5M6销量预测与智能补货详细设计说明书.docx`）
-- `docs/modules/m5_m6/04_test_cases.md`（测试用例 / `.docx`：`CrossPilot-M5M6销量预测与智能补货测试用例.docx`）
-
-### 6. `docs/modules/m8/` — M8 组织权限、审批策略与审计底座
-- `docs/modules/m8/01_requirements.md`（需求说明书 / `.docx`：`CrossPilot-M8组织权限与平台底座需求说明书.docx`）
-- `docs/modules/m8/02_hld.md`（概要设计说明书 / `.docx`：`CrossPilot-M8组织权限与平台底座概要设计说明书.docx`）
-- `docs/modules/m8/03_lld.md`（详细设计说明书 / `.docx`：`CrossPilot-M8组织权限与平台底座详细设计说明书.docx`）
-- `docs/modules/m8/04_test_cases.md`（测试用例 / `.docx`：`CrossPilot-M8组织权限与平台底座测试用例.docx`）
+| 目录 / 文件 | 说明 |
+| :--- | :--- |
+| `docs/requirements/` | 老师原始需求与架构规范（`V1.0 SRS`、`V1.1 架构与需求`、`模块需求细化_V1.1`、`两周开发计划_V1.1`、M7 原始需求/概要/测试 `.docx` 及 `assets/v1.1/` 原图） |
+| `docs/detailed-design.docx` | M7 商品内容创作与合规交付详细设计原件 |
+| `docs/plans/` | 早期 SRS 偏差分析与阶段性需求分析归档（`.docx`） |
+| `docs/prototypes/` | V6 原型交互工程（`web/`）、UI 截图（`ui_v6/`、`simple_v6/`）及 DFD 架构图（`dfd_v6/`） |
+| `docs/attachments/` | M7 用例图、类图、时序图（`.mmd` / `.svg`） |

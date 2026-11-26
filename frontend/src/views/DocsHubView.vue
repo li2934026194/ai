@@ -18,12 +18,8 @@ interface DocFolderItem {
 const folders = ref<DocFolderItem[]>([]);
 const openFolders = ref<Record<string, boolean>>({
   root: true,
-  "modules/m0": true,
-  "modules/m1": false,
-  "modules/m2_m3": false,
-  "modules/m4": false,
-  "modules/m5_m6": false,
-  "modules/m8": false,
+  requirements: false,
+  plans: false,
   "prototypes/dfd_v6": false,
 });
 const activeFile = ref<DocFileItem | null>(null);

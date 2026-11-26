@@ -9,24 +9,19 @@ router = APIRouter(prefix="/api/v1/docs", tags=["docs-hub"])
 DOCS_ROOT = (Path(__file__).resolve().parents[3] / "docs").resolve()
 
 FOLDER_LABELS = {
-    "root": "总览与测试报告",
-    "modules/m0": "M0 店铺接入与商品主档",
-    "modules/m1": "M1 客服导购与售后闭环",
-    "modules/m2_m3": "M2 经营分析与 M3 智能问数",
-    "modules/m4": "M4 智能选品与过会决策",
-    "modules/m5_m6": "M5 销量预测与 M6 智能补货",
-    "modules/m8": "M8 组织权限与平台底座",
+    "root": "总项目交付文档（合并精简版 .md / .docx）",
+    "requirements": "原始基线与老师需求文件（只读保留）",
+    "plans": "阶段分析与排期归档（只读保留）",
     "prototypes/dfd_v6": "V6 数据流图 (DFD)",
 }
 
 DISPLAY_NAME_MAP = {
-    "00_docs_index.md": "00-文档总览与导航索引.md",
-    "06_test_execution_report.md": "06-测试执行详细描述报告.md",
-    "07_local_operation_guide.md": "07-本地运行、Docker编排与实操手册.md",
-    "01_requirements.md": "01-需求说明书.md",
-    "02_hld.md": "02-概要设计说明书.md",
-    "03_lld.md": "03-详细设计说明书.md",
-    "04_test_cases.md": "04-测试用例.md",
+    "00_docs_index.md": "00-全平台文档总索引.md",
+    "01_project_requirements.md": "01-CrossPilot总需求说明书.md",
+    "02_project_hld.md": "02-CrossPilot总概要设计说明书.md",
+    "03_project_lld.md": "03-CrossPilot总详细设计说明书.md",
+    "04_project_test_cases_and_report.md": "04-CrossPilot总测试用例与执行报告.md",
+    "05_local_operation_guide.md": "05-本地运行与部署实操手册.md",
 }
 
 
@@ -68,28 +63,37 @@ async def list_docs_tree():
             )
 
     collect_dir("root", DOCS_ROOT, (".md", ".docx"))
-    for mod in ["modules/m0", "modules/m1", "modules/m2_m3", "modules/m4", "modules/m5_m6", "modules/m8"]:
-        collect_dir(mod, DOCS_ROOT / mod, (".md", ".docx"))
+    collect_dir("requirements", DOCS_ROOT / "requirements", (".md", ".docx"))
+    collect_dir("plans", DOCS_ROOT / "plans", (".md", ".docx"))
     collect_dir("prototypes/dfd_v6", DOCS_ROOT / "prototypes/dfd_v6", (".png",))
 
     return build_envelope(data={"folders": folders})
 
 
 @router.get("/content")
-async def read_doc_content(path: str = Query(..., min_length=1)):
+async def read_doc_content(path: str = Query(..., description="Path relative to docs/")):
     target = _safe_resolve(path)
     if target.suffix.lower() not in {".md", ".txt", ".mmd"}:
-        raise HTTPException(status_code=400, detail="Only text/markdown preview supported")
+        raise HTTPException(status_code=400, detail="Only markdown/text files can be previewed inline")
+    text = target.read_text(encoding="utf-8", errors="replace")
     return build_envelope(
         data={
-            "path": target.relative_to(DOCS_ROOT).as_posix(),
+            "path": path,
+            "name": target.name,
             "display_name": DISPLAY_NAME_MAP.get(target.name, target.name),
-            "content": target.read_text(encoding="utf-8"),
+            "content": text,
         }
     )
 
 
 @router.get("/download")
-async def download_doc_file(path: str = Query(..., min_length=1)):
+async def download_doc_file(path: str = Query(..., description="Path relative to docs/")):
     target = _safe_resolve(path)
-    return FileResponse(path=str(target), filename=target.name)
+    media = "application/octet-stream"
+    if target.suffix.lower() == ".md":
+        media = "text/markdown; charset=utf-8"
+    elif target.suffix.lower() == ".docx":
+        media = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    elif target.suffix.lower() == ".png":
+        media = "image/png"
+    return FileResponse(path=target, media_type=media, filename=target.name)

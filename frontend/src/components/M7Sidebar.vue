@@ -77,8 +77,8 @@ function isGroupActive(id: string): boolean {
       :class="{ active: route.path === '/docs' }"
       style="margin-top:6px;"
     >
-      <span>📁 交付文档中心（按文件夹）</span>
-      <span class="nav-todo">26+24</span>
+      <span>📁 交付文档中心（统一整编）</span>
+      <span class="nav-todo">5+5</span>
     </router-link>
 
     <nav class="nav-list">
