@@ -38,20 +38,23 @@ def create_engine_from_url(database_url: str) -> AsyncEngine:
         )
     engine = create_async_engine(database_url, connect_args=connect_args, **engine_kwargs)
     if database_url.startswith("sqlite"):
+        # WAL 是数据库文件级设置，engine 级只设一次。
+        # 并发下每个新连接都切换 journal 模式会让 Windows 部分连接进入只读。
+        wal_initialized = False
+
         @event.listens_for(engine.sync_engine, "connect")
         def _set_sqlite_pragma(dbapi_conn, _connection_record):
-            dbapi_conn.isolation_level = None
+            nonlocal wal_initialized
             cursor = dbapi_conn.cursor()
-            cursor.execute("PRAGMA journal_mode=WAL;")
-            cursor.execute("PRAGMA synchronous=NORMAL;")
-            cursor.execute("PRAGMA busy_timeout=30000;")
-            cursor.execute("PRAGMA foreign_keys=ON;")
+            try:
+                cursor.execute("PRAGMA busy_timeout=30000;")
+                cursor.execute("PRAGMA foreign_keys=ON;")
+                if not wal_initialized:
+                    cursor.execute("PRAGMA journal_mode=WAL;")
+                    wal_initialized = True
+            except Exception:
+                pass
             cursor.close()
-
-        @event.listens_for(engine.sync_engine, "begin")
-        def _do_sqlite_begin(conn):
-            # 使用 BEGIN IMMEDIATE 避免 SQLite 读升级写 (SHARED->RESERVED) 直接报 database is locked
-            conn.exec_driver_sql("BEGIN IMMEDIATE")
     return engine
 
 
