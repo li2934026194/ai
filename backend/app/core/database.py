@@ -22,19 +22,32 @@ JSONBCompat = JSON().with_variant(JSONB, "postgresql")
 
 def create_engine_from_url(database_url: str) -> AsyncEngine:
     connect_args: dict = {}
+    engine_kwargs: dict = {"echo": False, "future": True}
     if database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
+        connect_args["timeout"] = 15.0
+    else:
+        # PostgreSQL asyncpg 连接池优化：支持 M2 4卡并发 + 多人本地压测不爆池
+        engine_kwargs.update(
+            {
+                "pool_size": 20,
+                "max_overflow": 30,
+                "pool_pre_ping": True,
+                "pool_recycle": 1800,
+            }
+        )
     engine = create_async_engine(
         database_url,
-        echo=False,
-        future=True,
         connect_args=connect_args,
+        **engine_kwargs,
     )
     if database_url.startswith("sqlite"):
         @event.listens_for(engine.sync_engine, "connect")
         def _set_sqlite_pragma(dbapi_conn, _connection_record):
             cursor = dbapi_conn.cursor()
             cursor.execute("PRAGMA journal_mode=WAL;")
+            cursor.execute("PRAGMA synchronous=NORMAL;")
+            cursor.execute("PRAGMA busy_timeout=15000;")
             cursor.execute("PRAGMA foreign_keys=ON;")
             cursor.close()
     return engine

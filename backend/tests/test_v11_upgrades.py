@@ -142,3 +142,52 @@ async def test_m3_ask_engine_mode(test_ctx):
     )
     assert res.status_code == 200
     assert res.json()["data"]["engine_mode"] in {"pg_readonly_fact", "vanna_http"}
+
+
+@pytest.mark.asyncio
+async def test_100_rows_and_30_concurrent_requests(test_ctx):
+    """验证各核心表 >=100 条数据下 + 30 路并发读写混压不锁死、不超时、不崩溃"""
+    from datetime import date, timedelta
+    import time
+    from app.modules.m0_catalog.models import M0Order, M0Product
+    from app.modules.m1_cs.models import M1AftersalesTicket, M1CsSession
+    from app.modules.m2_m3_bi.models import M2AdCampaign, M3CompetitorWatch
+    from app.modules.m4_selection.models import M4Candidate
+    from app.modules.m5_m6_supply.models import M5SalesHistory
+
+    session_factory = test_ctx["session_factory"]
+    async with session_factory() as s:
+        for i in range(100):
+            s.add(M0Product(product_id=f"p100_{i}", org_id="org_demo", sku=f"SKU-100-{i:03d}", name=f"商品{i}", category="kitchen_appliance", category_label_zh="厨房", platform="amazon_us", unit_cost_usd=6.0, sale_price_usd=29.9))
+            s.add(M0Order(order_id=f"o100_{i}", org_id="org_demo", shop_id="shop_amz_us", sku="SKU-00704", order_date=(date.today() - timedelta(days=i % 30)).isoformat(), qty=2, revenue_usd=59.98, is_mock=False, status="COMPLETED"))
+            s.add(M4Candidate(candidate_id=f"c100_{i}", org_id="org_demo", sku=f"SKU-C100-{i:03d}", name=f"选品{i}", category="kitchen_appliance", source_channel="1688", source_nature="internal_live", fulfillment_mode="FBA", target_price_usd=35.0, est_cost_rmb=42.0, est_shipping_rmb=14.0, est_margin_pct=0.35, scores_json={"demand": 80, "competition": 80, "margin": 80, "supply": 80, "compliance": 80}, total_score=80, status="DISCOVERED"))
+            s.add(M1CsSession(session_id=f"s100_{i}", org_id="org_demo", sku="SKU-00704", buyer_name=f"B{i}", channel="Amazon", question="110V?", reply="Yes", is_mock=False, status="REPLIED", handler_id="usr_cs"))
+            s.add(M1AftersalesTicket(ticket_id=f"t100_{i}", org_id="org_demo", sku="SKU-00704", order_ref=f"o100_{i}", platform="Amazon US", issue_type="退差", refund_usd=5.0, evidence_note="ok", status="APPROVED", submitter_id="usr_cs", approver_id="usr_approver"))
+            s.add(M2AdCampaign(campaign_id=f"ad100_{i}", org_id="org_demo", sku="SKU-00704", platform="Amazon Sponsored", campaign_name=f"Camp-{i}", daily_budget_usd=30.0, spend_7d_usd=80.0, sales_7d_usd=320.0, acos=0.25, roas=4.0, status="ACTIVE"))
+            s.add(M3CompetitorWatch(watch_id=f"w100_{i}", org_id="org_demo", sku="SKU-00704", competitor_brand=f"Brand-{i}", asin_or_ref=f"B00X{i:04d}", price_usd=29.0, rating=4.5, review_count=100, bsr_rank=300, sentiment_score=0.8, negative_topics_json=[]))
+            s.add(M5SalesHistory(org_id="org_demo", sku="SKU-00704", sales_date=date.today() - timedelta(days=120 + i), qty_raw=12, on_hand_eod=50, revenue_usd=359.88))
+        await s.commit()
+
+    client = test_ctx["client"]
+    h_mgr = _auth_headers("usr_manager", "manager")
+    h_pln = _auth_headers("usr_planner", "planner")
+    h_sel = _auth_headers("usr_selector", "selector")
+    h_bi = _auth_headers("usr_analyst", "bi_analyst")
+    h_buy = _auth_headers("usr_buyer", "mock_buyer")
+
+    t0 = time.perf_counter()
+    tasks = [
+        *[client.get("/api/v1/orgs/org_demo/home/workbench", headers=h_mgr) for _ in range(5)],
+        *[client.get("/api/v1/orgs/org_demo/m2/overview", headers=h_mgr) for _ in range(5)],
+        *[client.get("/api/v1/orgs/org_demo/m2/designer/cards", headers=h_pln) for _ in range(5)],
+        *[client.get("/api/v1/orgs/org_demo/m0/products", headers=h_mgr) for _ in range(3)],
+        *[client.get("/api/v1/orgs/org_demo/m4/candidates", headers=h_sel) for _ in range(3)],
+        *[client.get("/api/v1/orgs/org_demo/supply/forecast/SKU-00704", headers=h_pln) for _ in range(3)],
+        *[client.post("/api/v1/orgs/org_demo/m3/ask", headers=h_bi, json={"question": "GMV多少?"}) for _ in range(3)],
+        *[client.post("/api/v1/orgs/org_demo/m1/simulator/ask", headers=h_buy, json={"sku": "SKU-00704", "question": "噪音大吗?"}) for _ in range(3)],
+    ]
+    resps = await asyncio.gather(*tasks)
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+    assert len(resps) == 30
+    assert all(r.status_code == 200 for r in resps), [r.status_code for r in resps if r.status_code != 200]
+    assert elapsed_ms < 5000, f"30 concurrent requests with 100+ rows/table took {elapsed_ms:.1f}ms"
