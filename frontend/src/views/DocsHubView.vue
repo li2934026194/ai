@@ -19,7 +19,6 @@ const folders = ref<DocFolderItem[]>([]);
 const openFolders = ref<Record<string, boolean>>({
   root: true,
   requirements: false,
-  plans: false,
   "prototypes/dfd_v6": false,
 });
 const activeFile = ref<DocFileItem | null>(null);

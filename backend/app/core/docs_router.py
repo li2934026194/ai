@@ -9,9 +9,8 @@ router = APIRouter(prefix="/api/v1/docs", tags=["docs-hub"])
 DOCS_ROOT = (Path(__file__).resolve().parents[3] / "docs").resolve()
 
 FOLDER_LABELS = {
-    "root": "总项目交付文档（合并精简版 .md / .docx）",
-    "requirements": "原始基线与老师需求文件（只读保留）",
-    "plans": "阶段分析与排期归档（只读保留）",
+    "root": "总项目交付文档（合并精简版 5 份 .md / .docx）",
+    "requirements": "老师原始需求与架构文件（原封保留）",
     "prototypes/dfd_v6": "V6 数据流图 (DFD)",
 }
 
@@ -64,7 +63,6 @@ async def list_docs_tree():
 
     collect_dir("root", DOCS_ROOT, (".md", ".docx"))
     collect_dir("requirements", DOCS_ROOT / "requirements", (".md", ".docx"))
-    collect_dir("plans", DOCS_ROOT / "plans", (".md", ".docx"))
     collect_dir("prototypes/dfd_v6", DOCS_ROOT / "prototypes/dfd_v6", (".png",))
 
     return build_envelope(data={"folders": folders})
