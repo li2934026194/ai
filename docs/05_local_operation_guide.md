@@ -76,7 +76,7 @@ npm run dev
 
 ## 三、预设登录账号（9 大 RBAC 角色）
 
-所有预设演示账号密码均为 **`crosspilot123`**，可点击登录页快捷标签或手动输入登录：
+前端界面打开即可通过左侧栏「当前登录岗位」下拉框一键切换 9 大角色；后端登录接口 `POST /api/v1/auth/login` 预设演示账号如下（统一密码 **`crosspilot123`**）：
 
 | 用户名 (`user_id`) | 角色 (`role_code`) | 中文职责 | 主要可访问模块 |
 | :--- | :--- | :--- | :--- |
@@ -85,10 +85,10 @@ npm run dev
 | `usr_planner` | `planner` | 驾驶舱设计者 / 业务运营 | M2 驾驶舱设计器（草稿/发布/4卡问数）、广告预算、M5/M6 申请 |
 | `usr_creator` | `creator` | 内容创作 / 审核人员 | M7 文案、AI 生图、视频/A+、合规检查与出口包 |
 | `usr_selector` | `selector` | 选品研究员 | M4 选品评估、CSV 异步导入（202） |
-| `usr_bi_analyst` | `bi_analyst` | 数据分析 / BI 人员 | M2 经营看板、M3 竞品监测与只读智能问数 |
+| `usr_analyst` | `bi_analyst` | 数据分析 / BI 人员 | M2 经营看板、M3 竞品监测与只读智能问数 |
 | `usr_warehouse` | `warehouse` | 采购 / 仓库 / 物流人员 | M0 库存盘点、M6 采购收货入库 |
 | `usr_cs` | `cs` | 客服 | M1 客服工作台、FAQ、售后工单与附件上传 |
-| `usr_mock_buyer` | `mock_buyer` | 测试买家 | M1 模拟买家中控台（数据打标 `is_mock=true` 严格隔离） |
+| `usr_buyer` | `mock_buyer` | 测试买家 | M1 模拟买家中控台（数据打标 `is_mock=true` 严格隔离） |
 
 ---
 
@@ -105,7 +105,7 @@ docker compose up -d postgres redis minio minio-init
 各组件默认地址与凭据（可在 `backend/.env` 中修改）：
 - **PostgreSQL 16**：`postgresql+asyncpg://crosspilot:crosspilot123@127.0.0.1:5432/crosspilot`
 - **Redis 7**：`redis://127.0.0.1:6379/0`
-- **MinIO**：S3 API `http://127.0.0.1:9000` / 控制台 `http://127.0.0.1:9001`（账号 `minioadmin` / 密码 `minioadmin123`，自动初始化桶 `crosspilot-assets`）
+- **MinIO**：S3 API `http://127.0.0.1:9000` / 控制台 `http://127.0.0.1:9001`（账号 `minioadmin` / 密码 `minioadmin`，自动初始化桶 `crosspilot-assets`）
 
 ### 2. 按需启用 Celery Worker / Beat 与 Milvus 向量库
 
@@ -155,7 +155,7 @@ curl -s http://127.0.0.1:8000/healthz | python3 -m json.tool
 ## 六、CI/CD 与生产脚本
 
 - **Jenkins 流水线**：根目录 [`Jenkinsfile`](../Jenkinsfile) 定义了 后端 `pytest` + 前端 `vue-tsc` / `vitest` / `vite build` + Docker 镜像构建全流程。
-- **一键部署脚本**：[`deploy/deploy.sh`](../deploy/deploy.sh) 支持 `bash deploy/deploy.sh` 拉起 PostgreSQL/Redis/MinIO、执行 `alembic upgrade head` 并启动前后端与 Celery Worker。
+- **一键部署脚本**：[`deploy/deploy.sh`](../deploy/deploy.sh) 支持 `ENABLE_WORKER=true ENABLE_APP=true bash deploy/deploy.sh`（按需加 `ENABLE_VECTOR=true`）拉起容器编排并等待 PostgreSQL 就绪，后端镜像入口自动执行 `alembic upgrade head` 后启动 Uvicorn。
 - **Nginx 反向代理**：[`frontend/nginx.conf.example`](../frontend/nginx.conf.example) 已配置 `client_max_body_size 30m`（支撑 M4 25MB CSV 异步导入与 M1 多附件上传）及 `/api/v1/orgs/*/m1/ws/` WebSocket 升级头。
 
 ---
