@@ -11,7 +11,7 @@
 | **1** | **总需求说明书** | [`docs/01_project_requirements.md`](01_project_requirements.md) | `docs/CrossPilot-总需求说明书.docx` | M0–M8 全平台需求（含 M7 完整需求）、9 大角色、V1.0 SRS & V1.1 对齐 |
 | **2** | **总概要设计说明书** | [`docs/02_project_hld.md`](02_project_hld.md) | `docs/CrossPilot-总概要设计说明书.docx` | M0–M8 全平台概要设计（含 M7 完整 HLD 与 10 张嵌入 DFD 架构图）、V1.1 老师技术栈标准 |
 | **3** | **总详细设计说明书** | [`docs/03_project_lld.md`](03_project_lld.md) | `docs/CrossPilot-总详细设计说明书.docx` | M0–M8 全平台详细设计（含 M7 详细设计、33 张表、API 与算法规范） |
-| **4** | **总测试用例与执行报告** | [`docs/04_project_test_cases_and_report.md`](04_project_test_cases_and_report.md) | `docs/CrossPilot-总测试用例与执行报告.docx` | M0–M8 全部测试用例（含 M7 V2.0 测试用例）+ 37 项后端 / 34 项前端实测执行报告 |
+| **4** | **总测试用例与执行报告** | [`docs/04_project_test_cases_and_report.md`](04_project_test_cases_and_report.md) | `docs/CrossPilot-总测试用例与执行报告.docx` | M0–M8 全部测试用例（含 M7 V2.0 测试用例）+ 38 项后端 / 34 项前端实测执行报告 |
 | **5** | **本地运行与部署实操手册** | [`docs/05_local_operation_guide.md`](05_local_operation_guide.md) | `docs/CrossPilot-本地运行与部署实操手册.docx` | 零依赖极速运行、Docker Compose 全栈容器编排、9 角色账号密码（`crosspilot123`）与故障排查 |
 
 - **一键打包下载**：[`docs-deliverables.zip`](../docs-deliverables.zip)（内含上述全部 **5 份**总项目 `.docx` 交付文档）。

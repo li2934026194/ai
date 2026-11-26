@@ -9,8 +9,8 @@
 当你把仓库拉到本地后，不同功能的运行情况分为以下三类，避免误以为“跑不起来是代码坏了”：
 
 ### 1. 拉下来就能直接跑通（100% 无需外部服务与密钥）
-- **全部 M0–M8 前后端核心业务（29 个页面）**：9 角色 RBAC 切换与登录、SoD 防自批、M4 五维加权选品 + `202` 异步 CSV 导入 + 过会同步 M0/M7、M7-1 三层词库扫描与本地合规文案模板、M7-2 Pillow 1+4 电商主图生成与 IPTC 标签读写校验、M7-4 五项合规门禁与离线 `.zip` 上架包导出、M1 WebSocket 实时聊天 + 售后 `multipart` 多附件上传 + 模拟沙盒隔离、M5 7 种预测模型（含 Prophet/LightGBM/CatBoost 策略）与 WAPE 回测、M6 What-If 沙盒与采购收货回写库存、M2 驾驶舱设计器与 4 卡并发、M3 只读问数与写删 SQL 拦截。
-- **全套自动化测试**：后端 `pytest` 37 项 + 前端 `vitest` 34 项 + `vue-tsc` 类型检查。
+- **全部 M0–M8 前后端核心业务（29 个统一设计页面）**：9 角色 RBAC 切换与登录（`/home` 为 9 个岗位提供专属行动卡片与一键直达入口，无 `m2:read` 的岗位不会遇到 403 报错墙）、SoD 防自批、M4 五维加权选品 + `202` 异步 CSV 导入 + 过会同步 M0/M7、M7-1 三层词库扫描与本地合规文案模板、M7-2 1+4 电商主图生成（内置 7 张 `1000×1000` 棚拍商品白底图覆盖 5 主档 SKU 及 M4 候选 `LED-812`/`PET-905`）与 IPTC 标签读写校验、M7-3 三主题 4 模块 A+ 详情页与 3 段分镜脚本、M7-4 五项合规门禁与离线 `.zip` 上架包导出、M1 WebSocket 实时聊天 + 售后 `multipart` 多附件上传 + 模拟沙盒隔离、M5 7 种预测模型（含 Prophet/LightGBM/CatBoost 策略）与 WAPE 回测、M6 What-If 沙盒与采购收货回写库存、M2 经营大屏 + 智能驾驶舱草稿设计器与 4 卡并发、M3 只读问数与写删 SQL 拦截。
+- **全套自动化测试**：后端 `pytest` **38 项** + 前端 `vitest` **34 项** + `vue-tsc` 类型检查 + `vite build`。
 
 ### 2. 拉下来如果不配/不装对应服务，会自动走兜底或触发预期拦截（共 7 项）
 
@@ -167,7 +167,7 @@ npm run dev
 ### 第 8 步：运行全量自动化测试确认本地环境 100% 正常
 
 ```bash
-# 1. 后端 37 项自动化测试（功能、24 项冒烟、并发压测、RBAC、Alembic 迁移、V1.1 升级）
+# 1. 后端 38 项自动化测试（功能、24 项冒烟、并发压测、RBAC、Alembic 迁移、V1.1 升级与百行 30 路并发）
 cd backend
 pytest -v
 
@@ -274,23 +274,25 @@ SELECT module, action, sku, actor_role, ok, sentence_zh, created_at FROM core_au
 
 ## 五、端到端业务数据流实操演练（从选品到创作、客服、补货、驾驶舱）
 
-打开 `http://127.0.0.1:5173`，通过左侧栏 **「当前登录岗位」** 切换角色，可按以下顺序完整跑通跨模块数据联动：
+打开 `http://127.0.0.1:5173`（首页 `/home` 会根据当前登录岗位动态呈现专属行动卡片与待办），通过左侧栏 **「当前登录岗位」** 切换角色，可按以下顺序完整跑通跨模块数据联动：
 
 1. **M4 选品入池 → 过会同步 M0 主档与 M7 文案**
-   - 切换为 **`吴选品 (selector)`**，进入 **「M4-1 选品导入 (`/m4/import`)」** 或 **「M4-2 评估工作台 (`/m4/workbench`)」**，导入或评估候选品并点击「保存并提交审批」（写 `m4_candidates`，`status=PENDING_APPROVAL`）。
-   - 切换为 **`陈主管 (approver)`**，进入 **「M4-3 过会决策 (`/m4/approval`)」**，勾选自动触发 M7 文案草稿并点击「同意小批测款」→ **自动写 `m0_products`（RMB 成本按 `7.2` 换算美元）并生成 `m7_generation_jobs` + `m7_generation_assets` 初稿**。
-2. **M7 文案 → AI 主图 → 5 项合规检查 → 离线导出**
-   - 切换为 **`林设计 (creator)`**，在 **M7-1 (`/m7/copy`)** 自动看到 `m0_products` 参数与 `m1_faq_entries` 买家痛点；尝试输入 `Waterproof` 验证三层禁用词库标红提示。
-   - 在 **M7-2 (`/m7/images`)** 生成 1+4 电商套图并测试 AI 人物 IPTC 标签读写修复。
-   - 在 **M7-4 (`/m7/compliance`)** 运行 5 项检查 → 切回 **`陈主管 (approver)`** 点击「批准发布」→ 导出 `.zip` 离线合规交付包。
+   - 切换为 **`吴选品 (selector)`**，进入 **「候选商品导入 (`/m4/import`)」** 或 **「选品工作台与决策 (`/m4/workbench`)」**，导入或评估候选品（支持最多 4 款并排对比）并点击 **「提交送主管终审 →」**（写 `m4_candidates`，`status=PENDING_APPROVAL`）。
+   - 切换为 **`陈主管 (approver)`**，进入 **「测款终审拍板 (`/m4/approval`)」**，可勾选「批准同时生成 M7 首版文案草稿」并点击 **「批准测款」** → **自动写 `m0_products`（RMB 成本按 `7.2` 换算美元）并生成 `m7_generation_jobs` + `m7_generation_assets` 初稿**。
+2. **M7 文案 → AI 主图 → 视频/A+ → 5 项合规检查 → 离线导出**
+   - 切换为 **`林设计 (creator)`**，在 **多语言商品文案 (`/m7/copy`)** 自动看到 `m0_products` 实标参数与 `m1_faq_entries` 买家痛点，点击 **「✨ 生成 3 组合规候选」** 或 **「⚡ 一键采纳 4 类核心文案」**；尝试输入 `Waterproof` 验证三层禁用词库标红提示。
+   - 在 **主图与详情套图 (`/m7/images`)** 点击 **「🎨 生成并落盘 1+4 套图」** 并测试 AI 人物 IPTC 标签读写与修复。
+   - 在 **商品短视频与 A+ (`/m7/video-aplus`)** 切换 `Clean Modern` / `Tech Dark` / `Warm Lifestyle` 三套主题并点击 **「🧩 一键组装 A+ 详情长页」**（融合 M7-1 文案、M7-2 套图与 M0 参数的 4 模块可视化长页）。
+   - 在 **合规检查与成品打包 (`/m7/compliance`)** 点击 **「🛡 1. 运行 5 项检查」** → 切回 **`陈主管 (approver)`** 点击 **「✓ 2. 批准发布包」** → 点击 **「📦 下载 .ZIP 包」** 或 **「📄 下载 .HTML 归档」**。
 3. **M1 模拟买家隔离、WebSocket 推流与售后多附件**
-   - 切换为 **`测试买家 (usr_buyer)`**，在 **M1-3 (`/m1/simulator`)** 提问（写 `m1_cs_sessions`，`is_mock=true`）；
-   - 切换为 **`李客服 (cs)`**，在 **M1-1 (`/m1/sessions`)** 回复消息（触发 WebSocket 广播），并在 **M1-4 (`/m1/aftersales`)** 建退款单上传 `pdf/png/txt` 附件（写 `m1_aftersales_attachments`），再由 **`陈主管`** 审批退款。
+   - 切换为 **`测试买家 (mock_buyer)`**，在 **买家咨询模拟测试 (`/m1/simulator`)** 提问（写 `m1_cs_sessions`，`is_mock=true`）；
+   - 切换为 **`李客服 (cs)`**，在 **客服会话与售后建单 (`/m1/sessions`)** 回复消息并点击「转入售后建单」提交退款单；再切换 **`陈主管 (approver)`** 在 **售后审批与退款凭证 (`/m1/aftersales`)** 审批退款（批准后立即扣减 M2 净利润）。
 4. **M5 7 模型预测 → M6 补货申请 → 采购收货回写 M0 库存**
-   - 切换为 **`张运营 (planner)`**，在 **M5-2 (`/m5/forecast`)** 对比 7 个模型（含 Prophet/LightGBM/CatBoost）WAPE 误差；在 **M6-2 (`/m6/smart`)** 调参生成补货申请（写 `m6_replenish_applies`）。
-   - 切换为 **`陈主管 (approver)`** 批准补货单（生成 `m6_purchase_orders` 并增加 `m0_inventory.in_transit`）→ 切换为 **`赵仓管 (warehouse)`** 在 **M6-4 (`/m6/receiving`)** 发货并收货（原子扣减 `in_transit`、增加 `on_hand`）。
-5. **M2 驾驶舱与 M3 只读问数**
-   - 切换为 **`周分析 (bi_analyst)`** 或 **`王总监 (manager)`**，在 **M2-2 (`/m2/overview`)** 查看隔离 `is_mock=false` 的实盘收益，在 **M3-2 (`/m3/ask`)** 测试只读经营问答与 `"DROP TABLE"` / `"修改价格"` 写删拦截。
+   - 切换为 **`张运营 (planner)`**，在 **销量预测与缺口测算 (`/m5/forecast`)** / **商品画像与预测方案 (`/m5/profiles`)** 对比 7 个模型（含 Prophet/LightGBM/CatBoost）WAPE 误差；在 **智能补货测算与路线 (`/m6/smart`)** 选择四路线/三目标并点击 **「创建并提交审批 →」**（写 `m6_replenish_applies`）。
+   - 切换为 **`陈主管 (approver)`** 在 **补货审批与下单 (`/m6/applies`)** 点击 **「批准下单」**（生成 `m6_purchase_orders` 并增加 `m0_inventory.in_transit`）→ 切换为 **`赵仓管 (warehouse)`** 在 **到货质检与收货凭证 (`/m6/receiving`)** 点击 **「标记发货」** 与 **「质检收货」**（原子扣减 `in_transit`、增加 `on_hand`）。
+5. **M2 正式大屏、智能驾驶舱草稿设置与 M3 只读问数**
+   - 切换为 **`张运营 (planner)`** 或 **`周分析 (bi_analyst)`**，进入 **正式经营大屏浏览 (`/m2/overview`)**，点击右上角 **「🎨 驾驶舱草稿设置」**，可自定义 1–4 张指标卡（`gmv_usd` / `net_profit_usd` / `ad_spend_7d_usd` / `open_alerts_count`）、排序重命名、点击 **「💾 保存草稿」**（乐观锁 `version` 校验）与 **「🚀 正式发布到大屏」**（上方立即显示「已发布驾驶舱看板」）；切换 **`王总监 (manager)`** 可只读浏览已发布看板。
+   - 在 **经营智能问答助手 (`/m3/ask`)** 测试只读多表溯源问答与 `"DROP TABLE"` / `"修改价格"` 写删拦截（`403 M7-4033`）。
 
 ---
 

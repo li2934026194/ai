@@ -21,10 +21,10 @@ ai/
 │   │   ├── main.py                   # FastAPI 入口、/healthz、/api/v1/docs/*、全模块路由挂载
 │   │   ├── core/                     # auth_rbac(9角色)、tenant、audit、storage、cache_queue、docs_router
 │   │   ├── contracts/                # M0 商品主档 & M1 FAQ 只读契约
-│   │   ├── mocks/seed_data.py        # 演示组织 org_demo、5 SKU、9 岗位账号与业务种子数据
-│   │   └── modules/                  # m0_catalog, m1_cs, m2_m3_bi, m4_selection, m5_m6_supply, m7_content, m8_org
-│   └── tests/                        # 37 项自动化测试（功能、冒烟、压测、RBAC、迁移、V1.1 升级）
-├── frontend/                         # Vue 3.5 + TypeScript + Vite 6 前端工程（29 个页面）
+│   │   ├── mocks/seed_data.py        # 演示组织 org_demo、5 个主档 SKU、9 岗位账号与业务种子数据
+│   ├── scripts/seed_100_rows.py  # 百行级压测造数脚本（填充 ≥100 行/表，450 条销量历史）
+│   └── tests/                    # 38 项自动化测试（功能、冒烟、压测、RBAC、迁移、V1.1 升级）
+├── frontend/                     # Vue 3.5 + TypeScript + Vite 6 前端工程（29 个统一设计页面）
 │   ├── Dockerfile & nginx.conf.example # 生产镜像与 Nginx 代理（含 30MB 上传与 /ws/ 升级头）
 │   ├── vite.config.ts                # 开发服务器 5173 及 /api (+ws) -> 127.0.0.1:8000 代理
 │   ├── playwright.config.ts & e2e/   # Playwright 端到端冒烟骨架
@@ -67,7 +67,7 @@ npm run dev
 ## 三、自动化测试命令
 
 ```bash
-# 后端全量测试（37 项）
+# 后端全量测试（38 项）
 cd backend && pytest -v
 
 # 前端类型检查、Vitest（34 项）与生产构建

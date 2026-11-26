@@ -6,13 +6,14 @@
 
 ## 第一篇 全平台测试执行总报告（含 V1.1 升级实测）
 
-### 最新回归验证结论（Commit `b319678` 及之后）
-- **后端全量测试（`pytest -v`）**：**37 / 37 全部通过**（涵盖 24 项模块端到端冒烟 `TC-*-SMK-*`、并发压测 `TC-*-PRF-*`、9 角色 RBAC 与跨租户 403/404 隔离、`alembic upgrade head` 迁移测试，以及 V1.1 新增的 `test_v11_upgrades.py` 6 项测试：M5 Prophet/LightGBM/CatBoost、M1 WebSocket + multipart 附件、M2 驾驶舱草稿/409 乐观锁/发布/4 卡独立会话并发、M4 202 异步 CSV 导入与轮询、M3 只读问数 `engine_mode`）。
-- **前端类型与组件单测**：`npx vue-tsc --noEmit` **0 错误**，`npm test -- --run` **34 / 34 全部通过**（覆盖 29 个全平台视图挂载与权限测试），`npm run build` 生产构建通过。
+### 最新回归验证结论（Commit `f6fa390` 及当前分支）
+- **后端全量测试（`pytest -v`）**：**38 / 38 全部通过**（涵盖 24 项模块端到端冒烟 `TC-*-SMK-*`、并发压测 `TC-*-PRF-*`、9 角色 RBAC 与跨租户 403/404 隔离、`alembic upgrade head` 迁移测试，以及 V1.1 升级测试 `test_v11_upgrades.py` 全部 7 项：M5 Prophet/LightGBM/CatBoost、M1 WebSocket + multipart 附件、M2 驾驶舱草稿/409 乐观锁/发布/4 卡独立会话并发、M4 202 异步 CSV 导入与轮询、M3 只读问数 `engine_mode`、百行数据 30 路并发压测）。
+- **前端类型与组件单测**：`npx vue-tsc --noEmit` **0 错误**，`npm test -- --run` **34 / 34 全部通过**（覆盖全部 28 个业务视图 + DocsHub 共 29 个页面统一 UI 组件挂载与权限/RBAC 测试），`npm run build` 生产构建通过（167 模块）。
+- **在线联调实测**：已按 9 个业务角色实际切换验证全部路由与接口（均返回 `200 OK` 或受控 `403`）、M2 智能驾驶舱草稿保存/发布与 `total_gmv_usd` 实时计算，以及 M7-3 三主题 4 模块 A+ 图文生成。
 - **E2E 骨架就绪**：`frontend/playwright.config.ts` 与 `frontend/e2e/crosspilot.spec.ts` 已就绪，支持本地 Chromium 一键冒烟。
 
 - **分支**：`arena/20303949-ai`
-- **测试范围**：文档一致性对账（M0–M8 需求/设计/TC）、全平台 25 项冒烟用例、性能与并发基准、前端 28 视图组件挂载与类型构建
+- **测试范围**：文档一致性对账（M0–M8 需求/设计/TC）、全平台 25 项冒烟用例、性能与并发基准、前端 28 业务视图组件挂载与类型构建
 - **综合评分**：**96.5 / 100**
 
 ---
@@ -21,10 +22,10 @@
 
 | 测试类别 | 执行工具 / 命令 | 用例数 | 通过 | 失败 | 覆盖范围说明 |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| **后端全量测试** | `/tmp/m7venv/bin/pytest -v` | 30 | 30 | 0 | 含 M7 五步、M0–M8 精炼、文档 TC 对账、24 条冒烟、性能与并发 |
-| **前端组件 & 单测** | `cd frontend && npm test` (`vitest run`) | 34 | 34 | 0 | 28 个 Vue 页面组件 DOM 挂载 + UI 徽章验证 + 5 项 API 单测 |
-| **TypeScript & 构建** | `npx vue-tsc --noEmit && npm run build` | - | 通过 | 0 | 161 个模块无类型错误，产物 `dist/assets/index-eYNYplvp.js` |
-| **实时服务代理冒烟** | `http://127.0.0.1:5173` -> `:8000` | - | 通过 | 0 | JWT 登录、跨租户 403、PATCH 局部更新、只读问数 403 拦截、实时测速 |
+| **后端全量测试** | `cd backend && pytest -v` | 38 | 38 | 0 | 含 M7 五步、M0–M8 精炼、文档 TC 对账、24 条冒烟、30 路并发压测与 V1.1 升级 |
+| **前端组件 & 单测** | `cd frontend && npm test -- --run` (`vitest`) | 34 | 34 | 0 | 28 个业务 Vue 页面组件 DOM 挂载 + UI 徽章验证 + 5 项 M7 核心单测 |
+| **TypeScript & 构建** | `npm run typecheck && npm run build` | - | 通过 | 0 | 167 个模块无类型错误，产物正常构建 |
+| **实时服务代理冒烟** | `http://127.0.0.1:5173` -> `:8000` | - | 通过 | 0 | 9 角色权限矩阵、智能驾驶舱设计器 4 卡并发、JWT 登录、跨租户 403、只读问数拦截 |
 
 ---
 
