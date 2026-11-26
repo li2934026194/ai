@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
+import { getProductImageUrl } from "@/utils/productImage";
 
 const ws = useM7WorkspaceStore();
 const products = ref<any[]>([]);
@@ -205,7 +206,17 @@ onMounted(() => void load());
         <tbody>
           <tr v-for="p in products" :key="p.sku">
             <td><code>{{ p.sku }}</code></td>
-            <td>{{ p.name }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <img
+                  v-if="getProductImageUrl(p.sku)"
+                  :src="getProductImageUrl(p.sku)!"
+                  :alt="p.name"
+                  style="width:40px;height:40px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;flex-shrink:0;"
+                />
+                <span>{{ p.name }}</span>
+              </div>
+            </td>
             <td><span class="pill p-blue">{{ p.origin }}</span></td>
             <td class="tnum">${{ p.sale_price_usd }}</td>
             <td class="tnum">${{ p.unit_cost_usd }}</td>

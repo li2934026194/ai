@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from "vue";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
+import { getProductImageUrl } from "@/utils/productImage";
 
 const ws = useM7WorkspaceStore();
 const items = ref<any[]>([]);
@@ -66,7 +67,17 @@ onMounted(() => void load());
           <tbody>
             <tr v-for="it in items" :key="it.inv_id">
               <td><code>{{ it.warehouse_code }}</code></td>
-              <td><code>{{ it.sku }}</code></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <img
+                    v-if="getProductImageUrl(it.sku)"
+                    :src="getProductImageUrl(it.sku)!"
+                    :alt="it.sku"
+                    style="width:32px;height:32px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;flex-shrink:0;"
+                  />
+                  <code>{{ it.sku }}</code>
+                </div>
+              </td>
               <td class="tnum" :style="{ color: it.on_hand < 120 ? '#b91c1c' : '#047857', fontWeight: 700 }">
                 {{ it.on_hand }}
                 <router-link v-if="it.on_hand < 120" to="/m6/smart" style="font-size:11px;margin-left:6px;color:#b91c1c;">

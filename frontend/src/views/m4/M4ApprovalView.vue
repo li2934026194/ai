@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
+import { getProductImageUrl } from "@/utils/productImage";
 
 const router = useRouter();
 const ws = useM7WorkspaceStore();
@@ -70,8 +71,18 @@ onMounted(() => void load());
           <tr v-for="c in candidates" :key="c.candidate_id">
             <td><code>{{ c.sku }}</code></td>
             <td>
-              {{ c.name }}
-              <div v-if="c.ip_risk_note" style="font-size:11px;color:#b45309;">风险备忘：{{ c.ip_risk_note }}</div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <img
+                  v-if="getProductImageUrl(c.sku)"
+                  :src="getProductImageUrl(c.sku)!"
+                  :alt="c.name"
+                  style="width:40px;height:40px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;flex-shrink:0;"
+                />
+                <div>
+                  {{ c.name }}
+                  <div v-if="c.ip_risk_note" style="font-size:11px;color:#b45309;">风险备忘：{{ c.ip_risk_note }}</div>
+                </div>
+              </div>
             </td>
             <td class="tnum">{{ c.total_score }} 分 / {{ (c.est_margin_pct * 100).toFixed(2) }}%</td>
             <td><code>{{ c.submitter_id || "-" }}</code></td>

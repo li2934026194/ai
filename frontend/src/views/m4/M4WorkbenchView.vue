@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
+import { getProductImageUrl } from "@/utils/productImage";
 
 const ws = useM7WorkspaceStore();
 const candidates = ref<any[]>([]);
@@ -110,7 +111,17 @@ onMounted(() => void load());
                 />
               </td>
               <td><code>{{ c.sku }}</code></td>
-              <td>{{ c.name }}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <img
+                    v-if="getProductImageUrl(c.sku)"
+                    :src="getProductImageUrl(c.sku)!"
+                    :alt="c.name"
+                    style="width:38px;height:38px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;flex-shrink:0;"
+                  />
+                  <span>{{ c.name }}</span>
+                </div>
+              </td>
               <td class="tnum" style="font-weight:700;">{{ c.total_score }}</td>
               <td class="tnum" :style="{ color: c.est_margin_pct >= 0.18 ? '#047857' : '#b91c1c' }">
                 {{ (c.est_margin_pct * 100).toFixed(2) }}%
@@ -124,7 +135,15 @@ onMounted(() => void load());
 
       <div v-if="selected" class="card">
         <div class="card-title">
-          <span>加权 5 维打分与利润测算：{{ selected.sku }}</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img
+              v-if="getProductImageUrl(selected.sku)"
+              :src="getProductImageUrl(selected.sku)!"
+              :alt="selected.name"
+              style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid #cbd5e1;background:#fff;"
+            />
+            <span>加权 5 维打分与利润测算：{{ selected.sku }}</span>
+          </div>
           <span class="pill p-purple">{{ selected.status }}</span>
         </div>
         <div class="grid-4" style="margin-bottom:10px;">
@@ -175,7 +194,17 @@ onMounted(() => void load());
         <thead>
           <tr>
             <th>维度</th>
-            <th v-for="it in comparedItems" :key="it.candidate_id"><code>{{ it.sku }}</code> {{ it.name }}</th>
+            <th v-for="it in comparedItems" :key="it.candidate_id">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <img
+                  v-if="getProductImageUrl(it.sku)"
+                  :src="getProductImageUrl(it.sku)!"
+                  :alt="it.name"
+                  style="width:32px;height:32px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;"
+                />
+                <span><code>{{ it.sku }}</code> {{ it.name }}</span>
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>

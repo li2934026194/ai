@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 from app.contracts.product_catalog_contract import ProductFactSnapshot
 from app.contracts.voice_faq_contract import VoiceFaqSnapshot
@@ -172,33 +172,58 @@ class LocalMediaAdapter(GeneratorAdapter):
         img = Image.new("RGB", (w, h), bg)
         draw = ImageDraw.Draw(img)
 
-        # 绘制定制化工业风几何产品展示卡片
-        pad_x, pad_y = int(w * 0.16), int(h * 0.16)
-        if slot_idx != 0:
-            draw.rounded_rectangle(
-                [36, 36, w - 36, h - 36], radius=28, outline=accent, width=4
-            )
-        # 产品主体轮廓
-        draw.rounded_rectangle(
-            [pad_x, pad_y, w - pad_x, h - pad_y - 40],
-            radius=36,
-            fill=(248, 250, 252) if slot_idx == 0 else (255, 255, 255),
-            outline=accent,
-            width=6,
+        static_photo = (
+            Path(__file__).resolve().parents[3]
+            / "static"
+            / "product-images"
+            / f"{product.sku}.png"
         )
-        cx, cy = w // 2, h // 2 - 20
-        draw.ellipse([cx - 110, cy - 110, cx + 110, cy + 110], fill=accent)
-        draw.ellipse([cx - 62, cy - 62, cx + 62, cy + 62], fill=(255, 255, 255))
-
-        if slot_idx > 0:
-            # 非主图展示 ASCII 标签与卖点条（避免容器无中文字体方框）
-            draw.rectangle([60, h - 125, w - 60, h - 55], fill=accent)
-            draw.text((84, h - 102), f"{product.sku} | Slot {slot_idx}: {theme_label} ({style})", fill=(255, 255, 255))
-            if custom_instruction:
-                draw.text((84, 64), f"Note: {custom_instruction[:48]}", fill=accent)
+        if static_photo.is_file():
+            with Image.open(static_photo) as src_im:
+                prod_rgb = src_im.convert("RGB")
+            if slot_idx == 0:
+                fitted = ImageOps.contain(prod_rgb, (int(w * 0.90), int(h * 0.90)), Image.Resampling.LANCZOS)
+                img.paste(fitted, ((w - fitted.width) // 2, (h - fitted.height) // 2))
+            else:
+                draw.rounded_rectangle(
+                    [28, 28, w - 28, h - 28], radius=24, fill=(255, 255, 255), outline=accent, width=4
+                )
+                if slot_idx == 3:
+                    # 细节特写：适当放大产品中心区域
+                    cw, ch = prod_rgb.size
+                    cropped = prod_rgb.crop((int(cw * 0.14), int(ch * 0.14), int(cw * 0.86), int(ch * 0.86)))
+                else:
+                    cropped = prod_rgb
+                box_w, box_h = w - 140, h - 210
+                fitted = ImageOps.contain(cropped, (box_w, box_h), Image.Resampling.LANCZOS)
+                img.paste(fitted, ((w - fitted.width) // 2, 74 + (box_h - fitted.height) // 2))
+                draw.rectangle([52, h - 118, w - 52, h - 48], fill=accent)
+                draw.text((76, h - 95), f"{product.sku} | Slot {slot_idx}: {theme_label} ({style})", fill=(255, 255, 255))
+                if custom_instruction:
+                    draw.text((76, 48), f"Note: {custom_instruction[:48]}", fill=accent)
         else:
-            # 主图保持纯白底，不叠加促销文字角标
-            pass
+            # 无静态实拍素材时的几何展示兜底卡片
+            pad_x, pad_y = int(w * 0.16), int(h * 0.16)
+            if slot_idx != 0:
+                draw.rounded_rectangle(
+                    [36, 36, w - 36, h - 36], radius=28, outline=accent, width=4
+                )
+            draw.rounded_rectangle(
+                [pad_x, pad_y, w - pad_x, h - pad_y - 40],
+                radius=36,
+                fill=(248, 250, 252) if slot_idx == 0 else (255, 255, 255),
+                outline=accent,
+                width=6,
+            )
+            cx, cy = w // 2, h // 2 - 20
+            draw.ellipse([cx - 110, cy - 110, cx + 110, cy + 110], fill=accent)
+            draw.ellipse([cx - 62, cy - 62, cx + 62, cy + 62], fill=(255, 255, 255))
+
+            if slot_idx > 0:
+                draw.rectangle([60, h - 125, w - 60, h - 55], fill=accent)
+                draw.text((84, h - 102), f"{product.sku} | Slot {slot_idx}: {theme_label} ({style})", fill=(255, 255, 255))
+                if custom_instruction:
+                    draw.text((84, 64), f"Note: {custom_instruction[:48]}", fill=accent)
 
         buf = io.BytesIO()
         img.save(buf, format="PNG")
@@ -211,7 +236,7 @@ class LocalMediaAdapter(GeneratorAdapter):
             slot_idx=slot_idx,
             prompt_used=prompt_used,
             ai_person_flag=ai_person_flag,
-            engine_mode="pillow_local",
+            engine_mode="studio_asset_local" if static_photo.is_file() else "pillow_local",
         )
 
     def check_video_engine_available(self) -> str:
