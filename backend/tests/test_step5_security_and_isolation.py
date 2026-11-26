@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import sqlite3
 import subprocess
+import sys
 
 
 async def test_all_9_roles_rbac_enforcement(test_ctx):
@@ -115,7 +116,7 @@ def test_alembic_upgrade_head_on_clean_sqlite(tmp_path: Path):
     backend_dir = Path(__file__).resolve().parent.parent
     env = {**os.environ, "DATABASE_URL": f"sqlite+aiosqlite:///{db_file}"}
     res = subprocess.run(
-        ["/tmp/m7venv/bin/alembic", "upgrade", "head"],
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
         cwd=str(backend_dir),
         env=env,
         capture_output=True,

@@ -25,7 +25,7 @@ def create_engine_from_url(database_url: str) -> AsyncEngine:
     engine_kwargs: dict = {"echo": False, "future": True}
     if database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
-        connect_args["timeout"] = 15.0
+        connect_args["timeout"] = 30.0
     else:
         # PostgreSQL asyncpg 连接池优化：支持 M2 4卡并发 + 多人本地压测不爆池
         engine_kwargs.update(
@@ -36,20 +36,22 @@ def create_engine_from_url(database_url: str) -> AsyncEngine:
                 "pool_recycle": 1800,
             }
         )
-    engine = create_async_engine(
-        database_url,
-        connect_args=connect_args,
-        **engine_kwargs,
-    )
+    engine = create_async_engine(database_url, connect_args=connect_args, **engine_kwargs)
     if database_url.startswith("sqlite"):
         @event.listens_for(engine.sync_engine, "connect")
         def _set_sqlite_pragma(dbapi_conn, _connection_record):
+            dbapi_conn.isolation_level = None
             cursor = dbapi_conn.cursor()
             cursor.execute("PRAGMA journal_mode=WAL;")
             cursor.execute("PRAGMA synchronous=NORMAL;")
-            cursor.execute("PRAGMA busy_timeout=15000;")
+            cursor.execute("PRAGMA busy_timeout=30000;")
             cursor.execute("PRAGMA foreign_keys=ON;")
             cursor.close()
+
+        @event.listens_for(engine.sync_engine, "begin")
+        def _do_sqlite_begin(conn):
+            # 使用 BEGIN IMMEDIATE 避免 SQLite 读升级写 (SHARED->RESERVED) 直接报 database is locked
+            conn.exec_driver_sql("BEGIN IMMEDIATE")
     return engine
 
 

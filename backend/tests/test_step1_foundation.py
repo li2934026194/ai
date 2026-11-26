@@ -1,6 +1,7 @@
 import io
 import os
 import subprocess
+import sys
 from pathlib import Path
 from PIL import Image
 import pytest
@@ -29,11 +30,8 @@ def test_alembic_upgrade_creates_all_9_tables(tmp_path: Path):
     db_path = tmp_path / "alembic_check.db"
     env = os.environ.copy()
     env["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_path}"
-    alembic_bin = str(Path("/tmp/m7venv/bin/alembic"))
-    if not Path(alembic_bin).exists():
-        alembic_bin = "alembic"
     res = subprocess.run(
-        [alembic_bin, "upgrade", "head"],
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
         cwd=str(Path(__file__).resolve().parents[1]),
         env=env,
         capture_output=True,

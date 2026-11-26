@@ -525,6 +525,8 @@ class M2M3BiService:
         """对齐 SRS FR-BI-06：最多 4 张卡并发问数，每张卡使用独立数据库会话并按卡隔离异常"""
         layout = await self.get_designer_layout(session, org_id)
         cards = (layout["published_layout"] or layout["draft_layout"])[:4]
+        # 释放外层 session 的 SQLite 事务锁，避免 4 路并发 sub-session 在 Windows SQLite 下争抢锁
+        await session.commit()
         maker = async_sessionmaker(bind=session.bind, class_=AsyncSession, expire_on_commit=False, autoflush=False)
 
         async def _eval_card(card: dict) -> dict:
