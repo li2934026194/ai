@@ -1,71 +1,86 @@
-# CrossPilot AI 全平台（M0–M8）本地拉取、数据库配置、表关系与业务数据流实操手册
+# CrossPilot AI 全平台（M0–M8）本地拉取、环境差异、数据库配置与全链路实操手册
 
-> **适用对象**：本手册专为在**你自己的本地电脑（Windows / macOS / Linux）**上首次拉取 GitHub 代码、独立部署本地数据库与中间件、并完整跑通 M0–M8 全流程的开发者与答辩演示者编写。按照下面 **第 1 步 → 第 7 步** 顺序操作即可一次跑通。
+> **写给本地部署的你**：因为你的本地电脑（Windows / macOS / Linux）与云端开发沙盒环境不同，本地的数据库、中间件、FFmpeg 与 API 密钥都需要你在自己电脑上启动或配置。本手册不仅给你**“从 GitHub 拉下来第 1 步到第 8 步怎么跑”**的保姆级命令，还把**“哪些在本地能直接跑、哪些会因环境缺失而触发兜底或报错、Windows 专属避坑、33 张表怎么连怎么查、数据怎么跨表流转”**一次性全部写透。
 
 ---
 
-## 一、把 GitHub 拉到本地后，第一步到第七步怎么操作？
+## 一、先看清：沙盒环境 vs 你本地拉下来运行的能力边界
 
-### 第 1 步：拉取仓库并切换到工作分支 `arena/20303949-ai`
+当你把仓库拉到本地后，不同功能的运行情况分为以下三类，避免误以为“跑不起来是代码坏了”：
 
-打开终端（Windows 用 **PowerShell** 或 **Git Bash**，macOS/Linux 用 **Terminal**）：
+### 1. 拉下来就能直接跑通（100% 无需外部服务与密钥）
+- **全部 M0–M8 前后端核心业务（29 个页面）**：9 角色 RBAC 切换与登录、SoD 防自批、M4 五维加权选品 + `202` 异步 CSV 导入 + 过会同步 M0/M7、M7-1 三层词库扫描与本地合规文案模板、M7-2 Pillow 1+4 电商主图生成与 IPTC 标签读写校验、M7-4 五项合规门禁与离线 `.zip` 上架包导出、M1 WebSocket 实时聊天 + 售后 `multipart` 多附件上传 + 模拟沙盒隔离、M5 7 种预测模型（含 Prophet/LightGBM/CatBoost 策略）与 WAPE 回测、M6 What-If 沙盒与采购收货回写库存、M2 驾驶舱设计器与 4 卡并发、M3 只读问数与写删 SQL 拦截。
+- **全套自动化测试**：后端 `pytest` 37 项 + 前端 `vitest` 34 项 + `vue-tsc` 类型检查。
 
+### 2. 拉下来如果不配/不装对应服务，会自动走兜底或触发预期拦截（共 7 项）
+
+| 功能项 | 你本地没配/没装时的真实表现 | 你本地想跑“真实版”需要做什么 |
+| :--- | :--- | :--- |
+| **1. Word `.docx` 文档文件** | `.gitignore` 屏蔽了散落 `*.docx`（防 Git 臃肿），所以 `git clone` 后 `docs/` 里有 5 份 `.md` + 3 份老师原件，**5 份总 `.docx` 打包在根目录 `docs-deliverables.zip` 中** | 拉取后在根目录执行 `unzip docs-deliverables.zip -d docs/`（或右键解压到 `docs/`），就能得到全部 5 份 `.docx` 并在 `/docs` 网页直接下载 |
+| **2. PostgreSQL / Redis / MinIO** | GitHub 仓库里不包含运行中的数据库实例！如果直接执行 `alembic upgrade head`，`.env.example` 默认连 `127.0.0.1:5432` 会报错 **Connection refused** | **三选一**：① 执行 `docker compose up -d postgres redis minio minio-init`；② 本机装 PostgreSQL 手动建库；③ 改为 SQLite（见第 3 步方案 A），无需装任何数据库直接启动 |
+| **3. M7-3 视频合成（`FFmpeg`）** | 本地电脑（含本沙盒）未装 `ffmpeg` 时，点击合成 15s 短视频会**故意返回 `503 M7-5031`**（合规硬门禁，绝不生成假 `.mp4`，也不破坏已有图文） | 本机安装 `ffmpeg`（Windows：`winget install Gyan.FFmpeg`；Mac：`brew install ffmpeg`）并确保命令行 `ffmpeg -version` 可用后重启后端；或用 `docker compose --profile app` 运行（容器内已装好 `ffmpeg`） |
+| **4. 阿里云百炼大模型（Qwen + 万相）** | 仓库不含作者 API Key，留空时自动切换为本地确定性合规模板 + Pillow 出图 | 在 `backend/.env` 填入自己的 `DASHSCOPE_API_KEY=sk-...` 重启后端即可调用真实通义千问与万相生图 |
+| **5. Vanna 2 / ComfyUI 外部 AI** | 本地默认无此两项服务，自动回退为 PG 只读事实引擎与百炼/本地生图 | 本机另行启动 Vanna 2（如 `8084`）或 ComfyUI（如 `8188`）后，把地址填入 `.env` 的 `VANNA_BASE_URL` / `COMFYUI_BASE_URL` |
+| **6. Milvus 向量检索库** | 默认未开启时 M1 自动回退 PostgreSQL 停用词+CJK 双字匹配，不影响答复 | 需 Docker Desktop 分配 **≥4GB 内存** 后执行 `docker compose --profile vector up -d etcd milvus` |
+| **7. Playwright 真浏览器 E2E** | 仓库含 `playwright.config.ts` 和 `e2e/crosspilot.spec.ts`，但未预先安装约 150MB 的 Chromium 浏览器 | 本地想跑真浏览器测试时，先运行 `npm install -D @playwright/test && npx playwright install chromium`，再运行 `npx playwright test` |
+
+---
+
+## 二、把 GitHub 拉到本地后，第一步到第八步完整操作流程
+
+### 第 1 步：拉取仓库并切到当前工作分支
 ```bash
 git clone https://github.com/li2934026194/ai.git
 cd ai
 git fetch origin arena/20303949-ai
 git checkout arena/20303949-ai
 ```
-
-> **预期结果**：执行 `git branch` 显示当前处于 `* arena/20303949-ai`；目录下能看到 `backend/`、`frontend/`、`docker-compose.yml`、`docs/`。
-
----
-
-### 第 2 步：检查本地基础环境版本
-
-| 工具 | 最低要求 | 检查命令 | 说明 |
-| :--- | :--- | :--- | :--- |
-| **Python** | `3.11+` | `python --version` 或 `python3 --version` | 运行后端 FastAPI + SQLAlchemy 2.0 + Pytest |
-| **Node.js / npm** | `Node 20+` / `npm 10+` | `node -v && npm -v` | 运行前端 Vue 3 + Vite 6 + Vitest |
-| **Docker Desktop**（若用 Docker 启动 PG/Redis/MinIO） | `Docker 24+` | `docker compose version` | **没有 Docker 也可以先跑方式 A（SQLite），有 Docker 推荐跑方式 B（PostgreSQL 16 全栈）** |
-| **FFmpeg**（可选） | 任意版本 | `ffmpeg -version` | 不装也能启动；装了才可合成 M7-3 真实 `.mp4` 视频（未装时安全触发 `503 M7-5031` 门禁） |
+（可选）把打包好的 5 份总 Word 文档解压到 `docs/` 目录：
+- **macOS / Linux / Git Bash**：`unzip -o docs-deliverables.zip -d docs/`
+- **Windows PowerShell**：`Expand-Archive -Path docs-deliverables.zip -DestinationPath docs -Force`
 
 ---
 
-### 第 3 步：选择本地数据库方案并准备好数据库（二选一）
-
-因为本地数据库运行在你的电脑上，请从以下两种方式中选一种：
-
-#### 方案 A：零安装 SQLite 极速模式（不装 PostgreSQL/Docker 也能立刻跑通）
-- 无需安装任何数据库服务，直接跳过建库步骤，在第 4 步中把 `DATABASE_URL` 设为 `sqlite+aiosqlite:///./crosspilot_local.db` 即可（系统启动时会自动建表并初始化全部 33 张表及演示数据）。
-
-#### 方案 B：正式 PostgreSQL 16 + Redis + MinIO 模式（严格对齐老师 V1.1 标准）
-
-- **子方式 B1（推荐，Docker 一键拉起 PG + Redis + MinIO）**：
-  在仓库根目录 `/ai` 执行：
-  ```bash
-  docker compose up -d postgres redis minio minio-init
-  ```
-  检查容器全部健康（`healthy` / `running`）：
-  ```bash
-  docker compose ps
-  ```
-  > 如需进一步启用 **Celery 异步 Worker/Beat** 或 **Milvus 向量检索**：
-  > - 启动 Celery：`docker compose --profile worker up -d celery-worker celery-beat`
-  > - 启动 Milvus：`docker compose --profile vector up -d etcd milvus`
-
-- **子方式 B2（本机自己装了 PostgreSQL，不用 Docker）**：
-  在本机打开 `psql`（如 `psql -U postgres`）执行以下建库建用户 SQL：
-  ```sql
-  CREATE USER crosspilot WITH PASSWORD 'crosspilot123';
-  CREATE DATABASE crosspilot OWNER crosspilot ENCODING 'UTF8';
-  GRANT ALL PRIVILEGES ON DATABASE crosspilot TO crosspilot;
-  ```
-  > 如需在非 Docker 环境也启用 Redis 与 MinIO，本机另外启动 Redis（默认端口 `6379`）和 MinIO（默认端口 `9000` 并新建 Bucket `crosspilot-assets`）；若本机没装 Redis/MinIO，后端会在启动时自动安全降级为进程内缓存与本地磁盘 `backend/m7_storage/`，**不会报错阻塞启动**。
+### 第 2 步：检查本地 Python、Node.js 与 Docker 版本
+```bash
+python --version   # 或 python3 --version，强烈推荐 Python 3.11 或 3.12
+node -v            # 推荐 Node 20 LTS 以上
+npm -v             # 推荐 npm 10 以上
+docker compose version   # 若走方案 A（SQLite）可不装 Docker；走方案 B 必装并先打开 Docker Desktop
+```
+> **Windows 重要提醒**：请尽量使用 **Python 3.11 或 3.12**（不要使用刚发布的 3.13/3.14 实验版，否则 `asyncpg` / `pymilvus` 可能找不到预编译二进制包而报 C++ 编译错误）。
 
 ---
 
-### 第 4 步：安装后端依赖并配置 `backend/.env`
+### 第 3 步：准备本地数据库（三种方式任选其一，推荐 B1 或 A）
+
+#### 方案 A：零安装 SQLite 极速模式（最快，5 分钟跑通全部功能）
+- 无需安装 PostgreSQL、Redis、MinIO 或 Docker，直接跳过本步去第 4 步修改 `backend/.env` 为 SQLite 即可。
+
+#### 方案 B1：Docker Compose 一键拉起全套生产中间件（推荐，严格对齐老师 V1.1 技术栈）
+> 操作前请确认电脑上的 **Docker Desktop 已启动**，且本机没有占用 `5432`（PG）、`6379`（Redis）、`9000/9001`（MinIO）端口。
+
+在仓库根目录执行：
+```bash
+docker compose up -d postgres redis minio minio-init
+docker compose ps
+```
+> **预期结果**：`crosspilot-postgres`、`crosspilot-redis`、`crosspilot-minio` 均为 `healthy`（`crosspilot-minio-init` 执行完建桶后正常退出为 `Exited (0)`）。
+> - （按需）启动 Celery 后台任务队列：`docker compose --profile worker up -d celery-worker celery-beat`
+> - （按需）启动 Milvus 向量库（确保 Docker 内存 ≥ 4GB）：`docker compose --profile vector up -d etcd milvus`
+
+#### 方案 B2：本机手动安装了 PostgreSQL（不用 Docker）
+打开本机 `psql`（或 pgAdmin / Navicat 查询窗口），用超级用户执行以下 SQL 建库建账号：
+```sql
+CREATE USER crosspilot WITH PASSWORD 'crosspilot123';
+CREATE DATABASE crosspilot OWNER crosspilot ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE crosspilot TO crosspilot;
+```
+- 本机装了 Redis 可一起启动（默认 `127.0.0.1:6379`）；本机装了 MinIO 可建一个名为 `crosspilot-assets` 的 Bucket；**若本机没装 Redis/MinIO，留空或保持默认即可，后端会自动降级，不会阻塞启动**。
+
+---
+
+### 第 4 步：创建后端虚拟环境、安装依赖并配置 `backend/.env`
 
 **macOS / Linux：**
 ```bash
@@ -81,13 +96,15 @@ cp .env.example .env
 cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+# 如果上面这句报“禁止运行脚本”，先执行一次下面这句再重试：
+# Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-打开 `backend/.env` 按你第 3 步选择的方案核对/修改：
-- 若走 **方案 B（PostgreSQL）**：`.env.example` 默认已经是 `postgresql+asyncpg://crosspilot:crosspilot123@127.0.0.1:5432/crosspilot`，直接可用！
-- 若走 **方案 A（零外部依赖 SQLite）**：把 `backend/.env` 里的对应行改为：
+现在用编辑器（如 VS Code / 记事本）打开 **`backend/.env`**（**强烈建议直接改 `.env` 文件，不要用临时环境变量命令，Windows 和 Mac 通用**）：
+- **如果你第 3 步选的是方案 B（PostgreSQL）**：`.env.example` 默认就已经配好 `postgresql+asyncpg://crosspilot:crosspilot123@127.0.0.1:5432/crosspilot`，**无需改动**（如果是 B2 且本机未起 Redis/MinIO，可把 `STORAGE_BACKEND=local`、`REDIS_URL=`）。
+- **如果你第 3 步选的是方案 A（SQLite 极速模式）**：把 `backend/.env` 顶部对应几行改成下面这样保存：
   ```dotenv
   DATABASE_URL=sqlite+aiosqlite:///./crosspilot_local.db
   STORAGE_BACKEND=local
@@ -97,56 +114,64 @@ Copy-Item .env.example .env
   MILVUS_URI=
   ```
 
-> `.env` 全部字段的详细说明见本文 **「二、环境变量与中间件全字段配置手册」**。
+---
+
+### 第 5 步：执行 Alembic 数据库迁移建表（重要顺序红线！）
+
+> **顺序红线**：务必**先运行 `alembic upgrade head` 建表，再启动 `uvicorn`**！（如果先启动了 `uvicorn`，后端 `create_all` 会把表先建好，导致后续再跑 `alembic upgrade head` 时报“表已存在”；万一顺序反了，执行 `alembic stamp head` 同步迁移版本号即可。）
+
+在已激活 `.venv` 的 `backend/` 目录执行：
+```bash
+# 执行 0001 -> 0002 -> 0003 全部迁移（自动创建 33 张表与全部索引）
+alembic upgrade head
+
+# 校验迁移版本（预期输出：0003_v11_m1_att_m2_layout (head)）
+alembic current
+```
 
 ---
 
-### 第 5 步：执行数据库迁移（建表）并启动后端（端口 `8000`）
+### 第 6 步：启动后端服务并校验健康接口（端口 `8000`）
 
-在已激活 `backend/.venv` 的 `backend/` 目录执行：
-
+在 `backend/` 目录继续执行：
 ```bash
-# 1. 执行 Alembic 迁移脚本（按顺序创建 0001 -> 0002 -> 0003 共 33 张表）
-alembic upgrade head
-
-# 2. 查看迁移版本确认（应显示 0003_v11_m1_att_m2_layout (head)）
-alembic current
-
-# 3. 启动 FastAPI 后端（首次启动 lifespan 会自动调用 ensure_seed_data 写入演示组织 org_demo、9 个岗位账号与 5 个演示 SKU）
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+> 后端启动瞬间会自动执行 `ensure_seed_data()`，往库里写入演示组织 `org_demo`、9 个 RBAC 岗位账号（密码 `crosspilot123`）、5 个演示 SKU（`SKU-00704` 等）、12 条合规规则、7 条资质台账和业务模拟/实盘种子数据。
 
-打开新终端（或浏览器）验证后端健康检查：
+另开终端（或浏览器直接打开）验证：
 ```bash
 curl http://127.0.0.1:8000/healthz
 ```
-看到 `"code": "OK"` 且 `"status": "healthy"`（连接 PG 时 `"database_dialect": "postgresql"`，用 SQLite 时为 `"sqlite"`），说明后端与数据库全部就绪！
+看到返回 JSON 中 `"status": "healthy"` 且 `"database_dialect"` 为 `"postgresql"`（或 `"sqlite"`），即为成功！
 
 ---
 
-### 第 6 步：安装前端依赖并启动前端（另开一个终端，端口 `5173`）
+### 第 7 步：安装前端依赖并启动前端开发服务器（端口 `5173`）
 
+新开一个终端窗口：
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-
-看到终端打印 `Local: http://localhost:5173/` 后，用浏览器访问：
-- **业务工作台首页**：`http://127.0.0.1:5173`（自动重定向 `/home`）
+看到 `Local: http://localhost:5173/` 后，用浏览器打开：
+- **业务工作台首页**：`http://127.0.0.1:5173`（自动跳转到 `/home`）
 - **站内交付文档中心**：`http://127.0.0.1:5173/docs`
-- **后端 Swagger 接口调试页**：`http://127.0.0.1:8000/docs`
+- **后端 Swagger 接口文档**：`http://127.0.0.1:8000/docs`
+
+> **注意**：前端必须通过 `http://127.0.0.1:5173` 访问（不要直接双击 `index.html` 用 `file://` 打开），Vite 会自动将 `/api` 和 `/api/.../ws/...` 代理转发到 `127.0.0.1:8000`。
 
 ---
 
-### 第 7 步：运行全量自动化测试验证环境无误
+### 第 8 步：运行全量自动化测试确认本地环境 100% 正常
 
 ```bash
-# 后端全量 37 项测试（单元测试 + 24 项冒烟 + 压测 + V1.1 升级 + Alembic 迁移测试）
+# 1. 后端 37 项自动化测试（功能、24 项冒烟、并发压测、RBAC、Alembic 迁移、V1.1 升级）
 cd backend
 pytest -v
 
-# 前端类型校验、34 项 Vitest 组件测试与打包构建
+# 2. 前端类型检查 + 34 项 Vitest 组件测试 + 生产打包
 cd ../frontend
 npm run typecheck
 npm test -- --run
@@ -155,169 +180,123 @@ npm run build
 
 ---
 
-## 二、环境变量与中间件全字段配置手册（`backend/.env`）
+## 三、本地可视化查库指南与环境变量全字段说明
 
-下表逐项说明 `backend/.env.example` 中**每一个字段**的作用、必填性与降级策略：
+### 3.1 如何用数据库客户端查看本地 33 张表？
+- **如果你用了方案 B（PostgreSQL）**：用 **DBeaver / Navicat / DataGrip / pgAdmin** 新建 PostgreSQL 连接：
+  - Host：`127.0.0.1`，Port：`5432`，Database：`crosspilot`，Username：`crosspilot`，Password：`crosspilot123`。
+- **如果你用了方案 A（SQLite）**：用 **DBeaver / DB Browser for SQLite / VS Code SQLite 插件** 直接打开文件 `backend/crosspilot_local.db`。
 
-### 2.1 数据库配置（核心必选）
-| 字段名 | 默认值 / 示例 | 配置说明 |
-| :--- | :--- | :--- |
-| `M7_ENV` | `development` | 运行环境标识（`development` / `test` / `production`） |
-| `DATABASE_URL` | `postgresql+asyncpg://crosspilot:crosspilot123@127.0.0.1:5432/crosspilot` | **必填**。Async 驱动地址：<br>• PostgreSQL 必须用 `postgresql+asyncpg://用户名:密码@主机:端口/库名`<br>• 单机极速体验可改为 `sqlite+aiosqlite:///./crosspilot_local.db` |
+**5 条最常用的核验 SQL（连接后可直接运行观察数据流向）**：
+```sql
+-- 1. 查看 9 个预设账号与权限店铺边界
+SELECT user_id, display_name, role_code, is_active FROM m8_users;
 
-### 2.2 文件对象存储（MinIO / 本地磁盘）
-| 字段名 | 默认值 / 示例 | 配置说明 |
-| :--- | :--- | :--- |
-| `STORAGE_BACKEND` | `auto` | `auto`（连得通 MinIO 就用 MinIO，连不通自动回退本地磁盘）；`minio`（强制 MinIO）；`local`（强制本地磁盘） |
-| `STORAGE_ROOT` | `./m7_storage` | 本地磁盘存储目录（存放生成的图文、MP4、导出 ZIP 包及 M1 售后凭证附件） |
-| `MINIO_ENDPOINT` | `127.0.0.1:9000` | MinIO S3 API 地址（Docker Compose 下容器间填 `minio:9000`，宿主机填 `127.0.0.1:9000`） |
-| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO 登录账号（与 `docker-compose.yml` 中 `MINIO_ROOT_USER` 一致） |
-| `MINIO_SECRET_KEY` | `minioadmin` | MinIO 登录密码（与 `docker-compose.yml` 中 `MINIO_ROOT_PASSWORD` 一致） |
-| `MINIO_BUCKET` | `crosspilot-assets` | 对象存储桶名称（`docker-compose.yml` 的 `minio-init` 会自动创建此桶） |
-| `MINIO_SECURE` | `false` | 本地 HTTP 为 `false`，生产 HTTPS 改为 `true` |
+-- 2. 查看 M4 选品过会后同步到 M0 商品主档的新品
+SELECT sku, name, origin, unit_cost_usd, sale_price_usd, approver FROM m0_products;
 
-### 2.3 缓存与异步任务队列（Redis + Celery，可选）
-| 字段名 | 默认值 / 示例 | 配置说明 |
-| :--- | :--- | :--- |
-| `REDIS_URL` | `redis://127.0.0.1:6379/0` | Redis 缓存连接串；留空或连不通时自动降级为进程内 TTL 缓存 |
-| `CELERY_BROKER_URL` | `redis://127.0.0.1:6379/1` | Celery Broker（DB 1），用于 `crosspilot.index_m1_vectors` 等后台任务 |
-| `CELERY_RESULT_BACKEND` | `redis://127.0.0.1:6379/2` | Celery 结果存储（DB 2） |
+-- 3. 查看 M7 文案/主图任务、资产版本与合规检查结果
+SELECT j.job_id, j.sku, j.job_type, j.status, a.asset_slot, a.version FROM m7_generation_jobs j LEFT JOIN m7_generation_assets a ON j.job_id = a.job_id;
 
-### 2.4 向量检索与外部 AI 引擎（均支持无服务自动兜底）
-| 字段名 | 默认值 / 示例 | 配置说明 |
-| :--- | :--- | :--- |
-| `VECTOR_BACKEND` | `auto` | `auto`（Milvus 连通则写入/检索 Milvus，否则自动使用 PG 关键词精准匹配兜底） |
-| `MILVUS_URI` | `http://127.0.0.1:19530` | Milvus Standalone gRPC/HTTP 端口（需先启动 `--profile vector`） |
-| `MILVUS_COLLECTION` | `crosspilot_m1_products` | M1 商品知识向量集合名 |
-| `VANNA_BASE_URL` | 留空 | **M3 智能问数 Vanna 2 HTTP 服务地址**（如 `http://127.0.0.1:8084`）；留空走内置 PostgreSQL 只读事实引擎 |
-| `COMFYUI_BASE_URL` | 留空 | **M7 ComfyUI 生图地址**（如 `http://127.0.0.1:8188`）；留空依次走百炼或本地 Pillow 确定性出图 |
-| `CLOUD_LLM_PROVIDER` | `dashscope` | 云端大模型开关：`dashscope`（有 Key 调通义千问+万相）或 `mock` |
-| `DASHSCOPE_API_KEY` | 留空 | 阿里云百炼 API Key（**留空也能完整跑通所有模块**，自动切入本地合规模板） |
-| `DASHSCOPE_BASE_URL` | `https://dashscope.aliyuncs.com/compatible-mode/v1` | 百炼 OpenAI 兼容网关 |
-| `DASHSCOPE_TEXT_MODEL` | `qwen-plus` | M7-1 文案模型 |
-| `DASHSCOPE_IMAGE_MODEL` | `wanx2.1-t2i-turbo` | M7-2 生图模型 |
+-- 4. 查看 M6 补货申请、采购单与 M0 库存实时联动
+SELECT po.po_id, po.sku, po.order_qty, po.receive_qty, po.status, inv.on_hand, inv.in_transit FROM m6_purchase_orders po JOIN m0_inventory inv ON po.sku = inv.sku;
 
-### 2.5 合规硬门禁、鉴权与跨域
-| 字段名 | 默认值 / 示例 | 配置说明 |
-| :--- | :--- | :--- |
-| `FFMPEG_BIN` | `ffmpeg` | FFmpeg 可执行路径 |
-| `VIDEO_ENGINE_ENABLED` | `true` | `true` 且宿主机有 `ffmpeg` 时可合成真实 `.mp4`；否则安全拦截并返回 `503 M7-5031` |
-| `M7_STRICT_SEPARATION_OF_DUTIES` | `true` | **必须为 `true`**：强制执行提交人 ≠ 审批人（M0/M1/M4/M6/M7 禁自批） |
-| `JWT_SECRET_KEY` | `change-me-in-local-env-only` | JWT 签名密钥（本地开发默认即可，线上部署务必改强随机串） |
-| `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | 允许跨域的前端来源列表（逗号分隔） |
+-- 5. 查看不可篡改全平台中文审计台账
+SELECT module, action, sku, actor_role, ok, sentence_zh, created_at FROM core_audit_events ORDER BY created_at DESC LIMIT 20;
+```
+
+### 3.2 `backend/.env` 全字段配置速查表
+
+| 分类 | 字段名 | 默认值 / 示例 | 必填性与说明 |
+| :--- | :--- | :--- | :--- |
+| **基础** | `M7_ENV` | `development` | 环境标识：`development` / `test` / `production` |
+| **主库** | `DATABASE_URL` | `postgresql+asyncpg://crosspilot:crosspilot123@127.0.0.1:5432/crosspilot` | **必填**。异步连接串（PG 必须用 `+asyncpg`，SQLite 用 `sqlite+aiosqlite:///./crosspilot_local.db`） |
+| **存储** | `STORAGE_BACKEND` | `auto` | `auto`（通 MinIO 用 MinIO，不通回退本地）/ `minio` / `local` |
+| **存储** | `STORAGE_ROOT` | `./m7_storage` | 本地磁盘附件与交付包根目录 |
+| **MinIO** | `MINIO_ENDPOINT` | `127.0.0.1:9000` | MinIO S3 API 地址（Docker 内部容器间用 `minio:9000`） |
+| **MinIO** | `MINIO_ACCESS_KEY` / `SECRET_KEY` | `minioadmin` / `minioadmin` | 与 `docker-compose.yml` 一致；MinIO Web 控制台在 `http://127.0.0.1:9001` |
+| **MinIO** | `MINIO_BUCKET` | `crosspilot-assets` | 对象存储桶名（`minio-init` 会自动初始化） |
+| **MinIO** | `MINIO_SECURE` | `false` | 本地 HTTP 为 `false` |
+| **队列** | `REDIS_URL` | `redis://127.0.0.1:6379/0` | Redis 缓存连接串；留空自动走内存缓存 |
+| **队列** | `CELERY_BROKER_URL` / `RESULT_BACKEND` | `redis://127.0.0.1:6379/1` & `/2` | Celery Broker 与结果后端（Windows 本地直跑 Celery 需加 `--pool=solo`） |
+| **向量** | `VECTOR_BACKEND` / `MILVUS_URI` | `auto` / `http://127.0.0.1:19530` | `MILVUS_COLLECTION=crosspilot_m1_products`；未起 Milvus 时自动回退 PG 精确检索 |
+| **外部AI** | `VANNA_BASE_URL` | 留空 | M3 问数 Vanna 2 HTTP 服务地址；留空走 PG 只读事实引擎 |
+| **外部AI** | `COMFYUI_BASE_URL` | 留空 | M7 ComfyUI 生图服务地址；留空依次走百炼或本地 Pillow 确定性制图 |
+| **百炼** | `CLOUD_LLM_PROVIDER` / `DASHSCOPE_API_KEY` | `dashscope` / 留空 | 填入阿里云百炼 Key 即调用 `qwen-plus` 与 `wanx2.1-t2i-turbo`，留空走本地模板 |
+| **门禁** | `FFMPEG_BIN` / `VIDEO_ENGINE_ENABLED` | `ffmpeg` / `true` | 宿主机无 `ffmpeg` 时 M7-3 合成返回 `503 M7-5031` 硬门禁 |
+| **安全** | `M7_STRICT_SEPARATION_OF_DUTIES` | `true` | **必须为 `true`**：强制执行提交人 ≠ 审批人 |
+| **安全** | `JWT_SECRET_KEY` / `CORS_ORIGINS` | `change-me-in-local-env-only` | 鉴权签名串与允许跨域的前端源 |
 
 ---
 
-## 三、全平台 33 张数据库表清单与表间关联关系
+## 四、全平台 33 张数据库表清单与表间关联关系
 
-系统共有 **33 张表**（由 Alembic `0001_init_m7`、`0002_platform_m0_m8`、`0003_v11_m1_att_m2_layout` 三次迁移创建），所有业务表均通过 **`org_id`** 实现租户隔离，跨模块商品主线通过 **`sku`** 串联：
+系统共有 **33 张表**，均通过 **`org_id`** 做租户隔离、通过 **`sku`** 做商品主线串联：
 
-### 3.1 分模块表结构与外键/关联关系一览
-
-| 所属模块 | 数据表名 | 主键 | 关联表 / 外键或业务关联键 | 表职责 |
+| 所属模块 | 数据表名 | 主键 | 关键外键 / 关联键 | 职责 |
 | :--- | :--- | :--- | :--- | :--- |
-| **M8 底座** | `m8_users` | `user_id` | `role_code` → `m8_role_definitions.role_code`；`org_id` | 员工账号、PBKDF2 密码哈希、`allowed_shop_ids_json` 店铺权限 |
-| **M8 底座** | `m8_role_definitions` | `role_code` | — | 9 大标准业务角色及权限点集合 `permissions_json` |
-| **M8 底座** | `m8_approval_policies` | `policy_id` | `org_id` + `module`（M0/M1/M4/M6/M7） | 五大业务域审批阈值与 SoD 策略开关 |
-| **M0 主档** | `m0_shops` | `shop_id` | `org_id` + `shop_code`；`is_mock` | 授权店铺接入与密钥掩码 `credential_mask` |
-| **M0 主档** | `m0_sync_batches` | `batch_id` | `shop_id` → `m0_shops.shop_id` | 订单批量/CSV 同步去重与断档日期诊断 |
-| **M0 主档** | `m0_fx_rates` | `rate_id` | `org_id` + `currency` | 多币种汇率快照（USD/EUR/GBP/JPY/RMB） |
-| **M0 主档** | `m0_products` | `product_id` | `org_id` + `sku`（唯一） | **全平台核心商品主档**（被 M1/M2/M5/M6/M7 只读消费） |
-| **M0 主档** | `m0_cost_requests` | `req_id` | `sku` → `m0_products.sku`；`proposer_id != reviewer_id` | 采购成本调价申请与 SoD 审批 |
-| **M0 主档** | `m0_orders` | `order_id` | `shop_id` → `m0_shops.shop_id`；`sku` → `m0_products.sku`；`is_mock` | 实盘与模拟订单流水（M2/M5 强制只读 `is_mock=false`） |
-| **M0 主档** | `m0_inventory` | `inv_id` | `org_id` + `warehouse_code` + `sku` | 在手 `on_hand`、在途 `in_transit`、锁库 `reserved` |
-| **M0 主档** | `m0_supplier_quotes` | `quote_id` | `sku` → `m0_products.sku` | 1688/本地供应商报价单（供 M6 选优） |
-| **M4 选品** | `m4_candidates` | `candidate_id` | `sku` → 过会 `APPROVED` 后自动写入 **`m0_products`** 与 **`m7_generation_jobs`** | 选品池、五维权重评分、毛利门禁、过会状态 |
-| **M7 内容** | `m7_workflow_registry` | `workflow_id` | — | AI 文案/生图/视频工作流版本注册表 |
-| **M7 内容** | `m7_generation_jobs` | `job_id` | **FK** `workflow_id` → `m7_workflow_registry.workflow_id`；`sku` | 异步任务进度与幂等控制（亦承接 M4 `m4_csv_import`） |
-| **M7 内容** | `m7_generation_assets` | `asset_id` | **FK** `job_id` → `m7_generation_jobs.job_id`；`sku` | M7-1 文案 / M7-2 图槽 / M7-3 A+ 资产与乐观锁 `version` |
-| **M7 内容** | `m7_generation_media` | `media_id` | **FK** `asset_id` → `m7_generation_assets.asset_id` | 图片/MP4 文件元数据、`sha256`、`storage_key`、IPTC 状态 |
-| **M7 内容** | `m7_compliance_rules` | `rule_id` | `platform` + `category` | 平台合规规则矩阵（标题/五点字节数、三层禁用词库） |
-| **M7 内容** | `m7_cert_records` | `cert_id` | `sku` → `m0_products.sku` | 资质台账（FDA/FCC/CE 等证书与效期 `expire_date`） |
-| **M7 内容** | `m7_compliance_checks` | `check_id` | **FK** `rule_id` → `m7_compliance_rules.rule_id`；`sku` | 5 项上架硬门禁检查快照 |
-| **M7 内容** | `m7_approval_records` | `approval_id` | **FK** `check_id` → `m7_compliance_checks.check_id`；`last_editor_id != approver_id` | 上架发布审批单（上游修改会自动使旧审批 `is_active=false`） |
-| **审计底座** | `core_audit_events` | `event_id` | `org_id` + `sku` + `module` + `trace_id` | **全平台不可篡改中文审计台账**（仅允许 INSERT/SELECT） |
-| **M1 客服** | `m1_faq_entries` | `faq_id` | `org_id` + `sku`（唯一） | SKU 痛点与 FAQ 问答对（同步喂给 M7-1 文案参照） |
-| **M1 客服** | `m1_cs_sessions` | `session_id` | `sku` → `m0_products.sku`；`is_mock` | 真实客服会话与模拟买家会话（WebSocket 按 `org_id:session_id` 推流） |
-| **M1 客服** | `m1_aftersales_tickets` | `ticket_id` | `sku` → `m0_products.sku`；`submitter_id != approver_id` | 售后退款工单与审批流 |
-| **M1 客服** | `m1_aftersales_attachments` | `att_id` | `ticket_id` → `m1_aftersales_tickets.ticket_id` | 售后 `multipart` 上传凭证附件索引（V1.1 新增） |
-| **M2/M3 BI** | `m2_ad_campaigns` | `campaign_id` | `sku` → `m0_products.sku` | 站内广告预算、花费与 ACOS/ROAS |
-| **M2/M3 BI** | `m2_dashboard_layouts` | `layout_id` | `org_id`（唯一） | 驾驶舱草稿/发布双态布局与乐观锁 `version`（V1.1 新增） |
-| **M2/M3 BI** | `m3_competitor_watches` | `watch_id` | `sku` → `m0_products.sku` | 竞品 ASIN 价格、BSR、差评痛点监测 |
-| **M5/M6 供** | `m5_sales_history` | `id` | `org_id` + `sku` + `sales_date` | 日粒度实盘历史销量与期末库存（7 模型预测数据源） |
-| **M5/M6 供** | `m6_replenish_applies` | `apply_id` | `sku` → `m0_products.sku`；`submit_user != approve_user` | 补货申请草案、审批流（`DRAFT→SUBMITTED→APPROVED/REJECTED`） |
-| **M5/M6 供** | `m6_purchase_orders` | `po_id` | `apply_id` → `m6_replenish_applies.apply_id`；`sku` | 审批通过后自动生成的采购单；**收货时原子扣减在途、增加 `m0_inventory.on_hand`** |
-| **M5/M6 供** | `m6_alert_events` | `alert_id` | `org_id` + `sku` | 断货/滞销/过期告警台账 |
-| **M5/M6 供** | `m6_weekly_reviews` | `review_id` | `org_id` + `week_label` | BI 预测误差（WAPE）周复盘纪要 |
+| **M8** | `m8_users` / `m8_role_definitions` / `m8_approval_policies` | `user_id` / `role_code` / `policy_id` | `role_code` 关联角色权限矩阵；`allowed_shop_ids_json` 控制店铺数据权限 | 账号、9 岗位权限与 5 域 SoD 策略 |
+| **M0** | `m0_shops` / `m0_sync_batches` / `m0_fx_rates` | `shop_id` / `batch_id` / `rate_id` | `m0_sync_batches.shop_id` → `m0_shops.shop_id` | 店铺接入、同步去重与汇率快照 |
+| **M0** | `m0_products` / `m0_cost_requests` | `product_id` / `req_id` | `org_id + sku` 唯一；`proposer_id != reviewer_id` | **核心商品主档**与调价防自批流 |
+| **M0** | `m0_orders` / `m0_inventory` / `m0_supplier_quotes` | `order_id` / `inv_id` / `quote_id` | `shop_id` + `sku` + `is_mock`（实盘隔离标志） | 订单流水、在手/在途/锁库库存与供应商报价 |
+| **M4** | `m4_candidates` | `candidate_id` | `sku` → 过会后自动写入 `m0_products` 与 `m7_generation_jobs` | 选品池、五维评分、毛利与 IP 风险门禁 |
+| **M7** | `m7_workflow_registry` / `m7_generation_jobs` | `workflow_id` / `job_id` | **FK** `workflow_id` → `m7_workflow_registry.workflow_id` | 工作流注册与异步任务幂等表 |
+| **M7** | `m7_generation_assets` / `m7_generation_media` | `asset_id` / `media_id` | **FK** `job_id` → `m7_generation_jobs.job_id`；**FK** `asset_id` → `m7_generation_assets.asset_id` | 文案/图槽/A+ 资产（乐观锁 `version`）与媒体字节/IPTC 索引 |
+| **M7** | `m7_compliance_rules` / `m7_cert_records` | `rule_id` / `cert_id` | `platform + category`；`sku` 关联资质效期 | 三层禁用词库与 FDA/FCC/CE 证书台账 |
+| **M7** | `m7_compliance_checks` / `m7_approval_records` | `check_id` / `approval_id` | **FK** `rule_id`；**FK** `check_id`；`last_editor_id != approver_id` | 5 项硬门禁检查快照与上架审批（上游改稿自动失效旧审批） |
+| **审计** | `core_audit_events` | `event_id` | `org_id + sku + module + trace_id` | **全平台不可篡改中文审计台账** |
+| **M1** | `m1_faq_entries` / `m1_cs_sessions` | `faq_id` / `session_id` | `sku`（FAQ 同步喂给 M7-1）；`is_mock` 隔离 | 买家痛点/FAQ 与 WebSocket 会话台 |
+| **M1** | `m1_aftersales_tickets` / `m1_aftersales_attachments` | `ticket_id` / `att_id` | `ticket_id` 关联多附件表；`submitter_id != approver_id` | 售后退款工单与 `multipart` 凭证附件 |
+| **M2/M3** | `m2_ad_campaigns` / `m2_dashboard_layouts` / `m3_competitor_watches` | `campaign_id` / `layout_id` / `watch_id` | `org_id`（布局唯一）；`sku` 关联广告与竞品 | 广告预算、驾驶舱草稿/发布双态布局与竞品监控 |
+| **M5/M6** | `m5_sales_history` / `m6_weekly_reviews` | `id` / `review_id` | `org_id + sku + sales_date` | 日粒度实盘销量（7 模型输入）与 WAPE 周复盘 |
+| **M5/M6** | `m6_replenish_applies` / `m6_purchase_orders` / `m6_alert_events` | `apply_id` / `po_id` / `alert_id` | `apply_id` → `m6_purchase_orders.apply_id`；收货回写 `m0_inventory` | 补货申请、采购执行与预警中心 |
 
-### 3.2 核心跨表关系链（ASCII 血缘图）
-
+### 跨模块数据血缘全景图
 ```text
-M8 底座: m8_users ──(org_id + role_code)──> 全表鉴权 & core_audit_events (不可篡改审计)
+[M4 选品] m4_candidates ──(approver过会 APPROVED)──► [M0 主档] m0_products (origin=M4_APPROVED)
+                                                            │
+      ┌────────────(过会可选自动触发草稿)───────────────────┼──────► [M1 客服] m1_faq_entries ──(只读痛点)──┐
+      ▼                                                     │                                              │
+[M7 内容] m7_generation_jobs ──► m7_generation_assets ◄─────┴──────────────────────────────────────────────┘
+                                       ├──► m7_generation_media (MinIO / m7_storage + IPTC)
+                                       └──► m7_compliance_checks ──► m7_approval_records ──► .ZIP 合规交付包
 
-主业务流:
-[M4] m4_candidates
-       │  (approver 过会 APPROVED)
-       ▼
-[M0] m0_products ◄─────── m0_shops ──► m0_orders (is_mock=false) ──► [M5] m5_sales_history
-       │                                                                    │
-       ├──► [M1] m1_faq_entries ──(只读痛点契约)──┐                         ▼
-       │         m1_cs_sessions (WS 推流)        │                   [M6] m6_replenish_applies
-       │         m1_aftersales_tickets           │                          │ (approver 批准)
-       │           └──► m1_aftersales_attachments│                          ▼
-       │                                         ▼                   m6_purchase_orders
-       └──► [M7] m7_generation_jobs ──► m7_generation_assets                │ (warehouse 质检收货)
-                   (FK: workflow_id)      ├──► m7_generation_media          ▼
-                                          └──► m7_compliance_checks ──► 回写 m0_inventory (on_hand+/in_transit-)
-                                                 (FK: rule_id)
-                                                 │
-                                                 ▼
-                                          m7_approval_records ──► 导出合规上架包 (.zip / .html)
-
-经营分析流: m0_orders + m0_products + m2_ad_campaigns + m1_aftersales_tickets + m6_alert_events
-              ──► [M2] m2_dashboard_layouts (4卡独立会话并发) & [M3] 只读问数 (Vanna 2 / SQL 守卫)
+[M0 实盘] m0_orders (is_mock=false) ──► [M5 预测] m5_sales_history (7模型 WAPE) ──► [M6 补货] m6_replenish_applies
+                                                                                          │ (approver批准)
+[M2/M3 BI] m2_dashboard_layouts (4卡并发) & 只读问数 ◄── 聚合 m0/m1/m2/m6 实盘            ▼
+                                                                                    m6_purchase_orders
+                                                                                          │ (warehouse质检收货)
+                                                                                          ▼
+                                                                                    更新 m0_inventory (on_hand+ / in_transit-)
 ```
 
 ---
 
-## 四、业务数据端到端流向实操演练（以“选品 → 主档 → 创作 → 客服 → 补货 → 经营分析”为例）
+## 五、端到端业务数据流实操演练（从选品到创作、客服、补货、驾驶舱）
 
-在浏览器打开 **`http://127.0.0.1:5173`** 后，通过左侧栏 **「当前登录岗位」** 切换不同角色，即可亲眼验证跨表数据自动流转：
+打开 `http://127.0.0.1:5173`，通过左侧栏 **「当前登录岗位」** 切换角色，可按以下顺序完整跑通跨模块数据联动：
 
-### 环节 1：M4 选品入池 → 过会同步至 M0 主档与 M7 文案（体验跨模块自动联动）
-1. **选品录入**：左侧切到 **`选品研究员 (吴选品 / selector)`**，进入 **「M4-1 选品导入 (`/m4/import`)」** 或 **「M4-2 评估工作台 (`/m4/workbench`)」**。
-   - 导入或选中一款候选品（写表 **`m4_candidates`**，状态 `DISCOVERED`），调整五维评分滑块、毛利率 ≥ 18% 后点击 **「保存并提交审批」**（状态变为 `PENDING_APPROVAL`，记录 `submitter_id = usr_selector`）。
-2. **职责分离过会**：左侧切到 **`主管 / 审批人 (陈主管 / approver)`**（若仍用吴选品点击审批会被 `403 M7-4032` 拦截），进入 **「M4-3 过会决策 (`/m4/approval`)」**，勾选自动触发 M7 文案草稿并点击 **「同意小批测款」**：
-   - 写表 **`m4_candidates`**（`status = APPROVED`）；
-   - **自动同步写入 `m0_products`**（`origin = M4_APPROVED`，成本自动按汇率 `7.2` 换算为美元）；
-   - **自动生成 `m7_generation_jobs` + `m7_generation_assets`** 初始英文文案草稿。
-
-### 环节 2：M7 商品内容创作 → 合规检查 → 导出亚马逊上架交付包
-1. **文案与痛点消费**：左侧切到 **`内容创作 / 审核人员 (林设计 / creator)`**，进入 **「M7-1 文案工作台 (`/m7/copy`)」**，切换刚才过会的 SKU。
-   - 页面自动读取 **`m0_products` 主档参数** + **`m1_faq_entries` 买家痛点**（如果先在 M1-2 新增了一条 FAQ 痛点，刷新 M7-1 会立刻出现在左侧参考面板中）；输入禁用词如 `Waterproof` 会触发三层词库红底改写提示。
-2. **AI 生图与 IPTC 标识**：进入 **「M7-2 主图工作台 (`/m7/images`)」** 生成 1+4 套图（写表 **`m7_generation_assets` + `m7_generation_media`** 并落盘 MinIO/本地 `m7_storage/`），若勾选 AI 人物出镜则自动写入 IPTC `DigitalSourceType` 标签。
-3. **合规门禁与防自批审批**：进入 **「M7-4 合规检查与上架包 (`/m7/compliance`)」** 运行 5 项检查（写表 **`m7_compliance_checks`**），切回 **`陈主管 (approver)`** 执行上架批准（写表 **`m7_approval_records`**），即可下载最终 `.zip` 离线合规交付包。
-
-### 环节 3：M1 客服导购、WebSocket 沙盒与售后附件
-1. **模拟买家隔离**：左侧切到 **`测试买家 (usr_buyer)`**，进入 **「M1-3 咨询模拟沙盒 (`/m1/simulator`)」** 发一条提问，系统写入 **`m1_cs_sessions`（`is_mock = true`）**，通过 FAQ 向量/精准匹配回显答案并向 WebSocket 房间推流；**所有 `is_mock = true` 数据严禁进入 M2 财务统计与 M5 销量预测**。
-2. **客服与售后附件**：切到 **`李客服 (cs)`**，在 **「M1-1 客服工作台 (`/m1/sessions`)」** 回复消息，在 **「M1-4 售后工单 (`/m1/aftersales`)」** 提交退款工单并可上传凭证附件（写表 **`m1_aftersales_tickets` + `m1_aftersales_attachments`**）；再切 **`陈主管 (approver)`** 完成退款审批。
-
-### 环节 4：M5 销量预测 → M6 智能补货 → 采购收货回写 M0 库存
-1. **7 模型销量预测**：切到 **`张运营 (planner)`**，进入 **「M5-2 多模型预测 (`/m5/forecast`)」**，读取 **`m5_sales_history` + `m0_inventory`**，对比 `ma7`/`es`/`snaive`/`croston_sba`/`prophet`/`lightgbm`/`catboost` 7 个模型的 WAPE 误差。
-2. **What-If 沙盒下单**：进入 **「M6-2 智能补货 (`/m6/smart`)」** 调节交期与安全系数，对比空运/海运 4 条路线并生成补货申请单（写表 **`m6_replenish_applies`**）。
-3. **审批转采购与收货入库**：切 **`陈主管 (approver)`** 批准补货单 → 系统自动生成采购单 **`m6_purchase_orders`** 并增加 **`m0_inventory.in_transit`**；切 **`赵仓管 (warehouse)`** 在 **「M6-4 采购收货 (`/m6/receiving`)」** 确认发货并质检收货 → 系统原子扣除在途并增加 **`m0_inventory.on_hand`**。
-
-### 环节 5：M2 经营驾驶舱（4 卡并发）与 M3 只读智能问数
-1. 切到 **`王总监 (manager)`** 或 **`周分析 (bi_analyst)`**，进入 **「M2-2 经营总览 (`/m2/overview`)」** 查看聚合 `m0_orders (is_mock=false)`、`m2_ad_campaigns` 与 `m6_alert_events` 的实盘利润看板；使用驾驶舱设计器接口保存草稿/发布布局并用 4 个独立会话并发拉卡。
-2. 进入 **「M3-2 智能问数 (`/m3/ask`)」**，提问经营指标；若输入 `"帮我把所有商品价格改为1元"` 或 `"DROP TABLE m0_orders"`，会被只读守卫当场拦截并记入 **`core_audit_events`**。
+1. **M4 选品入池 → 过会同步 M0 主档与 M7 文案**
+   - 切换为 **`吴选品 (selector)`**，进入 **「M4-1 选品导入 (`/m4/import`)」** 或 **「M4-2 评估工作台 (`/m4/workbench`)」**，导入或评估候选品并点击「保存并提交审批」（写 `m4_candidates`，`status=PENDING_APPROVAL`）。
+   - 切换为 **`陈主管 (approver)`**，进入 **「M4-3 过会决策 (`/m4/approval`)」**，勾选自动触发 M7 文案草稿并点击「同意小批测款」→ **自动写 `m0_products`（RMB 成本按 `7.2` 换算美元）并生成 `m7_generation_jobs` + `m7_generation_assets` 初稿**。
+2. **M7 文案 → AI 主图 → 5 项合规检查 → 离线导出**
+   - 切换为 **`林设计 (creator)`**，在 **M7-1 (`/m7/copy`)** 自动看到 `m0_products` 参数与 `m1_faq_entries` 买家痛点；尝试输入 `Waterproof` 验证三层禁用词库标红提示。
+   - 在 **M7-2 (`/m7/images`)** 生成 1+4 电商套图并测试 AI 人物 IPTC 标签读写修复。
+   - 在 **M7-4 (`/m7/compliance`)** 运行 5 项检查 → 切回 **`陈主管 (approver)`** 点击「批准发布」→ 导出 `.zip` 离线合规交付包。
+3. **M1 模拟买家隔离、WebSocket 推流与售后多附件**
+   - 切换为 **`测试买家 (usr_buyer)`**，在 **M1-3 (`/m1/simulator`)** 提问（写 `m1_cs_sessions`，`is_mock=true`）；
+   - 切换为 **`李客服 (cs)`**，在 **M1-1 (`/m1/sessions`)** 回复消息（触发 WebSocket 广播），并在 **M1-4 (`/m1/aftersales`)** 建退款单上传 `pdf/png/txt` 附件（写 `m1_aftersales_attachments`），再由 **`陈主管`** 审批退款。
+4. **M5 7 模型预测 → M6 补货申请 → 采购收货回写 M0 库存**
+   - 切换为 **`张运营 (planner)`**，在 **M5-2 (`/m5/forecast`)** 对比 7 个模型（含 Prophet/LightGBM/CatBoost）WAPE 误差；在 **M6-2 (`/m6/smart`)** 调参生成补货申请（写 `m6_replenish_applies`）。
+   - 切换为 **`陈主管 (approver)`** 批准补货单（生成 `m6_purchase_orders` 并增加 `m0_inventory.in_transit`）→ 切换为 **`赵仓管 (warehouse)`** 在 **M6-4 (`/m6/receiving`)** 发货并收货（原子扣减 `in_transit`、增加 `on_hand`）。
+5. **M2 驾驶舱与 M3 只读问数**
+   - 切换为 **`周分析 (bi_analyst)`** 或 **`王总监 (manager)`**，在 **M2-2 (`/m2/overview`)** 查看隔离 `is_mock=false` 的实盘收益，在 **M3-2 (`/m3/ask`)** 测试只读经营问答与 `"DROP TABLE"` / `"修改价格"` 写删拦截。
 
 ---
 
-## 五、预设 9 大账号清单（后端 `/api/v1/auth/login` 与前端切换共用）
+## 六、预设 9 大账号清单（统一密码：`crosspilot123`）
 
-所有预设演示账号统一密码均为 **`crosspilot123`**：
-
-| 登录用户名 (`user_id`) | 岗位代码 (`role_code`) | 姓名 | 核心职责边界 |
+| 登录用户名 (`user_id`) | 角色 (`role_code`) | 姓名 | 可访问模块边界 |
 | :--- | :--- | :--- | :--- |
 | `usr_manager` | `manager` | 王总监 | 全模块只读巡检、M0 店铺接入、M8 组织管理 |
 | `usr_approver` | `approver` | 陈主管 | M0 调价 / M1 退款 / M4 过会 / M6 补货 / M7 上架全链路审批 |
@@ -327,36 +306,20 @@ M8 底座: m8_users ──(org_id + role_code)──> 全表鉴权 & core_audit_
 | `usr_analyst` | `bi_analyst` | 周分析 | M2 看板、M3 竞品监控与只读问数、M5 预测周复盘 |
 | `usr_warehouse` | `warehouse` | 赵仓管 | M0 库存盘点、M6 采购单发货/质检收货/消警 |
 | `usr_cs` | `cs` | 李客服 | M1 客服消息回复、售后退款建单与凭证附件上传 |
-| `usr_buyer` | `mock_buyer` | 测试买家 | 仅限 M1-3 咨询模拟沙盒（数据强制隔离 `is_mock=true`） |
+| `usr_buyer` | `mock_buyer` | 测试买家 | 仅限 M1-3 咨询模拟沙盒（`is_mock=true` 严格隔离） |
 
 ---
 
-## 六、CI/CD、Docker 一键部署与常见故障排查
+## 七、Windows / macOS 本地常见坑与一键排查表
 
-### 6.1 Docker 全栈容器一键运行（前端 Nginx + 后端 + Celery + PG + Redis + MinIO）
-```bash
-# 一键启动全部核心基础设施 + Celery Worker/Beat + 前后端容器
-ENABLE_WORKER=true ENABLE_APP=true bash deploy/deploy.sh
-
-# 如需同时启动 Milvus 向量库：
-ENABLE_VECTOR=true ENABLE_WORKER=true ENABLE_APP=true bash deploy/deploy.sh
-```
-- **Jenkins 流水线**：仓库根目录 [`Jenkinsfile`](../Jenkinsfile) 已定义 `Backend Pytest -> Frontend Lint/Test/Build -> Docker Build` 全阶段。
-- **Nginx 代理配置**：[`frontend/nginx.conf.example`](../frontend/nginx.conf.example) 已内置 `client_max_body_size 30m` 与 `/api/v1/orgs/*/m1/ws/` WebSocket 升级头。
-- **Playwright 真浏览器 E2E**：
-  ```bash
-  cd frontend
-  npx playwright install chromium
-  npx playwright test
-  ```
-
-### 6.2 常见本地故障排查
-
-| 现象 | 原因 | 解决方法 |
+| 常见报错 / 现象 | 真实原因 | 一步解决方法 |
 | :--- | :--- | :--- |
-| `alembic upgrade head` 报连接 `5432` 拒绝 | 未启动 PostgreSQL 且 `.env` 用了默认 PG 地址 | 先执行 `docker compose up -d postgres`，或按第 4 步改为 SQLite 地址 |
-| 报错 `ModuleNotFoundError: No module named 'app'` | 未在 `backend/` 目录下运行命令 | `cd backend` 后再执行 `pytest` 或 `uvicorn` |
-| `alembic upgrade head` 报列/表已存在 | 旧本地库曾直接由 `create_all` 建表 | 删除旧 `.db` 测试库或新库重建，再执行 `alembic upgrade head` |
-| M7-3 视频合成返回 `503 M7-5031` | 宿主机未安装 `ffmpeg` 或配置关闭 | 属预期合规硬门禁（不破坏已有图文资产）；本机装好 `ffmpeg` 后重启后端即可合成 `.mp4` |
-| M1 售后附件上传返回 `422` | 后缀不在白名单或单文件 > 5MB / 总数 > 10 | 仅允许 `.pdf/.jpg/.jpeg/.png/.docx/.txt`，单件 ≤ 5MB |
-| `/api/v1/auth/login` 返回 401 | 输入了旧用户名（如 `usr_bi_analyst`） | 请对照第五章表使用精确 `user_id`（`usr_analyst`、`usr_buyer` 等）与密码 `crosspilot123` |
+| `docker compose up` 报 `port 5432 / 6379 is already allocated` | 本地已装了别的 PostgreSQL / Redis 占用了端口 | 停掉本地旧服务（Windows 服务管理器停掉 `postgresql`），或改 `docker-compose.yml` 左边映射端口（如 `"5433:5432"`）并同步改 `.env` |
+| Windows PowerShell 运行 `Activate.ps1` 报错禁止运行脚本 | Windows 默认 PowerShell 执行策略限制 | 执行 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`，或直接用 `.\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000` |
+| `pip install` 在 Windows 报错 `Microsoft Visual C++ 14.0 is required` | 本地用了 Python 3.13/3.14 导致依赖无预编译 wheel | 安装 **Python 3.11 或 3.12** 后重建 `.venv` 再 `pip install -r requirements.txt` |
+| `alembic upgrade head` 报 `Connection refused` (5432) | 没启动 PostgreSQL 且 `.env` 仍是默认 PG 连接串 | 按第 3 步先起 `docker compose up -d postgres`，或按第 4 步改为 SQLite 连接串 |
+| `alembic upgrade head` 报 `table already exists` | 先跑了 `uvicorn` 自动 `create_all` 建表，后跑了 `alembic` | 执行 `alembic stamp head` 同步版本号，或删掉测试 `.db` 重建后先运行 `alembic upgrade head` |
+| Windows 本机跑 `celery worker` 报错崩溃 | Celery 5 默认 `prefork` 不支持 Windows 原生进程 | 加 `--pool=solo`：`celery -A app.core.cache_queue.celery_app worker --pool=solo -l info`；或用 Docker `--profile worker` |
+| Windows 运行 `bash deploy/deploy.sh` 报 `$'\r': command not found` | Git 自动检出成 CRLF 换行 | 用 Git Bash 执行 `sed -i 's/\r$//' deploy/deploy.sh && ENABLE_WORKER=true ENABLE_APP=true bash deploy/deploy.sh` |
+| M7-3 合成视频返回 `503 M7-5031` | 宿主机未装 `ffmpeg`（符合设计硬门禁） | 安装 `ffmpeg` 并重启后端即可产出 `.mp4`，或用 `docker compose --profile app up -d` |
+| 前端 `/docs` 看不到 5 份 `.docx` 下载 | 拉取 GitHub 后还未解压 `docs-deliverables.zip` | 仓库根目录执行 `unzip -o docs-deliverables.zip -d docs/`（或 PowerShell `Expand-Archive`） |
