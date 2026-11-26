@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrossPilot · 跨境电商业务协作工作台</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app" class="shell">
+    <!-- Left Workflow Sidebar -->
+    <aside class="sidebar">
+      <div class="brand" id="brandHomeBtn" style="cursor:pointer;" title="回到岗位工作台首页">
+        <div class="brand-logo">CP</div>
+        <div>
+          <div class="brand-name">CrossPilot</div>
+          <div class="brand-sub">跨境电商业务协作工作台</div>
+        </div>
+      </div>
+
+      <div class="role-box">
+        <label class="role-label">当前登录岗位 (九大业务岗位)</label>
+        <select id="roleSelect" class="role-select">
+          <option value="approver">主管 / 审批人</option>
+          <option value="manager">大屏浏览者 / 管理者</option>
+          <option value="planner">驾驶舱设计者 / 业务运营</option>
+          <option value="bi_analyst">数据分析 / BI 人员</option>
+          <option value="selector">选品研究员</option>
+          <option value="creator">内容创作 / 审核人员</option>
+          <option value="warehouse">采购 / 仓库 / 物流人员</option>
+          <option value="cs">客服</option>
+          <option value="mock_buyer">买家（模拟测试）</option>
+        </select>
+        <div id="roleHint" class="role-hint"></div>
+      </div>
+
+      <div style="padding:10px 10px 0;">
+        <button id="homeNavBtn" class="nav-home-btn active" type="button">
+          <span>🏠 岗位工作台（今日待办）</span>
+          <span id="homeTodoCountBadge" class="nav-todo">0</span>
+        </button>
+      </div>
+
+      <nav id="sidebarNav" class="nav-list"></nav>
+
+      <div class="sidebar-footer">
+        <div>按业务流转协作 · 6 大业务环节 · 27 个页面</div>
+        <div>演示示例与实盘业务数据已严格区分</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrap">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div id="breadcrumb" class="breadcrumb">CROSSPILOT</div>
+          <h1 id="pageTitle" class="page-title">加载中...</h1>
+          <p id="pageSubtitle" class="page-subtitle"></p>
+        </div>
+        <div class="topbar-actions">
+          <div id="headerActions" class="header-action-btns"></div>
+          <button id="toggleAnnoBtn" class="btn btn-anno-toggle" title="查看上下游流程跳转、系统结论、业务规则与数据来源">
+            📖 规则与流程说明
+          </button>
+        </div>
+      </header>
+
+      <main id="pageBody" class="page-body"></main>
+    </div>
+  </div>
+
+  <!-- Slide-over Business Rule & Provenance Drawer -->
+  <div id="annoDrawerBackdrop" class="drawer-backdrop hidden"></div>
+  <aside id="annoDrawer" class="slide-drawer hidden" aria-label="规则与流程说明">
+    <div class="drawer-head dark">
+      <div>
+        <div class="drawer-title" id="annoPageTitle">本页业务说明</div>
+        <div class="drawer-sub">流程位置 · 规则红线 · 责任人与数据来源</div>
+      </div>
+      <button class="btn btn-sm" id="closeAnnoDrawer">✕ 关闭</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-sec-label">🧭 业务流转位置（点击跳转上下游）</div>
+      <div id="flowPositionBar" class="flow-bar" style="margin:0 0 12px 0;flex-direction:column;align-items:stretch;gap:6px;"></div>
+      <div id="drawerSystemSummary" style="margin-bottom:14px;"></div>
+      <div class="drawer-sec-label">📌 核心业务规则与责任说明</div>
+      <div id="annoCards" class="anno-cards"></div>
+      <div class="drawer-sec-label" style="margin-top:16px;">🧾 本页数据来源与更新说明</div>
+      <div class="ledger-note" style="margin-bottom:8px;">明确区分「管理规则制度」与「当前页面演示示例数值」</div>
+      <div id="ledgerGrid" class="ledger-list"></div>
+    </div>
+  </aside>
+
+  <!-- Generic Detail Slide-over Drawer -->
+  <div id="detailDrawerBackdrop" class="drawer-backdrop hidden"></div>
+  <aside id="detailDrawer" class="slide-drawer hidden" aria-label="业务详情抽屉">
+    <div class="drawer-head">
+      <div>
+        <div class="drawer-title" id="detailDrawerTitle">详情</div>
+        <div class="drawer-sub" id="detailDrawerSub"></div>
+      </div>
+      <button class="btn btn-sm" id="closeDetailDrawer">✕</button>
+    </div>
+    <div class="drawer-body" id="detailDrawerBody"></div>
+  </aside>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="modalRoot"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" role="img" aria-label="M7 领域模型类图 · 实体、值对象与存储关系 (Domain Class Diagram)">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-open" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 1 2 L 10 6 L 1 10" fill="none" stroke="#475569" stroke-width="1.6"/>
+    </marker>
+    <marker id="diamond" viewBox="0 0 14 10" refX="1" refY="5" markerWidth="11" markerHeight="8" orient="auto">
+      <path d="M 1 5 L 7 1 L 13 5 L 7 9 z" fill="#475569"/>
+    </marker>
+    <marker id="odiamond" viewBox="0 0 14 10" refX="1" refY="5" markerWidth="11" markerHeight="8" orient="auto">
+      <path d="M 1 5 L 7 1 L 13 5 L 7 9 z" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="820" fill="#f8fafc" rx="12"/>
+  <text x="640.0" y="34" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="18" font-weight="800" fill="#0f172a">M7 领域模型类图 · 实体、值对象与存储关系 (Domain Class Diagram)</text>
+
+<rect x="40" y="65" width="250" height="128" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="40" y="65" width="250" height="38" rx="8" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="40" y="95" width="250" height="8" fill="#e2e8f0"/>
+  <line x1="40" y1="103" x2="290" y2="103" stroke="#64748b" stroke-width="1.2"/>
+  <text x="165.0" y="79" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Contract ReadOnly»</text>
+  <text x="165.0" y="95" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">ProductFactSnapshot</text>
+  <text x="50" y="119" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+sku: str</text>
+  <text x="50" y="135" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+org_id: str</text>
+  <text x="50" y="151" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+category: str</text>
+  <text x="50" y="167" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+sale_price / list_price</text>
+  <text x="50" y="183" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+attributes: dict</text>
+<rect x="340" y="65" width="250" height="154" rx="8" fill="#fff" stroke="#3b82f6" stroke-width="1.5"/>
+  <rect x="340" y="65" width="250" height="38" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+  <rect x="340" y="95" width="250" height="8" fill="#eff6ff"/>
+  <line x1="340" y1="103" x2="590" y2="103" stroke="#3b82f6" stroke-width="1.2"/>
+  <text x="465.0" y="79" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Entity»</text>
+  <text x="465.0" y="95" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">WorkflowRegistry</text>
+  <text x="350" y="119" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+workflow_id: str [PK]</text>
+  <text x="350" y="135" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+purpose: str</text>
+  <text x="350" y="151" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+version: str</text>
+  <text x="350" y="167" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+status: str</text>
+  <text x="350" y="183" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+compliance_node: str</text>
+  <line x1="340" y1="193" x2="590" y2="193" stroke="#3b82f6" stroke-width="1"/>
+  <text x="350" y="209" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+lockVersion()</text>
+<rect x="640" y="65" width="260" height="154" rx="8" fill="#fff" stroke="#d97706" stroke-width="1.5"/>
+  <rect x="640" y="65" width="260" height="38" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+  <rect x="640" y="95" width="260" height="8" fill="#fffbeb"/>
+  <line x1="640" y1="103" x2="900" y2="103" stroke="#d97706" stroke-width="1.2"/>
+  <text x="770.0" y="79" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Entity»</text>
+  <text x="770.0" y="95" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">ComplianceRuleSeed</text>
+  <text x="650" y="119" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+rule_id: str [PK]</text>
+  <text x="650" y="135" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+platform: str</text>
+  <text x="650" y="151" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+category: str</text>
+  <text x="650" y="167" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+rule_version: str</text>
+  <text x="650" y="183" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+lexicon_json: dict</text>
+  <line x1="640" y1="193" x2="900" y2="193" stroke="#d97706" stroke-width="1"/>
+  <text x="650" y="209" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+match(platform, cat)</text>
+<rect x="950" y="65" width="280" height="170" rx="8" fill="#fff" stroke="#d97706" stroke-width="1.5"/>
+  <rect x="950" y="65" width="280" height="38" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+  <rect x="950" y="95" width="280" height="8" fill="#fffbeb"/>
+  <line x1="950" y1="103" x2="1230" y2="103" stroke="#d97706" stroke-width="1.2"/>
+  <text x="1090.0" y="79" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Entity»</text>
+  <text x="1090.0" y="95" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">CertRecord</text>
+  <text x="960" y="119" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+cert_id: str [PK]</text>
+  <text x="960" y="135" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+org_id / sku: str</text>
+  <text x="960" y="151" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+name: str</text>
+  <text x="960" y="167" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+expire_date: date</text>
+  <text x="960" y="183" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+status: VALID|EXPIRED</text>
+  <line x1="950" y1="193" x2="1230" y2="193" stroke="#d97706" stroke-width="1"/>
+  <text x="960" y="209" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+isExpired(today): bool</text>
+  <text x="960" y="225" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+renew(new_date)</text>
+<rect x="40" y="290" width="270" height="202" rx="8" fill="#fff" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="40" y="290" width="270" height="38" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="40" y="320" width="270" height="8" fill="#eff6ff"/>
+  <line x1="40" y1="328" x2="310" y2="328" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="175.0" y="304" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Aggregate Root»</text>
+  <text x="175.0" y="320" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">GenerationJob</text>
+  <text x="50" y="344" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+job_id: str [PK]</text>
+  <text x="50" y="360" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+org_id / sku: str</text>
+  <text x="50" y="376" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+job_type: COPY|IMG|VID|A+</text>
+  <text x="50" y="392" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+idempotency_key: str</text>
+  <text x="50" y="408" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+status: QUEUED..SUCCEEDED</text>
+  <text x="50" y="424" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+prompt_id: str</text>
+  <line x1="40" y1="434" x2="310" y2="434" stroke="#2563eb" stroke-width="1"/>
+  <text x="50" y="450" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+markRunning()</text>
+  <text x="50" y="466" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+markSucceeded()</text>
+  <text x="50" y="482" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+markFailed(reason)</text>
+<rect x="360" y="290" width="270" height="186" rx="8" fill="#fff" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="360" y="290" width="270" height="38" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="360" y="320" width="270" height="8" fill="#eff6ff"/>
+  <line x1="360" y1="328" x2="630" y2="328" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="495.0" y="304" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Entity»</text>
+  <text x="495.0" y="320" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">GenerationAsset</text>
+  <text x="370" y="344" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+asset_id: str [PK]</text>
+  <text x="370" y="360" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+job_id: str [FK]</text>
+  <text x="370" y="376" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+asset_slot: str</text>
+  <text x="370" y="392" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+version: int</text>
+  <text x="370" y="408" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+is_selected: bool</text>
+  <text x="370" y="424" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+content_json / orig_json</text>
+  <line x1="360" y1="434" x2="630" y2="434" stroke="#2563eb" stroke-width="1"/>
+  <text x="370" y="450" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+applyManualEdit(txt)</text>
+  <text x="370" y="466" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+restoreOriginal()</text>
+<rect x="680" y="290" width="270" height="186" rx="8" fill="#fff" stroke="#10b981" stroke-width="1.5"/>
+  <rect x="680" y="290" width="270" height="38" rx="8" fill="#f0fdf4" stroke="#10b981" stroke-width="1.5"/>
+  <rect x="680" y="320" width="270" height="8" fill="#f0fdf4"/>
+  <line x1="680" y1="328" x2="950" y2="328" stroke="#10b981" stroke-width="1.2"/>
+  <text x="815.0" y="304" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Entity»</text>
+  <text x="815.0" y="320" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">GenerationMedia</text>
+  <text x="690" y="344" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+media_id: str [PK]</text>
+  <text x="690" y="360" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+asset_id: str [FK]</text>
+  <text x="690" y="376" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+mime_type: str</text>
+  <text x="690" y="392" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+file_size: int</text>
+  <text x="690" y="408" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+storage_key: str</text>
+  <text x="690" y="424" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+ai_person / iptc_verified</text>
+  <line x1="680" y1="434" x2="950" y2="434" stroke="#10b981" stroke-width="1"/>
+  <text x="690" y="450" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+verifyMime(): bool</text>
+  <text x="690" y="466" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+verifyIptcTags(): bool</text>
+<rect x="990" y="290" width="240" height="154" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="990" y="290" width="240" height="38" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="990" y="320" width="240" height="8" fill="#f1f5f9"/>
+  <line x1="990" y1="328" x2="1230" y2="328" stroke="#64748b" stroke-width="1.2"/>
+  <text x="1110.0" y="304" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Shared Core»</text>
+  <text x="1110.0" y="320" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">AuditEvent</text>
+  <text x="1000" y="344" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+event_id: str [PK]</text>
+  <text x="1000" y="360" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+org_id: str</text>
+  <text x="1000" y="376" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+actor_role: str</text>
+  <text x="1000" y="392" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+sentence_zh: str</text>
+  <text x="1000" y="408" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+ok: bool</text>
+  <line x1="990" y1="418" x2="1230" y2="418" stroke="#64748b" stroke-width="1"/>
+  <text x="1000" y="434" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+appendImmutable()</text>
+<rect x="40" y="580" width="270" height="154" rx="8" fill="#fff" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="40" y="580" width="270" height="38" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="40" y="610" width="270" height="8" fill="#faf5ff"/>
+  <line x1="40" y1="618" x2="310" y2="618" stroke="#7c3aed" stroke-width="1.2"/>
+  <text x="175.0" y="594" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Value Object»</text>
+  <text x="175.0" y="610" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">CopyScanResult</text>
+  <text x="50" y="634" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+must_hits / total_must</text>
+  <text x="50" y="650" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+ban_hits: int</text>
+  <text x="50" y="666" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+tm_hits / reg_hits: list</text>
+  <text x="50" y="682" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+all_caps_words: list</text>
+  <text x="50" y="698" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+byte_len / over_len</text>
+  <line x1="40" y1="708" x2="310" y2="708" stroke="#7c3aed" stroke-width="1"/>
+  <text x="50" y="724" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+isBlocked(): bool</text>
+<rect x="360" y="580" width="270" height="138" rx="8" fill="#fff" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="360" y="580" width="270" height="38" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="360" y="610" width="270" height="8" fill="#faf5ff"/>
+  <line x1="360" y1="618" x2="630" y2="618" stroke="#7c3aed" stroke-width="1.2"/>
+  <text x="495.0" y="594" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Value Object»</text>
+  <text x="495.0" y="610" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">StoryboardSegment</text>
+  <text x="370" y="634" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+seg_idx: 0..2</text>
+  <text x="370" y="650" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+img_slot: 0..4</text>
+  <text x="370" y="666" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+motion: str</text>
+  <text x="370" y="682" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+sub_en / sub_cn: str</text>
+  <line x1="360" y1="692" x2="630" y2="692" stroke="#7c3aed" stroke-width="1"/>
+  <text x="370" y="708" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+pullFromCopy(title)</text>
+<rect x="680" y="560" width="260" height="154" rx="8" fill="#fff" stroke="#d97706" stroke-width="1.5"/>
+  <rect x="680" y="560" width="260" height="38" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+  <rect x="680" y="590" width="260" height="8" fill="#fffbeb"/>
+  <line x1="680" y1="598" x2="940" y2="598" stroke="#d97706" stroke-width="1.2"/>
+  <text x="810.0" y="574" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Entity»</text>
+  <text x="810.0" y="590" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">ComplianceCheck</text>
+  <text x="690" y="614" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+check_id: str [PK]</text>
+  <text x="690" y="630" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+org_id / sku: str</text>
+  <text x="690" y="646" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+rule_id: str [FK]</text>
+  <text x="690" y="662" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+checks_json: list</text>
+  <text x="690" y="678" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+overall_pass: bool</text>
+  <line x1="680" y1="688" x2="940" y2="688" stroke="#d97706" stroke-width="1"/>
+  <text x="690" y="704" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+evaluate5Rules()</text>
+<rect x="990" y="560" width="240" height="170" rx="8" fill="#fff" stroke="#dc2626" stroke-width="1.5"/>
+  <rect x="990" y="560" width="240" height="38" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <rect x="990" y="590" width="240" height="8" fill="#fef2f2"/>
+  <line x1="990" y1="598" x2="1230" y2="598" stroke="#dc2626" stroke-width="1.2"/>
+  <text x="1110.0" y="574" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#475569">«Entity»</text>
+  <text x="1110.0" y="590" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="12.5" font-weight="800" fill="#0f172a">ApprovalRecord</text>
+  <text x="1000" y="614" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+approval_id: str [PK]</text>
+  <text x="1000" y="630" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+check_id: str [FK]</text>
+  <text x="1000" y="646" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+approver_id: str</text>
+  <text x="1000" y="662" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+approved_at: dt</text>
+  <text x="1000" y="678" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#334155">+active: bool</text>
+  <line x1="990" y1="688" x2="1230" y2="688" stroke="#dc2626" stroke-width="1"/>
+  <text x="1000" y="704" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+approve(note)</text>
+  <text x="1000" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#1d4ed8">+invalidateOnChange()</text>
+<line x1="165" y1="193" x2="165" y2="290" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="98.0" y="224.5" width="134.0" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="165.0" y="235.5" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#64748b">1 ..&gt; 0..* 只读事实</text>
+<line x1="465" y1="219" x2="260" y2="290" stroke="#3b82f6" stroke-width="1.5"  marker-end="url(#arrow)"/>
+  <rect x="295.5" y="237.5" width="134.0" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="362.5" y="248.5" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#3b82f6">1 --&gt; 0..* 锁定版本</text>
+<line x1="310" y1="390" x2="360" y2="390" stroke="#2563eb" stroke-width="1.5"  marker-end="url(#arrow)"/>
+  <rect x="289.0" y="373.0" width="92.0" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="335.0" y="384.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#2563eb">1 *-- 1..*</text>
+<line x1="630" y1="390" x2="680" y2="390" stroke="#10b981" stroke-width="1.5"  marker-end="url(#arrow)"/>
+  <rect x="609.0" y="373.0" width="92.0" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="655.0" y="384.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#10b981">1 *-- 0..1</text>
+<line x1="430" y1="476" x2="220" y2="580" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="279.0" y="511.0" width="92.0" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="325.0" y="522.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#7c3aed">1 ..&gt; 1 扫描</text>
+<line x1="495" y1="476" x2="495" y2="580" stroke="#7c3aed" stroke-width="1.5"  marker-end="url(#arrow)"/>
+  <rect x="449.0" y="511.0" width="92.0" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="495.0" y="522.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#7c3aed">1 o-- 0..3</text>
+<line x1="770" y1="219" x2="770" y2="270" stroke="#d97706" stroke-width="1.5"  marker-end="url(#arrow)"/>
+<line x1="660" y1="219" x2="710" y2="560" stroke="#d97706" stroke-width="1.5"  marker-end="url(#arrow)"/>
+  <rect x="616.4" y="498.5" width="117.2" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="675.0" y="509.5" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#d97706">1 --&gt; 0..* 规则</text>
+<line x1="980" y1="235" x2="880" y2="560" stroke="#d97706" stroke-width="1.5"  marker-end="url(#arrow)"/>
+  <rect x="898.8" y="466.5" width="142.4" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="970.0" y="477.5" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#d97706">1..* --&gt; 0..* 资质</text>
+<line x1="940" y1="650" x2="990" y2="650" stroke="#dc2626" stroke-width="1.5"  marker-end="url(#arrow)"/>
+  <rect x="906.4" y="633.0" width="117.2" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="965.0" y="644.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#dc2626">1 --&gt; 0..1 解锁</text>
+<line x1="1110" y1="560" x2="1110" y2="444" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <rect x="1076.6" y="485.0" width="66.80000000000001" height="15" rx="3" fill="#f8fafc" fill-opacity="0.9"/>
+  <text x="1110.0" y="496.0" text-anchor="middle" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif" font-size="10.5" font-weight="600" fill="#64748b">写不可篡改审计</text>
+</svg>

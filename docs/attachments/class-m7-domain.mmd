@@ -1,0 +1,111 @@
+classDiagram
+    class ProductFactSnapshot {
+        +string sku
+        +string org_id
+        +string name
+        +string category
+        +decimal sale_price_usd
+        +decimal list_price_usd
+        +json attributes_json
+    }
+    class WorkflowRegistry {
+        +string workflow_id
+        +string purpose
+        +string version
+        +string status
+        +string compliance_node
+    }
+    class GenerationJob {
+        +string job_id
+        +string org_id
+        +string sku
+        +string job_type
+        +string platform
+        +string idempotency_key
+        +string status
+        +int progress
+        +string engine_run_id
+        +start()
+        +syncStatus()
+    }
+    class GenerationAsset {
+        +string asset_id
+        +string job_id
+        +string asset_slot
+        +int version
+        +bool is_selected
+        +json content_json
+        +json orig_content_json
+        +restoreOriginal()
+    }
+    class GenerationMedia {
+        +string media_id
+        +string asset_id
+        +string mime_type
+        +int file_size
+        +string storage_key
+        +bool ai_person_flag
+        +bool iptc_verified
+        +verifyIptcTags()
+    }
+    class CopyScanResult {
+        +int must_hits
+        +int ban_hits
+        +list tm_hits
+        +list reg_hits
+        +list all_caps_words
+        +int byte_len
+        +bool over_len
+    }
+    class StoryboardSegment {
+        +int seg_idx
+        +string time_range
+        +int img_slot
+        +string motion
+        +string sub_en
+        +string sub_cn
+    }
+    class ComplianceRuleSeed {
+        +string rule_id
+        +string platform
+        +string category
+        +string rule_version
+        +date effective_date
+        +json lexicon_json
+    }
+    class CertRecord {
+        +string cert_id
+        +string org_id
+        +string sku
+        +string name
+        +date expire_date
+        +string status
+        +isExpired()
+    }
+    class ComplianceCheck {
+        +string check_id
+        +string org_id
+        +string sku
+        +string rule_id
+        +json checks_json
+        +bool overall_pass
+        +evaluateAll()
+    }
+    class ApprovalRecord {
+        +string approval_id
+        +string check_id
+        +string approver_id
+        +datetime approved_at
+        +string note
+        +bool active
+        +invalidate()
+    }
+    ProductFactSnapshot "1" ..> "0..*" GenerationJob : provides facts
+    WorkflowRegistry "1" --> "0..*" GenerationJob : locks version
+    GenerationJob "1" *-- "1..*" GenerationAsset : produces
+    GenerationAsset "1" *-- "0..1" GenerationMedia : binds file
+    GenerationAsset "1" ..> "1" CopyScanResult : evaluated by
+    GenerationAsset "1" o-- "0..3" StoryboardSegment : contains
+    ComplianceRuleSeed "1" --> "0..*" ComplianceCheck : rules
+    CertRecord "1..*" --> "0..*" ComplianceCheck : validates
+    ComplianceCheck "1" --> "0..1" ApprovalRecord : unlocks

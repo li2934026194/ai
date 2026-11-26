@@ -1,0 +1,26 @@
+sequenceDiagram
+    actor Creator as 创作人员 (creator)
+    participant UI as M7-1 前端工作台 (Vue3)
+    participant API as FastAPI 路由 / CopyService
+    participant Lex as LexiconScanner & 适配器
+    participant DB as PostgreSQL & Audit
+
+    UI->>API: GET /products/available (带 org_id)
+    API->>DB: 读取 M4-3/M0-2 事实 + M1-2 FAQ
+    Creator->>UI: 选定商品/平台/语言/三层词库，点击生成
+    UI->>API: POST /copy/generate (带 idempotency_key)
+    API->>Lex: 调用内容策略/云端LLM + 三层词库扫描
+    Lex-->>API: 返回 3 组草稿与命中/拦截标记
+    API->>DB: 保存 GenerationJob + GenerationAsset (orig_content)
+    API-->>UI: 返回草稿列表与绿/红高亮结果
+    alt 选用含红线词或超长草稿 (异常分支)
+        Creator->>UI: 点击写入交付清单
+        UI->>API: 强拦截并记录越界/红线审计事件
+        API-->>UI: 422 红线拦截提示 (不写入交付清单)
+    else 选用合规文案并就地微调 (成功/还原分支)
+        Creator->>UI: 点击写入 -> 编辑微调 (实时重扫) -> PUT /copy/assets/{id}
+        API->>Lex: 二次校验红线词/商标/监管/字符bytes上限
+        API->>DB: 保存微调稿并保留 orig_content 快照
+        Creator->>UI: (可选) 点击还原 AI 原稿 -> POST /copy/assets/{id}/restore
+        API->>DB: 恢复 orig_content 并写审计
+    end

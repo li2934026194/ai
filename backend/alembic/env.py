@@ -1,0 +1,66 @@
+from logging.config import fileConfig
+from sqlalchemy import pool
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import async_engine_from_config
+import asyncio
+
+from alembic import context
+from app.core.config import get_settings
+from app.core.database import Base
+from app.modules.m0_catalog import models as _m0_models  # noqa: F401
+from app.modules.m1_cs import models as _m1_models  # noqa: F401
+from app.modules.m2_m3_bi import models as _m2_m3_models  # noqa: F401
+from app.modules.m4_selection import models as _m4_models  # noqa: F401
+from app.modules.m5_m6_supply import models as _m5_m6_models  # noqa: F401
+from app.modules.m7_content import models as _m7_models  # noqa: F401
+from app.modules.m8_org import models as _m8_models  # noqa: F401
+
+config = context.config
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+target_metadata = Base.metadata
+
+
+def get_url() -> str:
+    return get_settings().DATABASE_URL
+
+
+def run_migrations_offline() -> None:
+    context.configure(
+        url=get_url(),
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+    )
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def do_run_migrations(connection: Connection) -> None:
+    context.configure(connection=connection, target_metadata=target_metadata)
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    cfg = config.get_section(config.config_ini_section, {})
+    cfg["sqlalchemy.url"] = get_url()
+    connectable = async_engine_from_config(
+        cfg,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+    await connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    asyncio.run(run_async_migrations())
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

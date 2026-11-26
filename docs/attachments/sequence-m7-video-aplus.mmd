@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor Creator as 创作人员 (creator)
+    participant UI as M7-3 视频与A+台 (Vue3)
+    participant API as VideoAplusService (FastAPI)
+    participant Eng as 云端视频API & 本地FFmpeg
+    participant DB as FileStorage & DB
+
+    Creator->>UI: 选脚本风格/配音/BGM，点击生成15秒短视频
+    UI->>API: POST /videos/generate (带 3 段分镜配置)
+    alt 异常分支：视频生成节点未配置或返回空文件
+        API-->>UI: 503/424 如实报错阻断 (不生成空视频，保留已有图文)
+    else 成功分支：云端动态镜头 + FFmpeg 合成
+        API->>Eng: 1) 云端图生视频/缩放运镜 2) FFmpeg 压制双语字幕与音轨
+        Eng-->>API: 返回真实 15s .mp4 字节 (video/mp4)
+        API->>DB: 校验 MIME 后落盘 .mp4 并保存 GenerationAsset
+        API-->>UI: SUCCEEDED，启动竖屏交互播放器
+    end
+    Creator->>UI: 编辑分镜2(换图位4/运镜/字幕/引用M7-1) 或 重做本镜
+    UI->>API: PUT /videos/segments/1 或 POST .../regenerate
+    API->>Eng: 仅重渲染分镜2并由 FFmpeg 快速拼接
+    API-->>UI: 更新播放器预览与「素材来源映射」(分镜1/3不变)
+    Creator->>UI: 点击「一键生成可视化 A+ 图文详情长页」
+    UI->>API: POST /aplus/generate (聚合M7-1标题+M7-2套图)
+    API->>DB: 保存 A+ 模块结构 (交付进度更新至 8/8)

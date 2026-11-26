@@ -23,6 +23,15 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
+# M7 runtime & local env/build artifacts
+.env
+backend/.env
+frontend/.env
+backend/*.db*
+backend/m7_storage/
+frontend/node_modules/
+frontend/dist/
+
 # Editor / OS
 .DS_Store
 Thumbs.db
