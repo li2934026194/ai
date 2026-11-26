@@ -18,11 +18,10 @@
 
 ---
 
-## 二、老师原始文件（原封未动，一字未改）
+## 二、老师原始文件（共 3 份核心原件，原封未动，一字未改）
 
-位于 `docs/requirements/`（原始仓库 `45a8995` 基线）：
-1. `docs/requirements/CrossPilot-需求分析.docx`（桌面 3 份核心原件之一）
-2. `docs/requirements/AI跨境电商平台V1.0-软件需求规格说明书.docx`（桌面 3 份核心原件之一）
-3. `docs/requirements/AI跨境电商平台V1.1-架构与需求.docx`（桌面 3 份核心原件之一，含 `assets/v1.1/` 配图）
-4. 以及同批原始参考基线：`AI跨境电商平台-模块需求细化_V1.1.docx`、`AI跨境电商平台-两周开发计划与方案设计_V1.1.docx`、`AI跨境电商平台-第一版需求文档_V1.0.docx`、`README.md`。
+位于 `docs/requirements/`：
+1. `docs/requirements/CrossPilot-需求分析.docx`
+2. `docs/requirements/AI跨境电商平台V1.0-软件需求规格说明书.docx`
+3. `docs/requirements/AI跨境电商平台V1.1-架构与需求.docx`（含 `assets/v1.1/` 原图）
 - 另有原型与原始矢量图参考目录：`docs/prototypes/`（V6 原型与 DFD 图）、`docs/attachments/`（M7 `.mmd`/`.svg` 图表）。
