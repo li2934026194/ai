@@ -81,12 +81,12 @@ onMounted(() => void load());
 
     <div class="card">
       <div class="card-title">
-        <span>销量预测与断货校准曲线（M5-2 · 真实断货日置空口径）</span>
+        <span>销量预测与断货校准曲线</span>
         <div style="display:flex;gap:8px;align-items:center;">
           <button type="button" class="btn btn-sm" @click="showCsvBox = !showCsvBox">
-            {{ showCsvBox ? "收起销量导入" : "导入日度销量 CSV" }}
+            {{ showCsvBox ? "收起导入" : "导入销量 CSV" }}
           </button>
-          <select v-model="sku" class="select" style="width:220px;" @change="load">
+          <select v-model="sku" class="select" style="width:210px;" @change="load">
             <option v-for="p in products" :key="p.sku" :value="p.sku">{{ p.sku }} · {{ p.name }}</option>
           </select>
         </div>
@@ -94,11 +94,11 @@ onMounted(() => void load());
 
       <div v-if="showCsvBox" class="alert alert-blue" style="margin-bottom:12px;">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-          <strong>导入日度销量与期末库存 CSV（禁止含 mock/demo 文件名）</strong>
+          <strong>导入日度销量 CSV（禁止含 mock/demo 文件名）</strong>
           <input type="file" accept=".csv" style="font-size:12px;" @change="handleCsvPick" />
         </div>
         <textarea v-model="csvText" class="textarea" style="min-height:60px;font-family:monospace;font-size:12px;"></textarea>
-        <button type="button" class="btn btn-sm btn-primary" style="margin-top:6px;" @click="importSales">确认导入并重算预测</button>
+        <button type="button" class="btn btn-sm btn-primary" style="margin-top:6px;" @click="importSales">确认导入并重算</button>
       </div>
 
       <template v-if="data">
@@ -106,28 +106,28 @@ onMounted(() => void load());
           <div class="kpi-card">
             <div class="kpi-label">安全库存 (SS)</div>
             <div class="kpi-val">{{ data.suggestion.ss }}</div>
-            <div class="kpi-sub">Z = {{ data.suggestion.z }} (服务水平 {{ (data.suggestion.service_level * 100).toFixed(1) }}%)</div>
+            <div class="kpi-sub">Z={{ data.suggestion.z }} · {{ (data.suggestion.service_level * 100).toFixed(1) }}%</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">再订货点 (ROP)</div>
             <div class="kpi-val">{{ data.suggestion.rop }}</div>
-            <div class="kpi-sub">目标水位 S = {{ data.suggestion.target_s }}</div>
+            <div class="kpi-sub">目标水位 S={{ data.suggestion.target_s }}</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">历史断货日 / 毛利损失</div>
+            <div class="kpi-label">历史断货日</div>
             <div class="kpi-val" style="color:#b91c1c;">{{ data.suggestion.zero_days }} 天</div>
-            <div class="kpi-sub">估算少赚毛利 ¥{{ data.suggestion.lost_amount ?? 0 }}</div>
+            <div class="kpi-sub">估算损失 ¥{{ data.suggestion.lost_amount ?? 0 }}</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">未来 90 天断货风险</div>
+            <div class="kpi-label">未来 90 天风险</div>
             <div class="kpi-val" style="color:#b45309;">{{ data.suggestion.inputs_json.stockout_forward?.zero_days ?? 0 }} 天</div>
-            <div class="kpi-sub">首次见底：{{ data.suggestion.inputs_json.stockout_forward?.first_zero_date || "安全覆盖" }}</div>
+            <div class="kpi-sub">{{ data.suggestion.inputs_json.stockout_forward?.first_zero_date || "安全覆盖" }}</div>
           </div>
         </div>
 
         <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px;background:#fafcff;">
           <div style="font-size:12px;font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between;">
-            <span>近 45 天原始销量 (蓝线) vs 断货校准红点可视化</span>
+            <span>近 45 天原始销量 (蓝线) vs 断货日 (红点)</span>
             <span style="color:#64748b;">峰值：{{ chartPoints.maxVal }} 件/日</span>
           </div>
           <svg viewBox="0 0 640 120" style="width:100%;height:110px;display:block;">
@@ -144,8 +144,8 @@ onMounted(() => void load());
           </svg>
         </div>
 
-        <div class="card-title">近 45 天需求校准明细表（红色标识真实断货日，系统自动置空不拉低日均需求）</div>
-        <div style="max-height:260px;overflow-y:auto;">
+        <div class="card-title">近 45 天需求校准明细表</div>
+        <div style="max-height:240px;overflow-y:auto;">
           <table class="table">
             <thead>
               <tr>
@@ -160,11 +160,11 @@ onMounted(() => void load());
               <tr v-for="row in data.series_tail" :key="row.date">
                 <td>{{ row.date }}</td>
                 <td class="tnum">{{ row.qty_raw }}</td>
-                <td class="tnum">{{ row.qty_calibrated ?? "None (已剔除)" }}</td>
+                <td class="tnum">{{ row.qty_calibrated ?? "已剔除" }}</td>
                 <td class="tnum">{{ row.on_hand_eod }}</td>
                 <td>
                   <span class="pill" :class="row.is_stockout ? 'p-red' : 'p-green'">
-                    {{ row.is_stockout ? "断货日 (置空)" : "有效销量" }}
+                    {{ row.is_stockout ? "断货置空" : "有效销量" }}
                   </span>
                 </td>
               </tr>

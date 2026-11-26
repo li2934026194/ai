@@ -29,24 +29,21 @@ onMounted(() => {
     <div class="main-col">
       <header class="topbar">
         <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.04em;">
-            CROSSPILOT · {{ route.path.toUpperCase() }}
-          </div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <strong style="font-size:16px;">{{ pageMeta.title }}</strong>
-            <span class="pill p-gray">{{ roleMeta.label }} [{{ roleMeta.badge }}]</span>
+            <strong style="font-size:17px;color:#0f172a;">{{ pageMeta.title }}</strong>
+            <span class="pill p-blue">{{ roleMeta.label }}</span>
+            <span class="pill p-gray">{{ roleMeta.badge }}</span>
           </div>
-          <div style="font-size:12px;color:#475569;">{{ pageMeta.subtitle }}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px;">{{ pageMeta.subtitle }}</div>
         </div>
 
         <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#475569;">
-          <span>Org: <code>{{ ws.currentOrgId }}</code></span>
           <router-link to="/docs" class="btn btn-sm" style="text-decoration:none;">
-            📁 交付文档中心
+            📁 文档中心
           </router-link>
-          <button type="button" class="btn btn-sm" @click="ws.hydrateSummary()">刷新状态</button>
+          <button type="button" class="btn btn-sm" @click="ws.hydrateSummary()">刷新</button>
           <button type="button" class="btn btn-sm btn-primary" @click="drawerOpen = true">
-            📖 规则与流程说明
+            📖 规则说明
           </button>
         </div>
       </header>

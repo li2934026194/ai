@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
@@ -11,6 +11,13 @@ const recvQty = ref<Record<string, number>>({});
 const defQty = ref<Record<string, number>>({});
 const cancelReasonMap = ref<Record<string, string>>({});
 const errMsg = ref("");
+
+const stats = computed(() => ({
+  totalPos: pos.value.length,
+  inFlight: pos.value.filter((p) => !["fully_received", "cancelled"].includes(p.status)).length,
+  received: pos.value.filter((p) => p.status === "fully_received").length,
+  openAlerts: alerts.value.filter((a) => a.status === "OPEN").length,
+}));
 
 async function load() {
   errMsg.value = "";
@@ -87,38 +94,47 @@ onMounted(() => void load());
   <div>
     <div v-if="errMsg" class="alert alert-red">{{ errMsg }}</div>
 
+    <div class="grid-4" style="margin-bottom:14px;">
+      <div class="kpi-card"><div class="kpi-label">采购单总数</div><div class="kpi-val">{{ stats.totalPos }}</div></div>
+      <div class="kpi-card"><div class="kpi-label">待发货 / 在途</div><div class="kpi-val" style="color:#1d4ed8;">{{ stats.inFlight }}</div></div>
+      <div class="kpi-card"><div class="kpi-label">已收满闭环</div><div class="kpi-val" style="color:#047857;">{{ stats.received }}</div></div>
+      <div class="kpi-card">
+        <div class="kpi-label">未处理告警</div>
+        <div class="kpi-val" :style="{ color: stats.openAlerts ? '#b91c1c' : '#047857' }">{{ stats.openAlerts }}</div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-title">
-        <span>采购单发货与分批质检收货台账（M6-4 / M6-5）</span>
+        <span>采购单发货与分批质检收货</span>
         <button type="button" class="btn btn-sm" @click="load">刷新 PO</button>
       </div>
       <table class="table">
         <thead>
           <tr>
-            <th>PO 单号</th>
-            <th>SKU / 路线</th>
+            <th>PO / SKU</th>
             <th>订量 / 已收 / 不良</th>
-            <th>预计到货</th>
             <th>状态</th>
             <th>执行操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="po in pos" :key="po.po_id">
-            <td><code>{{ po.po_id }}</code></td>
-            <td><code>{{ po.sku }}</code> ({{ po.route_code }})</td>
+            <td>
+              <code>{{ po.po_id }}</code>
+              <div class="table-sub"><code>{{ po.sku }}</code> ({{ po.route_code }}) · 预到 {{ po.expect_arrive || "-" }}</div>
+            </td>
             <td class="tnum">{{ po.order_qty }} / <strong>{{ po.receive_qty }}</strong> / {{ po.defect_qty }}</td>
-            <td>{{ po.expect_arrive || "-" }}</td>
             <td><span class="pill p-blue">{{ po.status_label }}</span></td>
             <td>
-              <template v-if="!['fully_received', 'cancelled'].includes(po.status)">
-                <button v-if="po.status === 'created'" type="button" class="btn btn-sm" @click="ship(po.po_id)">标记发货</button>
-                <input v-model.number="recvQty[po.po_id]" type="number" class="input" style="width:68px;display:inline-block;margin:0 4px;" placeholder="实收" />
-                <input v-model.number="defQty[po.po_id]" type="number" class="input" style="width:60px;display:inline-block;margin-right:4px;" placeholder="不良" />
+              <div v-if="!['fully_received', 'cancelled'].includes(po.status)" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                <button v-if="po.status === 'created'" type="button" class="btn btn-sm btn-primary" @click="ship(po.po_id)">标记发货</button>
+                <input v-model.number="recvQty[po.po_id]" type="number" class="input" style="width:66px;" placeholder="实收" />
+                <input v-model.number="defQty[po.po_id]" type="number" class="input" style="width:58px;" placeholder="不良" />
                 <button type="button" class="btn btn-sm btn-success" @click="receive(po)">质检收货</button>
-                <input v-model="cancelReasonMap[po.po_id]" class="input" style="width:110px;display:inline-block;margin-left:6px;" placeholder="取消原因" />
-                <button type="button" class="btn btn-sm btn-danger" style="margin-left:4px;" @click="cancel(po.po_id)">取消</button>
-              </template>
+                <input v-model="cancelReasonMap[po.po_id]" class="input" style="width:96px;" placeholder="取消原因" />
+                <button type="button" class="btn btn-sm btn-danger" @click="cancel(po.po_id)">取消</button>
+              </div>
               <span v-else style="font-size:12px;color:#64748b;">{{ po.cancel_reason || "已收满闭环" }}</span>
             </td>
           </tr>
@@ -128,14 +144,13 @@ onMounted(() => void load());
 
     <div class="card">
       <div class="card-title">
-        <span>供应链断货与交期告警中心（M6-8 · 支持全盘巡检生成）</span>
-        <button type="button" class="btn btn-sm btn-primary" @click="scanAlerts">立即巡检断货/逾期预警</button>
+        <span>供应链断货与交期告警</span>
+        <button type="button" class="btn btn-sm btn-primary" @click="scanAlerts">巡检断货 / 逾期预警</button>
       </div>
       <table class="table">
         <thead>
           <tr>
-            <th>级别</th>
-            <th>SKU</th>
+            <th>级别 / SKU</th>
             <th>告警描述</th>
             <th>状态</th>
             <th>处理</th>
@@ -143,13 +158,15 @@ onMounted(() => void load());
         </thead>
         <tbody>
           <tr v-for="a in alerts" :key="a.alert_id">
-            <td><span class="pill p-red">{{ a.severity }}</span></td>
-            <td><code>{{ a.sku }}</code></td>
+            <td>
+              <span class="pill p-red">{{ a.severity }}</span>
+              <div class="table-sub"><code>{{ a.sku }}</code></div>
+            </td>
             <td>{{ a.message }}</td>
             <td><span class="pill" :class="a.status === 'ACKED' ? 'p-green' : 'p-amber'">{{ a.status }}</span></td>
             <td>
               <button v-if="a.status === 'OPEN'" type="button" class="btn btn-sm btn-primary" @click="ack(a.alert_id)">确认处理</button>
-              <span v-else>已由 {{ a.ack_by }} 确认</span>
+              <span v-else class="table-sub">已由 {{ a.ack_by }} 确认</span>
             </td>
           </tr>
         </tbody>

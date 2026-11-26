@@ -33,25 +33,29 @@ onMounted(() => void ask(question.value));
 
     <div class="card">
       <div class="card-title">
-        <span>经营智能问答助手（M3-2 · 后端只读查数与口径溯源 / 严禁写指令）</span>
+        <span>经营智能问答助手（只读查数与溯源）</span>
         <label style="font-size:12px;font-weight:400;display:flex;align-items:center;gap:6px;">
           <input v-model="includeMock" type="checkbox" @change="ask(question)" />
-          纳入演示订单统计
+          含演示订单
         </label>
       </div>
+
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
         <button v-for="p in presets" :key="p" type="button" class="btn btn-sm" @click="ask(p)">{{ p }}</button>
       </div>
+
       <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <input v-model="question" class="input" placeholder="输入经营查数问题（只读查数，尝试 DELETE/修改 将触发 403 拦截并记审计）" />
-        <button type="button" class="btn btn-primary" @click="ask(question)">实时问数</button>
+        <input v-model="question" class="input" placeholder="输入只读经营问题（写/删指令将触发 403 拦截）" />
+        <button type="button" class="btn btn-primary btn-lg" @click="ask(question)">实时问数</button>
       </div>
+
       <pre
-        style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;white-space:pre-wrap;font-family:inherit;font-size:13.5px;margin:0 0 10px;"
+        style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px 14px;white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.65;margin:0 0 10px;"
       >{{ respData?.answer || "正在查询实时数据库..." }}</pre>
-      <div v-if="respData?.lineage_sources" style="font-size:11.5px;color:#64748b;">
-        溯源数据表：
-        <span v-for="src in respData.lineage_sources" :key="src" class="pill p-gray" style="margin-right:4px;">{{ src }}</span>
+
+      <div v-if="respData?.lineage_sources" style="font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span>溯源表：</span>
+        <span v-for="src in respData.lineage_sources" :key="src" class="pill p-gray">{{ src }}</span>
       </div>
     </div>
   </div>

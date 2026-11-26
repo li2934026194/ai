@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
 import { useM7WorkspaceStore } from "@/stores/m7Workspace";
@@ -18,6 +18,13 @@ const tktForm = reactive({
   refund_usd: 8.5,
   evidence_note: "买家提供开箱视频，核实订单已送达",
 });
+
+const stats = computed(() => ({
+  total: sessions.value.length,
+  pending: sessions.value.filter((s) => s.status !== "REPLIED").length,
+  replied: sessions.value.filter((s) => s.status === "REPLIED").length,
+  mock: sessions.value.filter((s) => s.is_mock).length,
+}));
 
 async function load() {
   errMsg.value = "";
@@ -73,15 +80,22 @@ onMounted(() => void load());
   <div>
     <div v-if="errMsg" class="alert alert-red">{{ errMsg }}</div>
 
+    <div class="grid-4" style="margin-bottom:14px;">
+      <div class="kpi-card"><div class="kpi-label">会话总数</div><div class="kpi-val">{{ stats.total }}</div></div>
+      <div class="kpi-card"><div class="kpi-label">待客服回复</div><div class="kpi-val" style="color:#b45309;">{{ stats.pending }}</div></div>
+      <div class="kpi-card"><div class="kpi-label">已回复闭环</div><div class="kpi-val" style="color:#047857;">{{ stats.replied }}</div></div>
+      <div class="kpi-card"><div class="kpi-label">模拟进线 (MOCK)</div><div class="kpi-val" style="color:#64748b;">{{ stats.mock }}</div></div>
+    </div>
+
     <div class="grid-2">
       <div class="card">
         <div class="card-title">
-          <span>买家咨询会话台（M1-1 · 实盘/模拟隔离）</span>
+          <span>买家咨询会话台</span>
           <div style="display:flex;gap:6px;align-items:center;">
-            <select v-model="filterMode" class="select" style="width:130px;" @change="load">
+            <select v-model="filterMode" class="select" style="width:120px;" @change="load">
               <option value="all">全部会话</option>
-              <option value="live">仅实盘会话</option>
-              <option value="mock">仅 MOCK 模拟</option>
+              <option value="live">仅实盘</option>
+              <option value="mock">仅 MOCK</option>
             </select>
             <button type="button" class="btn btn-sm" @click="load">刷新</button>
           </div>
@@ -92,7 +106,7 @@ onMounted(() => void load());
             :key="s.session_id"
             style="border:1px solid var(--border);border-radius:8px;padding:10px;"
           >
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:6px;flex-wrap:wrap;">
               <strong>
                 {{ s.buyer_name }} · <code>{{ s.sku }}</code>
                 <span v-if="s.is_mock" class="pill p-amber" style="margin-left:4px;">MOCK</span>
@@ -113,7 +127,7 @@ onMounted(() => void load());
       </div>
 
       <div class="card">
-        <div class="card-title">核单发起售后退款工单（校验订单实付总额）</div>
+        <div class="card-title">核单发起售后退款工单</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div class="grid-2">
             <div>
@@ -121,7 +135,7 @@ onMounted(() => void load());
               <input v-model="tktForm.sku" class="input" />
             </div>
             <div>
-              <label class="field-label">订单编号（自动核验 M0 台账上限）</label>
+              <label class="field-label">订单编号（自动核验上限）</label>
               <input v-model="tktForm.order_ref" class="input" />
             </div>
           </div>
@@ -131,7 +145,7 @@ onMounted(() => void load());
               <input v-model="tktForm.issue_type" class="input" />
             </div>
             <div>
-              <label class="field-label">申请退款金额 (USD)</label>
+              <label class="field-label">申请退款 (USD)</label>
               <input v-model.number="tktForm.refund_usd" type="number" step="0.5" class="input" />
             </div>
           </div>
@@ -139,7 +153,7 @@ onMounted(() => void load());
             <label class="field-label">凭证与核验说明</label>
             <textarea v-model="tktForm.evidence_note" class="textarea" style="min-height:66px;"></textarea>
           </div>
-          <button type="button" class="btn btn-primary" @click="createTicket">提交售后退款工单</button>
+          <button type="button" class="btn btn-primary btn-lg" @click="createTicket">提交售后退款工单</button>
         </div>
       </div>
     </div>

@@ -83,7 +83,7 @@ onMounted(() => void load());
     <div class="grid-2">
       <div class="card">
         <div class="card-title">
-          <span>选品候选清单（M4-2 · 支持并排对比）</span>
+          <span>选品候选清单（勾选对比）</span>
           <label style="font-size:12px;display:flex;align-items:center;gap:6px;font-weight:400;">
             <input v-model="onlyInvestable" type="checkbox" />
             只看可投产 (≥18%)
@@ -93,10 +93,8 @@ onMounted(() => void load());
           <thead>
             <tr>
               <th>对比</th>
-              <th>SKU</th>
-              <th>名称</th>
-              <th>加权分</th>
-              <th>未舍入毛利</th>
+              <th>SKU / 品名</th>
+              <th>总分 / 毛利</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -110,21 +108,25 @@ onMounted(() => void load());
                   @change="toggleCompare(c.candidate_id)"
                 />
               </td>
-              <td><code>{{ c.sku }}</code></td>
               <td>
                 <div style="display:flex;align-items:center;gap:8px;">
                   <img
                     v-if="getProductImageUrl(c.sku)"
                     :src="getProductImageUrl(c.sku)!"
                     :alt="c.name"
-                    style="width:38px;height:38px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;flex-shrink:0;"
+                    style="width:34px;height:34px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;flex-shrink:0;"
                   />
-                  <span>{{ c.name }}</span>
+                  <div>
+                    <strong>{{ c.name }}</strong>
+                    <div class="table-sub"><code>{{ c.sku }}</code></div>
+                  </div>
                 </div>
               </td>
-              <td class="tnum" style="font-weight:700;">{{ c.total_score }}</td>
-              <td class="tnum" :style="{ color: c.est_margin_pct >= 0.18 ? '#047857' : '#b91c1c' }">
-                {{ (c.est_margin_pct * 100).toFixed(2) }}%
+              <td class="tnum">
+                <strong>{{ c.total_score }}</strong>
+                <div class="table-sub" :style="{ color: c.est_margin_pct >= 0.18 ? '#047857' : '#b91c1c' }">
+                  {{ (c.est_margin_pct * 100).toFixed(2) }}%
+                </div>
               </td>
               <td><span class="pill p-blue">{{ c.status }}</span></td>
               <td><button type="button" class="btn btn-sm" @click="pick(c)">评估</button></td>
@@ -140,27 +142,27 @@ onMounted(() => void load());
               v-if="getProductImageUrl(selected.sku)"
               :src="getProductImageUrl(selected.sku)!"
               :alt="selected.name"
-              style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid #cbd5e1;background:#fff;"
+              style="width:42px;height:42px;object-fit:contain;border-radius:8px;border:1px solid #cbd5e1;background:#fff;"
             />
-            <span>加权 5 维打分与利润测算：{{ selected.sku }}</span>
+            <span>五维打分与利润测算：{{ selected.sku }}</span>
           </div>
           <span class="pill p-purple">{{ selected.status }}</span>
         </div>
         <div class="grid-4" style="margin-bottom:10px;">
           <div>
-            <label class="field-label">目标售价 (USD)</label>
+            <label class="field-label">售价 (USD)</label>
             <input v-model.number="selected.target_price_usd" type="number" step="0.1" class="input" />
           </div>
           <div>
-            <label class="field-label">采购价 (RMB)</label>
+            <label class="field-label">采购 (RMB)</label>
             <input v-model.number="selected.est_cost_rmb" type="number" step="0.5" class="input" />
           </div>
           <div>
-            <label class="field-label">头程运费 (RMB)</label>
+            <label class="field-label">头程 (RMB)</label>
             <input v-model.number="selected.est_shipping_rmb" type="number" step="0.5" class="input" />
           </div>
           <div>
-            <label class="field-label">履约模式</label>
+            <label class="field-label">履约</label>
             <select v-model="selected.fulfillment_mode" class="select">
               <option value="FBA">FBA</option>
               <option value="FBM">FBM</option>
@@ -174,16 +176,16 @@ onMounted(() => void load());
           </div>
         </div>
         <div style="margin-bottom:10px;">
-          <label class="field-label">侵权证据与商标/专利风险备忘（模型分≠法律结论）</label>
+          <label class="field-label">商标/专利风险备忘</label>
           <input v-model="selected.ip_risk_note" class="input" />
         </div>
         <div style="margin-bottom:12px;">
           <label class="field-label">选品推荐理由</label>
-          <textarea v-model="selected.operator_note" class="textarea" style="min-height:60px;"></textarea>
+          <textarea v-model="selected.operator_note" class="textarea" style="min-height:56px;"></textarea>
         </div>
         <div style="display:flex;gap:8px;">
-          <button type="button" class="btn" @click="saveEval(false)">保存评估草稿</button>
-          <button type="button" class="btn btn-primary" @click="saveEval(true)">提交送主管终审 (M4-3)</button>
+          <button type="button" class="btn" @click="saveEval(false)">保存草稿</button>
+          <button type="button" class="btn btn-primary btn-lg" @click="saveEval(true)">提交送主管终审 →</button>
         </div>
       </div>
     </div>
@@ -200,7 +202,7 @@ onMounted(() => void load());
                   v-if="getProductImageUrl(it.sku)"
                   :src="getProductImageUrl(it.sku)!"
                   :alt="it.name"
-                  style="width:32px;height:32px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;"
+                  style="width:28px;height:28px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;"
                 />
                 <span><code>{{ it.sku }}</code> {{ it.name }}</span>
               </div>

@@ -41,7 +41,7 @@ onMounted(async () => {
 
     <div class="grid-2">
       <div class="card">
-        <div class="card-title">常规补货测算与 What-If 参数沙盒（M6-1 / M6-6）</div>
+        <div class="card-title">常规补货测算与参数沙盒</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div class="grid-2">
             <div>
@@ -84,16 +84,16 @@ onMounted(async () => {
               <input v-model.number="form.service_level_override" type="number" step="0.01" min="0.90" max="0.99" class="input" />
             </div>
             <div>
-              <label class="field-label">旺季需求倍率 (0.3–3.0)</label>
+              <label class="field-label">旺季倍率 (0.3–3.0)</label>
               <input v-model.number="form.demand_multiplier" type="number" step="0.1" min="0.3" max="3.0" class="input" />
             </div>
           </div>
-          <button type="button" class="btn btn-primary" @click="runSandbox">实时运行沙盒推演</button>
+          <button type="button" class="btn btn-primary btn-lg" @click="runSandbox">实时运行沙盒推演</button>
         </div>
       </div>
 
       <div v-if="result" class="card">
-        <div class="card-title">沙盒实时推演结果（两步取整 MOQ → 整箱）</div>
+        <div class="card-title">推演结果（MOQ → 整箱两步取整）</div>
         <div class="grid-2" style="margin-bottom:10px;">
           <div class="kpi-card">
             <div class="kpi-label">建议补货量</div>
@@ -101,14 +101,14 @@ onMounted(async () => {
             <div class="kpi-sub">资金占用：¥{{ result.amount_rmb ?? "-" }}</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">总交期 / 目标水位</div>
+            <div class="kpi-label">总交期 / 水位</div>
             <div class="kpi-val">{{ result.lead_time_total }} 天</div>
             <div class="kpi-sub">SS {{ result.ss }} · ROP {{ result.rop }} · S {{ result.target_s }}</div>
           </div>
         </div>
-        <div class="alert alert-blue">
-          前向 90 天模拟：覆盖 {{ result.stockout_forward?.coverage_days }} 天 · 断货 {{ result.stockout_forward?.zero_days }} 天
-          （首次见底日：{{ result.stockout_forward?.first_zero_date || "无断货风险" }}）
+        <div class="summary-bar">
+          <span class="pill p-blue">前向 90 天</span>
+          <span>覆盖 {{ result.stockout_forward?.coverage_days }} 天 · 断货 {{ result.stockout_forward?.zero_days }} 天（见底日：{{ result.stockout_forward?.first_zero_date || "无" }}）</span>
         </div>
       </div>
     </div>

@@ -54,18 +54,18 @@ onMounted(() => void load());
 
     <div class="card">
       <div class="card-title">
-        <span>智能补货测算与四路线/三目标方案（M6-2）</span>
+        <span>智能补货测算与方案决策</span>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <select v-model="sku" class="select" style="width:190px;" @change="load">
             <option v-for="p in products" :key="p.sku" :value="p.sku">{{ p.sku }} · {{ p.name }}</option>
           </select>
-          <select v-model="routeCode" class="select" style="width:130px;" @change="load">
+          <select v-model="routeCode" class="select" style="width:110px;" @change="load">
             <option value="sea">海运</option>
             <option value="air">空运</option>
             <option value="rail">铁运</option>
             <option value="truck">卡航</option>
           </select>
-          <select v-model="objectiveMode" class="select" style="width:130px;" @change="load">
+          <select v-model="objectiveMode" class="select" style="width:110px;" @change="load">
             <option value="sales">保销量</option>
             <option value="profit">保利润</option>
             <option value="cash">保现金</option>
@@ -76,19 +76,19 @@ onMounted(() => void load());
       <template v-if="data">
         <div class="alert alert-blue" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
           <div>
-            <strong>实时建议补货量：{{ data.suggestion.qty }} 件</strong>（在手 {{ data.suggestion.on_hand }} · 在途 {{ data.suggestion.in_transit }} ·
+            <strong>建议补货：{{ data.suggestion.qty }} 件</strong>（在手 {{ data.suggestion.on_hand }} · 在途 {{ data.suggestion.in_transit }} ·
             目标水位 {{ data.suggestion.target_s }}）
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
-            <span>拟申报数量：</span>
-            <input v-model.number="qtyPropose" type="number" class="input" style="width:100px;" />
-            <button type="button" class="btn btn-primary btn-sm" @click="createAndSubmit">创建并提交补货申请 →</button>
+            <span>申报量：</span>
+            <input v-model.number="qtyPropose" type="number" class="input" style="width:95px;" />
+            <button type="button" class="btn btn-primary btn-lg" @click="createAndSubmit">创建并提交审批 →</button>
           </div>
         </div>
 
         <div class="grid-2">
           <div>
-            <div style="font-weight:700;margin-bottom:6px;">四条物流路线实时对比</div>
+            <div style="font-weight:700;margin-bottom:6px;">四路线时效与风险对比</div>
             <table class="table">
               <thead>
                 <tr>
@@ -96,7 +96,7 @@ onMounted(() => void load());
                   <th>时效</th>
                   <th>总运费</th>
                   <th>风险</th>
-                  <th>结论</th>
+                  <th>建议</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,7 +106,7 @@ onMounted(() => void load());
                   <td class="tnum">¥{{ r.total_freight }}</td>
                   <td>
                     <span class="pill" :class="r.risk_level === '高' ? 'p-red' : r.risk_level === '中' ? 'p-amber' : 'p-green'">
-                      {{ r.risk_level }} ({{ r.risk_index }})
+                      {{ r.risk_level }}
                     </span>
                   </td>
                   <td style="font-size:11.5px;">{{ r.recommendation }}</td>
@@ -116,7 +116,7 @@ onMounted(() => void load());
           </div>
 
           <div>
-            <div style="font-weight:700;margin-bottom:6px;">三目标决策方案对比</div>
+            <div style="font-weight:700;margin-bottom:6px;">三目标决策方案</div>
             <table class="table">
               <thead>
                 <tr>

@@ -133,6 +133,22 @@ export const platformApi = {
           }
         : undefined,
     }),
+  getDesignerLayout: () =>
+    platReq<{ draft_layout: any[]; published_layout: any[] | null; version: number }>(
+      "GET",
+      "/m2/designer/layout"
+    ),
+  saveDesignerLayout: (
+    cards: Array<{ card_id: string; title: string; metric_key: string }>,
+    version: number
+  ) => platReq<{ version: number; draft_layout: any[] }>("PUT", "/m2/designer/layout", { data: { cards, version } }),
+  publishDesignerLayout: () =>
+    platReq<{ version: number; published_layout: any[] }>("POST", "/m2/designer/publish"),
+  getDesignerCards: () =>
+    platReq<{ cards: Array<{ card_id: string; title: string; metric_key: string; value: number }> }>(
+      "GET",
+      "/m2/designer/cards"
+    ),
   listAds: () => platReq<{ items: any[] }>("GET", "/m2/ads"),
   createAd: (data: {
     sku: string;

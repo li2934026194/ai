@@ -142,9 +142,33 @@ onMounted(() => void load());
   <div>
     <div v-if="errMsg" class="alert alert-red">{{ errMsg }}</div>
 
+    <!-- 归纳指标卡 -->
+    <div class="grid-4" style="margin-bottom:14px;">
+      <div class="kpi-card">
+        <div class="kpi-label">在营主档 SKU</div>
+        <div class="kpi-val">{{ products.length }}</div>
+        <div class="kpi-sub">M4 转正与建品合计</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">台账订单笔数</div>
+        <div class="kpi-val">{{ orders.length }}</div>
+        <div class="kpi-sub">含实盘与模拟隔离</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">待审成本调整</div>
+        <div class="kpi-val" style="color:#b45309;">{{ costReqs.filter((r) => r.status === "PENDING").length }}</div>
+        <div class="kpi-sub">SoD 禁自批</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">1688 比价条目</div>
+        <div class="kpi-val" style="color:#047857;">{{ quotes.length }}</div>
+        <div class="kpi-sub">RMB 汇率 {{ rmbRate }}</div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-title">
-        <span>商品主档与成本卡（M0-2 · 已联动 M4/M5/M6/M7）</span>
+        <span>商品主档与成本卡</span>
         <div style="display:flex;gap:6px;">
           <button type="button" class="btn btn-sm btn-primary" @click="showAddProd = !showAddProd">
             {{ showAddProd ? "收起建品" : "+ 新增/维护主档 SKU" }}

@@ -64,9 +64,17 @@ onMounted(() => void load());
   <div>
     <div v-if="errMsg" class="alert alert-red">{{ errMsg }}</div>
 
+    <div class="summary-bar">
+      <span class="pill p-blue">知识联动</span>
+      <span>维护各 SKU 高频痛点与标准 Q&amp;A，M1-4 咨询模拟器与 M7-1 文案工作台实时检索引用。</span>
+    </div>
+
     <div class="grid-2">
       <div class="card">
-        <div class="card-title">客服导购商品库（M1-2 · 供 M7-1 与 M1-4 实时检索）</div>
+        <div class="card-title">
+          <span>客服导购商品库</span>
+          <span class="pill p-green">{{ faqs.length }} 个 SKU</span>
+        </div>
         <table class="table">
           <thead>
             <tr>
@@ -89,7 +97,7 @@ onMounted(() => void load());
 
       <div class="card">
         <div class="card-title">
-          <span>维护 SKU 痛点与多组 FAQ（需 m1:faq:edit）</span>
+          <span>编辑痛点与 Q&amp;A：{{ sku }}</span>
           <button type="button" class="btn btn-sm" @click="addPair">+ 新增问答</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;">
@@ -99,7 +107,7 @@ onMounted(() => void load());
           </div>
           <div>
             <label class="field-label">买家高频痛点（每行一条）</label>
-            <textarea v-model="painText" class="textarea" style="min-height:66px;"></textarea>
+            <textarea v-model="painText" class="textarea" style="min-height:60px;"></textarea>
           </div>
           <div
             v-for="(pair, idx) in faqPairs"
@@ -118,9 +126,9 @@ onMounted(() => void load());
               </button>
             </div>
             <input v-model="pair.q" class="input" placeholder="高频问题 Q..." />
-            <textarea v-model="pair.a" class="textarea" style="min-height:48px;" placeholder="标准合规回复 A..."></textarea>
+            <textarea v-model="pair.a" class="textarea" style="min-height:46px;" placeholder="标准合规回复 A..."></textarea>
           </div>
-          <button type="button" class="btn btn-primary" @click="saveFaq">保存导购知识库</button>
+          <button type="button" class="btn btn-primary btn-lg" @click="saveFaq">保存导购知识库</button>
         </div>
       </div>
     </div>

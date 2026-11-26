@@ -46,26 +46,32 @@ onMounted(() => void load());
     <div v-if="errMsg" class="alert alert-red">{{ errMsg }}</div>
 
     <div class="card">
-      <div class="card-title">跨模块审批流与 SoD 职责分离策略（M8-2）</div>
+      <div class="card-title">跨模块审批流与 SoD 策略</div>
       <table class="table">
         <thead>
           <tr>
             <th>模块</th>
-            <th>审批流名称</th>
-            <th>触发门槛</th>
+            <th>审批流名称 / 门槛</th>
             <th>终审岗位</th>
-            <th>状态 / 切换</th>
+            <th>状态开关</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="p in policies" :key="p.policy_id">
             <td><span class="pill p-purple">{{ p.module }}</span></td>
-            <td>{{ p.name }}</td>
-            <td>{{ p.threshold_rule }}</td>
-            <td><code>{{ p.approver_role }}</code> (SoD: {{ p.enforce_sod ? "强制" : "关闭" }})</td>
             <td>
-              <button type="button" class="btn btn-sm" @click="togglePol(p)">
-                {{ p.is_enabled ? "已启用（点击停用）" : "已停用（点击启用）" }}
+              <strong>{{ p.name }}</strong>
+              <div class="table-sub">{{ p.threshold_rule }}</div>
+            </td>
+            <td><code>{{ p.approver_role }}</code> (SoD: {{ p.enforce_sod ? "强校验" : "关闭" }})</td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-sm"
+                :class="p.is_enabled ? 'btn-success' : ''"
+                @click="togglePol(p)"
+              >
+                {{ p.is_enabled ? "已启用" : "已停用" }}
               </button>
             </td>
           </tr>
@@ -78,16 +84,17 @@ onMounted(() => void load());
       <table class="table">
         <thead>
           <tr>
-            <th>岗位代码</th>
-            <th>岗位名称</th>
+            <th>岗位</th>
             <th>职责说明</th>
             <th>已分配权限码</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="r in roles" :key="r.role_code">
-            <td><code>{{ r.role_code }}</code></td>
-            <td><strong>{{ r.display_name }}</strong></td>
+            <td>
+              <strong>{{ r.display_name }}</strong>
+              <div class="table-sub"><code>{{ r.role_code }}</code></div>
+            </td>
             <td style="font-size:12px;">{{ r.description }}</td>
             <td>
               <span v-for="perm in r.permissions" :key="perm" class="pill p-gray" style="margin:2px;">{{ perm }}</span>
@@ -99,9 +106,9 @@ onMounted(() => void load());
 
     <div class="card">
       <div class="card-title">
-        <span>全平台中文审计台账（M0 – M8 共 {{ audits.length }} 条）</span>
+        <span>全平台中文审计台账（{{ audits.length }} 条）</span>
         <div style="display:flex;gap:6px;">
-          <select v-model="modFilter" class="select" style="width:140px;" @change="load">
+          <select v-model="modFilter" class="select" style="width:130px;" @change="load">
             <option value="">全部模块</option>
             <option value="M0">M0 店铺档案</option>
             <option value="M1">M1 客服售后</option>
@@ -112,14 +119,13 @@ onMounted(() => void load());
             <option value="M7">M7 内容合规</option>
             <option value="M8">M8 组织权限</option>
           </select>
-          <button type="button" class="btn btn-sm" @click="load">刷新审计</button>
+          <button type="button" class="btn btn-sm" @click="load">刷新</button>
         </div>
       </div>
       <table class="table">
         <thead>
           <tr>
-            <th>模块</th>
-            <th>动作</th>
+            <th>模块 / 动作</th>
             <th>中文业务轨迹</th>
             <th>状态</th>
             <th>Trace ID</th>
@@ -127,8 +133,10 @@ onMounted(() => void load());
         </thead>
         <tbody>
           <tr v-for="a in audits" :key="a.event_id">
-            <td><span class="pill p-blue">{{ a.module }}</span></td>
-            <td><code>{{ a.action }}</code></td>
+            <td>
+              <span class="pill p-blue">{{ a.module }}</span>
+              <div class="table-sub"><code>{{ a.action }}</code></div>
+            </td>
             <td>{{ a.sentence_zh }}</td>
             <td><span class="pill" :class="a.ok ? 'p-green' : 'p-red'">{{ a.ok ? "放行" : "拦截" }}</span></td>
             <td><code>{{ a.trace_id }}</code></td>

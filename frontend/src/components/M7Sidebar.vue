@@ -58,7 +58,7 @@ function isGroupActive(id: string): boolean {
         </option>
       </select>
       <div class="role-hint">
-        账号 <code>{{ ws.currentActorId }}</code> · 权限标签：{{ roleMeta.badge }}
+        {{ roleMeta.focusDesc }}
       </div>
     </div>
 
@@ -67,18 +67,18 @@ function isGroupActive(id: string): boolean {
       class="nav-home-btn"
       :class="{ active: route.path === '/home' }"
     >
-      <span>🏠 岗位工作台（今日待办）</span>
-      <span class="nav-todo">M0-M8</span>
+      <span>🏠 岗位工作台</span>
+      <span class="nav-todo">主页</span>
     </router-link>
 
     <router-link
       to="/docs"
       class="nav-home-btn"
       :class="{ active: route.path === '/docs' }"
-      style="margin-top:6px;"
+      style="margin-top:4px;"
     >
-      <span>📁 交付文档中心（统一整编）</span>
-      <span class="nav-todo">5+5</span>
+      <span>📁 交付文档中心</span>
+      <span class="nav-todo">Docs</span>
     </router-link>
 
     <nav class="nav-list">

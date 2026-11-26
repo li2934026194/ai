@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import axios from "axios";
 import { M7ApiError } from "@/api/client";
 import { platformApi } from "@/api/platform";
@@ -25,6 +25,13 @@ const loginForm = reactive({
   user_id: "usr_approver",
   password: "crosspilot123",
 });
+
+const stats = computed(() => ({
+  total: users.value.length,
+  active: users.value.filter((u) => u.is_active).length,
+  allShops: users.value.filter((u) => !u.allowed_shop_ids?.length).length,
+  scoped: users.value.filter((u) => u.allowed_shop_ids?.length).length,
+}));
 
 async function load() {
   errMsg.value = "";
@@ -112,27 +119,38 @@ onMounted(() => void load());
   <div>
     <div v-if="errMsg" class="alert alert-red">{{ errMsg }}</div>
 
+    <div class="grid-4" style="margin-bottom:14px;">
+      <div class="kpi-card"><div class="kpi-label">账号总数</div><div class="kpi-val">{{ stats.total }}</div></div>
+      <div class="kpi-card"><div class="kpi-label">在岗启用</div><div class="kpi-val" style="color:#047857;">{{ stats.active }}</div></div>
+      <div class="kpi-card"><div class="kpi-label">全店权限</div><div class="kpi-val" style="color:#1d4ed8;">{{ stats.allShops }}</div></div>
+      <div class="kpi-card"><div class="kpi-label">限定店铺范围</div><div class="kpi-val" style="color:#b45309;">{{ stats.scoped }}</div></div>
+    </div>
+
     <div class="grid-2">
       <div class="card">
-        <div class="card-title">员工花名册、在线调岗与店铺范围授权（M8-1）</div>
+        <div class="card-title">
+          <span>员工花名册与在线调岗</span>
+          <button type="button" class="btn btn-sm" @click="load">刷新</button>
+        </div>
         <table class="table">
           <thead>
             <tr>
-              <th>账号</th>
-              <th>姓名</th>
+              <th>账号 / 姓名</th>
               <th>当前岗位</th>
               <th>店铺范围</th>
               <th>状态</th>
-              <th>操作</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="u in users" :key="u.user_id">
-              <td><code>{{ u.user_id }}</code></td>
-              <td>{{ u.display_name }}<div style="font-size:11px;color:#64748b;">{{ u.email }}</div></td>
+              <td>
+                <strong>{{ u.display_name }}</strong>
+                <div class="table-sub"><code>{{ u.user_id }}</code></div>
+              </td>
               <td>
                 <select
                   class="select"
+                  style="min-width:110px;"
                   :value="u.role_code"
                   @change="updateRole(u, ($event.target as HTMLSelectElement).value, u.is_active)"
                 >
@@ -140,16 +158,18 @@ onMounted(() => void load());
                 </select>
               </td>
               <td>
-                <span v-if="!u.allowed_shop_ids?.length" class="pill p-blue">全部店铺</span>
-                <span v-else class="pill p-amber">{{ u.allowed_shop_ids.join(", ") }}</span>
-                <button type="button" class="btn btn-sm" style="margin-left:4px;" @click="editShopScope(u)">改范围</button>
+                <span v-if="!u.allowed_shop_ids?.length" class="pill p-blue">全部</span>
+                <span v-else class="pill p-amber">{{ u.allowed_shop_ids.join(",") }}</span>
+                <button type="button" class="btn btn-sm" style="margin-left:4px;height:24px;padding:0 6px;" @click="editShopScope(u)">改</button>
               </td>
               <td>
-                <span class="pill" :class="u.is_active ? 'p-green' : 'p-red'">{{ u.is_active ? "启用" : "停用" }}</span>
-              </td>
-              <td>
-                <button type="button" class="btn btn-sm" @click="updateRole(u, u.role_code, !u.is_active)">
-                  {{ u.is_active ? "停用" : "启用" }}
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  :class="u.is_active ? '' : 'btn-primary'"
+                  @click="updateRole(u, u.role_code, !u.is_active)"
+                >
+                  {{ u.is_active ? "启用中" : "已停用" }}
                 </button>
               </td>
             </tr>
@@ -159,7 +179,7 @@ onMounted(() => void load());
 
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div class="card">
-          <div class="card-title">新增员工账号（需 m8:manage）</div>
+          <div class="card-title">新增员工账号</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             <div class="grid-2">
               <div>
@@ -189,16 +209,16 @@ onMounted(() => void load());
                 </select>
               </div>
               <div>
-                <label class="field-label">授权店铺白名单（可选，逗号分隔）</label>
-                <input v-model="form.allowed_shops_text" class="input" placeholder="留空=全部，如 AMZ-US-01" />
+                <label class="field-label">店铺白名单（逗号分隔）</label>
+                <input v-model="form.allowed_shops_text" class="input" placeholder="留空=全部" />
               </div>
             </div>
-            <button type="button" class="btn btn-primary" @click="createUser">创建账号并授权</button>
+            <button type="button" class="btn btn-primary btn-lg" @click="createUser">创建账号并授权</button>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-title">真实账号密码登录与 JWT 签发验证（POST /api/v1/auth/login）</div>
+          <div class="card-title">JWT 登录与密码校验</div>
           <div class="grid-3" style="margin-bottom:8px;">
             <div>
               <label class="field-label">组织</label>
@@ -209,11 +229,11 @@ onMounted(() => void load());
               <input v-model="loginForm.user_id" class="input" />
             </div>
             <div>
-              <label class="field-label">密码（演示默认 crosspilot123）</label>
+              <label class="field-label">密码</label>
               <input v-model="loginForm.password" type="password" class="input" />
             </div>
           </div>
-          <button type="button" class="btn btn-sm btn-primary" @click="verifyJwtLogin">校验登录并签发 JWT</button>
+          <button type="button" class="btn btn-primary" @click="verifyJwtLogin">校验登录并签发 JWT</button>
           <div v-if="loginResult" class="alert alert-green" style="margin-top:8px;">{{ loginResult }}</div>
         </div>
       </div>

@@ -543,7 +543,9 @@ class M2M3BiService:
                         )
                         return {**card, "ok": True, "value": cnt, "error": None}
                     ov = await self.get_m2_overview(card_session, org_id, include_mock=False, actor=actor)
-                    return {**card, "ok": True, "value": ov["summary"].get(key, 0), "error": None}
+                    summary = ov["summary"]
+                    val = summary.get("total_gmv_usd", 0) if key == "gmv_usd" else summary.get(key, 0)
+                    return {**card, "ok": True, "value": val, "error": None}
             except Exception as exc:
                 return {**card, "ok": False, "value": None, "error": str(exc)}
 

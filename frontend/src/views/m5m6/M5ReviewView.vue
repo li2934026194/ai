@@ -41,7 +41,7 @@ onMounted(() => void load());
 
     <div class="grid-2">
       <div class="card">
-        <div class="card-title">周度复盘与误差归档（M5-3）</div>
+        <div class="card-title">周度复盘与误差归档</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div>
             <label class="field-label">复盘周期标签</label>
@@ -51,12 +51,12 @@ onMounted(() => void load());
             <label class="field-label">复盘总结与调参结论</label>
             <textarea v-model="form.summary_text" class="textarea"></textarea>
           </div>
-          <button type="button" class="btn btn-primary" @click="createReview">生成并归档周复盘（需 m5:review）</button>
+          <button type="button" class="btn btn-primary btn-lg" @click="createReview">生成并归档周复盘</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">历史复盘归档记录</div>
+        <div class="card-title">历史复盘记录（{{ reviews.length }} 期）</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div v-for="r in reviews" :key="r.review_id" style="border:1px solid var(--border);border-radius:8px;padding:10px;">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
@@ -65,7 +65,7 @@ onMounted(() => void load());
             </div>
             <div style="font-size:13px;color:#334155;">{{ r.summary_text }}</div>
             <div style="font-size:11.5px;color:#64748b;margin-top:4px;">
-              PO 总数：{{ r.metrics.total_pos }} · 已收满：{{ r.metrics.fully_received }} · 未处理告警：{{ r.metrics.open_alerts }}
+              PO：{{ r.metrics.total_pos }} · 已收满：{{ r.metrics.fully_received }} · 未处理告警：{{ r.metrics.open_alerts }}
             </div>
           </div>
         </div>
