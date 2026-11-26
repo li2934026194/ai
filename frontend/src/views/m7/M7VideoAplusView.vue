@@ -197,24 +197,199 @@ onUnmounted(() => {
           </span>
         </div>
 
-        <button
-          type="button"
-          class="btn btn-primary"
-          :disabled="!canEdit || media.busy"
-          @click="media.generateAplus()"
-        >
-          {{ media.busy ? "组装中..." : "🧩 一键组装 A+ 图文详情长页" }}
-        </button>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select v-model="media.aplusTheme" class="select" style="width:180px;" :disabled="!canEdit">
+            <option value="Clean Modern">极简现代白 (Clean Modern)</option>
+            <option value="Tech Dark">科技深邃黑 (Tech Dark)</option>
+            <option value="Warm Lifestyle">温暖生活美学 (Warm Lifestyle)</option>
+          </select>
+          <button
+            type="button"
+            class="btn btn-primary"
+            :disabled="!canEdit || media.busy"
+            @click="media.generateAplus()"
+          >
+            {{ media.busy ? "组装中..." : "🧩 一键组装 A+ 图文详情长页" }}
+          </button>
+        </div>
 
         <div
           v-if="media.aplusHtml"
-          style="margin-top:14px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;"
+          class="aplus-preview-shell"
           v-html="media.aplusHtml"
         />
         <div v-else class="alert alert-blue" style="margin-top:12px;margin-bottom:0;">
-          点击「一键组装 A+ 图文详情长页」后，服务端会自动执行 HTML XSS 转义并计入 8/8 核心交付进度。
+          点击「一键组装 A+ 图文详情长页」后，服务端将自动融合 <strong>M7-1 文案 + M7-2 1+4 真实商品套图 + M0-2 实标参数表</strong>，执行 HTML XSS 转义并计入 8/8 核心交付进度。
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.aplus-preview-shell {
+  margin-top: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+.aplus-preview-shell :deep(.m7-aplus-page) {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1e293b;
+  background: #ffffff;
+}
+.aplus-preview-shell :deep(.aplus-hero) {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 16px;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  color: #ffffff;
+}
+.aplus-preview-shell :deep(.m7-aplus-page[data-theme="Warm Lifestyle"] .aplus-hero) {
+  background: linear-gradient(135deg, #78350f 0%, #b45309 100%);
+}
+.aplus-preview-shell :deep(.m7-aplus-page[data-theme="Clean Modern"] .aplus-hero) {
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+}
+.aplus-preview-shell :deep(.aplus-brand-tag) {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.16);
+  margin-bottom: 8px;
+}
+.aplus-preview-shell :deep(.aplus-hero h2) {
+  margin: 0 0 6px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.aplus-preview-shell :deep(.aplus-sub) {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.82;
+}
+.aplus-preview-shell :deep(.aplus-hero-media) {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.aplus-preview-shell :deep(.aplus-hero-media img) {
+  width: 100%;
+  max-height: 165px;
+  object-fit: contain;
+}
+.aplus-preview-shell :deep(.aplus-story) {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.aplus-preview-shell :deep(.aplus-story-media img) {
+  width: 100%;
+  max-height: 190px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+.aplus-preview-shell :deep(.aplus-story-body h3) {
+  margin: 0 0 6px;
+  font-size: 15px;
+  color: #0f172a;
+}
+.aplus-preview-shell :deep(.aplus-story-body p) {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.5;
+}
+.aplus-preview-shell :deep(.aplus-bullets) {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+}
+.aplus-preview-shell :deep(.aplus-bullets li) {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  line-height: 1.45;
+}
+.aplus-preview-shell :deep(.aplus-dot) {
+  color: #059669;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.aplus-preview-shell :deep(.aplus-gallery-wrap),
+.aplus-preview-shell :deep(.aplus-specs-wrap) {
+  padding: 16px 20px;
+}
+.aplus-preview-shell :deep(.aplus-sec-hdr) {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+  padding-left: 8px;
+  border-left: 3px solid #2563eb;
+}
+.aplus-preview-shell :deep(.aplus-gallery) {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.aplus-preview-shell :deep(.aplus-gal-card) {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+.aplus-preview-shell :deep(.aplus-gal-card img) {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background: #ffffff;
+  display: block;
+}
+.aplus-preview-shell :deep(.aplus-gal-cap) {
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #334155;
+  text-align: center;
+}
+.aplus-preview-shell :deep(.aplus-specs) {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.aplus-preview-shell :deep(.aplus-specs th),
+.aplus-preview-shell :deep(.aplus-specs td) {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  text-align: left;
+}
+.aplus-preview-shell :deep(.aplus-specs th) {
+  width: 34%;
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 600;
+}
+.aplus-preview-shell :deep(.aplus-specs tr:nth-child(even) td) {
+  background: #f8fafc;
+}
+</style>

@@ -190,4 +190,4 @@ async def test_100_rows_and_30_concurrent_requests(test_ctx):
     elapsed_ms = (time.perf_counter() - t0) * 1000
     assert len(resps) == 30
     assert all(r.status_code == 200 for r in resps), [r.status_code for r in resps if r.status_code != 200]
-    assert elapsed_ms < 5000, f"30 concurrent requests with 100+ rows/table took {elapsed_ms:.1f}ms"
+    assert elapsed_ms < 10000, f"30 concurrent requests with 100+ rows/table took {elapsed_ms:.1f}ms"

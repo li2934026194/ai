@@ -73,6 +73,7 @@ export const useM7MediaStore = defineStore("m7Media", () => {
   const segments = ref<VideoSegmentDTO[]>(makeDefaultSegments("商品"));
 
   const aplusHtml = ref("");
+  const aplusTheme = ref<"Clean Modern" | "Tech Dark" | "Warm Lifestyle">("Clean Modern");
   const busy = ref(false);
   const mediaError = ref("");
 
@@ -336,12 +337,12 @@ export const useM7MediaStore = defineStore("m7Media", () => {
     mediaError.value = "";
     try {
       const res = await m7Api.generateAplus(
-        { sku: ws.currentSku, platform: ws.platform, theme: "Clean Modern" },
+        { sku: ws.currentSku, platform: ws.platform, theme: aplusTheme.value },
         `aplus-${ws.currentSku}-${ws.platform}-${Date.now()}`
       );
       aplusHtml.value = res.html;
       await ws.hydrateSummary();
-      ws.showToast("A+ 图文详情长页组装完成");
+      ws.showToast(`A+ 图文详情长页组装完成（主题：${aplusTheme.value}）`);
     } catch (e) {
       if (e instanceof M7ApiError) mediaError.value = `${e.code}: ${e.message}`;
     } finally {
@@ -369,6 +370,7 @@ export const useM7MediaStore = defineStore("m7Media", () => {
     videoError,
     segments,
     aplusHtml,
+    aplusTheme,
     busy,
     mediaError,
     toggleAiPerson,

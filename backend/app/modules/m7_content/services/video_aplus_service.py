@@ -371,14 +371,30 @@ class VideoAplusService:
         by_slot = {a.asset_slot: a for a in selected}
         title_txt = str((by_slot["copy_title"].content_json or {}).get("text", "")) if "copy_title" in by_slot else product.name
         bullets_txt = str((by_slot["copy_bullets"].content_json or {}).get("text", "")) if "copy_bullets" in by_slot else "\n".join(product.selling_points)
-        desc_txt = str((by_slot["copy_desc"].content_json or {}).get("text", "")) if "copy_desc" in by_slot else ""
+        desc_txt = str((by_slot["copy_desc"].content_json or {}).get("text", "")) if "copy_desc" in by_slot else "Engineered for everyday reliability with verified specs and multi-region compliance."
+
+        # 消费 M7-2 实拍/生成套图（若 M7-2 尚未生成则回退静态白底商业主图）
+        img_assets = [by_slot[f"img_{i}"] for i in range(5) if f"img_{i}" in by_slot]
+        media_map = await repo.list_media_for_assets(org_id, [a.asset_id for a in img_assets]) if img_assets else {}
+        fallback_img = f"/product-images/{product.sku}.png"
+        slot_urls: list[str] = []
+        for i in range(5):
+            slot_key = f"img_{i}"
+            if slot_key in by_slot and by_slot[slot_key].asset_id in media_map:
+                slot_urls.append(f"/api/v1/orgs/{org_id}/m7/media/{media_map[by_slot[slot_key].asset_id].media_id}")
+            else:
+                slot_urls.append(fallback_img)
 
         # XSS 实体转义
         safe_name = html.escape(product.name)
+        safe_sku = html.escape(product.sku)
+        safe_brand = html.escape(product.brand_name)
+        safe_plat = html.escape(req.platform.upper())
         safe_title = html.escape(title_txt)
         safe_desc = html.escape(desc_txt)
+        safe_theme = html.escape(req.theme)
         safe_bullets_li = "".join(
-            f"<li>{html.escape(line.strip())}</li>"
+            f"<li><span class=\"aplus-dot\">✓</span><span>{html.escape(line.strip())}</span></li>"
             for line in bullets_txt.splitlines()
             if line.strip()
         )
@@ -386,12 +402,43 @@ class VideoAplusService:
             f"<tr><th>{html.escape(str(k))}</th><td>{html.escape(str(v))}</td></tr>"
             for k, v in product.specs.items()
         )
+        gallery_titles = ["Lifestyle Usage", "Core Feature", "Macro Craft", "In-Box Specs"]
+        safe_gallery_cards = "".join(
+            f'<div class="aplus-gal-card">'
+            f'<img src="{html.escape(slot_urls[idx])}" alt="{safe_name} - {gallery_titles[idx - 1]}" />'
+            f'<div class="aplus-gal-cap"><strong>0{idx}</strong> {gallery_titles[idx - 1]}</div>'
+            f'</div>'
+            for idx in range(1, 5)
+        )
+        safe_hero_img = html.escape(slot_urls[0])
+        safe_story_img = html.escape(slot_urls[1])
         aplus_html = (
-            f'<section class="m7-aplus-page" data-theme="{html.escape(req.theme)}">'
-            f'<header class="aplus-hero"><h2>{safe_title}</h2><p>{safe_name} · {html.escape(product.sku)}</p></header>'
-            f'<div class="aplus-story"><p>{safe_desc}</p><ul>{safe_bullets_li}</ul></div>'
+            f'<section class="m7-aplus-page" data-theme="{safe_theme}">'
+            f'<header class="aplus-hero">'
+            f'<div class="aplus-hero-copy">'
+            f'<div class="aplus-brand-tag">{safe_brand} · {safe_plat} A+ Brand Story</div>'
+            f'<h2>{safe_title}</h2>'
+            f'<p class="aplus-sub">{safe_name} · SKU: {safe_sku}</p>'
+            f'</div>'
+            f'<div class="aplus-hero-media"><img src="{safe_hero_img}" alt="{safe_name}" /></div>'
+            f'</header>'
+            f'<div class="aplus-story">'
+            f'<div class="aplus-story-media"><img src="{safe_story_img}" alt="{safe_name} Feature" /></div>'
+            f'<div class="aplus-story-body">'
+            f'<h3>Why Choose {safe_brand}</h3>'
+            f'<p>{safe_desc}</p>'
+            f'<ul class="aplus-bullets">{safe_bullets_li}</ul>'
+            f'</div>'
+            f'</div>'
+            f'<div class="aplus-gallery-wrap">'
+            f'<div class="aplus-sec-hdr">Product Highlights &amp; Detail Gallery (M7-2 1+4 套图联动)</div>'
+            f'<div class="aplus-gallery">{safe_gallery_cards}</div>'
+            f'</div>'
+            f'<div class="aplus-specs-wrap">'
+            f'<div class="aplus-sec-hdr">Verified Technical Specifications (M0-2 实标参数)</div>'
             f'<table class="aplus-specs"><tbody>{safe_specs_tr}</tbody></table>'
-            f"</section>"
+            f'</div>'
+            f'</section>'
         )
 
         job_id = f"job_{uuid.uuid4().hex[:14]}"
