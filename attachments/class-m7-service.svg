@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="850" viewBox="0 0 1800 850"><rect width="100%" height="100%" fill="white"/>
+<text x="55" y="78" font-family="Microsoft YaHei" font-size="44">商品内容创作 目标流程与数据边界</text>
+<rect x="55" y="180" width="400" height="270" rx="14" fill="#eef5fb" stroke="#50718e"/>
+<text x="78" y="247" font-family="Microsoft YaHei" font-size="30">商品事实与已发布工作流</text>
+<path d="M458 315 H485 l-10 -8 m10 8 l-10 8" fill="none" stroke="#3f607b" stroke-width="4"/>
+<rect x="490" y="180" width="400" height="270" rx="14" fill="#eef5fb" stroke="#50718e"/>
+<text x="513" y="247" font-family="Microsoft YaHei" font-size="30">确定性文案或ComfyUI视</text>
+<text x="513" y="295" font-family="Microsoft YaHei" font-size="30">觉分流</text>
+<path d="M893 315 H920 l-10 -8 m10 8 l-10 8" fill="none" stroke="#3f607b" stroke-width="4"/>
+<rect x="925" y="180" width="400" height="270" rx="14" fill="#eef5fb" stroke="#50718e"/>
+<text x="948" y="247" font-family="Microsoft YaHei" font-size="30">history及view取回真实文</text>
+<text x="948" y="295" font-family="Microsoft YaHei" font-size="30">件</text>
+<path d="M1328 315 H1355 l-10 -8 m10 8 l-10 8" fill="none" stroke="#3f607b" stroke-width="4"/>
+<rect x="1360" y="180" width="400" height="270" rx="14" fill="#eef5fb" stroke="#50718e"/>
+<text x="1383" y="247" font-family="Microsoft YaHei" font-size="30">单选资产送检与人工审批</text>
+<rect x="55" y="535" width="835" height="190" rx="14" fill="#f1f7f1" stroke="#50718e"/>
+<text x="78" y="602" font-family="Microsoft YaHei" font-size="30">图片视频字节存PostgreSQL</text>
+<rect x="925" y="535" width="835" height="190" rx="14" fill="#f1f7f1" stroke="#50718e"/>
+<text x="948" y="602" font-family="Microsoft YaHei" font-size="30">无真实文件不成功；生成不等于发布</text>
+<text x="55" y="813" font-family="Microsoft YaHei" font-size="30" fill="#536675">目标设计 2026-11-26  ·  图示不代表代码已实现或服务已部署</text></svg>

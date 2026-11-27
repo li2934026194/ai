@@ -1,0 +1,7 @@
+sequenceDiagram
+    UI->>API: POST generation-jobs COPYWRITING 幂等请求
+    API->>Facts: 校验组织商品与工作流
+    API->>Strategy: 商品事实确定性生成五组草稿
+    Strategy->>DB: 保存AgentRun任务与JSON资产
+    UI->>API: 单选方案并对指定区段送检
+    API->>DB: 独立ComplianceCheck，后续人工审批

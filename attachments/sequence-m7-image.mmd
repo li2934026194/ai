@@ -1,0 +1,7 @@
+sequenceDiagram
+    UI->>API: 创建MAIN_IMAGE任务并锁工作流版本
+    API->>ComfyUI: prompt提交并保存prompt_id
+    UI->>API: sync轮询
+    API->>ComfyUI: history无历史保持运行，错误则失败
+    API->>ComfyUI: view下载真实图片并验证MIME及元数据
+    API->>DB: 事务保存bytea媒体及资产后才SUCCEEDED

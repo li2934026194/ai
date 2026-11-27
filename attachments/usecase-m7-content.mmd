@@ -1,0 +1,6 @@
+flowchart LR
+    A[商品事实与已发布工作流] --> B[确定性文案或ComfyUI视觉分流]
+    B --> C[history及view取回真实文件]
+    C --> D[单选资产送检与人工审批]
+    E[图片视频字节存PostgreSQL]
+    F[无真实文件不成功 生成不等于发布]

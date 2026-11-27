@@ -1,0 +1,1926 @@
+[
+  {
+    "path": "AGENTS.md",
+    "before": null,
+    "after": null,
+    "note": "操作约束，不是需求交付；保留安全与架构约束。",
+    "sha256_after": "207254f90c0a2880291b94dd5309afacc7c10ce9c5fa55ba4494b109e58f38db",
+    "sha256_interim": "207254f90c0a2880291b94dd5309afacc7c10ce9c5fa55ba4494b109e58f38db"
+  },
+  {
+    "path": "crosspilot-arena/AGENTS.md",
+    "before": null,
+    "after": null,
+    "note": "操作约束，不是需求交付；保留安全与架构约束。",
+    "sha256_after": "069db229d49383776cdfebfe0efc85dbff612fa8a617308a1813053889f0b33f",
+    "sha256_interim": "069db229d49383776cdfebfe0efc85dbff612fa8a617308a1813053889f0b33f"
+  },
+  {
+    "path": "crosspilot-arena/docs/00_docs_index.md",
+    "before": [
+      10,
+      8,
+      10,
+      10,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      16,
+      15,
+      19
+    ],
+    "note": "补充目标与演示实现区分、链接统一基线；历史测试结果不能代表老师全需求通过。",
+    "sha256_after": "fe1475a17b2bbddf48135ecc73b9b67a1c361c66fcfaef3793dec5927954b57c",
+    "sha256_interim": "fe1475a17b2bbddf48135ecc73b9b67a1c361c66fcfaef3793dec5927954b57c"
+  },
+  {
+    "path": "crosspilot-arena/docs/06_test_execution_report.md",
+    "before": [
+      10,
+      8,
+      10,
+      10,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      16,
+      15,
+      19
+    ],
+    "note": "补充目标与演示实现区分、链接统一基线；历史测试结果不能代表老师全需求通过。",
+    "sha256_after": "264b71d2ed9d86a6c05366a813702ae922e0521d7975e4959a0b239a125a8f60",
+    "sha256_interim": "264b71d2ed9d86a6c05366a813702ae922e0521d7975e4959a0b239a125a8f60"
+  },
+  {
+    "path": "crosspilot-arena/docs/detailed-design.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "9c0cc2ebe2f76869a7059c169dece8ab6edb41fb6d1bbae31ae71980e3f752ee",
+    "sha256_interim": "9c0cc2ebe2f76869a7059c169dece8ab6edb41fb6d1bbae31ae71980e3f752ee"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m0/01_requirements.md",
+    "before": [
+      13,
+      10,
+      10,
+      11,
+      8
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿仅店铺/主档/盘点，缺完整多渠道映射和独立同步验收；已补目标，真实字段/迁移仍待细化。",
+    "sha256_after": "59756ae5d285002bdfaaa16b3ddd4a085f8241673c2adf48f49d1fd2b0c77352",
+    "sha256_interim": "59756ae5d285002bdfaaa16b3ddd4a085f8241673c2adf48f49d1fd2b0c77352"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m0/02_hld.md",
+    "before": [
+      13,
+      10,
+      10,
+      11,
+      8
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿仅店铺/主档/盘点，缺完整多渠道映射和独立同步验收；已补目标，真实字段/迁移仍待细化。",
+    "sha256_after": "ded04b9f56aade1d6c8cbeee5022b4d32f484bfdb5de087fb05c43fa4dacdd11",
+    "sha256_interim": "ded04b9f56aade1d6c8cbeee5022b4d32f484bfdb5de087fb05c43fa4dacdd11"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m0/03_lld.md",
+    "before": [
+      13,
+      10,
+      10,
+      11,
+      8
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿仅店铺/主档/盘点，缺完整多渠道映射和独立同步验收；已补目标，真实字段/迁移仍待细化。",
+    "sha256_after": "6f806eaf881e5180e98a2f9d1b3c20ec78149d14ee2a0919228ee08215fbe208",
+    "sha256_interim": "6f806eaf881e5180e98a2f9d1b3c20ec78149d14ee2a0919228ee08215fbe208"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m0/04_test_cases.md",
+    "before": [
+      13,
+      10,
+      10,
+      11,
+      8
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿仅店铺/主档/盘点，缺完整多渠道映射和独立同步验收；已补目标，真实字段/迁移仍待细化。",
+    "sha256_after": "7b440add21be61f290e5a84d135bddaafe79d931d237733048c1c66a39af6fa7",
+    "sha256_interim": "7b440add21be61f290e5a84d135bddaafe79d931d237733048c1c66a39af6fa7"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m1/01_requirements.md",
+    "before": [
+      8,
+      6,
+      8,
+      9,
+      8
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿 FAQ/退款简化了 Milvus 推荐、会话消息、WS、订单核验和附件；已补老师链路。",
+    "sha256_after": "562d526eb5a21c22c838bc50e7b923182317123f0fdacdea1f64d86257d905d0",
+    "sha256_interim": "562d526eb5a21c22c838bc50e7b923182317123f0fdacdea1f64d86257d905d0"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m1/02_hld.md",
+    "before": [
+      8,
+      6,
+      8,
+      9,
+      8
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿 FAQ/退款简化了 Milvus 推荐、会话消息、WS、订单核验和附件；已补老师链路。",
+    "sha256_after": "6d402eb6995c049f4b967dcc8019c59feb31d3dd351f57ec6b0520ce7f6d7beb",
+    "sha256_interim": "6d402eb6995c049f4b967dcc8019c59feb31d3dd351f57ec6b0520ce7f6d7beb"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m1/03_lld.md",
+    "before": [
+      8,
+      6,
+      8,
+      9,
+      8
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿 FAQ/退款简化了 Milvus 推荐、会话消息、WS、订单核验和附件；已补老师链路。",
+    "sha256_after": "5bbcfddb2584960b9eb526ec2f4de144f62bef557fc46c8dd6e6c1a095c632ef",
+    "sha256_interim": "5bbcfddb2584960b9eb526ec2f4de144f62bef557fc46c8dd6e6c1a095c632ef"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m1/04_test_cases.md",
+    "before": [
+      8,
+      6,
+      8,
+      9,
+      8
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿 FAQ/退款简化了 Milvus 推荐、会话消息、WS、订单核验和附件；已补老师链路。",
+    "sha256_after": "7faf6a297a29f623fe8e686239f66c5175a5c101421f056ba6604f4662afeb0a",
+    "sha256_interim": "7faf6a297a29f623fe8e686239f66c5175a5c101421f056ba6604f4662afeb0a"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m2_m3/01_requirements.md",
+    "before": [
+      5,
+      7,
+      6,
+      8,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿固定财务看板/广告页替代驾驶舱设计；缺双版本、四卡并发、三路径和对话记忆；已补目标。",
+    "sha256_after": "a5ac8237c842bbcbb9806ed8a767f4a91ac30ec8fedd39fdd533033bf099b02c",
+    "sha256_interim": "a5ac8237c842bbcbb9806ed8a767f4a91ac30ec8fedd39fdd533033bf099b02c"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m2_m3/02_hld.md",
+    "before": [
+      5,
+      7,
+      6,
+      8,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿固定财务看板/广告页替代驾驶舱设计；缺双版本、四卡并发、三路径和对话记忆；已补目标。",
+    "sha256_after": "083de9490bdd63644a53db10ff063a0f5bbc244045ca04cfada2aa0c2c18c75e",
+    "sha256_interim": "083de9490bdd63644a53db10ff063a0f5bbc244045ca04cfada2aa0c2c18c75e"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m2_m3/03_lld.md",
+    "before": [
+      5,
+      7,
+      6,
+      8,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿固定财务看板/广告页替代驾驶舱设计；缺双版本、四卡并发、三路径和对话记忆；已补目标。",
+    "sha256_after": "8b82b478c484e0b1231ac91b84576621b35b4f20a6943ecc2d6d57e738f11fee",
+    "sha256_interim": "8b82b478c484e0b1231ac91b84576621b35b4f20a6943ecc2d6d57e738f11fee"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m2_m3/04_test_cases.md",
+    "before": [
+      5,
+      7,
+      6,
+      8,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿固定财务看板/广告页替代驾驶舱设计；缺双版本、四卡并发、三路径和对话记忆；已补目标。",
+    "sha256_after": "97a26c924392a5f78b5e8e50429e9250846d0c4169cda883a27f5f2046f937ec",
+    "sha256_interim": "97a26c924392a5f78b5e8e50429e9250846d0c4169cda883a27f5f2046f937ec"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m4/01_requirements.md",
+    "before": [
+      7,
+      9,
+      6,
+      9,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿候选五维评分替代周事实/研究/测款，固定费用替代完整经营利润；已补来源和测款要求。",
+    "sha256_after": "3dc7a8d05db7bce732977654b22043995c0c491970fff4db355f25fe5dc23fcf",
+    "sha256_interim": "3dc7a8d05db7bce732977654b22043995c0c491970fff4db355f25fe5dc23fcf"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m4/02_hld.md",
+    "before": [
+      7,
+      9,
+      6,
+      9,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿候选五维评分替代周事实/研究/测款，固定费用替代完整经营利润；已补来源和测款要求。",
+    "sha256_after": "9b129210147710d62f33e1a89ec60fb141ed0b12c249aaf61cf5bb02ae3e3a81",
+    "sha256_interim": "9b129210147710d62f33e1a89ec60fb141ed0b12c249aaf61cf5bb02ae3e3a81"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m4/03_lld.md",
+    "before": [
+      7,
+      9,
+      6,
+      9,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿候选五维评分替代周事实/研究/测款，固定费用替代完整经营利润；已补来源和测款要求。",
+    "sha256_after": "7d45c556d11fc07a3ffd7e68a97cc863acfc4733c988924c4c60f6c46b81fd58",
+    "sha256_interim": "7d45c556d11fc07a3ffd7e68a97cc863acfc4733c988924c4c60f6c46b81fd58"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m4/04_test_cases.md",
+    "before": [
+      7,
+      9,
+      6,
+      9,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿候选五维评分替代周事实/研究/测款，固定费用替代完整经营利润；已补来源和测款要求。",
+    "sha256_after": "983118c7402263ad5b5c601dfbec6066a9b7550841e802288997ad72b24d1cb2",
+    "sha256_interim": "983118c7402263ad5b5c601dfbec6066a9b7550841e802288997ad72b24d1cb2"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m5_m6/01_requirements.md",
+    "before": [
+      9,
+      9,
+      5,
+      10,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿缺完整冻结预测评估与老师补货状态机，审批/收货改库存冲突；已明确禁止并补目标。",
+    "sha256_after": "d79fd27873928ac9904367287b87027328061a10789da8e7ef8ed0d26d68c66c",
+    "sha256_interim": "d79fd27873928ac9904367287b87027328061a10789da8e7ef8ed0d26d68c66c"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m5_m6/02_hld.md",
+    "before": [
+      9,
+      9,
+      5,
+      10,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿缺完整冻结预测评估与老师补货状态机，审批/收货改库存冲突；已明确禁止并补目标。",
+    "sha256_after": "50008a28730c4238f7b7749c70516481250cb915d63c8d5a40d04597b0561e0e",
+    "sha256_interim": "50008a28730c4238f7b7749c70516481250cb915d63c8d5a40d04597b0561e0e"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m5_m6/03_lld.md",
+    "before": [
+      9,
+      9,
+      5,
+      10,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿缺完整冻结预测评估与老师补货状态机，审批/收货改库存冲突；已明确禁止并补目标。",
+    "sha256_after": "76d3eee603f5f1390e02e2fca31603d3f552115b2dc9f4e2a7326a4c6c0eab9a",
+    "sha256_interim": "76d3eee603f5f1390e02e2fca31603d3f552115b2dc9f4e2a7326a4c6c0eab9a"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m5_m6/04_test_cases.md",
+    "before": [
+      9,
+      9,
+      5,
+      10,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿缺完整冻结预测评估与老师补货状态机，审批/收货改库存冲突；已明确禁止并补目标。",
+    "sha256_after": "7132fd9a8cd2942601aecdb2d92864d8ffa6018e83f4ecba867404d6990264f6",
+    "sha256_interim": "7132fd9a8cd2942601aecdb2d92864d8ffa6018e83f4ecba867404d6990264f6"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m8/01_requirements.md",
+    "before": [
+      12,
+      9,
+      11,
+      11,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿强制九岗、部分虚构已有表和本地任务底座；已区分角色草案、目标服务和未实现项。",
+    "sha256_after": "08aa1b5f45ddb69b507f569b950e5c8cdb7e1860e081cbacf975081233a9e744",
+    "sha256_interim": "08aa1b5f45ddb69b507f569b950e5c8cdb7e1860e081cbacf975081233a9e744"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m8/02_hld.md",
+    "before": [
+      12,
+      9,
+      11,
+      11,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿强制九岗、部分虚构已有表和本地任务底座；已区分角色草案、目标服务和未实现项。",
+    "sha256_after": "4002f1fa08b9289560cef2f6319210738464ede763edc2f55233296d3f4fc42f",
+    "sha256_interim": "4002f1fa08b9289560cef2f6319210738464ede763edc2f55233296d3f4fc42f"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m8/03_lld.md",
+    "before": [
+      12,
+      9,
+      11,
+      11,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿强制九岗、部分虚构已有表和本地任务底座；已区分角色草案、目标服务和未实现项。",
+    "sha256_after": "b8004381e20e9fef59ab0820c019b8d0648ffab08c38525543a2510bbbe430c1",
+    "sha256_interim": "b8004381e20e9fef59ab0820c019b8d0648ffab08c38525543a2510bbbe430c1"
+  },
+  {
+    "path": "crosspilot-arena/docs/modules/m8/04_test_cases.md",
+    "before": [
+      12,
+      9,
+      11,
+      11,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿强制九岗、部分虚构已有表和本地任务底座；已区分角色草案、目标服务和未实现项。",
+    "sha256_after": "b168d026be8b7c5c1d765d6f5ccf874e04793d3ce2207779342a1d384a02c66a",
+    "sha256_interim": "b168d026be8b7c5c1d765d6f5ccf874e04793d3ce2207779342a1d384a02c66a"
+  },
+  {
+    "path": "crosspilot-arena/docs/plans/srs-deviation-analysis.docx",
+    "before": [
+      16,
+      15,
+      16,
+      13,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      17,
+      13,
+      18
+    ],
+    "note": "已补老师技术存储基线，纠正“老师强制六角色”来源误判；原规划不作当前实现证据。DOCX 未通过渲染验收。",
+    "sha256_after": "01e4dd026858ad9155e95737b6e0b501035ad5687410311d58db8a41043b26f2",
+    "sha256_interim": "0ac270ccfede585cad212ca71b5057ee3669375257b90c7f173804411e6b1938"
+  },
+  {
+    "path": "crosspilot-arena/docs/plans/业务与数据通俗说明_123步骤.docx",
+    "before": [
+      16,
+      15,
+      16,
+      13,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      17,
+      13,
+      18
+    ],
+    "note": "已补老师技术存储基线，纠正“老师强制六角色”来源误判；原规划不作当前实现证据。DOCX 未通过渲染验收。",
+    "sha256_after": "d332deb1162ee49c31ace8aa5197fb188c09adeb789fef389e5350ba2e4d06e2",
+    "sha256_interim": "c570c9aa0cec9643330aa0f242f439562d6003e3493003a4139ecaead2d51243"
+  },
+  {
+    "path": "crosspilot-arena/docs/plans/需求分析文档_V2_对齐SRS与V6数据流.docx",
+    "before": [
+      16,
+      15,
+      16,
+      13,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      17,
+      13,
+      18
+    ],
+    "note": "已补老师技术存储基线，纠正“老师强制六角色”来源误判；原规划不作当前实现证据。DOCX 未通过渲染验收。",
+    "sha256_after": "3ff4cd66c2ace5148ac9eaa8fc88ff9924442e29b41c14030f6637ff13698387",
+    "sha256_interim": "c996ea2135542723f8d6bf4178f034abfb2091419852a3cc63e49b2861db5da8"
+  },
+  {
+    "path": "crosspilot-arena/docs/prototypes/README.md",
+    "before": null,
+    "after": null,
+    "note": "原型索引/辅助说明，不能作为功能、数据库或部署已完成证据；由本次统一基线限定适用范围。",
+    "sha256_after": "61ea2ad3685ffca98a6ee1eadf7c0b1a7a0d41f91efe9bcb08cc6b703e9f6810",
+    "sha256_interim": "61ea2ad3685ffca98a6ee1eadf7c0b1a7a0d41f91efe9bcb08cc6b703e9f6810"
+  },
+  {
+    "path": "crosspilot-arena/docs/prototypes/ui_v6/README.md",
+    "before": null,
+    "after": null,
+    "note": "原型索引/辅助说明，不能作为功能、数据库或部署已完成证据；由本次统一基线限定适用范围。",
+    "sha256_after": "bbc8a951e1e1e9c284afb5462d90dbe7b8bed5087155fd2695b2a8d185b16064",
+    "sha256_interim": "bbc8a951e1e1e9c284afb5462d90dbe7b8bed5087155fd2695b2a8d185b16064"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/AI跨境电商平台-两周开发计划与方案设计_V1.1.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "28e618b3d69b1343bc224aeacfd9b3328aaf7978247aa27a0906b3d0e4eda6c5",
+    "sha256_interim": "28e618b3d69b1343bc224aeacfd9b3328aaf7978247aa27a0906b3d0e4eda6c5"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/AI跨境电商平台-模块需求细化_V1.1.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "490201b938be6ac05851ec649980e088ffea376ce55d50502de63b9522cbf3e4",
+    "sha256_interim": "490201b938be6ac05851ec649980e088ffea376ce55d50502de63b9522cbf3e4"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/AI跨境电商平台-第一版需求文档_V1.0.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "0bc7aa2d65fd943fc25930effa8f6be1212dd169abb3fb0f4db8500f37a2ef72",
+    "sha256_interim": "0bc7aa2d65fd943fc25930effa8f6be1212dd169abb3fb0f4db8500f37a2ef72"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/AI跨境电商平台V1.0-软件需求规格说明书.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "3db76ab6b729a202aed1feb129d89b397eaebd747ecbfcbaa5b506b62d625ed9",
+    "sha256_interim": "3db76ab6b729a202aed1feb129d89b397eaebd747ecbfcbaa5b506b62d625ed9"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/AI跨境电商平台V1.1-架构与需求.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "f7196ea567d8d62a1a65f27ce621400e342dc33d0f1f1e2ee39981761fccb2d7",
+    "sha256_interim": "f7196ea567d8d62a1a65f27ce621400e342dc33d0f1f1e2ee39981761fccb2d7"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付概要设计说明书.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "3d881ee29378ab22341160b3dc318743fda8c35362ee4bf208873dbc073e9666",
+    "sha256_interim": "3d881ee29378ab22341160b3dc318743fda8c35362ee4bf208873dbc073e9666"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付测试用例.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "de2ae6602c92a673d7d4fff8285e0d47f6168ef70e31978c57d1e610e0582bf6",
+    "sha256_interim": "de2ae6602c92a673d7d4fff8285e0d47f6168ef70e31978c57d1e610e0582bf6"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付需求说明书.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "14599082e0007e431fc1bfca6afe3dd35ba9b959c74cdb4827851154cdb3c13c",
+    "sha256_interim": "14599082e0007e431fc1bfca6afe3dd35ba9b959c74cdb4827851154cdb3c13c"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/CrossPilot-M7测试用例思维导图大纲.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "9d4156482ecaa1d3f973a54924526293fd6ac5eb52962da553fc2ce34ef991c6",
+    "sha256_interim": "9d4156482ecaa1d3f973a54924526293fd6ac5eb52962da553fc2ce34ef991c6"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/CrossPilot-需求分析.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "d1cb31bf3037e3491ab0fcacb1faa6c83dd296ec3358891e45c4025781c2e3f6",
+    "sha256_interim": "d1cb31bf3037e3491ab0fcacb1faa6c83dd296ec3358891e45c4025781c2e3f6"
+  },
+  {
+    "path": "crosspilot-arena/docs/requirements/README.md",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "0a954330197393dd16a2a806a08568e5064dab30b75c6d0a3a1a68e01c9b5100",
+    "sha256_interim": "0a954330197393dd16a2a806a08568e5064dab30b75c6d0a3a1a68e01c9b5100"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档概要设计说明书.docx",
+    "before": [
+      13,
+      10,
+      10,
+      11,
+      8
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿仅店铺/主档/盘点，缺完整多渠道映射和独立同步验收；已补目标，真实字段/迁移仍待细化。 DOCX 未通过渲染验收。",
+    "sha256_after": "47a4d2214bf578be5de87dc01028239c7637ac7b0f228a15c528cf82be246ed2",
+    "sha256_interim": "47a4d2214bf578be5de87dc01028239c7637ac7b0f228a15c528cf82be246ed2"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档测试用例.docx",
+    "before": [
+      13,
+      10,
+      10,
+      11,
+      8
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿仅店铺/主档/盘点，缺完整多渠道映射和独立同步验收；已补目标，真实字段/迁移仍待细化。 DOCX 未通过渲染验收。",
+    "sha256_after": "039244fa72581180d560262959a1a2dfbb462213d4b7ffb25988464a2771fc09",
+    "sha256_interim": "039244fa72581180d560262959a1a2dfbb462213d4b7ffb25988464a2771fc09"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档详细设计说明书.docx",
+    "before": [
+      13,
+      10,
+      10,
+      11,
+      8
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿仅店铺/主档/盘点，缺完整多渠道映射和独立同步验收；已补目标，真实字段/迁移仍待细化。 DOCX 未通过渲染验收。",
+    "sha256_after": "aafc144b942ce9627b79d26b690f44b18a0195a7034c48b4454c54d2c8ed39a0",
+    "sha256_interim": "aafc144b942ce9627b79d26b690f44b18a0195a7034c48b4454c54d2c8ed39a0"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档需求说明书.docx",
+    "before": [
+      13,
+      10,
+      10,
+      11,
+      8
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿仅店铺/主档/盘点，缺完整多渠道映射和独立同步验收；已补目标，真实字段/迁移仍待细化。 DOCX 未通过渲染验收。",
+    "sha256_after": "796cc330091b94b60f5691b5b26d516e7390af16ad28307b1293318449f4cffc",
+    "sha256_interim": "796cc330091b94b60f5691b5b26d516e7390af16ad28307b1293318449f4cffc"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环概要设计说明书.docx",
+    "before": [
+      8,
+      6,
+      8,
+      9,
+      8
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿 FAQ/退款简化了 Milvus 推荐、会话消息、WS、订单核验和附件；已补老师链路。 DOCX 未通过渲染验收。",
+    "sha256_after": "2df32b6da50d33d132b211a252208bb984bd1c9168f298228ae506c6b007834c",
+    "sha256_interim": "2df32b6da50d33d132b211a252208bb984bd1c9168f298228ae506c6b007834c"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环测试用例.docx",
+    "before": [
+      8,
+      6,
+      8,
+      9,
+      8
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿 FAQ/退款简化了 Milvus 推荐、会话消息、WS、订单核验和附件；已补老师链路。 DOCX 未通过渲染验收。",
+    "sha256_after": "ae9150d19390109c6ab3845efa71bfe013be057c29f365213ade9801c407b23e",
+    "sha256_interim": "ae9150d19390109c6ab3845efa71bfe013be057c29f365213ade9801c407b23e"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环详细设计说明书.docx",
+    "before": [
+      8,
+      6,
+      8,
+      9,
+      8
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿 FAQ/退款简化了 Milvus 推荐、会话消息、WS、订单核验和附件；已补老师链路。 DOCX 未通过渲染验收。",
+    "sha256_after": "1ac3d2db071c0f207e2e8be3a286e04375f4d614e9d9ca62a93f4b941d6c1fad",
+    "sha256_interim": "1ac3d2db071c0f207e2e8be3a286e04375f4d614e9d9ca62a93f4b941d6c1fad"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环需求说明书.docx",
+    "before": [
+      8,
+      6,
+      8,
+      9,
+      8
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿 FAQ/退款简化了 Milvus 推荐、会话消息、WS、订单核验和附件；已补老师链路。 DOCX 未通过渲染验收。",
+    "sha256_after": "1ce70d07ef1b885de71e459e45541a23f25a80be4a4803338853e93cd1cfb087",
+    "sha256_interim": "1ce70d07ef1b885de71e459e45541a23f25a80be4a4803338853e93cd1cfb087"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数概要设计说明书.docx",
+    "before": [
+      5,
+      7,
+      6,
+      8,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿固定财务看板/广告页替代驾驶舱设计；缺双版本、四卡并发、三路径和对话记忆；已补目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "f4288d110b9c806f1914f6291adadd427455f043e06ff0dc27b4c53ca6cf8844",
+    "sha256_interim": "f4288d110b9c806f1914f6291adadd427455f043e06ff0dc27b4c53ca6cf8844"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数测试用例.docx",
+    "before": [
+      5,
+      7,
+      6,
+      8,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿固定财务看板/广告页替代驾驶舱设计；缺双版本、四卡并发、三路径和对话记忆；已补目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "80449bac128d76005f8d9f130d3853803f79a57663a3de91876e87734a1c6662",
+    "sha256_interim": "80449bac128d76005f8d9f130d3853803f79a57663a3de91876e87734a1c6662"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数详细设计说明书.docx",
+    "before": [
+      5,
+      7,
+      6,
+      8,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿固定财务看板/广告页替代驾驶舱设计；缺双版本、四卡并发、三路径和对话记忆；已补目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "1c2ce25406493f213f24696849053150914dfd36460111009a0a6c9f0fc631d6",
+    "sha256_interim": "1c2ce25406493f213f24696849053150914dfd36460111009a0a6c9f0fc631d6"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数需求说明书.docx",
+    "before": [
+      5,
+      7,
+      6,
+      8,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿固定财务看板/广告页替代驾驶舱设计；缺双版本、四卡并发、三路径和对话记忆；已补目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "1bb43283e455e366d4bc4dbc70b5a73681363b52fc5d4176264e600bdfa68af2",
+    "sha256_interim": "1bb43283e455e366d4bc4dbc70b5a73681363b52fc5d4176264e600bdfa68af2"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策概要设计说明书.docx",
+    "before": [
+      7,
+      9,
+      6,
+      9,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿候选五维评分替代周事实/研究/测款，固定费用替代完整经营利润；已补来源和测款要求。 DOCX 未通过渲染验收。",
+    "sha256_after": "32354a6b36eab25397e93cf37f7141c247a970840aad63983c2ecd3ca3844de8",
+    "sha256_interim": "32354a6b36eab25397e93cf37f7141c247a970840aad63983c2ecd3ca3844de8"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策测试用例.docx",
+    "before": [
+      7,
+      9,
+      6,
+      9,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿候选五维评分替代周事实/研究/测款，固定费用替代完整经营利润；已补来源和测款要求。 DOCX 未通过渲染验收。",
+    "sha256_after": "a3c746fadd41c2b8f76c0e84d6604871f9bf629d02f724427a40a56c0e8cf634",
+    "sha256_interim": "a3c746fadd41c2b8f76c0e84d6604871f9bf629d02f724427a40a56c0e8cf634"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策详细设计说明书.docx",
+    "before": [
+      7,
+      9,
+      6,
+      9,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿候选五维评分替代周事实/研究/测款，固定费用替代完整经营利润；已补来源和测款要求。 DOCX 未通过渲染验收。",
+    "sha256_after": "b2e96bdbbb95d674e0e00a3f31ba69875d4f53e2413ff2d519a4a15095b2c7f8",
+    "sha256_interim": "b2e96bdbbb95d674e0e00a3f31ba69875d4f53e2413ff2d519a4a15095b2c7f8"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策需求说明书.docx",
+    "before": [
+      7,
+      9,
+      6,
+      9,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿候选五维评分替代周事实/研究/测款，固定费用替代完整经营利润；已补来源和测款要求。 DOCX 未通过渲染验收。",
+    "sha256_after": "ca3651c793de1858454d3a37b9c89d9ee51598ddd0bd2270267f5b188378f37f",
+    "sha256_interim": "ca3651c793de1858454d3a37b9c89d9ee51598ddd0bd2270267f5b188378f37f"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货概要设计说明书.docx",
+    "before": [
+      9,
+      9,
+      5,
+      10,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿缺完整冻结预测评估与老师补货状态机，审批/收货改库存冲突；已明确禁止并补目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "67e79875364e9194969aa9f63145063781a2ed026c8dbfe207e524bcbec5113e",
+    "sha256_interim": "67e79875364e9194969aa9f63145063781a2ed026c8dbfe207e524bcbec5113e"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货测试用例.docx",
+    "before": [
+      9,
+      9,
+      5,
+      10,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿缺完整冻结预测评估与老师补货状态机，审批/收货改库存冲突；已明确禁止并补目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "9bbecc0dfa45acc0764af1e65dffcbd723ada3f5a7a904cd1696b8516ee08e9b",
+    "sha256_interim": "9bbecc0dfa45acc0764af1e65dffcbd723ada3f5a7a904cd1696b8516ee08e9b"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货详细设计说明书.docx",
+    "before": [
+      9,
+      9,
+      5,
+      10,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿缺完整冻结预测评估与老师补货状态机，审批/收货改库存冲突；已明确禁止并补目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "b1ef068583cc0bfb9806bb278a562d460b9114f82718447c02ac87dd7b5a7a3b",
+    "sha256_interim": "b1ef068583cc0bfb9806bb278a562d460b9114f82718447c02ac87dd7b5a7a3b"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货需求说明书.docx",
+    "before": [
+      9,
+      9,
+      5,
+      10,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿缺完整冻结预测评估与老师补货状态机，审批/收货改库存冲突；已明确禁止并补目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "c996512ee585730b8b6ea21be2aba3508b1a8428defbc181b39d6313e7b6061c",
+    "sha256_interim": "c996512ee585730b8b6ea21be2aba3508b1a8428defbc181b39d6313e7b6061c"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座概要设计说明书.docx",
+    "before": [
+      12,
+      9,
+      11,
+      11,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿强制九岗、部分虚构已有表和本地任务底座；已区分角色草案、目标服务和未实现项。 DOCX 未通过渲染验收。",
+    "sha256_after": "29fd76153935125af0365fe5404063912c6513b2e906825c5da119083e49c1e5",
+    "sha256_interim": "29fd76153935125af0365fe5404063912c6513b2e906825c5da119083e49c1e5"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座测试用例.docx",
+    "before": [
+      12,
+      9,
+      11,
+      11,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿强制九岗、部分虚构已有表和本地任务底座；已区分角色草案、目标服务和未实现项。 DOCX 未通过渲染验收。",
+    "sha256_after": "7bf1ed09b3c961262851de02098cf844d66644840b74cdce14546c153c08d996",
+    "sha256_interim": "7bf1ed09b3c961262851de02098cf844d66644840b74cdce14546c153c08d996"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座详细设计说明书.docx",
+    "before": [
+      12,
+      9,
+      11,
+      11,
+      7
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿强制九岗、部分虚构已有表和本地任务底座；已区分角色草案、目标服务和未实现项。 DOCX 未通过渲染验收。",
+    "sha256_after": "dd63b64c7c12b61217d5892766465e9736eca7a2dc300577d13b5c2d91f1d22a",
+    "sha256_interim": "dd63b64c7c12b61217d5892766465e9736eca7a2dc300577d13b5c2d91f1d22a"
+  },
+  {
+    "path": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座需求说明书.docx",
+    "before": [
+      12,
+      9,
+      11,
+      11,
+      7
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿强制九岗、部分虚构已有表和本地任务底座；已区分角色草案、目标服务和未实现项。 DOCX 未通过渲染验收。",
+    "sha256_after": "006b93ed078f649bc6c6a58b533711c6b3710877485d18d601ec26b7d1515a2f",
+    "sha256_interim": "006b93ed078f649bc6c6a58b533711c6b3710877485d18d601ec26b7d1515a2f"
+  },
+  {
+    "path": "crosspilot-arena/README.md",
+    "before": [
+      10,
+      8,
+      10,
+      10,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      16,
+      15,
+      19
+    ],
+    "note": "补充目标与演示实现区分、链接统一基线；历史测试结果不能代表老师全需求通过。",
+    "sha256_after": "74a86108fd44b411201426bcc00efb0045f22b94756f53c1962e97de322d7f5e",
+    "sha256_interim": "2576611bd1c876b3732e21c8fad62b1aef7c7be3051786151c0c8168a3975e5a"
+  },
+  {
+    "path": "crosspilot-arena/README_M7.md",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。",
+    "sha256_after": "6a248c4fd88cc3d2666cef6e810e48e0d26745b0a27a8b8282bb2c890ccebfe3",
+    "sha256_interim": "6a248c4fd88cc3d2666cef6e810e48e0d26745b0a27a8b8282bb2c890ccebfe3"
+  },
+  {
+    "path": "CrossPilot-M7商品内容创作与合规交付测试用例.md",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。",
+    "sha256_after": "bd4362abf34af56944bf22056b484496f72f4a69c9debd187015d9d0d1a1415b",
+    "sha256_interim": "bd4362abf34af56944bf22056b484496f72f4a69c9debd187015d9d0d1a1415b"
+  },
+  {
+    "path": "CrossPilot-M7商品内容创作与合规交付需求说明书.md",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。",
+    "sha256_after": "e81bd51b230ba1883d02b19cb0742d3a78bb8df2c865a6eef158933aa73edf0a",
+    "sha256_interim": "e81bd51b230ba1883d02b19cb0742d3a78bb8df2c865a6eef158933aa73edf0a"
+  },
+  {
+    "path": "CrossPilot-M7概要设计说明书.md",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。",
+    "sha256_after": "68e2ff32060421da53e4d96a16e9b2b12167ba15334f68a80a45657b8766c1d4",
+    "sha256_interim": "68e2ff32060421da53e4d96a16e9b2b12167ba15334f68a80a45657b8766c1d4"
+  },
+  {
+    "path": "CrossPilot-M7测试用例思维导图大纲.md",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。",
+    "sha256_after": "bcb287b49379b11ec7870dabbb26281860be523703caa29abd1103c06d8823b3",
+    "sha256_interim": "bcb287b49379b11ec7870dabbb26281860be523703caa29abd1103c06d8823b3"
+  },
+  {
+    "path": "CrossPilot-详细设计.md",
+    "before": [
+      10,
+      8,
+      10,
+      10,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      16,
+      15,
+      19
+    ],
+    "note": "补充目标与演示实现区分、链接统一基线；历史测试结果不能代表老师全需求通过。",
+    "sha256_after": "d9455ddb763523200fba63fe4c01711c6c1c8d2ecc316a35027fd125bd28435e",
+    "sha256_interim": "d9455ddb763523200fba63fe4c01711c6c1c8d2ecc316a35027fd125bd28435e"
+  },
+  {
+    "path": "docs/requirements/AI跨境电商平台-两周开发计划与方案设计_V1.1.md",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "413c689bf72792a7fc437cbda1e34e0eac49e5d7273f152987c0546450dc5e39",
+    "sha256_interim": "413c689bf72792a7fc437cbda1e34e0eac49e5d7273f152987c0546450dc5e39"
+  },
+  {
+    "path": "docs/requirements/AI跨境电商平台-模块需求细化_V1.1.md",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "85889dfdc8360b99cbd9f914890c39244ee6930e2ba26b71b9de7a035cda81f0",
+    "sha256_interim": "85889dfdc8360b99cbd9f914890c39244ee6930e2ba26b71b9de7a035cda81f0"
+  },
+  {
+    "path": "docs/requirements/AI跨境电商平台-第一版需求文档_V1.0.md",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "d12e46edafbadefe1d783ce30108dfd07dd8d4faa8d34c254cd34d5bf5ed0f10",
+    "sha256_interim": "d12e46edafbadefe1d783ce30108dfd07dd8d4faa8d34c254cd34d5bf5ed0f10"
+  },
+  {
+    "path": "docs/requirements/AI跨境电商平台V1.0-软件需求规格说明书.md",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "6fa10f28d08d849480de9e6d4be760df3e0c0c70e7b6cffa4a7faba467ddef67",
+    "sha256_interim": "6fa10f28d08d849480de9e6d4be760df3e0c0c70e7b6cffa4a7faba467ddef67"
+  },
+  {
+    "path": "docs/requirements/AI跨境电商平台V1.1-架构与需求.md",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "c54c759f509b6e53ea30b5006ba626d3f8391a64f5129adfc239628b7a203302",
+    "sha256_interim": "c54c759f509b6e53ea30b5006ba626d3f8391a64f5129adfc239628b7a203302"
+  },
+  {
+    "path": "docs/requirements/CrossPilot-需求分析.md",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "e70a2191ab9c16c99e77437c5cacfffb64a5d2c856c7c982e7e166366819b13f",
+    "sha256_interim": "e70a2191ab9c16c99e77437c5cacfffb64a5d2c856c7c982e7e166366819b13f"
+  },
+  {
+    "path": "docs/requirements/README.md",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "d47d5b1d2972381c92a5ea879e47ea057fb48ef30e5136be3188a815a74ba05e",
+    "sha256_interim": "d47d5b1d2972381c92a5ea879e47ea057fb48ef30e5136be3188a815a74ba05e"
+  },
+  {
+    "path": "docx-all/docs/detailed-design.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "50f115f2ab54efca9abbac9717504e24af161f63fa3356e59bee0150d4fadc1e",
+    "sha256_interim": "50f115f2ab54efca9abbac9717504e24af161f63fa3356e59bee0150d4fadc1e"
+  },
+  {
+    "path": "docx-all/docs/plans/srs-deviation-analysis.docx",
+    "before": [
+      16,
+      15,
+      16,
+      13,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      17,
+      13,
+      18
+    ],
+    "note": "已补老师技术存储基线，纠正“老师强制六角色”来源误判；原规划不作当前实现证据。DOCX 未通过渲染验收。",
+    "sha256_after": "01e4dd026858ad9155e95737b6e0b501035ad5687410311d58db8a41043b26f2",
+    "sha256_interim": "0ac270ccfede585cad212ca71b5057ee3669375257b90c7f173804411e6b1938"
+  },
+  {
+    "path": "docx-all/docs/plans/业务与数据通俗说明_123步骤.docx",
+    "before": [
+      16,
+      15,
+      16,
+      13,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      17,
+      13,
+      18
+    ],
+    "note": "已补老师技术存储基线，纠正“老师强制六角色”来源误判；原规划不作当前实现证据。DOCX 未通过渲染验收。",
+    "sha256_after": "d332deb1162ee49c31ace8aa5197fb188c09adeb789fef389e5350ba2e4d06e2",
+    "sha256_interim": "c570c9aa0cec9643330aa0f242f439562d6003e3493003a4139ecaead2d51243"
+  },
+  {
+    "path": "docx-all/docs/plans/需求分析文档_V2_对齐SRS与V6数据流.docx",
+    "before": [
+      16,
+      15,
+      16,
+      13,
+      8
+    ],
+    "after": [
+      17,
+      18,
+      17,
+      13,
+      18
+    ],
+    "note": "已补老师技术存储基线，纠正“老师强制六角色”来源误判；原规划不作当前实现证据。DOCX 未通过渲染验收。",
+    "sha256_after": "3ff4cd66c2ace5148ac9eaa8fc88ff9924442e29b41c14030f6637ff13698387",
+    "sha256_interim": "c996ea2135542723f8d6bf4178f034abfb2091419852a3cc63e49b2861db5da8"
+  },
+  {
+    "path": "docx-all/docs/requirements/AI跨境电商平台-两周开发计划与方案设计_V1.1.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "28e618b3d69b1343bc224aeacfd9b3328aaf7978247aa27a0906b3d0e4eda6c5",
+    "sha256_interim": "28e618b3d69b1343bc224aeacfd9b3328aaf7978247aa27a0906b3d0e4eda6c5"
+  },
+  {
+    "path": "docx-all/docs/requirements/AI跨境电商平台-模块需求细化_V1.1.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "490201b938be6ac05851ec649980e088ffea376ce55d50502de63b9522cbf3e4",
+    "sha256_interim": "490201b938be6ac05851ec649980e088ffea376ce55d50502de63b9522cbf3e4"
+  },
+  {
+    "path": "docx-all/docs/requirements/AI跨境电商平台-第一版需求文档_V1.0.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "0bc7aa2d65fd943fc25930effa8f6be1212dd169abb3fb0f4db8500f37a2ef72",
+    "sha256_interim": "0bc7aa2d65fd943fc25930effa8f6be1212dd169abb3fb0f4db8500f37a2ef72"
+  },
+  {
+    "path": "docx-all/docs/requirements/AI跨境电商平台V1.0-软件需求规格说明书.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "3db76ab6b729a202aed1feb129d89b397eaebd747ecbfcbaa5b506b62d625ed9",
+    "sha256_interim": "3db76ab6b729a202aed1feb129d89b397eaebd747ecbfcbaa5b506b62d625ed9"
+  },
+  {
+    "path": "docx-all/docs/requirements/AI跨境电商平台V1.1-架构与需求.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "f7196ea567d8d62a1a65f27ce621400e342dc33d0f1f1e2ee39981761fccb2d7",
+    "sha256_interim": "f7196ea567d8d62a1a65f27ce621400e342dc33d0f1f1e2ee39981761fccb2d7"
+  },
+  {
+    "path": "docx-all/docs/requirements/CrossPilot-M7商品内容创作与合规交付概要设计说明书.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "53c45d637b7467bf91189ce0aac09eac460117f6cf3727a167064ebd2ccbfa6c",
+    "sha256_interim": "53c45d637b7467bf91189ce0aac09eac460117f6cf3727a167064ebd2ccbfa6c"
+  },
+  {
+    "path": "docx-all/docs/requirements/CrossPilot-M7商品内容创作与合规交付测试用例.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "93ba982323d421b64d40a46d8ccd044515f0a1e5619d60ad8e1575b30702ee08",
+    "sha256_interim": "93ba982323d421b64d40a46d8ccd044515f0a1e5619d60ad8e1575b30702ee08"
+  },
+  {
+    "path": "docx-all/docs/requirements/CrossPilot-M7商品内容创作与合规交付需求说明书.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      18,
+      19,
+      18,
+      16,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "c5a74c0e7b384722ccc1e13991bc5a8b88bb1139e382a50c49cbfa05809b2263",
+    "sha256_interim": "c5a74c0e7b384722ccc1e13991bc5a8b88bb1139e382a50c49cbfa05809b2263"
+  },
+  {
+    "path": "docx-all/docs/requirements/CrossPilot-M7测试用例思维导图大纲.docx",
+    "before": [
+      10,
+      4,
+      8,
+      11,
+      6
+    ],
+    "after": [
+      17,
+      19,
+      17,
+      12,
+      19
+    ],
+    "note": "原稿云端/Pillow/FFmpeg、本地文件、三组草稿替代 ComfyUI/媒体字节入库/五组草稿；已纠正目标。 DOCX 未通过渲染验收。",
+    "sha256_after": "9a35547527eccc1faa9fd6711218e038cc1c1f05e527bc22fa9bd029dbedc291",
+    "sha256_interim": "9a35547527eccc1faa9fd6711218e038cc1c1f05e527bc22fa9bd029dbedc291"
+  },
+  {
+    "path": "docx-all/docs/requirements/CrossPilot-需求分析.docx",
+    "before": null,
+    "after": null,
+    "note": "来源/历史需求副本，保留原文；本轮权威仅限桌面三份老师原件，不将其它分期文档的取舍冒充老师批准。",
+    "sha256_after": "d1cb31bf3037e3491ab0fcacb1faa6c83dd296ec3358891e45c4025781c2e3f6",
+    "sha256_interim": "d1cb31bf3037e3491ab0fcacb1faa6c83dd296ec3358891e45c4025781c2e3f6"
+  },
+  {
+    "path": "pilot/.pytest_cache/README.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "73fd6fccdd802c419a6b2d983d6c3173b7da97558ac4b589edec2dfe443db9ad",
+    "sha256_interim": "73fd6fccdd802c419a6b2d983d6c3173b7da97558ac4b589edec2dfe443db9ad"
+  },
+  {
+    "path": "pilot/_backup_pack14_fix/pack14-fix-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "0800f10adb1c9405c9b47604a04f25445db92a2e76268e1f57e7d7365b08dec0",
+    "sha256_interim": "0800f10adb1c9405c9b47604a04f25445db92a2e76268e1f57e7d7365b08dec0"
+  },
+  {
+    "path": "pilot/_backup_pack15_fix/eval-report-v1.before.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "90f5076494038d08562abaa370ee8612afa2ff8ed75c377f566d70c2689dcfcb",
+    "sha256_interim": "90f5076494038d08562abaa370ee8612afa2ff8ed75c377f566d70c2689dcfcb"
+  },
+  {
+    "path": "pilot/_backup_pack15_fix/eval-report-v1.before_w4_realrun.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "90f5076494038d08562abaa370ee8612afa2ff8ed75c377f566d70c2689dcfcb",
+    "sha256_interim": "90f5076494038d08562abaa370ee8612afa2ff8ed75c377f566d70c2689dcfcb"
+  },
+  {
+    "path": "pilot/_backup_pack15_fix/qa15_verification_run_eval-report-v1.RUN10.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "931bbcc80a9e98f7c7d0ceb9813a8e0bbc4b3b860bcf103ee7f888387a5547dd",
+    "sha256_interim": "931bbcc80a9e98f7c7d0ceb9813a8e0bbc4b3b860bcf103ee7f888387a5547dd"
+  },
+  {
+    "path": "pilot/deploy/README.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "4435a67b63a6a06006fe6f910fd8c5059577367adc5dccc4a0d52252950b3234",
+    "sha256_interim": "4435a67b63a6a06006fe6f910fd8c5059577367adc5dccc4a0d52252950b3234"
+  },
+  {
+    "path": "pilot/docs/_archive/2026-11-19/eval-report-pack13-snapshot.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "208596bc5f07c87e12267a28d6480685e13647e7c27b181429adaec43398cf0b",
+    "sha256_interim": "208596bc5f07c87e12267a28d6480685e13647e7c27b181429adaec43398cf0b"
+  },
+  {
+    "path": "pilot/docs/_archive/2026-11-19/eval-report-pack16a-ask.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "4d17b4d40207f66f1635fc37eed01b1ff10f2ef7041fd4e761a0e2c00069ef78",
+    "sha256_interim": "4d17b4d40207f66f1635fc37eed01b1ff10f2ef7041fd4e761a0e2c00069ef78"
+  },
+  {
+    "path": "pilot/docs/eval-report-v1.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "4ae39c4198ffa84f6cbb5c4c87a82fae7c0754e5e4bc2cb64080faf648e13562",
+    "sha256_interim": "4ae39c4198ffa84f6cbb5c4c87a82fae7c0754e5e4bc2cb64080faf648e13562"
+  },
+  {
+    "path": "pilot/docs/final-local-acceptance.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "4607ad1e5136909bf626088443614dda4d773a7ff5cecf8ea879160c541e2006",
+    "sha256_interim": "4607ad1e5136909bf626088443614dda4d773a7ff5cecf8ea879160c541e2006"
+  },
+  {
+    "path": "pilot/docs/iteration-backlog.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "984967c284b18a34730e8fcc48dca842e8495f780f48710a89bf3d6d622a36f5",
+    "sha256_interim": "984967c284b18a34730e8fcc48dca842e8495f780f48710a89bf3d6d622a36f5"
+  },
+  {
+    "path": "pilot/docs/local-verification-2026-11-19.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "4189bd88ac291c7ae179b99bd0ffd8cb18647520239fcc25776b42ee850c0a36",
+    "sha256_interim": "4189bd88ac291c7ae179b99bd0ffd8cb18647520239fcc25776b42ee850c0a36"
+  },
+  {
+    "path": "pilot/docs/pack14-fix-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "0800f10adb1c9405c9b47604a04f25445db92a2e76268e1f57e7d7365b08dec0",
+    "sha256_interim": "0800f10adb1c9405c9b47604a04f25445db92a2e76268e1f57e7d7365b08dec0"
+  },
+  {
+    "path": "pilot/docs/pack14-omission.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "4763374733f780e05de0fe290d4632a0e869fb3b30a829d2b2e2439b10e805e5",
+    "sha256_interim": "4763374733f780e05de0fe290d4632a0e869fb3b30a829d2b2e2439b10e805e5"
+  },
+  {
+    "path": "pilot/docs/pack14-z5-qa-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "6982ac6358ff665b2d9aa32c90cd4611e418fa67d4463a4b51195bd48a6406f0",
+    "sha256_interim": "6982ac6358ff665b2d9aa32c90cd4611e418fa67d4463a4b51195bd48a6406f0"
+  },
+  {
+    "path": "pilot/docs/pack15-qa-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "e93e5e10071bfc1678ca1b0b4e0fa2c7f4419176fbb50f1958baf0a782a67465",
+    "sha256_interim": "e93e5e10071bfc1678ca1b0b4e0fa2c7f4419176fbb50f1958baf0a782a67465"
+  },
+  {
+    "path": "pilot/docs/pack16a-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "b7956ead5c48ca6aa7a7f9ee3a1496e864ee5f2cefe33092b52c4e1021f37bc3",
+    "sha256_interim": "b7956ead5c48ca6aa7a7f9ee3a1496e864ee5f2cefe33092b52c4e1021f37bc3"
+  },
+  {
+    "path": "pilot/docs/pack16b-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "85d3a4d87f3665195d09c9adb6984abfed5068419919471e421ce26901f6e917",
+    "sha256_interim": "85d3a4d87f3665195d09c9adb6984abfed5068419919471e421ce26901f6e917"
+  },
+  {
+    "path": "pilot/docs/pack16c-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "1d958fa3c51008bdd9642d5749122415657c8e94749978445e3bcacf5ffe0246",
+    "sha256_interim": "1d958fa3c51008bdd9642d5749122415657c8e94749978445e3bcacf5ffe0246"
+  },
+  {
+    "path": "pilot/docs/pack17a-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "92bad83a9d454690a6e2b4bda58fadd17fcdf2040070ca6298c3fa98e13354ab",
+    "sha256_interim": "92bad83a9d454690a6e2b4bda58fadd17fcdf2040070ca6298c3fa98e13354ab"
+  },
+  {
+    "path": "pilot/docs/pack17b-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "22da37c1d9a59c1bc1be1b91df263df35589b47afdd91e72be36ce42b4fdedbd",
+    "sha256_interim": "22da37c1d9a59c1bc1be1b91df263df35589b47afdd91e72be36ce42b4fdedbd"
+  },
+  {
+    "path": "pilot/docs/pack18-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "62c17f7d1f9956877aec99be4713a7804b8ad4e09d2e975f593ac9b0eaf0137d",
+    "sha256_interim": "62c17f7d1f9956877aec99be4713a7804b8ad4e09d2e975f593ac9b0eaf0137d"
+  },
+  {
+    "path": "pilot/docs/pack19-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "121b7351ac761a8edfb8323e7661acf13dff6f2f75393040fe87bd4fa110c514",
+    "sha256_interim": "121b7351ac761a8edfb8323e7661acf13dff6f2f75393040fe87bd4fa110c514"
+  },
+  {
+    "path": "pilot/docs/pack20-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "073da711dfb5d6c101ca51fb970833fa5b58dcc8d92a4b46b280aaab980b3d63",
+    "sha256_interim": "073da711dfb5d6c101ca51fb970833fa5b58dcc8d92a4b46b280aaab980b3d63"
+  },
+  {
+    "path": "pilot/docs/pack21-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "3afd06197e8159cfe569c56a5263b17484f60d5ee65d1a33a9278813619ba460",
+    "sha256_interim": "3afd06197e8159cfe569c56a5263b17484f60d5ee65d1a33a9278813619ba460"
+  },
+  {
+    "path": "pilot/docs/pack22-context-pack.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "d242e12de6f71de33d965985ae6683de3894ef897f987dbbe874d9d660c56e92",
+    "sha256_interim": "d242e12de6f71de33d965985ae6683de3894ef897f987dbbe874d9d660c56e92"
+  },
+  {
+    "path": "pilot/docs/pack22-data-source-plan.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "facfdb4c9d9c4a6b26becbdc788a7bbe89aad541133f4206e43d88612d01a3aa",
+    "sha256_interim": "facfdb4c9d9c4a6b26becbdc788a7bbe89aad541133f4206e43d88612d01a3aa"
+  },
+  {
+    "path": "pilot/docs/pack23-rbac.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "4a1a54c925b53e2c697c9ad957b0bd661dd661fbdb1b327191dfab4015459d4e",
+    "sha256_interim": "4a1a54c925b53e2c697c9ad957b0bd661dd661fbdb1b327191dfab4015459d4e"
+  },
+  {
+    "path": "pilot/docs/pack24-report.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "364d7c5fd5f16f4167c265fc11ab702d3345c3ff4c376665d8c679e48a404b0a",
+    "sha256_interim": "364d7c5fd5f16f4167c265fc11ab702d3345c3ff4c376665d8c679e48a404b0a"
+  },
+  {
+    "path": "pilot/docs/pack25-1688-first-layer.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "e0ef50af744a9a3d41f9633f1123f9639140cfe1409a3b0ca6d95640245603b8",
+    "sha256_interim": "e0ef50af744a9a3d41f9633f1123f9639140cfe1409a3b0ca6d95640245603b8"
+  },
+  {
+    "path": "pilot/docs/public-dataset.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "8b1fd71c968b010ea9c2b93fe12c1db37dac6373a6f4968ed016152672d2be22",
+    "sha256_interim": "8b1fd71c968b010ea9c2b93fe12c1db37dac6373a6f4968ed016152672d2be22"
+  },
+  {
+    "path": "pilot/docs/reject-matrix.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "b8133798f3e3ddeb24fa3724d2d98bc8c0fc41161d110c0db61880d670dcf767",
+    "sha256_interim": "b8133798f3e3ddeb24fa3724d2d98bc8c0fc41161d110c0db61880d670dcf767"
+  },
+  {
+    "path": "pilot/docs/封版报告.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "18b7af9a8c0ba52de35fd2bb19e568f3bdb6c4e2fc36827c053bba1fa649adbc",
+    "sha256_interim": "18b7af9a8c0ba52de35fd2bb19e568f3bdb6c4e2fc36827c053bba1fa649adbc"
+  },
+  {
+    "path": "pilot/README.md",
+    "before": null,
+    "after": null,
+    "note": "旧 pilot 实施/验收历史，保留原证据；不作为外包项目部署或全需求验收依据。",
+    "sha256_after": "0674f41229e6f6ddb7e62a4fb9e249a6bf060d657e7f2d583d128faa8b174d38",
+    "sha256_interim": "0674f41229e6f6ddb7e62a4fb9e249a6bf060d657e7f2d583d128faa8b174d38"
+  }
+]

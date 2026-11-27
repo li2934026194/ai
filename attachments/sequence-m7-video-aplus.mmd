@@ -1,0 +1,7 @@
+sequenceDiagram
+    UI->>API: 创建SHORT_VIDEO任务
+    API->>ComfyUI: 提交已发布SVD工作流及模型版本
+    UI->>API: sync轮询真实进度
+    API->>ComfyUI: history及view回收真实视频
+    API->>DB: MIME匹配且非空视频字节入file_data
+    API->>UI: 成功可播放下载；不是自动视觉合规或发布

@@ -31,3 +31,8 @@ Thumbs.db
 *.docx
 *.doc
 ~$*.doc*
+
+# Local document renderer and visual QA artifacts
+/.tools/
+/LibreOffice_*_Win_x86-64.msi
+/docs/teacher-baseline/render-*/

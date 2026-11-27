@@ -1,0 +1,499 @@
+[
+  {
+    "docx": "crosspilot-arena/docs/detailed-design.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/03_lld.md",
+    "sha256": "0ac42348fec0752bfe516b4018d518be0db8303022a688338f83c1ee7041cb76",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-7.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-8.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0ac42348fec0\\page-9.png"
+    ],
+    "page_count": 9,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/02_hld.md",
+    "sha256": "605830b0561dc837ebe0615c49060c30c74c155d7d42c5d78575ffffa5627727",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\605830b0561d",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\605830b0561d\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\605830b0561d\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\605830b0561d\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/04_test_cases.md",
+    "sha256": "a759efc7e7c29399ed135c832fe6ee30637d8d645b4e1d2a29d1f3412cdaf913",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\a759efc7e7c2",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a759efc7e7c2\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a759efc7e7c2\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a759efc7e7c2\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a759efc7e7c2\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a759efc7e7c2\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a759efc7e7c2\\page-6.png"
+    ],
+    "page_count": 6,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/01_requirements.md",
+    "sha256": "c1f006c51499d6a731eb41f86151550d81f20e10cb69f30c7a89eea1ab2cca54",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\c1f006c51499",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c1f006c51499\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c1f006c51499\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c1f006c51499\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m0/02_hld.md",
+    "sha256": "c47c52ca2084105ab96bf71464196e0a60bccaf0fb684b2ace324e00ec6f45bf",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\c47c52ca2084",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c47c52ca2084\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c47c52ca2084\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c47c52ca2084\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m0/04_test_cases.md",
+    "sha256": "be39f280ef9f1357ffa6c102ce2c94508bbf892c0b70d474ee45acb5eb93ecba",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\be39f280ef9f",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\be39f280ef9f\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\be39f280ef9f\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\be39f280ef9f\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\be39f280ef9f\\page-4.png"
+    ],
+    "page_count": 4,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m0/03_lld.md",
+    "sha256": "e715b6df5f18ca266df719936a2da4d4df6bfd3f2225eec40cc31f97e9b83a3b",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-7.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-8.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e715b6df5f18\\page-9.png"
+    ],
+    "page_count": 9,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m0/01_requirements.md",
+    "sha256": "04e42a272ad1e11acc354a391bb7c57d02b68de4db7ff82300d4ce11fc0e6214",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\04e42a272ad1",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\04e42a272ad1\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\04e42a272ad1\\page-2.png"
+    ],
+    "page_count": 2,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m1/02_hld.md",
+    "sha256": "3beceb9d8df390b9f1e1615492e036f57c0b35a531ea30b3473447710c7756ba",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\3beceb9d8df3",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3beceb9d8df3\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3beceb9d8df3\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3beceb9d8df3\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m1/04_test_cases.md",
+    "sha256": "aaadfa14f23fab95d7e97fffa077d88d0c5c559946eca062f5425e7dd87a7d64",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f\\page-7.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\aaadfa14f23f\\page-8.png"
+    ],
+    "page_count": 8,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m1/03_lld.md",
+    "sha256": "356bd05957678753d47f31e5ecf1f8f65e9074e1b2db448a2fe522bcc40654c6",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-7.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-8.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\356bd0595767\\page-9.png"
+    ],
+    "page_count": 9,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m1/01_requirements.md",
+    "sha256": "0b1d5ae22caa418555f1db74448653f89679e4a5aee254b25f3859fd0e61584d",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\0b1d5ae22caa",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0b1d5ae22caa\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0b1d5ae22caa\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0b1d5ae22caa\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\0b1d5ae22caa\\page-4.png"
+    ],
+    "page_count": 4,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m2_m3/02_hld.md",
+    "sha256": "23a4ce5cd8abf49a2fb8e1cb41c6493ff4960a0474e0dfd8e71917dbf53abde2",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\23a4ce5cd8ab",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\23a4ce5cd8ab\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\23a4ce5cd8ab\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\23a4ce5cd8ab\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m2_m3/04_test_cases.md",
+    "sha256": "240f38965ba29dc1a9f6d0f42821d45e898f653c47d3c378240a1d74b050154d",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\240f38965ba2",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\240f38965ba2\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\240f38965ba2\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\240f38965ba2\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\240f38965ba2\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\240f38965ba2\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\240f38965ba2\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\240f38965ba2\\page-7.png"
+    ],
+    "page_count": 7,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m2_m3/03_lld.md",
+    "sha256": "b112cf11f5ea03f4698e0ed644a171c56b507d00373bae880220b7744b63720b",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea\\page-7.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\b112cf11f5ea\\page-8.png"
+    ],
+    "page_count": 8,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m2_m3/01_requirements.md",
+    "sha256": "4da86bb384df4de00adc9e7a5cfc6d8c2741e05831d6891f4a537bf3290f2c50",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\4da86bb384df",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\4da86bb384df\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\4da86bb384df\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\4da86bb384df\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m4/02_hld.md",
+    "sha256": "54676bc7999982405c92ecafb37df73134e0cd6d445df98281437d9b42f78095",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\54676bc79999",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\54676bc79999\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\54676bc79999\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\54676bc79999\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m4/04_test_cases.md",
+    "sha256": "f344499a39fe727d57c310a6668b9f1d1ad3c55f02f9a863273054b60375fead",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\f344499a39fe",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\f344499a39fe\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\f344499a39fe\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\f344499a39fe\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\f344499a39fe\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\f344499a39fe\\page-5.png"
+    ],
+    "page_count": 5,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m4/03_lld.md",
+    "sha256": "79cf5866629d8bfde2e9654459df01cbf8c139cc2f81dbaa0bffabbc3b325ec0",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-7.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-8.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-9.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\79cf5866629d\\page-10.png"
+    ],
+    "page_count": 10,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m4/01_requirements.md",
+    "sha256": "ed7768a65174b895e007d870f153ea674b3285ddd429f02765389eb900499f41",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\ed7768a65174",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\ed7768a65174\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\ed7768a65174\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\ed7768a65174\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m5_m6/02_hld.md",
+    "sha256": "2c5154d97781db88f92394e1723e18b55cadaa147f2d152e9a76f4e0784d2872",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\2c5154d97781",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\2c5154d97781\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\2c5154d97781\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\2c5154d97781\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m5_m6/04_test_cases.md",
+    "sha256": "3caf20b3d0bc7701e074a954b122e00cd10c1bf62d97905e8b825effbb396cfc",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc\\page-7.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\3caf20b3d0bc\\page-8.png"
+    ],
+    "page_count": 8,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m5_m6/03_lld.md",
+    "sha256": "5a7f59784ced2b5cccc619c5ade072762a3b78d7fbbfd724b26503865adacec5",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-7.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-8.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-9.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-10.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-11.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-12.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\5a7f59784ced\\page-13.png"
+    ],
+    "page_count": 13,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m5_m6/01_requirements.md",
+    "sha256": "43d4ab0751d628173c3ff7f4d4d9bc54df70bb0d905612fe18a99a26864187b4",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\43d4ab0751d6",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\43d4ab0751d6\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\43d4ab0751d6\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\43d4ab0751d6\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\43d4ab0751d6\\page-4.png"
+    ],
+    "page_count": 4,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m8/02_hld.md",
+    "sha256": "c54da6d8a2bb2afdbccf1ec01dee26c5bb63ad2fc930577678afc0ce55bf4dfe",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\c54da6d8a2bb",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c54da6d8a2bb\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c54da6d8a2bb\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c54da6d8a2bb\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m8/04_test_cases.md",
+    "sha256": "45419f348bfa2ed9fc7742c971eccc6adb95da5cef25bc58da107f51ca1621d9",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\45419f348bfa",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\45419f348bfa\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\45419f348bfa\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\45419f348bfa\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\45419f348bfa\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\45419f348bfa\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\45419f348bfa\\page-6.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\45419f348bfa\\page-7.png"
+    ],
+    "page_count": 7,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m8/03_lld.md",
+    "sha256": "e92b4ec7c5d85feac2d928b50af9269309a6b02b26f368c43b7ee7510ff55973",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\e92b4ec7c5d8",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e92b4ec7c5d8\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e92b4ec7c5d8\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e92b4ec7c5d8\\page-3.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e92b4ec7c5d8\\page-4.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e92b4ec7c5d8\\page-5.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\e92b4ec7c5d8\\page-6.png"
+    ],
+    "page_count": 6,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m8/01_requirements.md",
+    "sha256": "a71e09dbd29f9a8553d93233f8644a48c8af77690bf3128047e262f2f35531bc",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\a71e09dbd29f",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a71e09dbd29f\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a71e09dbd29f\\page-2.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\a71e09dbd29f\\page-3.png"
+    ],
+    "page_count": 3,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs/plans/需求分析文档_V2_对齐SRS与V6数据流.docx",
+    "markdown": "crosspilot-arena/docs/plans/需求分析文档_V2_对齐SRS与V6数据流.md",
+    "sha256": "c81c18e2fa86536751c9d0f4491da98753d310b24e4496c4d020b73dd71900ca",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\c81c18e2fa86",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\c81c18e2fa86\\page-1.png"
+    ],
+    "page_count": 1,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs/plans/srs-deviation-analysis.docx",
+    "markdown": "crosspilot-arena/docs/plans/srs-deviation-analysis.md",
+    "sha256": "790eb22e2a72fab42a6a9deaae397e00affd9a46cbe4e118e36a1dbc544df73a",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\790eb22e2a72",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\790eb22e2a72\\page-1.png"
+    ],
+    "page_count": 1,
+    "visual_review": "PENDING"
+  },
+  {
+    "docx": "crosspilot-arena/docs/plans/业务与数据通俗说明_123步骤.docx",
+    "markdown": "crosspilot-arena/docs/plans/业务与数据通俗说明_123步骤.md",
+    "sha256": "34174d3150c1c912d8f756ee8b60dc9d7c41082f5ebb005079a71d73c9a83015",
+    "exit_code": 0,
+    "render_dir": "D:\\ai\\docs\\teacher-baseline\\render-final\\34174d3150c1",
+    "pages": [
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\34174d3150c1\\page-1.png",
+      "D:\\ai\\docs\\teacher-baseline\\render-final\\34174d3150c1\\page-2.png"
+    ],
+    "page_count": 2,
+    "visual_review": "PENDING"
+  }
+]

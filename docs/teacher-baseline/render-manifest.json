@@ -1,0 +1,202 @@
+[
+  {
+    "docx": "crosspilot-arena/docs/detailed-design.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/03_lld.md",
+    "sha256": "0ac42348fec0752bfe516b4018d518be0db8303022a688338f83c1ee7041cb76"
+  },
+  {
+    "docx": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/02_hld.md",
+    "sha256": "605830b0561dc837ebe0615c49060c30c74c155d7d42c5d78575ffffa5627727"
+  },
+  {
+    "docx": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/04_test_cases.md",
+    "sha256": "1a810685ce90b534964dca690919de0af83bf0f2819e1867acc9feda65f7c2d8"
+  },
+  {
+    "docx": "crosspilot-arena/docs/requirements/CrossPilot-M7商品内容创作与合规交付需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/01_requirements.md",
+    "sha256": "c1f006c51499d6a731eb41f86151550d81f20e10cb69f30c7a89eea1ab2cca54"
+  },
+  {
+    "docx": "crosspilot-arena/docs/requirements/CrossPilot-M7测试用例思维导图大纲.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/04_test_cases.md",
+    "sha256": "1a810685ce90b534964dca690919de0af83bf0f2819e1867acc9feda65f7c2d8"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m0/02_hld.md",
+    "sha256": "c47c52ca2084105ab96bf71464196e0a60bccaf0fb684b2ace324e00ec6f45bf"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m0/04_test_cases.md",
+    "sha256": "7e2fed4d69df3741ddc8b34c4e111c5283a322cd849242fecf4ed8ba93927e87"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m0/03_lld.md",
+    "sha256": "e715b6df5f18ca266df719936a2da4d4df6bfd3f2225eec40cc31f97e9b83a3b"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m0/CrossPilot-M0店铺接入与商品主档需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m0/01_requirements.md",
+    "sha256": "04e42a272ad1e11acc354a391bb7c57d02b68de4db7ff82300d4ce11fc0e6214"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m1/02_hld.md",
+    "sha256": "3beceb9d8df390b9f1e1615492e036f57c0b35a531ea30b3473447710c7756ba"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m1/04_test_cases.md",
+    "sha256": "d186d4ea3c13ca38354117b3fb9de023d54de0465f8ff32e35221d104a366f3e"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m1/03_lld.md",
+    "sha256": "356bd05957678753d47f31e5ecf1f8f65e9074e1b2db448a2fe522bcc40654c6"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m1/CrossPilot-M1客服导购与售后闭环需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m1/01_requirements.md",
+    "sha256": "0b1d5ae22caa418555f1db74448653f89679e4a5aee254b25f3859fd0e61584d"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m2_m3/02_hld.md",
+    "sha256": "23a4ce5cd8abf49a2fb8e1cb41c6493ff4960a0474e0dfd8e71917dbf53abde2"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m2_m3/04_test_cases.md",
+    "sha256": "7be24ef82eb5229d5f78efb16197e7bd427c3756c782d1f44a94c24f8e9c406e"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m2_m3/03_lld.md",
+    "sha256": "b112cf11f5ea03f4698e0ed644a171c56b507d00373bae880220b7744b63720b"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m2_m3/CrossPilot-M2M3经营分析与智能问数需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m2_m3/01_requirements.md",
+    "sha256": "4da86bb384df4de00adc9e7a5cfc6d8c2741e05831d6891f4a537bf3290f2c50"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m4/02_hld.md",
+    "sha256": "54676bc7999982405c92ecafb37df73134e0cd6d445df98281437d9b42f78095"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m4/04_test_cases.md",
+    "sha256": "90be3dad3562925a7f4bc7b66cf84006f28d88b5d9a64a90bd1b4449c7438c03"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m4/03_lld.md",
+    "sha256": "79cf5866629d8bfde2e9654459df01cbf8c139cc2f81dbaa0bffabbc3b325ec0"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m4/CrossPilot-M4智能选品与过会决策需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m4/01_requirements.md",
+    "sha256": "ed7768a65174b895e007d870f153ea674b3285ddd429f02765389eb900499f41"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m5_m6/02_hld.md",
+    "sha256": "2c5154d97781db88f92394e1723e18b55cadaa147f2d152e9a76f4e0784d2872"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m5_m6/04_test_cases.md",
+    "sha256": "d5b33eadf099656a07335065f32854a84982be27368d950a59f0dc22dc87b686"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m5_m6/03_lld.md",
+    "sha256": "5a7f59784ced2b5cccc619c5ade072762a3b78d7fbbfd724b26503865adacec5"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m5_m6/CrossPilot-M5M6销量预测与智能补货需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m5_m6/01_requirements.md",
+    "sha256": "9c85ef221aaa22d3cb242ace85fbd232cda6bcdcac0a2e6e51b23ae8ed7d9d74"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m8/02_hld.md",
+    "sha256": "c54da6d8a2bb2afdbccf1ec01dee26c5bb63ad2fc930577678afc0ce55bf4dfe"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m8/04_test_cases.md",
+    "sha256": "3908e3791e339a00919614dd87cfaf78acc70771b6f5a828b97da7cf01e56350"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座详细设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m8/03_lld.md",
+    "sha256": "e92b4ec7c5d85feac2d928b50af9269309a6b02b26f368c43b7ee7510ff55973"
+  },
+  {
+    "docx": "crosspilot-arena/docs-docx/docs/modules/m8/CrossPilot-M8组织权限与平台底座需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m8/01_requirements.md",
+    "sha256": "a71e09dbd29f9a8553d93233f8644a48c8af77690bf3128047e262f2f35531bc"
+  },
+  {
+    "docx": "docx-all/docs/detailed-design.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/03_lld.md",
+    "sha256": "0ac42348fec0752bfe516b4018d518be0db8303022a688338f83c1ee7041cb76"
+  },
+  {
+    "docx": "docx-all/docs/requirements/CrossPilot-M7商品内容创作与合规交付概要设计说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/02_hld.md",
+    "sha256": "605830b0561dc837ebe0615c49060c30c74c155d7d42c5d78575ffffa5627727"
+  },
+  {
+    "docx": "docx-all/docs/requirements/CrossPilot-M7商品内容创作与合规交付测试用例.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/04_test_cases.md",
+    "sha256": "1a810685ce90b534964dca690919de0af83bf0f2819e1867acc9feda65f7c2d8"
+  },
+  {
+    "docx": "docx-all/docs/requirements/CrossPilot-M7商品内容创作与合规交付需求说明书.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/01_requirements.md",
+    "sha256": "c1f006c51499d6a731eb41f86151550d81f20e10cb69f30c7a89eea1ab2cca54"
+  },
+  {
+    "docx": "docx-all/docs/requirements/CrossPilot-M7测试用例思维导图大纲.docx",
+    "markdown": "crosspilot-arena/docs/modules/m7/04_test_cases.md",
+    "sha256": "1a810685ce90b534964dca690919de0af83bf0f2819e1867acc9feda65f7c2d8"
+  },
+  {
+    "docx": "crosspilot-arena/docs/plans/需求分析文档_V2_对齐SRS与V6数据流.docx",
+    "markdown": "crosspilot-arena/docs/plans/需求分析文档_V2_对齐SRS与V6数据流.md",
+    "sha256": "c81c18e2fa86536751c9d0f4491da98753d310b24e4496c4d020b73dd71900ca"
+  },
+  {
+    "docx": "docx-all/docs/plans/需求分析文档_V2_对齐SRS与V6数据流.docx",
+    "markdown": "crosspilot-arena/docs/plans/需求分析文档_V2_对齐SRS与V6数据流.md",
+    "sha256": "c81c18e2fa86536751c9d0f4491da98753d310b24e4496c4d020b73dd71900ca"
+  },
+  {
+    "docx": "crosspilot-arena/docs/plans/srs-deviation-analysis.docx",
+    "markdown": "crosspilot-arena/docs/plans/srs-deviation-analysis.md",
+    "sha256": "790eb22e2a72fab42a6a9deaae397e00affd9a46cbe4e118e36a1dbc544df73a"
+  },
+  {
+    "docx": "docx-all/docs/plans/srs-deviation-analysis.docx",
+    "markdown": "crosspilot-arena/docs/plans/srs-deviation-analysis.md",
+    "sha256": "790eb22e2a72fab42a6a9deaae397e00affd9a46cbe4e118e36a1dbc544df73a"
+  },
+  {
+    "docx": "crosspilot-arena/docs/plans/业务与数据通俗说明_123步骤.docx",
+    "markdown": "crosspilot-arena/docs/plans/业务与数据通俗说明_123步骤.md",
+    "sha256": "34174d3150c1c912d8f756ee8b60dc9d7c41082f5ebb005079a71d73c9a83015"
+  },
+  {
+    "docx": "docx-all/docs/plans/业务与数据通俗说明_123步骤.docx",
+    "markdown": "crosspilot-arena/docs/plans/业务与数据通俗说明_123步骤.md",
+    "sha256": "34174d3150c1c912d8f756ee8b60dc9d7c41082f5ebb005079a71d73c9a83015"
+  }
+]

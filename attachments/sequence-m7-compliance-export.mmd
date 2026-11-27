@@ -1,0 +1,7 @@
+sequenceDiagram
+    UI->>API: 指定资产版本与区段送检
+    API->>DB: 读取规则版本与选中素材
+    API->>DB: 保存独立ComplianceCheck
+    Approver->>API: 真实权限版本理由审批，禁止自批
+    API->>DB: 保存审批与资产版本快照
+    API->>UI: 仅返回审批结果；版本变更旧审批失效
