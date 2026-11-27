@@ -71,6 +71,7 @@ class M0Product(Base):
     origin: Mapped[str] = mapped_column(String(32), nullable=False, default="IN_STORE_REFRESH")
     approver: Mapped[str] = mapped_column(String(64), nullable=False, default="在售老品翻新")
     decision_reason: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    image_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     specs_json: Mapped[dict] = mapped_column(JSONBCompat, nullable=False, default=dict)
     selling_points_json: Mapped[list] = mapped_column(JSONBCompat, nullable=False, default=list)
     updated_at: Mapped[datetime] = mapped_column(

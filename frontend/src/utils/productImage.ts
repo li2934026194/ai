@@ -1,18 +1,9 @@
-const KNOWN_PRODUCT_SKUS = new Set([
-  "SKU-00704",
-  "BAG-108",
-  "FAN-203",
-  "COS-052",
-  "MNT-405",
-  "LED-812",
-  "PET-905",
-]);
-
-export function getProductImageUrl(sku?: string | null): string | null {
-  const clean = (sku || "").trim().toUpperCase();
-  if (!clean) return null;
-  if (KNOWN_PRODUCT_SKUS.has(clean)) {
-    return `/product-images/${clean}.png`;
-  }
-  return null;
+/**
+ * 商品图片地址：完全来自数据库返回的 image_url 字段。
+ * 后端把它指向 /api/v1/product-images/{sku}.png，接口从 MinIO 读真实商品图。
+ * 不再使用前端写死的 SKU 白名单——图片与商品在数据库层面绑定。
+ */
+export function getProductImageUrl(imageUrl?: string | null): string | null {
+  const url = (imageUrl || "").trim();
+  return url.length > 0 ? url : null;
 }

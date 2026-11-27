@@ -14,7 +14,7 @@ async def test_healthz_reports_infra_matrix_and_adapters(test_ctx, tmp_path):
     assert r.status_code == 200
     data = r.json()["data"]
     assert data["status"] == "healthy"
-    assert data["database_dialect"] in {"sqlite", "postgresql"}
+    assert data["database_dialect"] == "postgresql"
     assert data["storage_writable"] is True
     assert data["storage_backend"] in {"local", "minio"}
     assert "redis_status" in data

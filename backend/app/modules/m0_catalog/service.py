@@ -200,6 +200,7 @@ class M0CatalogService:
                 "origin": r.origin,
                 "approver": r.approver,
                 "decision_reason": r.decision_reason,
+                "image_url": r.image_url,
                 "specs": r.specs_json or {},
                 "selling_points": r.selling_points_json or [],
             }
@@ -393,19 +394,30 @@ class M0CatalogService:
         rows = (
             await session.scalars(select(M0Inventory).where(M0Inventory.org_id == org_id).order_by(M0Inventory.sku))
         ).all()
-        return [
-            {
-                "inv_id": r.inv_id,
-                "warehouse_code": r.warehouse_code,
-                "sku": r.sku,
-                "on_hand": r.on_hand,
-                "in_transit": r.in_transit,
-                "reserved": r.reserved,
-                "available": r.on_hand,
-                "last_stocktake_by": r.last_stocktake_by,
-            }
-            for r in rows
-        ]
+        # 商品图片按 SKU 建立映射，库存行带出商品的真实图片
+        product_rows = (
+            await session.scalars(select(M0Product).where(M0Product.org_id == org_id))
+        ).all()
+        image_by_sku = {}
+        for p in product_rows:
+            image_by_sku[p.sku] = p.image_url
+
+        result = []
+        for r in rows:
+            result.append(
+                {
+                    "inv_id": r.inv_id,
+                    "warehouse_code": r.warehouse_code,
+                    "sku": r.sku,
+                    "on_hand": r.on_hand,
+                    "in_transit": r.in_transit,
+                    "reserved": r.reserved,
+                    "available": r.on_hand,
+                    "last_stocktake_by": r.last_stocktake_by,
+                    "image_url": image_by_sku.get(r.sku),
+                }
+            )
+        return result
 
     async def list_fx_rates(self, session: AsyncSession, org_id: str) -> list[dict]:
         rows = (

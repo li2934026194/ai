@@ -111,8 +111,8 @@ onMounted(() => void load());
               <td>
                 <div style="display:flex;align-items:center;gap:8px;">
                   <img
-                    v-if="getProductImageUrl(c.sku)"
-                    :src="getProductImageUrl(c.sku)!"
+                    v-if="getProductImageUrl(c.image_url)"
+                    :src="getProductImageUrl(c.image_url)!"
                     :alt="c.name"
                     style="width:34px;height:34px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;flex-shrink:0;"
                   />
@@ -139,8 +139,8 @@ onMounted(() => void load());
         <div class="card-title">
           <div style="display:flex;align-items:center;gap:10px;">
             <img
-              v-if="getProductImageUrl(selected.sku)"
-              :src="getProductImageUrl(selected.sku)!"
+              v-if="getProductImageUrl(selected.image_url)"
+              :src="getProductImageUrl(selected.image_url)!"
               :alt="selected.name"
               style="width:42px;height:42px;object-fit:contain;border-radius:8px;border:1px solid #cbd5e1;background:#fff;"
             />
@@ -199,8 +199,8 @@ onMounted(() => void load());
             <th v-for="it in comparedItems" :key="it.candidate_id">
               <div style="display:flex;align-items:center;gap:6px;">
                 <img
-                  v-if="getProductImageUrl(it.sku)"
-                  :src="getProductImageUrl(it.sku)!"
+                  v-if="getProductImageUrl(it.image_url)"
+                  :src="getProductImageUrl(it.image_url)!"
                   :alt="it.name"
                   style="width:28px;height:28px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;"
                 />

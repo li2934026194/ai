@@ -71,6 +71,7 @@ class M4SelectionService:
                 "submitter_id": r.submitter_id,
                 "approver_id": r.approver_id,
                 "decision_note": r.decision_note,
+                "image_url": r.image_url,
             }
             for r in rows
         ]

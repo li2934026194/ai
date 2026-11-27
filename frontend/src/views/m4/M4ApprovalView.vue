@@ -84,8 +84,8 @@ onMounted(() => void load());
             <td>
               <div style="display:flex;align-items:center;gap:8px;">
                 <img
-                  v-if="getProductImageUrl(c.sku)"
-                  :src="getProductImageUrl(c.sku)!"
+                  v-if="getProductImageUrl(c.image_url)"
+                  :src="getProductImageUrl(c.image_url)!"
                   :alt="c.name"
                   style="width:38px;height:38px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;flex-shrink:0;"
                 />

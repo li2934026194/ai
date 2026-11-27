@@ -12,6 +12,7 @@ from app.core.cache_queue import redis_cache
 from app.core.config import get_settings
 from app.core.database import AsyncSessionLocal, Base, engine, get_db_session
 from app.core.docs_router import router as docs_router
+from app.core.product_images_router import router as product_images_router
 from app.core.exceptions import M7Error, build_envelope, m7_exception_handler
 from app.core.storage import FileStorage
 from app.core.tenant import OrgContext, get_org_context
@@ -104,6 +105,7 @@ def create_app() -> FastAPI:
     app.include_router(m5_m6_router)
     app.include_router(m7_router)
     app.include_router(docs_router)
+    app.include_router(product_images_router)
 
     @app.get("/healthz")
     async def healthz(request: Request, session: AsyncSession = Depends(get_db_session)):

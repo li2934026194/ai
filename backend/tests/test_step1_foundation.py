@@ -27,9 +27,22 @@ from app.modules.m7_content.schemas import (
 
 
 def test_alembic_upgrade_creates_all_9_tables(tmp_path: Path):
-    db_path = tmp_path / "alembic_check.db"
+    import asyncio
+    import asyncpg
+
+    # 使用独立的 PostgreSQL 测试库，跑 alembic 前先清空 schema
+    test_url = "postgresql+asyncpg://crosspilot:crosspilot123@127.0.0.1:5432/crosspilot_test"
+    raw_url = test_url.replace("postgresql+asyncpg://", "postgresql://")
+
+    async def _reset():
+        conn = await asyncpg.connect(raw_url)
+        await conn.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+        await conn.close()
+
+    asyncio.run(_reset())
+
     env = os.environ.copy()
-    env["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_path}"
+    env["DATABASE_URL"] = test_url
     res = subprocess.run(
         [sys.executable, "-m", "alembic", "upgrade", "head"],
         cwd=str(Path(__file__).resolve().parents[1]),
@@ -40,14 +53,15 @@ def test_alembic_upgrade_creates_all_9_tables(tmp_path: Path):
     )
     assert res.returncode == 0
 
-    import sqlite3
+    async def _tables():
+        conn = await asyncpg.connect(raw_url)
+        rows = await conn.fetch(
+            "SELECT tablename FROM pg_tables WHERE schemaname='public'"
+        )
+        await conn.close()
+        return {r["tablename"] for r in rows}
 
-    con = sqlite3.connect(str(db_path))
-    tables = {
-        row[0]
-        for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
-    }
-    con.close()
+    tables = asyncio.run(_tables())
     expected = {
         "m7_workflow_registry",
         "m7_generation_jobs",
