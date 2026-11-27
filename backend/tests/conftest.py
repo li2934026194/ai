@@ -1,5 +1,7 @@
 from collections.abc import AsyncGenerator
+from contextlib import closing
 from pathlib import Path
+import sqlite3
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -30,6 +32,7 @@ async def test_ctx(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("M7_STRICT_SEPARATION_OF_DUTIES", "true")
     get_settings.cache_clear()
 
+    # 本地测试统一走 PostgreSQL 测试库，与业务库隔离；WAL 预置由 create_engine_from_url 内部处理。
     eng = create_engine_from_url(TEST_DATABASE_URL)
     await _reset_test_schema(eng)
     async with eng.begin() as conn:

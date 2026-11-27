@@ -1,6 +1,11 @@
 from collections.abc import AsyncGenerator
+from contextlib import closing
+import os
+import sqlite3
+
 from sqlalchemy import JSON, event
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -26,6 +31,12 @@ def create_engine_from_url(database_url: str) -> AsyncEngine:
     if database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
         connect_args["timeout"] = 30.0
+        # 在任何异步连接建立之前，用同步连接预置 WAL（此时无并发）并立即关闭句柄
+        db_path = make_url(database_url).database
+        if db_path and db_path != ":memory:":
+            os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+            with closing(sqlite3.connect(db_path, timeout=30.0)) as boot_conn:
+                boot_conn.execute("PRAGMA journal_mode=WAL;")
     else:
         # PostgreSQL asyncpg 连接池优化：支持 M2 4卡并发 + 多人本地压测不爆池
         engine_kwargs.update(
@@ -38,22 +49,12 @@ def create_engine_from_url(database_url: str) -> AsyncEngine:
         )
     engine = create_async_engine(database_url, connect_args=connect_args, **engine_kwargs)
     if database_url.startswith("sqlite"):
-        # WAL 是数据库文件级设置，engine 级只设一次。
-        # 并发下每个新连接都切换 journal 模式会让 Windows 部分连接进入只读。
-        wal_initialized = False
-
         @event.listens_for(engine.sync_engine, "connect")
         def _set_sqlite_pragma(dbapi_conn, _connection_record):
-            nonlocal wal_initialized
             cursor = dbapi_conn.cursor()
-            try:
-                cursor.execute("PRAGMA busy_timeout=30000;")
-                cursor.execute("PRAGMA foreign_keys=ON;")
-                if not wal_initialized:
-                    cursor.execute("PRAGMA journal_mode=WAL;")
-                    wal_initialized = True
-            except Exception:
-                pass
+            cursor.execute("PRAGMA busy_timeout=30000;")
+            cursor.execute("PRAGMA synchronous=NORMAL;")
+            cursor.execute("PRAGMA foreign_keys=ON;")
             cursor.close()
     return engine
 
