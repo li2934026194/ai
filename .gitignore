@@ -36,6 +36,11 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 
+# Local tool / runtime artifacts
+.workbuddy/
+backend/app/static/product-images/_candidates/
+backups/
+
 # Binary docs: source docx stays local, only the converted .md is committed
 *.docx
 *.doc
